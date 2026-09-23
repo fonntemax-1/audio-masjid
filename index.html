@@ -3901,7 +3901,7 @@
         getApiDate();
 
       gasApiCall('getHijriDateFromApi', { date: apiDate })
-        .withSuccessHandler(function(result) {
+        .then(function(result) {
 
           if (
             !result ||
@@ -3973,7 +3973,7 @@
           );
 
         })
-        .withFailureHandler(function(error) {
+        .catch(function(error) {
 
           console.error(
             'HIJRI API ERROR:',
@@ -3982,8 +3982,7 @@
               : error
           );
 
-        })
-;
+        });
 
     }
 
