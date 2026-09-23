@@ -863,108 +863,6 @@
 </head>
 
 <body>
-
-  <!-- =========================================================
-       GOOGLE APPS SCRIPT BRIDGE
-       Frontend utama berjalan di GitHub Pages.
-       Bridge tersembunyi menjalankan google.script.run di
-       domain Apps Script, lalu mengembalikan hasil via postMessage.
-       GANTI GAS_BRIDGE_URL dengan URL deployment /exec Anda.
-       ========================================================= -->
-  <script>
-    // =========================================================
-    // APPS SCRIPT API UNTUK GITHUB PAGES - JSONP
-    //
-    // Tidak memakai iframe / postMessage karena sandbox Apps Script
-    // menolak pesan langsung dari origin GitHub Pages.
-    // =========================================================
-    const GAS_API_URL =
-      'https://script.google.com/macros/s/AKfycbzNR2XTJWFhvTOONtxGhIOqxWT3rDeMHDHbASASh0I8GsrAOpPX66r_X-NH5OqBUHcM/exec';
-
-    let GAS_API_SEQUENCE = 0;
-
-    function gasCall(method) {
-      const args = Array.prototype.slice.call(arguments, 1);
-
-      return new Promise(function(resolve, reject) {
-        const callbackName =
-          '__gasJsonp_' +
-          Date.now() + '_' +
-          (++GAS_API_SEQUENCE);
-
-        let finished = false;
-        const script = document.createElement('script');
-
-        function cleanup() {
-          try {
-            delete window[callbackName];
-          } catch (e) {
-            window[callbackName] = undefined;
-          }
-          if (script.parentNode) {
-            script.parentNode.removeChild(script);
-          }
-        }
-
-        const timeout = setTimeout(function() {
-          if (finished) return;
-          finished = true;
-          cleanup();
-          reject(new Error('Timeout menghubungi Apps Script API.'));
-        }, 30000);
-
-        window[callbackName] = function(payload) {
-          if (finished) return;
-          finished = true;
-          clearTimeout(timeout);
-          cleanup();
-
-          if (!payload || payload.success !== true) {
-            reject(new Error(
-              payload && payload.error
-                ? payload.error
-                : 'Apps Script API gagal.'
-            ));
-            return;
-          }
-
-          resolve(payload.data);
-        };
-
-        script.onerror = function() {
-          if (finished) return;
-          finished = true;
-          clearTimeout(timeout);
-          cleanup();
-          reject(new Error('Gagal memuat Apps Script API.'));
-        };
-
-        const url = new URL(GAS_API_URL);
-        url.searchParams.set('api', '1');
-        url.searchParams.set('action', method);
-        url.searchParams.set('callback', callbackName);
-
-        if (method === 'getHijriDateFromApi') {
-          url.searchParams.set(
-            'date',
-            args[0] === undefined ? '' : String(args[0])
-          );
-        }
-
-        if (method === 'getPrayerSchedule') {
-          url.searchParams.set(
-            'date',
-            args[0] === undefined ? '' : String(args[0])
-          );
-        }
-
-        script.src = url.toString();
-        script.async = true;
-        document.head.appendChild(script);
-      });
-    }
-  </script>
-
   <div class="screen-container">
     <div class="header">
       <div class="header-logo">
@@ -1242,6 +1140,108 @@
 
     const DEFAULT_LOGO_MASJID =
       'https://cdn-icons-png.flaticon.com/512/2913/2913008.png';
+
+
+    // =========================================================
+    // GITHUB PAGES -> GOOGLE APPS SCRIPT API
+    // JSONP dipakai agar frontend GitHub Pages tidak membutuhkan
+    // google.script.run dan tidak terkena pembatasan cross-origin.
+    // =========================================================
+
+    const GAS_API_URL =
+      'https://script.google.com/macros/s/AKfycbzNR2XTJWFhvTOONtxGhIOqxWT3rDeMHDHbASASh0I8GsrAOpPX66r_X-NH5OqBUHcM/exec';
+
+    let gasApiCallbackCounter = 0;
+
+    function gasApiCall(action, params) {
+
+      return new Promise(function(resolve, reject) {
+
+        const callbackName =
+          '__GAS_API_CALLBACK_' +
+          Date.now() +
+          '_' +
+          (++gasApiCallbackCounter);
+
+        const script =
+          document.createElement('script');
+
+        const query =
+          new URLSearchParams();
+
+        query.set('api', '1');
+        query.set('action', action);
+        query.set('callback', callbackName);
+
+        if (params && typeof params === 'object') {
+          Object.keys(params).forEach(function(key) {
+            const value = params[key];
+            if (value !== undefined && value !== null) {
+              query.set(key, String(value));
+            }
+          });
+        }
+
+        let finished = false;
+        let timeoutId = null;
+
+        function cleanup() {
+          try {
+            delete window[callbackName];
+          } catch (e) {
+            window[callbackName] = undefined;
+          }
+
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+        }
+
+        window[callbackName] = function(payload) {
+          if (finished) return;
+          finished = true;
+          cleanup();
+
+          if (!payload || payload.success !== true) {
+            reject(new Error(
+              payload && payload.error
+                ? payload.error
+                : 'Apps Script API gagal.'
+            ));
+            return;
+          }
+
+          resolve(payload.data);
+        };
+
+        script.onerror = function() {
+          if (finished) return;
+          finished = true;
+          cleanup();
+          reject(new Error(
+            'Gagal memuat Apps Script API.'
+          ));
+        };
+
+        timeoutId = setTimeout(function() {
+          if (finished) return;
+          finished = true;
+          cleanup();
+          reject(new Error(
+            'Timeout menghubungi Apps Script API.'
+          ));
+        }, 30000);
+
+        script.src =
+          GAS_API_URL + '?' + query.toString();
+
+        document.head.appendChild(script);
+      });
+    }
 
     let previousKeuanganJson = '';
     let previousInfaqJson = '';
@@ -2954,51 +2954,33 @@
 
     function loadEventRunningText() {
 
-      gasCall(
-        'getEventRunningText'
-      )
-        .then(
-          function(text) {
+      gasApiCall('getEventRunningText')
+        .then(function(text) {
 
-            const element =
-              document.getElementById(
-                'event-running'
-              );
-
-            if (!element) return;
-
-            const newText =
-              text || '';
-
-            if (
-              newText ===
-              previousEventText
-            ) return;
-
-            previousEventText =
-              newText;
-
-            element.innerText =
-              newText;
-
-            requestAnimationFrame(
-              function() {
-                startEventRunning();
-              }
+          const element =
+            document.getElementById(
+              'event-running'
             );
 
-          }
-        )
-        .catch(
-          function(error) {
+          if (!element) return;
 
-            console.error(
-              'Gagal mengambil data Event:',
-              error
-            );
+          const newText = text || '';
 
-          }
-        );
+          if (newText === previousEventText) return;
+
+          previousEventText = newText;
+          element.innerText = newText;
+
+          requestAnimationFrame(function() {
+            startEventRunning();
+          });
+        })
+        .catch(function(error) {
+          console.error(
+            'Gagal mengambil data Event:',
+            error
+          );
+        });
 
     }
 
@@ -3103,22 +3085,14 @@
 
     function fetchSheetData() {
 
-      gasCall(
-        'getDataFromSheet'
-      )
-        .then(
-          updateUI
-        )
-        .catch(
-          function(error) {
-
-            console.error(
-              'Gagal mengambil data sheet:',
-              error
-            );
-
-          }
-        );
+      gasApiCall('getDataFromSheet')
+        .then(updateUI)
+        .catch(function(error) {
+          console.error(
+            'Gagal mengambil data sheet:',
+            error
+          );
+        });
 
     }
 
@@ -3926,11 +3900,8 @@
       const apiDate =
         getApiDate();
 
-      gasCall(
-        'getHijriDateFromApi',
-        apiDate
-      )
-        .then(function(result) {
+      gasApiCall('getHijriDateFromApi', { date: apiDate })
+        .withSuccessHandler(function(result) {
 
           if (
             !result ||
@@ -4002,7 +3973,7 @@
           );
 
         })
-        .catch(function(error) {
+        .withFailureHandler(function(error) {
 
           console.error(
             'HIJRI API ERROR:',
@@ -4011,7 +3982,8 @@
               : error
           );
 
-        });
+        })
+;
 
     }
 
@@ -4406,20 +4378,12 @@
       );
 
       // Kunci C1 dan paksa OFF di Spreadsheet.
-      gasCall(
-        'lockYoutubeControl'
-      )
+      gasApiCall('lockYoutubeControl')
         .then(function(result) {
-          console.log(
-            'YOUTUBE CONTROL LOCK + OFF:',
-            result
-          );
+          console.log('YOUTUBE CONTROL LOCK + OFF:', result);
         })
         .catch(function(error) {
-          console.error(
-            'YOUTUBE CONTROL LOCK + OFF GAGAL:',
-            error
-          );
+          console.error('YOUTUBE CONTROL LOCK + OFF GAGAL:', error);
         });
 
     }
@@ -4439,24 +4403,13 @@
 
       // Lepaskan lock hari sebelumnya agar operator tidak terkunci
       // ketika tanggal WITA sudah berganti.
-      if (
-        youtubeAutoLockDateKey &&
-        youtubeAutoLockDateKey !== dateKey
-      ) {
-        gasCall(
-          'unlockYoutubeControl'
-        )
+      if (youtubeAutoLockDateKey && youtubeAutoLockDateKey !== dateKey) {
+        gasApiCall('unlockYoutubeControl')
           .then(function(result) {
-            console.log(
-              'YOUTUBE CONTROL UNLOCK TANGGAL BARU:',
-              result
-            );
+            console.log('YOUTUBE CONTROL UNLOCK TANGGAL BARU:', result);
           })
           .catch(function(error) {
-            console.error(
-              'YOUTUBE CONTROL UNLOCK TANGGAL BARU GAGAL:',
-              error
-            );
+            console.error('YOUTUBE CONTROL UNLOCK TANGGAL BARU GAGAL:', error);
           });
       }
 
@@ -4499,20 +4452,12 @@
 
         youtubeAutoLockActive = false;
 
-        gasCall(
-          'unlockYoutubeControl'
-        )
+        gasApiCall('unlockYoutubeControl')
           .then(function(result) {
-            console.log(
-              'YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI:',
-              result
-            );
+            console.log('YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI:', result);
           })
           .catch(function(error) {
-            console.error(
-              'YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI GAGAL:',
-              error
-            );
+            console.error('YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI GAGAL:', error);
           });
 
         console.log(
@@ -4763,23 +4708,14 @@
 
       }
 
-      gasCall(
-        'getPrayerSchedule',
-        apiDate
-      )
-        .then(
-          updatePrayerSchedule
-        )
-        .catch(
-          function(error) {
-
-            console.error(
-              'Gagal mengambil jadwal sholat:',
-              error
-            );
-
-          }
-        );
+      gasApiCall('getPrayerSchedule', { date: apiDate })
+        .then(updatePrayerSchedule)
+        .catch(function(error) {
+          console.error(
+            'Gagal mengambil jadwal sholat:',
+            error
+          );
+        });
 
     }
 
