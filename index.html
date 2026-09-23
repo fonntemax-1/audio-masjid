@@ -6,14 +6,14 @@
   <!-- FAVICON -->
   <link rel="icon" type="image/png" sizes="512x512" href="./favicon.png?v=1">
   <link rel="apple-touch-icon" href="./favicon.png?v=1">
+
+  <!-- PRECONNECT: kurangi waktu koneksi resource eksternal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn-icons-png.flaticon.com">
+
   <title>TV Display Masjid Al Sobirin</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
-
-  <!-- MOMENT -->
-  <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script>
-
-  <!-- MOMENT HIJRI -->
-  <script src="https://cdn.jsdelivr.net/npm/moment-hijri@3.0.0/moment-hijri.js"></script>
 
   <style>
     * {
@@ -903,7 +903,7 @@
       <div class="prayer-sidebar">
         <div class="prayer-card" data-prayer="SUBUH">
           <div class="prayer-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/4814/4814275.png" alt="Subuh">
+            <img loading="eager" decoding="async" src="https://cdn-icons-png.flaticon.com/512/4814/4814275.png" alt="Subuh">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">SUBUH</div>
@@ -913,7 +913,7 @@
 
         <div class="prayer-card" data-prayer="TERBIT">
           <div class="prayer-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/4814/4814275.png" alt="Terbit">
+            <img loading="eager" decoding="async" src="https://cdn-icons-png.flaticon.com/512/4814/4814275.png" alt="Terbit">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">TERBIT</div>
@@ -923,7 +923,7 @@
 
         <div class="prayer-card" data-prayer="DZUHUR">
           <div class="prayer-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/869/869869.png" alt="Dzuhur">
+            <img loading="eager" decoding="async" src="https://cdn-icons-png.flaticon.com/512/869/869869.png" alt="Dzuhur">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">DZUHUR</div>
@@ -933,7 +933,7 @@
 
         <div class="prayer-card" data-prayer="ASHAR">
           <div class="prayer-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/3222/3222672.png" alt="Ashar">
+            <img loading="eager" decoding="async" src="https://cdn-icons-png.flaticon.com/512/3222/3222672.png" alt="Ashar">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">ASHAR</div>
@@ -943,7 +943,7 @@
 
         <div class="prayer-card" data-prayer="MAGHRIB">
           <div class="prayer-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/3222/3222703.png" alt="Maghrib">
+            <img loading="eager" decoding="async" src="https://cdn-icons-png.flaticon.com/512/3222/3222703.png" alt="Maghrib">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">MAGHRIB</div>
@@ -953,7 +953,7 @@
 
         <div class="prayer-card" data-prayer="ISYA">
           <div class="prayer-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/581/581601.png" alt="Isya">
+            <img loading="eager" decoding="async" src="https://cdn-icons-png.flaticon.com/512/581/581601.png" alt="Isya">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">ISYA'</div>
@@ -7058,9 +7058,22 @@
     updateHijriDate();
     updateFridayPrayerDisplay();
 
-    fetchSheetData();
-    fetchPrayerSchedule();
-    loadEventRunningText();
+    // Jangan menembakkan semua request/API bersamaan saat halaman baru dibuka.
+    // Tampilan utama tetap langsung aktif; data dinamis menyusul bertahap.
+    setTimeout(
+      fetchSheetData,
+      150
+    );
+
+    setTimeout(
+      fetchPrayerSchedule,
+      300
+    );
+
+    setTimeout(
+      loadEventRunningText,
+      450
+    );
 
     setTimeout(
       initAudioPermission,
