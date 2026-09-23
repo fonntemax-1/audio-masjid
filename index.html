@@ -2,18 +2,14 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-
-  <!-- FAVICON -->
-  <link rel="icon" type="image/png" sizes="512x512" href="./favicon.png?v=1">
-  <link rel="apple-touch-icon" href="./favicon.png?v=1">
-
-  <!-- PRECONNECT: kurangi waktu koneksi resource eksternal -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://cdn-icons-png.flaticon.com">
-
   <title>TV Display Masjid Al Sobirin</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <!-- MOMENT -->
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script>
+
+  <!-- MOMENT HIJRI -->
+  <script src="https://cdn.jsdelivr.net/npm/moment-hijri@3.0.0/moment-hijri.js"></script>
 
   <style>
     * {
@@ -903,7 +899,7 @@
       <div class="prayer-sidebar">
         <div class="prayer-card" data-prayer="SUBUH">
           <div class="prayer-icon">
-            <img loading="eager" decoding="async" src="https://cdn-icons-png.flaticon.com/512/4814/4814275.png" alt="Subuh">
+            <img src="https://cdn-icons-png.flaticon.com/512/4814/4814275.png" alt="Subuh">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">SUBUH</div>
@@ -913,7 +909,7 @@
 
         <div class="prayer-card" data-prayer="TERBIT">
           <div class="prayer-icon">
-            <img loading="eager" decoding="async" src="https://cdn-icons-png.flaticon.com/512/4814/4814275.png" alt="Terbit">
+            <img src="https://cdn-icons-png.flaticon.com/512/4814/4814275.png" alt="Terbit">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">TERBIT</div>
@@ -923,7 +919,7 @@
 
         <div class="prayer-card" data-prayer="DZUHUR">
           <div class="prayer-icon">
-            <img loading="eager" decoding="async" src="https://cdn-icons-png.flaticon.com/512/869/869869.png" alt="Dzuhur">
+            <img src="https://cdn-icons-png.flaticon.com/512/869/869869.png" alt="Dzuhur">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">DZUHUR</div>
@@ -933,7 +929,7 @@
 
         <div class="prayer-card" data-prayer="ASHAR">
           <div class="prayer-icon">
-            <img loading="eager" decoding="async" src="https://cdn-icons-png.flaticon.com/512/3222/3222672.png" alt="Ashar">
+            <img src="https://cdn-icons-png.flaticon.com/512/3222/3222672.png" alt="Ashar">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">ASHAR</div>
@@ -943,7 +939,7 @@
 
         <div class="prayer-card" data-prayer="MAGHRIB">
           <div class="prayer-icon">
-            <img loading="eager" decoding="async" src="https://cdn-icons-png.flaticon.com/512/3222/3222703.png" alt="Maghrib">
+            <img src="https://cdn-icons-png.flaticon.com/512/3222/3222703.png" alt="Maghrib">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">MAGHRIB</div>
@@ -953,7 +949,7 @@
 
         <div class="prayer-card" data-prayer="ISYA">
           <div class="prayer-icon">
-            <img loading="eager" decoding="async" src="https://cdn-icons-png.flaticon.com/512/581/581601.png" alt="Isya">
+            <img src="https://cdn-icons-png.flaticon.com/512/581/581601.png" alt="Isya">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">ISYA'</div>
@@ -1138,12 +1134,114 @@
   <script>
 
     // =========================================================
-    // DIGITAL SIGNAGE MASJID AL SOBIRIN
+    // DIGITAL SIGNAGE MASJID AL MUJAHIDIN
     // SINGLE SOURCE OF TRUTH
     // =========================================================
 
     const DEFAULT_LOGO_MASJID =
       'https://cdn-icons-png.flaticon.com/512/2913/2913008.png';
+
+
+    // =========================================================
+    // GITHUB PAGES -> GOOGLE APPS SCRIPT API
+    // JSONP dipakai agar frontend GitHub Pages tidak membutuhkan
+    // google.script.run dan tidak terkena pembatasan cross-origin.
+    // =========================================================
+
+    const GAS_API_URL =
+      'https://script.google.com/macros/s/AKfycbzNR2XTJWFhvTOONtxGhIOqxWT3rDeMHDHbASASh0I8GsrAOpPX66r_X-NH5OqBUHcM/exec';
+
+    let gasApiCallbackCounter = 0;
+
+    function gasApiCall(action, params) {
+
+      return new Promise(function(resolve, reject) {
+
+        const callbackName =
+          '__GAS_API_CALLBACK_' +
+          Date.now() +
+          '_' +
+          (++gasApiCallbackCounter);
+
+        const script =
+          document.createElement('script');
+
+        const query =
+          new URLSearchParams();
+
+        query.set('api', '1');
+        query.set('action', action);
+        query.set('callback', callbackName);
+
+        if (params && typeof params === 'object') {
+          Object.keys(params).forEach(function(key) {
+            const value = params[key];
+            if (value !== undefined && value !== null) {
+              query.set(key, String(value));
+            }
+          });
+        }
+
+        let finished = false;
+        let timeoutId = null;
+
+        function cleanup() {
+          try {
+            delete window[callbackName];
+          } catch (e) {
+            window[callbackName] = undefined;
+          }
+
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+        }
+
+        window[callbackName] = function(payload) {
+          if (finished) return;
+          finished = true;
+          cleanup();
+
+          if (!payload || payload.success !== true) {
+            reject(new Error(
+              payload && payload.error
+                ? payload.error
+                : 'Apps Script API gagal.'
+            ));
+            return;
+          }
+
+          resolve(payload.data);
+        };
+
+        script.onerror = function() {
+          if (finished) return;
+          finished = true;
+          cleanup();
+          reject(new Error(
+            'Gagal memuat Apps Script API.'
+          ));
+        };
+
+        timeoutId = setTimeout(function() {
+          if (finished) return;
+          finished = true;
+          cleanup();
+          reject(new Error(
+            'Timeout menghubungi Apps Script API.'
+          ));
+        }, 30000);
+
+        script.src =
+          GAS_API_URL + '?' + query.toString();
+
+        document.head.appendChild(script);
+      });
+    }
 
     let previousKeuanganJson = '';
     let previousInfaqJson = '';
@@ -1897,29 +1995,7 @@
               Number(nowWita.minute) * 60 +
               Number(nowWita.second);
 
-            const normalizedAudioType =
-              String(audioType || '')
-                .trim()
-                .toUpperCase();
-
-            const normalizedAudioLabel =
-              String(label || '')
-                .trim()
-                .toUpperCase();
-
-            // DOA selalu satu kali. Gunakan audioType ATAU label
-            // sebagai pengaman karena beberapa konfigurasi lama
-            // dapat tidak mengisi audioType secara konsisten.
-            // Event lain tetap boleh loop sesuai durasi Sheet.
-            const isDoaAudio =
-              normalizedAudioType === 'DOA' ||
-              normalizedAudioLabel === 'DOA';
-
-            const shouldLoop =
-              !isDoaAudio;
-
             const loopStillActive =
-              shouldLoop &&
               Number.isFinite(Number(stopAtSeconds)) &&
               Number.isFinite(Number(nowSeconds)) &&
               Number(nowSeconds) < Number(stopAtSeconds);
@@ -1947,7 +2023,7 @@
                 ) {
                   replay.catch(function(error) {
                     console.warn(
-                      'AUDIO LOOP PLAY DITOLAK:',
+                      'AUDIO TARHIM LOOP PLAY DITOLAK:',
                       label,
                       error
                     );
@@ -1956,7 +2032,7 @@
                 }
               } catch (error) {
                 console.warn(
-                  'AUDIO LOOP EXCEPTION:',
+                  'AUDIO TARHIM LOOP EXCEPTION:',
                   label,
                   error
                 );
@@ -2878,56 +2954,33 @@
 
     function loadEventRunningText() {
 
-      if (
-        typeof google === 'undefined' ||
-        !google.script ||
-        !google.script.run
-      ) return;
+      gasApiCall('getEventRunningText')
+        .then(function(text) {
 
-      google.script.run
-        .withSuccessHandler(
-          function(text) {
-
-            const element =
-              document.getElementById(
-                'event-running'
-              );
-
-            if (!element) return;
-
-            const newText =
-              text || '';
-
-            if (
-              newText ===
-              previousEventText
-            ) return;
-
-            previousEventText =
-              newText;
-
-            element.innerText =
-              newText;
-
-            requestAnimationFrame(
-              function() {
-                startEventRunning();
-              }
+          const element =
+            document.getElementById(
+              'event-running'
             );
 
-          }
-        )
-        .withFailureHandler(
-          function(error) {
+          if (!element) return;
 
-            console.error(
-              'Gagal mengambil data Event:',
-              error
-            );
+          const newText = text || '';
 
-          }
-        )
-        .getEventRunningText();
+          if (newText === previousEventText) return;
+
+          previousEventText = newText;
+          element.innerText = newText;
+
+          requestAnimationFrame(function() {
+            startEventRunning();
+          });
+        })
+        .catch(function(error) {
+          console.error(
+            'Gagal mengambil data Event:',
+            error
+          );
+        });
 
     }
 
@@ -3032,29 +3085,14 @@
 
     function fetchSheetData() {
 
-      if (
-        typeof google !== 'undefined' &&
-        google.script &&
-        google.script.run
-      ) {
-
-        google.script.run
-          .withSuccessHandler(
-            updateUI
-          )
-          .withFailureHandler(
-            function(error) {
-
-              console.error(
-                'Gagal mengambil data sheet:',
-                error
-              );
-
-            }
-          )
-          .getDataFromSheet();
-
-      }
+      gasApiCall('getDataFromSheet')
+        .then(updateUI)
+        .catch(function(error) {
+          console.error(
+            'Gagal mengambil data sheet:',
+            error
+          );
+        });
 
     }
 
@@ -3089,9 +3127,6 @@
           data.RamadanDisplay
         );
       }
-
-      // Terapkan lagi setelah seluruh data UI diterima.
-      applyRamadanDisplayMode();
 
       setAudioConfig(data);
 
@@ -3865,19 +3900,8 @@
       const apiDate =
         getApiDate();
 
-      if (
-        typeof google === 'undefined' ||
-        !google.script ||
-        !google.script.run
-      ) {
-        console.warn(
-          'HIJRI API: google.script.run belum tersedia.'
-        );
-        return;
-      }
-
-      google.script.run
-        .withSuccessHandler(function(result) {
+      gasApiCall('getHijriDateFromApi', { date: apiDate })
+        .then(function(result) {
 
           if (
             !result ||
@@ -3949,7 +3973,7 @@
           );
 
         })
-        .withFailureHandler(function(error) {
+        .catch(function(error) {
 
           console.error(
             'HIJRI API ERROR:',
@@ -3958,10 +3982,7 @@
               : error
           );
 
-        })
-        .getHijriDateFromApi(
-          apiDate
-        );
+        });
 
     }
 
@@ -4356,26 +4377,13 @@
       );
 
       // Kunci C1 dan paksa OFF di Spreadsheet.
-      if (
-        typeof google !== 'undefined' &&
-        google.script &&
-        google.script.run
-      ) {
-        google.script.run
-          .withSuccessHandler(function(result) {
-            console.log(
-              'YOUTUBE CONTROL LOCK + OFF:',
-              result
-            );
-          })
-          .withFailureHandler(function(error) {
-            console.error(
-              'YOUTUBE CONTROL LOCK + OFF GAGAL:',
-              error
-            );
-          })
-          .lockYoutubeControl();
-      }
+      gasApiCall('lockYoutubeControl')
+        .then(function(result) {
+          console.log('YOUTUBE CONTROL LOCK + OFF:', result);
+        })
+        .catch(function(error) {
+          console.error('YOUTUBE CONTROL LOCK + OFF GAGAL:', error);
+        });
 
     }
 
@@ -4394,27 +4402,14 @@
 
       // Lepaskan lock hari sebelumnya agar operator tidak terkunci
       // ketika tanggal WITA sudah berganti.
-      if (
-        youtubeAutoLockDateKey &&
-        youtubeAutoLockDateKey !== dateKey &&
-        typeof google !== 'undefined' &&
-        google.script &&
-        google.script.run
-      ) {
-        google.script.run
-          .withSuccessHandler(function(result) {
-            console.log(
-              'YOUTUBE CONTROL UNLOCK TANGGAL BARU:',
-              result
-            );
+      if (youtubeAutoLockDateKey && youtubeAutoLockDateKey !== dateKey) {
+        gasApiCall('unlockYoutubeControl')
+          .then(function(result) {
+            console.log('YOUTUBE CONTROL UNLOCK TANGGAL BARU:', result);
           })
-          .withFailureHandler(function(error) {
-            console.error(
-              'YOUTUBE CONTROL UNLOCK TANGGAL BARU GAGAL:',
-              error
-            );
-          })
-          .unlockYoutubeControl();
+          .catch(function(error) {
+            console.error('YOUTUBE CONTROL UNLOCK TANGGAL BARU GAGAL:', error);
+          });
       }
 
       youtubeAutoStoppedForAudio = false;
@@ -4456,26 +4451,13 @@
 
         youtubeAutoLockActive = false;
 
-        if (
-          typeof google !== 'undefined' &&
-          google.script &&
-          google.script.run
-        ) {
-          google.script.run
-            .withSuccessHandler(function(result) {
-              console.log(
-                'YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI:',
-                result
-              );
-            })
-            .withFailureHandler(function(error) {
-              console.error(
-                'YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI GAGAL:',
-                error
-              );
-            })
-            .unlockYoutubeControl();
-        }
+        gasApiCall('unlockYoutubeControl')
+          .then(function(result) {
+            console.log('YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI:', result);
+          })
+          .catch(function(error) {
+            console.error('YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI GAGAL:', error);
+          });
 
         console.log(
           'YOUTUBE AUTO LOCK SELESAI:',
@@ -4725,30 +4707,14 @@
 
       }
 
-      if (
-        typeof google ===
-          'undefined' ||
-        !google.script ||
-        !google.script.run
-      ) return;
-
-      google.script.run
-        .withSuccessHandler(
-          updatePrayerSchedule
-        )
-        .withFailureHandler(
-          function(error) {
-
-            console.error(
-              'Gagal mengambil jadwal sholat:',
-              error
-            );
-
-          }
-        )
-        .getPrayerSchedule(
-          apiDate
-        );
+      gasApiCall('getPrayerSchedule', { date: apiDate })
+        .then(updatePrayerSchedule)
+        .catch(function(error) {
+          console.error(
+            'Gagal mengambil jadwal sholat:',
+            error
+          );
+        });
 
     }
 
@@ -4802,8 +4768,9 @@
         result.tanggal ||
         getApiDate();
 
-      // Setelah waktu asli tersedia, terapkan mode display manual.
-      applyRamadanDisplayMode();
+      // Terapkan ulang tampilan setelah jadwal Subuh/Terbit masuk.
+      // Hanya tampilan yang berubah; data raw tetap dipakai scheduler audio.
+      updateRamadanPrayerCards();
 
       WEB_APP_STATE
         .audio
@@ -6074,23 +6041,18 @@
 
 
     // =========================================================
-    // RAMADAN DISPLAY - LIVE REAL-TIME
+    // RAMADAN DISPLAY - MANUAL SCRIPT PROPERTY
     // =========================================================
-
-    // TRUE  = IMSAK + SUBUH
-    // FALSE = SUBUH + TERBIT
+    // Nilai dikirim dari Apps Script melalui data.RamadanDisplay.
     //
-    // Nilai ini diisi dari Code.gs -> Script Properties:
-    // RAMADAN_DISPLAY = true / false
-    //
-    // Default FALSE agar bila server belum mengirim konfigurasi,
-    // tampilan tetap SUBUH + TERBIT.
+    // true  = IMSAK + SUBUH
+    // false = SUBUH + TERBIT
     //
     // PENTING:
-    // Variabel ini hanya untuk DISPLAY Ramadan.
-    // Sistem AUDIO tidak membaca variabel ini.
+    // - Tidak membaca tanggal Hijriah untuk menentukan mode.
+    // - Tidak mengubah waktu raw Subuh/Terbit.
+    // - Tidak mengubah schedule, durasi, urutan, atau proses AUDIO.
     let RAMADAN_DISPLAY = false;
-    let RAMADAN_DISPLAY_CONFIG_RECEIVED = false;
 
 
     function setRamadanDisplay(value) {
@@ -6104,12 +6066,8 @@
           .trim()
           .toLowerCase();
 
-      // Hanya nilai eksplisit yang diterima sebagai konfigurasi.
-      // true  = IMSAK + SUBUH
-      // false = SUBUH + TERBIT
       if (typeof value === 'boolean') {
         RAMADAN_DISPLAY = value;
-        RAMADAN_DISPLAY_CONFIG_RECEIVED = true;
       } else if (normalized !== '') {
         RAMADAN_DISPLAY =
           normalized === 'true' ||
@@ -6118,37 +6076,28 @@
           normalized === 'ya' ||
           normalized === 'on' ||
           normalized === 'aktif';
-        RAMADAN_DISPLAY_CONFIG_RECEIVED = true;
       } else {
         return;
       }
 
       console.log(
-        'RAMADAN DISPLAY CONFIG =',
+        'RAMADAN DISPLAY =',
         RAMADAN_DISPLAY,
-        'MODE =',
-        RAMADAN_DISPLAY ? 'IMSAK + SUBUH' : 'SUBUH + TERBIT'
+        '=>',
+        RAMADAN_DISPLAY
+          ? 'IMSAK + SUBUH'
+          : 'SUBUH + TERBIT'
       );
 
-      // Terapkan segera bila kartu dan jadwal sudah tersedia.
       updateRamadanPrayerCards();
     }
 
 
     function isRamadanDisplay() {
 
-      // Sakelar MANUAL dari Script Properties.
-      // Tidak pernah membaca tanggal Hijriah.
+      // Mode DISPLAY sepenuhnya mengikuti Script Property.
+      // Tidak ada lagi fallback otomatis berdasarkan tanggal Hijriah.
       return RAMADAN_DISPLAY === true;
-
-    }
-
-
-    function applyRamadanDisplayMode() {
-
-      // Render ulang kartu visual berdasarkan sakelar manual.
-      // Data rawPrayerTime tetap dipertahankan untuk audio/scheduler.
-      updateRamadanPrayerCards();
 
     }
 
@@ -7058,22 +7007,9 @@
     updateHijriDate();
     updateFridayPrayerDisplay();
 
-    // Jangan menembakkan semua request/API bersamaan saat halaman baru dibuka.
-    // Tampilan utama tetap langsung aktif; data dinamis menyusul bertahap.
-    setTimeout(
-      fetchSheetData,
-      150
-    );
-
-    setTimeout(
-      fetchPrayerSchedule,
-      300
-    );
-
-    setTimeout(
-      loadEventRunningText,
-      450
-    );
+    fetchSheetData();
+    fetchPrayerSchedule();
+    loadEventRunningText();
 
     setTimeout(
       initAudioPermission,
