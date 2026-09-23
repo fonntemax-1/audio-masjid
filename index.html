@@ -875,7 +875,7 @@
       </div>
 
       <div class="header-center">
-        <h1 id="nama_masjid">MASJID AL MUJAHIDIN</h1>
+        <h1 id="nama_masjid">MASJID AL SOBIRIN</h1>
         <div class="sub" id="alamat_masjid">Alamat / Kontak / Website / Info Lainnya</div>
         <div class="slogan" id="slogan_masjid">Slogan / Info Lainnya</div>
       </div>
@@ -1134,114 +1134,12 @@
   <script>
 
     // =========================================================
-    // DIGITAL SIGNAGE MASJID AL MUJAHIDIN
+    // DIGITAL SIGNAGE MASJID AL SOBIRIN
     // SINGLE SOURCE OF TRUTH
     // =========================================================
 
     const DEFAULT_LOGO_MASJID =
       'https://cdn-icons-png.flaticon.com/512/2913/2913008.png';
-
-
-    // =========================================================
-    // GITHUB PAGES -> GOOGLE APPS SCRIPT API
-    // JSONP dipakai agar frontend GitHub Pages tidak membutuhkan
-    // google.script.run dan tidak terkena pembatasan cross-origin.
-    // =========================================================
-
-    const GAS_API_URL =
-      'https://script.google.com/macros/s/AKfycbzNR2XTJWFhvTOONtxGhIOqxWT3rDeMHDHbASASh0I8GsrAOpPX66r_X-NH5OqBUHcM/exec';
-
-    let gasApiCallbackCounter = 0;
-
-    function gasApiCall(action, params) {
-
-      return new Promise(function(resolve, reject) {
-
-        const callbackName =
-          '__GAS_API_CALLBACK_' +
-          Date.now() +
-          '_' +
-          (++gasApiCallbackCounter);
-
-        const script =
-          document.createElement('script');
-
-        const query =
-          new URLSearchParams();
-
-        query.set('api', '1');
-        query.set('action', action);
-        query.set('callback', callbackName);
-
-        if (params && typeof params === 'object') {
-          Object.keys(params).forEach(function(key) {
-            const value = params[key];
-            if (value !== undefined && value !== null) {
-              query.set(key, String(value));
-            }
-          });
-        }
-
-        let finished = false;
-        let timeoutId = null;
-
-        function cleanup() {
-          try {
-            delete window[callbackName];
-          } catch (e) {
-            window[callbackName] = undefined;
-          }
-
-          if (script.parentNode) {
-            script.parentNode.removeChild(script);
-          }
-
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
-        }
-
-        window[callbackName] = function(payload) {
-          if (finished) return;
-          finished = true;
-          cleanup();
-
-          if (!payload || payload.success !== true) {
-            reject(new Error(
-              payload && payload.error
-                ? payload.error
-                : 'Apps Script API gagal.'
-            ));
-            return;
-          }
-
-          resolve(payload.data);
-        };
-
-        script.onerror = function() {
-          if (finished) return;
-          finished = true;
-          cleanup();
-          reject(new Error(
-            'Gagal memuat Apps Script API.'
-          ));
-        };
-
-        timeoutId = setTimeout(function() {
-          if (finished) return;
-          finished = true;
-          cleanup();
-          reject(new Error(
-            'Timeout menghubungi Apps Script API.'
-          ));
-        }, 30000);
-
-        script.src =
-          GAS_API_URL + '?' + query.toString();
-
-        document.head.appendChild(script);
-      });
-    }
 
     let previousKeuanganJson = '';
     let previousInfaqJson = '';
@@ -1995,7 +1893,16 @@
               Number(nowWita.minute) * 60 +
               Number(nowWita.second);
 
+            const normalizedAudioType =
+              String(audioType || '')
+                .trim()
+                .toLowerCase();
+
+            const loopAllowed =
+              normalizedAudioType !== 'doa';
+
             const loopStillActive =
+              loopAllowed &&
               Number.isFinite(Number(stopAtSeconds)) &&
               Number.isFinite(Number(nowSeconds)) &&
               Number(nowSeconds) < Number(stopAtSeconds);
@@ -2023,7 +1930,7 @@
                 ) {
                   replay.catch(function(error) {
                     console.warn(
-                      'AUDIO TARHIM LOOP PLAY DITOLAK:',
+                      'AUDIO LOOP PLAY DITOLAK:',
                       label,
                       error
                     );
@@ -2032,7 +1939,7 @@
                 }
               } catch (error) {
                 console.warn(
-                  'AUDIO TARHIM LOOP EXCEPTION:',
+                  'AUDIO LOOP EXCEPTION:',
                   label,
                   error
                 );
@@ -2954,33 +2861,56 @@
 
     function loadEventRunningText() {
 
-      gasApiCall('getEventRunningText')
-        .then(function(text) {
+      if (
+        typeof google === 'undefined' ||
+        !google.script ||
+        !google.script.run
+      ) return;
 
-          const element =
-            document.getElementById(
-              'event-running'
+      google.script.run
+        .withSuccessHandler(
+          function(text) {
+
+            const element =
+              document.getElementById(
+                'event-running'
+              );
+
+            if (!element) return;
+
+            const newText =
+              text || '';
+
+            if (
+              newText ===
+              previousEventText
+            ) return;
+
+            previousEventText =
+              newText;
+
+            element.innerText =
+              newText;
+
+            requestAnimationFrame(
+              function() {
+                startEventRunning();
+              }
             );
 
-          if (!element) return;
+          }
+        )
+        .withFailureHandler(
+          function(error) {
 
-          const newText = text || '';
+            console.error(
+              'Gagal mengambil data Event:',
+              error
+            );
 
-          if (newText === previousEventText) return;
-
-          previousEventText = newText;
-          element.innerText = newText;
-
-          requestAnimationFrame(function() {
-            startEventRunning();
-          });
-        })
-        .catch(function(error) {
-          console.error(
-            'Gagal mengambil data Event:',
-            error
-          );
-        });
+          }
+        )
+        .getEventRunningText();
 
     }
 
@@ -3085,14 +3015,29 @@
 
     function fetchSheetData() {
 
-      gasApiCall('getDataFromSheet')
-        .then(updateUI)
-        .catch(function(error) {
-          console.error(
-            'Gagal mengambil data sheet:',
-            error
-          );
-        });
+      if (
+        typeof google !== 'undefined' &&
+        google.script &&
+        google.script.run
+      ) {
+
+        google.script.run
+          .withSuccessHandler(
+            updateUI
+          )
+          .withFailureHandler(
+            function(error) {
+
+              console.error(
+                'Gagal mengambil data sheet:',
+                error
+              );
+
+            }
+          )
+          .getDataFromSheet();
+
+      }
 
     }
 
@@ -3121,7 +3066,8 @@
         Object.prototype.hasOwnProperty.call(
           data,
           'RamadanDisplay'
-        )
+        ) &&
+        typeof data.RamadanDisplay === 'boolean'
       ) {
         setRamadanDisplay(
           data.RamadanDisplay
@@ -3900,8 +3846,19 @@
       const apiDate =
         getApiDate();
 
-      gasApiCall('getHijriDateFromApi', { date: apiDate })
-        .then(function(result) {
+      if (
+        typeof google === 'undefined' ||
+        !google.script ||
+        !google.script.run
+      ) {
+        console.warn(
+          'HIJRI API: google.script.run belum tersedia.'
+        );
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(function(result) {
 
           if (
             !result ||
@@ -3973,7 +3930,7 @@
           );
 
         })
-        .catch(function(error) {
+        .withFailureHandler(function(error) {
 
           console.error(
             'HIJRI API ERROR:',
@@ -3982,7 +3939,10 @@
               : error
           );
 
-        });
+        })
+        .getHijriDateFromApi(
+          apiDate
+        );
 
     }
 
@@ -4377,13 +4337,26 @@
       );
 
       // Kunci C1 dan paksa OFF di Spreadsheet.
-      gasApiCall('lockYoutubeControl')
-        .then(function(result) {
-          console.log('YOUTUBE CONTROL LOCK + OFF:', result);
-        })
-        .catch(function(error) {
-          console.error('YOUTUBE CONTROL LOCK + OFF GAGAL:', error);
-        });
+      if (
+        typeof google !== 'undefined' &&
+        google.script &&
+        google.script.run
+      ) {
+        google.script.run
+          .withSuccessHandler(function(result) {
+            console.log(
+              'YOUTUBE CONTROL LOCK + OFF:',
+              result
+            );
+          })
+          .withFailureHandler(function(error) {
+            console.error(
+              'YOUTUBE CONTROL LOCK + OFF GAGAL:',
+              error
+            );
+          })
+          .lockYoutubeControl();
+      }
 
     }
 
@@ -4402,14 +4375,27 @@
 
       // Lepaskan lock hari sebelumnya agar operator tidak terkunci
       // ketika tanggal WITA sudah berganti.
-      if (youtubeAutoLockDateKey && youtubeAutoLockDateKey !== dateKey) {
-        gasApiCall('unlockYoutubeControl')
-          .then(function(result) {
-            console.log('YOUTUBE CONTROL UNLOCK TANGGAL BARU:', result);
+      if (
+        youtubeAutoLockDateKey &&
+        youtubeAutoLockDateKey !== dateKey &&
+        typeof google !== 'undefined' &&
+        google.script &&
+        google.script.run
+      ) {
+        google.script.run
+          .withSuccessHandler(function(result) {
+            console.log(
+              'YOUTUBE CONTROL UNLOCK TANGGAL BARU:',
+              result
+            );
           })
-          .catch(function(error) {
-            console.error('YOUTUBE CONTROL UNLOCK TANGGAL BARU GAGAL:', error);
-          });
+          .withFailureHandler(function(error) {
+            console.error(
+              'YOUTUBE CONTROL UNLOCK TANGGAL BARU GAGAL:',
+              error
+            );
+          })
+          .unlockYoutubeControl();
       }
 
       youtubeAutoStoppedForAudio = false;
@@ -4451,13 +4437,26 @@
 
         youtubeAutoLockActive = false;
 
-        gasApiCall('unlockYoutubeControl')
-          .then(function(result) {
-            console.log('YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI:', result);
-          })
-          .catch(function(error) {
-            console.error('YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI GAGAL:', error);
-          });
+        if (
+          typeof google !== 'undefined' &&
+          google.script &&
+          google.script.run
+        ) {
+          google.script.run
+            .withSuccessHandler(function(result) {
+              console.log(
+                'YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI:',
+                result
+              );
+            })
+            .withFailureHandler(function(error) {
+              console.error(
+                'YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI GAGAL:',
+                error
+              );
+            })
+            .unlockYoutubeControl();
+        }
 
         console.log(
           'YOUTUBE AUTO LOCK SELESAI:',
@@ -4707,14 +4706,30 @@
 
       }
 
-      gasApiCall('getPrayerSchedule', { date: apiDate })
-        .then(updatePrayerSchedule)
-        .catch(function(error) {
-          console.error(
-            'Gagal mengambil jadwal sholat:',
-            error
-          );
-        });
+      if (
+        typeof google ===
+          'undefined' ||
+        !google.script ||
+        !google.script.run
+      ) return;
+
+      google.script.run
+        .withSuccessHandler(
+          updatePrayerSchedule
+        )
+        .withFailureHandler(
+          function(error) {
+
+            console.error(
+              'Gagal mengambil jadwal sholat:',
+              error
+            );
+
+          }
+        )
+        .getPrayerSchedule(
+          apiDate
+        );
 
     }
 
@@ -4771,6 +4786,8 @@
       WEB_APP_STATE
         .audio
         .scheduleInitialized = false;
+
+      updateRamadanPrayerCards();
 
     }
 
@@ -6052,7 +6069,7 @@
     // PENTING:
     // Variabel ini hanya untuk DISPLAY Ramadan.
     // Sistem AUDIO tidak membaca variabel ini.
-    let RAMADAN_DISPLAY = false;
+    let RAMADAN_DISPLAY = true;
 
 
     function setRamadanDisplay(value) {
@@ -6070,6 +6087,10 @@
         )
           .trim()
           .toLowerCase();
+
+      if (!normalized) {
+        return;
+      }
 
       RAMADAN_DISPLAY =
         normalized === 'true' ||
