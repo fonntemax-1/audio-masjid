@@ -6260,7 +6260,7 @@
 // Tidak mengubah AUDIO / COUNTDOWN / SCHEDULER.
 // =========================================================
 
-function updatePrayerCardHighlight(nowSeconds, prayerList) {
+function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerName) {
 
   try {
 
@@ -6372,6 +6372,12 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
       isyaIqomahEnd + (60 * 60);
 
     let targetPrayerName = null;
+
+    // Jika countdown sudah menentukan state aktif, kartu mengikuti
+    // state yang sama agar tidak terjadi perpindahan pada waktu berbeda.
+    if (synchronizedPrayerName) {
+      targetPrayerName = synchronizedPrayerName;
+    }
 
     // =======================================================
     // RAMADAN
@@ -7190,20 +7196,6 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
 
 
       // =======================================================
-      // ACTIVE CARD / HIGHLIGHT
-      // =======================================================
-      //
-      // Highlight sekarang berdiri sendiri dari countdown.
-      // Audio scheduler dan countdown tidak diubah.
-      // =======================================================
-
-      updatePrayerCardHighlight(
-        nowSeconds,
-        prayerList
-      );
-
-
-      // =======================================================
       // COUNTDOWN DISPLAY
       // =======================================================
 
@@ -7233,6 +7225,15 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
           .countdown
           .active =
           activeState;
+
+        // Sinkronkan kartu tepat dengan state countdown.
+        // Dengan demikian perpindahan IMSAK/SUBUH/ADZAN/IQOMAH
+        // terjadi pada batas waktu yang sama. Audio tidak diubah.
+        updatePrayerCardHighlight(
+          nowSeconds,
+          prayerList,
+          activeState.prayerName
+        );
 
       } else if (
         nextPrayer &&
