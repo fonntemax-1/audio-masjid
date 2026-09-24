@@ -6818,6 +6818,12 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
         const p =
           prayerList[i];
 
+        // TERBIT hanya dipakai untuk kartu/highlight.
+        // Countdown tidak pernah berhenti di TERBIT.
+        if (p.name === 'TERBIT') {
+          continue;
+        }
+
         const pSec =
           p.seconds;
 
@@ -7148,6 +7154,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
         ) {
 
           if (
+            prayerList[i].name !== 'TERBIT' &&
             prayerList[i].seconds >
             nowSeconds
           ) {
