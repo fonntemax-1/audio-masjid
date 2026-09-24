@@ -6867,10 +6867,12 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             return String(event.eventName || '').toUpperCase() === 'IQOMAH';
           });
 
+        // Countdown selalu mengikuti waktu sholat asli (pSec).
+        // Jangan memakai targetSec dari audio schedule karena schedule
+        // audio dapat masih dalam proses/sinkronisasi dan tidak boleh
+        // menentukan apakah waktu sholat sudah lewat.
         const adzanStartSec =
-          adzanEvent && Number.isFinite(Number(adzanEvent.targetSec))
-            ? Number(adzanEvent.targetSec)
-            : pSec;
+          pSec;
 
         const adzanEndSec =
           adzanEvent && Number.isFinite(Number(adzanEvent.endSec))
