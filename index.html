@@ -6967,7 +6967,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             const s = Math.floor(diff % 60);
 
             activeState = {
-              title: 'MENUJU SUBUH',
+              title: 'MENUJU SHOLAT SUBUH',
               timer:
                 String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
@@ -7065,7 +7065,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             title:
               (isFridayWita() && p.name === 'DZUHUR')
                 ? "MENUJU SHOLAT JUM'AT"
-                : 'MENUJU ' + displayName,
+                : 'MENUJU SHOLAT ' + displayName,
             timer:
               String(h).padStart(2, '0') + ':' +
               String(m).padStart(2, '0') + ':' +
