@@ -6401,10 +6401,11 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       const imsakSirineEnd =
         imsakSec + imsakSirineDuration;
 
-      // 5 menit sebelum IMSAK:
-      // kartu visual IMSAK = data-prayer SUBUH.
+      // 25 menit sebelum IMSAK:
+      // countdown mulai masuk fase MENUJU IMSAK dan
+      // highlight berpindah dari SUBUH ke IMSAK.
       const highlightImsakStart =
-        imsakSec - (5 * 60);
+        imsakSec - (15 * 60);
 
       // -----------------------------------------------------
       // IMSAK
@@ -7283,37 +7284,109 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           diff += 86400;
         }
 
-        const hours =
-          Math.floor(
-            diff / 3600
-          );
+        let nextTitle;
+        let nextTimer;
 
-        const minutes =
-          Math.floor(
-            (diff % 3600) /
-            60
-          );
+        // Setelah seluruh sholat hari ini selesai, SUBUH berikutnya
+        // tetap menjadi target countdown. Pada Ramadan, 25 menit
+        // sebelum SUBUH countdown berpindah ke MENUJU IMSAK.
+        if (
+          isRamadanDisplay() &&
+          nextPrayer.name === 'SUBUH'
+        ) {
 
-        const seconds =
-          diff % 60;
+          const nextImsakSec =
+            nextSeconds - (10 * 60);
 
-        const nextDisplayName =
-          isFridayWita() &&
-          nextPrayer.name === 'DZUHUR'
-            ? "JUM'AT"
-            : nextPrayer.name;
+          const nextMenujuImsakSec =
+            nextSeconds - (25 * 60);
 
-        const nextTitle =
-          (isFridayWita() && nextPrayer.name === 'DZUHUR')
-            ? "MENUJU SHOLAT JUM'AT"
-            : 'MENUJU SHOLAT ' + nextDisplayName;
+          const sirineDuration =
+            getSubuhSirineDuration();
 
-        const nextTimer =
-          String(hours).padStart(2, '0') +
-          ':' +
-          String(minutes).padStart(2, '0') +
-          ':' +
-          String(seconds).padStart(2, '0');
+          const nextImsakEndSec =
+            nextImsakSec +
+            (sirineDuration > 0 ? sirineDuration : 60);
+
+          if (nowSeconds < nextMenujuImsakSec) {
+
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const s = Math.floor(diff % 60);
+
+            nextTitle = 'MENUJU SHOLAT SUBUH';
+            nextTimer =
+              String(h).padStart(2, '0') + ':' +
+              String(m).padStart(2, '0') + ':' +
+              String(s).padStart(2, '0');
+
+          } else if (nowSeconds < nextImsakSec) {
+
+            const imsakDiff =
+              nextImsakSec - nowSeconds;
+
+            const m = Math.floor(imsakDiff / 60);
+            const s = Math.floor(imsakDiff % 60);
+
+            nextTitle = 'MENUJU IMSAK';
+            nextTimer =
+              String(m).padStart(2, '0') + ':' +
+              String(s).padStart(2, '0');
+
+          } else if (nowSeconds < nextImsakEndSec) {
+
+            nextTitle = 'WAKTU\\nIMSAK';
+            nextTimer = '';
+
+          } else {
+
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const s = Math.floor(diff % 60);
+
+            nextTitle = 'MENUJU SHOLAT SUBUH';
+            nextTimer =
+              String(h).padStart(2, '0') + ':' +
+              String(m).padStart(2, '0') + ':' +
+              String(s).padStart(2, '0');
+
+          }
+
+        } else {
+
+          const hours =
+            Math.floor(
+              diff / 3600
+            );
+
+          const minutes =
+            Math.floor(
+              (diff % 3600) /
+              60
+            );
+
+          const seconds =
+            diff % 60;
+
+          const nextDisplayName =
+            isFridayWita() &&
+            nextPrayer.name === 'DZUHUR'
+              ? "JUM'AT"
+              : nextPrayer.name;
+
+          nextTitle =
+            (isFridayWita() && nextPrayer.name === 'DZUHUR')
+              ? "MENUJU SHOLAT JUM'AT"
+              : 'MENUJU SHOLAT ' + nextDisplayName;
+
+          nextTimer =
+            String(hours).padStart(2, '0') +
+            ':' +
+            String(minutes).padStart(2, '0') +
+            ':' +
+            String(seconds).padStart(2, '0');
+
+        }
 
         if (countdownTitle && nextTitle !== lastCountdownTitle) {
           countdownTitle.innerText = nextTitle;
@@ -7324,6 +7397,47 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           countdown.innerText = nextTimer;
           lastCountdownTimer = nextTimer;
         }
+
+        // Tidak ada activeState pada cabang ini, tetapi kartu tetap
+        // mengikuti target countdown. Khusus Ramadan, saat 25 menit
+        // terakhir target bergeser ke IMSAK.
+        let synchronizedNextCard =
+          nextPrayer.name;
+
+        if (
+          isRamadanDisplay() &&
+          nextPrayer.name === 'SUBUH'
+        ) {
+
+          const nextImsakSec =
+            nextSeconds - (10 * 60);
+
+          const nextMenujuImsakSec =
+            nextSeconds - (25 * 60);
+
+          const sirineDuration =
+            getSubuhSirineDuration();
+
+          const nextImsakEndSec =
+            nextImsakSec +
+            (sirineDuration > 0 ? sirineDuration : 60);
+
+          if (
+            nowSeconds >= nextMenujuImsakSec &&
+            nowSeconds < nextImsakEndSec
+          ) {
+            synchronizedNextCard = 'IMSAK';
+          } else {
+            synchronizedNextCard = 'SUBUH';
+          }
+
+        }
+
+        updatePrayerCardHighlight(
+          nowSeconds,
+          prayerList,
+          synchronizedNextCard
+        );
 
         WEB_APP_STATE
           .countdown
