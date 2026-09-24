@@ -6795,9 +6795,18 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
         null;
 
       // =======================================================
-      // BATAS WAKTU DARI AUDIO SCHEDULE DINAMIS
-      // Jika schedule audio sudah selesai dihitung, countdown
-      // mengikuti durasi MP3 aktual.
+      // COUNTDOWN FINAL
+      //
+      // RAMADAN:
+      // MENUJU IMSAK -> WAKTU IMSAK -> MENUJU SUBUH -> WAKTU SUBUH
+      // -> MENUJU IQOMAH -> IQOMAH SUBUH
+      // -> +15 MENIT -> MENUJU DZUHUR -> ...
+      //
+      // NON-RAMADAN:
+      // MENUJU SUBUH -> ADZAN SUBUH -> MENUJU IQOMAH -> IQOMAH SUBUH
+      // -> +15 MENIT -> MENUJU DZUHUR -> ...
+      //
+      // Audio scheduler TIDAK diubah.
       // =======================================================
 
       for (
@@ -6812,8 +6821,6 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
         const pSec =
           p.seconds;
 
-        // Nama internal tetap DZUHUR agar seluruh logika jadwal tidak berubah.
-        // Pada hari Jumat, tampilan countdown menggunakan SHOLAT JUMAT.
         const displayName =
           isFridayWita() && p.name === 'DZUHUR'
             ? "JUM'AT"
@@ -6825,67 +6832,59 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
             : new Map();
 
         const computed =
-          computedSchedules.get(
-            p.name
-          );
+          computedSchedules.get(p.name);
 
         const events =
-          computed &&
-          Array.isArray(computed.events)
+          computed && Array.isArray(computed.events)
             ? computed.events
             : [];
 
         const adzanEvent =
           events.find(function(event) {
-            return event.eventName === 'ADZAN';
+            return String(event.eventName || '').toUpperCase() === 'ADZAN';
           });
 
         const doaEvent =
           events.find(function(event) {
-            return event.eventName === 'DOA';
+            return String(event.eventName || '').toUpperCase() === 'DOA';
           });
 
         const iqomahEvent =
           events.find(function(event) {
-            return event.eventName === 'IQOMAH';
+            return String(event.eventName || '').toUpperCase() === 'IQOMAH';
           });
 
         const adzanStartSec =
-          adzanEvent
-            ? adzanEvent.targetSec
+          adzanEvent && Number.isFinite(Number(adzanEvent.targetSec))
+            ? Number(adzanEvent.targetSec)
             : pSec;
 
         const adzanEndSec =
-          adzanEvent
-            ? adzanEvent.endSec
+          adzanEvent && Number.isFinite(Number(adzanEvent.endSec))
+            ? Number(adzanEvent.endSec)
             : pSec + 180;
 
-        const doaStartSec =
-          doaEvent
-            ? doaEvent.targetSec
-            : adzanEndSec;
-
         const doaEndSec =
-          doaEvent
-            ? doaEvent.endSec
+          doaEvent && Number.isFinite(Number(doaEvent.endSec))
+            ? Number(doaEvent.endSec)
             : adzanEndSec;
 
         const iqomahTimeSec =
-          iqomahEvent
-            ? iqomahEvent.targetSec
-            : doaEndSec + p.iqomahDelay;
+          iqomahEvent && Number.isFinite(Number(iqomahEvent.targetSec))
+            ? Number(iqomahEvent.targetSec)
+            : doaEndSec + (p.iqomahDelay || 0);
 
         const iqomahEndSec =
-          iqomahEvent
-            ? iqomahEvent.endSec
+          iqomahEvent && Number.isFinite(Number(iqomahEvent.endSec))
+            ? Number(iqomahEvent.endSec)
             : iqomahTimeSec + 180;
 
-        // =====================================================
-        // RAMADAN SUBUH: MENUJU IMSAK -> WAKTU IMSAK -> MENUJU SUBUH
-        // -> WAKTU ADZAN -> MENUJU IQOMAH -> WAKTU IQOMAH
-        // Jam display tetap REAL-TIME WITA.
-        // Audio scheduler tetap menggunakan nowSeconds asli.
-        // =====================================================
+        const afterIqomahSec =
+          iqomahEndSec + (15 * 60);
+
+        // -------------------------------------------------------
+        // RAMADAN KHUSUS SUBUH
+        // -------------------------------------------------------
         if (
           isRamadanDisplay() &&
           p.name === 'SUBUH'
@@ -6894,36 +6893,38 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
           const imsakStartSec =
             pSec - (10 * 60);
 
-          // 5 menit sebelum IMSAK: countdown MENUJU IMSAK.
+          const sirineDuration =
+            getSubuhSirineDuration();
+
+          const imsakEndSec =
+            imsakStartSec +
+            (sirineDuration > 0 ? sirineDuration : 60);
+
+          // 5 menit sebelum IMSAK.
           if (
             nowSeconds < imsakStartSec &&
             (imsakStartSec - nowSeconds) <= 300
           ) {
+
             const diff =
-              Math.max(1, imsakStartSec - nowSeconds);
+              imsakStartSec - nowSeconds;
 
             const m = Math.floor(diff / 60);
-            const sec = Math.floor(diff % 60);
+            const s = Math.floor(diff % 60);
 
             activeState = {
               title: 'MENUJU IMSAK',
               timer:
                 String(m).padStart(2, '0') + ':' +
-                String(sec).padStart(2, '0'),
+                String(s).padStart(2, '0'),
               prayerName: 'SUBUH'
             };
 
             break;
           }
 
-          const sirineDuration =
-            getSubuhSirineDuration();
-
-          const imsakEndSec =
-            imsakStartSec + sirineDuration;
-
+          // Saat sirine/interval IMSAK.
           if (
-            sirineDuration > 0 &&
             nowSeconds >= imsakStartSec &&
             nowSeconds < imsakEndSec
           ) {
@@ -6935,55 +6936,115 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
             };
 
             break;
-
           }
 
+          // Setelah IMSAK sampai ADZAN SUBUH.
           if (
             nowSeconds >= imsakEndSec &&
-            nowSeconds < pSec
+            nowSeconds < adzanStartSec
           ) {
 
             const diff =
-              Math.max(1, pSec - nowSeconds);
+              adzanStartSec - nowSeconds;
 
-            const m =
-              Math.floor(diff / 60);
-
-            const s =
-              Math.floor(diff % 60);
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const s = Math.floor(diff % 60);
 
             activeState = {
               title: 'MENUJU SUBUH',
               timer:
-                String(m).padStart(2, '0') +
-                ':' +
+                String(h).padStart(2, '0') + ':' +
+                String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
               prayerName: 'TERBIT'
             };
 
             break;
-
           }
 
+          // ADZAN SUBUH pada Ramadan ditampilkan sebagai WAKTU SUBUH.
+          if (
+            nowSeconds >= adzanStartSec &&
+            nowSeconds < adzanEndSec
+          ) {
+
+            activeState = {
+              title: 'WAKTU SUBUH',
+              timer: 'SUBUH',
+              prayerName: 'SUBUH'
+            };
+
+            break;
+          }
+
+          // Setelah adzan sampai IQOMAH.
+          if (
+            nowSeconds >= adzanEndSec &&
+            nowSeconds < iqomahTimeSec
+          ) {
+
+            const diff =
+              iqomahTimeSec - nowSeconds;
+
+            const m = Math.floor(diff / 60);
+            const s = Math.floor(diff % 60);
+
+            activeState = {
+              title: 'MENUJU IQOMAH',
+              timer:
+                String(m).padStart(2, '0') + ':' +
+                String(s).padStart(2, '0'),
+              prayerName: 'SUBUH'
+            };
+
+            break;
+          }
+
+          // IQOMAH SUBUH.
+          if (
+            nowSeconds >= iqomahTimeSec &&
+            nowSeconds < iqomahEndSec
+          ) {
+
+            activeState = {
+              title: 'IQOMAH SUBUH',
+              timer: 'SUBUH',
+              prayerName: 'SUBUH'
+            };
+
+            break;
+          }
+
+          // Setelah IQOMAH SUBUH selesai +15 menit,
+          // loop diteruskan ke DZUHUR.
+          if (
+            nowSeconds < afterIqomahSec
+          ) {
+            continue;
+          }
+
+          continue;
         }
 
-        // =====================================================
-        // MENUJU SHOLAT MURNI BERDASARKAN WAKTU SHOLAT
-        // TIDAK TERGANTUNG AUDIO SCHEDULE / DURASI MP3
-        // =====================================================
+        // -------------------------------------------------------
+        // NON-RAMADAN / SHOLAT SELAIN SUBUH PADA RAMADAN
+        // -------------------------------------------------------
+
+        // Sebelum waktu adzan: countdown berjalan terus.
         if (
-          nowSeconds < pSec &&
-          (pSec - nowSeconds) <= 300
+          nowSeconds < adzanStartSec
         ) {
 
+          // Jika waktunya sudah lewat secara urutan hari, jangan
+          // mengambil sholat yang sudah selesai sebagai kandidat.
+          // Perulangan akan mencari sholat berikutnya.
           const diff =
-            Math.max(1, pSec - nowSeconds);
+            adzanStartSec - nowSeconds;
 
-          const m =
-            Math.floor(diff / 60);
-
-          const s =
-            diff % 60;
+          const h = Math.floor(diff / 3600);
+          const m = Math.floor((diff % 3600) / 60);
+          const s = Math.floor(diff % 60);
 
           activeState = {
             title:
@@ -6991,8 +7052,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
                 ? "MENUJU SHOLAT JUM'AT"
                 : 'MENUJU ' + displayName,
             timer:
-              String(m).padStart(2, '0') +
-              ':' +
+              String(h).padStart(2, '0') + ':' +
+              String(m).padStart(2, '0') + ':' +
               String(s).padStart(2, '0'),
             prayerName: p.name
           };
@@ -7000,13 +7061,17 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
           break;
         }
 
+        // ADZAN.
         if (
           nowSeconds >= adzanStartSec &&
           nowSeconds < adzanEndSec
         ) {
 
           activeState = {
-            title: 'WAKTU ADZAN',
+            title:
+              (isFridayWita() && p.name === 'DZUHUR')
+                ? "ADZAN SHOLAT JUM'AT"
+                : 'ADZAN ' + displayName,
             timer: displayName,
             prayerName: p.name
           };
@@ -7014,53 +7079,55 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
           break;
         }
 
-        if (p.hasIqomah) {
+        // MENUJU IQOMAH.
+        if (
+          p.hasIqomah &&
+          nowSeconds >= adzanEndSec &&
+          nowSeconds < iqomahTimeSec
+        ) {
 
-          // DOA tetap diputar oleh Audio Scheduler, tetapi tidak menjadi
-          // state yang ditampilkan pada countdown. Display tetap berada
-          // pada MENUJU IQOMAH sampai waktu IQOMAH tiba.
-          if (
-            nowSeconds >= doaEndSec &&
-            nowSeconds < iqomahTimeSec
-          ) {
+          const diff =
+            iqomahTimeSec - nowSeconds;
 
-            const diff =
-              iqomahTimeSec - nowSeconds;
+          const m = Math.floor(diff / 60);
+          const s = Math.floor(diff % 60);
 
-            const m =
-              Math.floor(diff / 60);
+          activeState = {
+            title: 'MENUJU IQOMAH',
+            timer:
+              String(m).padStart(2, '0') + ':' +
+              String(s).padStart(2, '0'),
+            prayerName: p.name
+          };
 
-            const s = 
-              Math.floor(diff % 60);
+          break;
+        }
 
-            activeState = {
-              title: 'MENUJU IQOMAH',
-              timer:
-                String(m).padStart(2, '0') +
-                ':' +
-                String(s).padStart(2, '0'),
-              prayerName: p.name
-            };
+        // IQOMAH.
+        if (
+          p.hasIqomah &&
+          nowSeconds >= iqomahTimeSec &&
+          nowSeconds < iqomahEndSec
+        ) {
 
-            break;
-          }
+          activeState = {
+            title: 'IQOMAH ' + displayName,
+            timer: displayName,
+            prayerName: p.name
+          };
 
-          if (
-            nowSeconds >= iqomahTimeSec &&
-            nowSeconds < iqomahEndSec
-          ) {
+          break;
+        }
 
-            activeState = {
-              title: 'WAKTU IQOMAH',
-              timer: displayName,
-              prayerName: p.name
-            };
-
-            break;
-          }
+        // Setelah IQOMAH sampai +15 menit: tidak menampilkan
+        // state sholat tersebut. Loop akan mencari sholat berikutnya.
+        if (
+          p.hasIqomah &&
+          nowSeconds < afterIqomahSec
+        ) {
+          continue;
         }
       }
-
 
       // =======================================================
       // NEXT PRAYER
