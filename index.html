@@ -286,6 +286,30 @@
       font-weight: bold;
     }
 
+    /* =========================================================
+       KHUSUS TAMPILAN IQOMAH
+       Mengikuti header LAPORAN KEUANGAN
+       ========================================================= */
+    .countdown-title.iqomah-title {
+      color: #ffcc00;
+      font-size: clamp(1rem, 1.4vw, 1.5rem);
+      font-weight: 900;
+      letter-spacing: 0.05vw;
+      line-height: 1.1;
+    }
+
+    /* =========================================================
+       KHUSUS WAKTU IMSAK
+       Mengikuti tampilan ADZAN SUBUH
+       ========================================================= */
+    .countdown-title.imsak-time-title {
+      white-space: pre-line;
+      color: #ffffff;
+      font-size: clamp(0.7rem, 1vw, 1.1rem);
+      font-weight: bold;
+      line-height: 1.1;
+    }
+
     .countdown-timer {
       color: #ffcc00;
       font-size: clamp(1.2rem, 2vw, 2.2rem);
@@ -6799,6 +6823,36 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
       processAudioQueue();
 
+      // =========================================================
+      // STYLE KHUSUS COUNTDOWN
+      // =========================================================
+      function updateCountdownTitleStyle(title) {
+        const countdownTitle =
+          document.getElementById('countdown-title');
+
+        if (!countdownTitle) return;
+
+        countdownTitle.classList.remove(
+          'iqomah-title',
+          'imsak-time-title'
+        );
+
+        const normalizedTitle =
+          String(title || '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toUpperCase();
+
+        if (normalizedTitle === 'IQOMAH') {
+          countdownTitle.classList.add('iqomah-title');
+          return;
+        }
+
+        if (normalizedTitle === 'WAKTU IMSAK') {
+          countdownTitle.classList.add('imsak-time-title');
+        }
+      }
+
       let activeState =
         null;
 
@@ -7256,6 +7310,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
         if (countdownTitle && activeState.title !== lastCountdownTitle) {
           countdownTitle.innerText = activeState.title;
+          updateCountdownTitleStyle(activeState.title);
           lastCountdownTitle = activeState.title;
         }
 
@@ -7397,6 +7452,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
         if (countdownTitle && nextTitle !== lastCountdownTitle) {
           countdownTitle.innerText = nextTitle;
+          updateCountdownTitleStyle(nextTitle);
           lastCountdownTitle = nextTitle;
         }
 
