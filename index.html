@@ -6943,7 +6943,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
                 String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
-              prayerName: 'SUBUH'
+              // Visual kartu SUBUH = data-prayer TERBIT.
+              prayerName: 'TERBIT'
             };
 
             break;
@@ -6967,7 +6968,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
               timer:
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
-              prayerName: 'IMSAK'
+              // Visual kartu IMSAK = data-prayer SUBUH.
+              prayerName: 'SUBUH'
             };
 
             break;
@@ -6982,6 +6984,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             activeState = {
               title: 'WAKTU\nIMSAK',
               timer: '',
+              // Visual kartu IMSAK = data-prayer SUBUH.
               prayerName: 'SUBUH'
             };
 
@@ -7007,6 +7010,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
                 String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
+              // Visual kartu SUBUH = data-prayer TERBIT.
               prayerName: 'TERBIT'
             };
 
@@ -7023,7 +7027,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             activeState = {
               title: 'ADZAN',
               timer: 'SUBUH',
-              prayerName: 'SUBUH'
+              // Visual kartu SUBUH = data-prayer TERBIT.
+              prayerName: 'TERBIT'
             };
 
             break;
@@ -7046,7 +7051,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
               timer:
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
-              prayerName: 'SUBUH'
+              // Visual kartu SUBUH = data-prayer TERBIT.
+              prayerName: 'TERBIT'
             };
 
             break;
@@ -7061,7 +7067,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             activeState = {
               title: 'IQOMAH',
               timer: '',
-              prayerName: 'SUBUH'
+              // Visual kartu SUBUH = data-prayer TERBIT.
+              prayerName: 'TERBIT'
             };
 
             break;
@@ -7426,9 +7433,10 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             nowSeconds >= nextMenujuImsakSec &&
             nowSeconds < nextImsakEndSec
           ) {
-            synchronizedNextCard = 'IMSAK';
-          } else {
             synchronizedNextCard = 'SUBUH';
+          } else {
+            // Visual kartu SUBUH = data-prayer TERBIT.
+            synchronizedNextCard = 'TERBIT';
           }
 
         }
