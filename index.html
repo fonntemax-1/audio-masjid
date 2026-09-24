@@ -7219,18 +7219,32 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
         // Setelah IQOMAH selesai, tampilkan
         // SHOLAT / nama sholat aktif dengan style yang sama
-        // seperti ADZAN. State ini bertahan sampai batas
-        // perpindahan kartu (+15 menit setelah IQOMAH).
+        // seperti ADZAN.
+        //
+        // KHUSUS HARI JUMAT:
+        // SHOLAT JUM'AT tetap ditampilkan sampai tepat 13:00 WITA.
+        // Setelah 13:00, countdown langsung berpindah ke ASHAR
+        // dan kartu juga mengikuti ASHAR.
+        const fridayTransitionSec =
+          13 * 3600;
+
+        const isFridayJumat =
+          isFridayWita() &&
+          p.name === 'DZUHUR';
+
         if (
           p.hasIqomah &&
           nowSeconds >= iqomahEndSec &&
-          nowSeconds < afterIqomahSec
+          (
+            !isFridayJumat ||
+            nowSeconds < fridayTransitionSec
+          )
         ) {
 
           activeState = {
             title: 'SHOLAT',
             timer:
-              (isFridayWita() && p.name === 'DZUHUR')
+              isFridayJumat
                 ? "JUM'AT"
                 : displayName,
             prayerName: p.name
