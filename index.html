@@ -7110,7 +7110,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
             activeState = {
               title: 'IQOMAH',
-              timer: '',
+              timer: 'SUBUH',
               // Visual kartu SUBUH = data-prayer TERBIT.
               prayerName: 'TERBIT'
             };
@@ -7212,7 +7212,10 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
           activeState = {
             title: 'IQOMAH',
-            timer: '',
+            timer:
+              (isFridayWita() && p.name === 'DZUHUR')
+                ? "JUM'AT"
+                : p.name,
             prayerName: p.name
           };
 
