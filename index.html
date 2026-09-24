@@ -6584,6 +6584,25 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
     }
 
     // =======================================================
+    // KHUSUS HARI JUM'AT
+    //
+    // Kartu JUM'AT tetap aktif sampai 13:00 WITA.
+    // Tepat mulai 13:00 WITA, kartu langsung berpindah
+    // ke ASHAR dan mengikuti countdown ASHAR.
+    // =======================================================
+
+    const fridayTransitionSec =
+      13 * 3600;
+
+    if (
+      isFridayWita() &&
+      nowSeconds >= fridayTransitionSec &&
+      nowSeconds < batasAshar
+    ) {
+      targetPrayerName = 'ASHAR';
+    }
+
+    // =======================================================
     // TERAPKAN CLASS ACTIVE
     // =======================================================
 
