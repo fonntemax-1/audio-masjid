@@ -6805,13 +6805,16 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       // COUNTDOWN FINAL
       //
       // RAMADAN:
-      // MENUJU IMSAK -> WAKTU IMSAK -> MENUJU SUBUH -> WAKTU SUBUH
-      // -> MENUJU IQOMAH -> IQOMAH SUBUH
+      // >25 menit sebelum SUBUH -> MENUJU SHOLAT SUBUH
+      // 25-10 menit sebelum SUBUH -> MENUJU IMSAK
+      // waktu IMSAK -> WAKTU / IMSAK
+      // setelah IMSAK -> MENUJU SHOLAT SUBUH
+      // waktu ADZAN -> ADZAN / SUBUH
+      // -> MENUJU IQOMAH -> IQOMAH
       // -> +15 MENIT -> MENUJU DZUHUR -> ...
       //
-      // NON-RAMADAN:
-      // MENUJU SUBUH -> ADZAN SUBUH -> MENUJU IQOMAH -> IQOMAH SUBUH
-      // -> +15 MENIT -> MENUJU DZUHUR -> ...
+      // ADZAN semua sholat:
+      // baris atas ADZAN, baris bawah nama sholat aktif.
       //
       // Audio scheduler TIDAK diubah.
       // =======================================================
@@ -6908,6 +6911,11 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           const imsakStartSec =
             pSec - (10 * 60);
 
+          // MENUJU IMSAK mulai 25 menit sebelum SUBUH.
+          // Waktu IMSAK sendiri tetap 10 menit sebelum SUBUH.
+          const menujuImsakStartSec =
+            pSec - (25 * 60);
+
           const sirineDuration =
             getSubuhSirineDuration();
 
@@ -6915,10 +6923,35 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             imsakStartSec +
             (sirineDuration > 0 ? sirineDuration : 60);
 
-          // Sebelum waktu IMSAK: selalu tampilkan MENUJU IMSAK.
-          // Jangan melewati SUBUH/DZUHUR hanya karena masih lebih
-          // dari 5 menit sebelum IMSAK.
+          // Lebih dari 25 menit sebelum SUBUH:
+          // tetap countdown MENUJU SHOLAT SUBUH.
           if (
+            nowSeconds < menujuImsakStartSec
+          ) {
+
+            const diff =
+              pSec - nowSeconds;
+
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const s = Math.floor(diff % 60);
+
+            activeState = {
+              title: 'MENUJU SHOLAT SUBUH',
+              timer:
+                String(h).padStart(2, '0') + ':' +
+                String(m).padStart(2, '0') + ':' +
+                String(s).padStart(2, '0'),
+              prayerName: 'SUBUH'
+            };
+
+            break;
+          }
+
+          // 25 menit sampai 10 menit sebelum SUBUH:
+          // highlight pindah SUBUH -> IMSAK.
+          if (
+            nowSeconds >= menujuImsakStartSec &&
             nowSeconds < imsakStartSec
           ) {
 
@@ -6933,7 +6966,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
               timer:
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
-              prayerName: 'SUBUH'
+              prayerName: 'IMSAK'
             };
 
             break;
@@ -6979,7 +7012,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             break;
           }
 
-          // ADZAN SUBUH pada Ramadan ditampilkan dengan format dua baris.
+          // ADZAN SUBUH pada Ramadan mengikuti format contoh:
+          // baris atas ADZAN, baris bawah SUBUH.
           if (
             nowSeconds >= adzanStartSec &&
             nowSeconds < adzanEndSec
@@ -6987,7 +7021,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
             activeState = {
               title: 'ADZAN',
-              timer: '',
+              timer: 'SUBUH',
               prayerName: 'SUBUH'
             };
 
@@ -7025,7 +7059,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
             activeState = {
               title: 'IQOMAH',
-              timer: 'SUBUH',
+              timer: '',
               prayerName: 'SUBUH'
             };
 
@@ -7077,7 +7111,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           break;
         }
 
-        // ADZAN.
+        // ADZAN mengikuti format contoh_display_adzan.png:
+        // baris atas ADZAN, baris bawah nama sholat aktif.
         if (
           nowSeconds >= adzanStartSec &&
           nowSeconds < adzanEndSec
@@ -7085,7 +7120,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
           activeState = {
             title: 'ADZAN',
-            timer: '',
+            timer: displayName,
             prayerName: p.name
           };
 
@@ -7116,7 +7151,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           break;
         }
 
-        // IQOMAH.
+        // IQOMAH: satu baris seperti ketentuan display saat ini.
         if (
           p.hasIqomah &&
           nowSeconds >= iqomahTimeSec &&
@@ -7125,7 +7160,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
           activeState = {
             title: 'IQOMAH',
-            timer: displayName,
+            timer: '',
             prayerName: p.name
           };
 
