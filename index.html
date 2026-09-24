@@ -6983,8 +6983,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           ) {
 
             activeState = {
-              title: 'ADZAN\nSUBUH',
-              timer: 'SUBUH',
+              title: 'ADZAN',
+              timer: '',
               prayerName: 'SUBUH'
             };
 
@@ -7081,11 +7081,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         ) {
 
           activeState = {
-            title:
-              (isFridayWita() && p.name === 'DZUHUR')
-                ? "WAKTU SHOLAT\nJUM'AT"
-                : 'ADZAN\n' + displayName,
-            timer: displayName,
+            title: 'ADZAN',
+            timer: '',
             prayerName: p.name
           };
 
