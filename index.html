@@ -1134,7 +1134,7 @@
   <script>
 
     // =========================================================
-    // DIGITAL SIGNAGE MASJID AL SOBIRIN
+    // DIGITAL SIGNAGE MASJID AL MUJAHIDIN
     // SINGLE SOURCE OF TRUTH
     // =========================================================
 
@@ -1143,62 +1143,70 @@
 
 
     // =========================================================
-    // APPS SCRIPT API UNTUK GITHUB PAGES - JSONP
+    // GITHUB PAGES -> GOOGLE APPS SCRIPT API
+    // JSONP dipakai agar frontend GitHub Pages tidak membutuhkan
+    // google.script.run dan tidak terkena pembatasan cross-origin.
     // =========================================================
-    // GitHub Pages tidak memiliki google.script.run.
-    // Data Script Properties (termasuk RAMADAN_DISPLAY) diambil
-    // langsung melalui API.gs menggunakan JSONP.
-    const APPS_SCRIPT_WEB_APP_URL =
+
+    const GAS_API_URL =
       'https://script.google.com/macros/s/AKfycbzNR2XTJWFhvTOONtxGhIOqxWT3rDeMHDHbASASh0I8GsrAOpPX66r_X-NH5OqBUHcM/exec';
 
-    let MASJID_JSONP_SEQUENCE = 0;
+    let gasApiCallbackCounter = 0;
 
-    function callGithubApi(action, params) {
+    function gasApiCall(action, params) {
+
       return new Promise(function(resolve, reject) {
-        const callbackName =
-          '__masjidJsonp_' +
-          Date.now() + '_' +
-          (++MASJID_JSONP_SEQUENCE);
 
-        const query = new URLSearchParams();
+        const callbackName =
+          '__GAS_API_CALLBACK_' +
+          Date.now() +
+          '_' +
+          (++gasApiCallbackCounter);
+
+        const script =
+          document.createElement('script');
+
+        const query =
+          new URLSearchParams();
+
         query.set('api', '1');
         query.set('action', action);
         query.set('callback', callbackName);
 
-        Object.keys(params || {}).forEach(function(key) {
-          const value = params[key];
-          if (value !== undefined && value !== null) {
-            query.set(key, String(value));
-          }
-        });
+        if (params && typeof params === 'object') {
+          Object.keys(params).forEach(function(key) {
+            const value = params[key];
+            if (value !== undefined && value !== null) {
+              query.set(key, String(value));
+            }
+          });
+        }
 
-        const script = document.createElement('script');
         let finished = false;
+        let timeoutId = null;
 
         function cleanup() {
-          if (finished) return;
-          finished = true;
           try {
             delete window[callbackName];
           } catch (e) {
             window[callbackName] = undefined;
           }
+
           if (script.parentNode) {
             script.parentNode.removeChild(script);
           }
-        }
 
-        const timeout = setTimeout(function() {
-          cleanup();
-          reject(new Error('Timeout API Apps Script: ' + action));
-        }, 15000);
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+        }
 
         window[callbackName] = function(payload) {
           if (finished) return;
-          clearTimeout(timeout);
+          finished = true;
+          cleanup();
 
           if (!payload || payload.success !== true) {
-            cleanup();
             reject(new Error(
               payload && payload.error
                 ? payload.error
@@ -1207,24 +1215,30 @@
             return;
           }
 
-          const data = payload.data;
-          cleanup();
-          resolve(data);
+          resolve(payload.data);
         };
 
         script.onerror = function() {
           if (finished) return;
-          clearTimeout(timeout);
+          finished = true;
           cleanup();
-          reject(new Error('Gagal memuat API Apps Script: ' + action));
+          reject(new Error(
+            'Gagal memuat Apps Script API.'
+          ));
         };
 
-        script.src =
-          APPS_SCRIPT_WEB_APP_URL +
-          (APPS_SCRIPT_WEB_APP_URL.indexOf('?') >= 0 ? '&' : '?') +
-          query.toString();
+        timeoutId = setTimeout(function() {
+          if (finished) return;
+          finished = true;
+          cleanup();
+          reject(new Error(
+            'Timeout menghubungi Apps Script API.'
+          ));
+        }, 30000);
 
-        script.async = true;
+        script.src =
+          GAS_API_URL + '?' + query.toString();
+
         document.head.appendChild(script);
       });
     }
@@ -1981,29 +1995,7 @@
               Number(nowWita.minute) * 60 +
               Number(nowWita.second);
 
-            const normalizedAudioType =
-              String(audioType || '')
-                .trim()
-                .toUpperCase();
-
-            const normalizedAudioLabel =
-              String(label || '')
-                .trim()
-                .toUpperCase();
-
-            // DOA selalu satu kali. Gunakan audioType ATAU label
-            // sebagai pengaman karena beberapa konfigurasi lama
-            // dapat tidak mengisi audioType secara konsisten.
-            // Event lain tetap boleh loop sesuai durasi Sheet.
-            const isDoaAudio =
-              normalizedAudioType === 'DOA' ||
-              normalizedAudioLabel === 'DOA';
-
-            const shouldLoop =
-              !isDoaAudio;
-
             const loopStillActive =
-              shouldLoop &&
               Number.isFinite(Number(stopAtSeconds)) &&
               Number.isFinite(Number(nowSeconds)) &&
               Number(nowSeconds) < Number(stopAtSeconds);
@@ -2031,7 +2023,7 @@
                 ) {
                   replay.catch(function(error) {
                     console.warn(
-                      'AUDIO LOOP PLAY DITOLAK:',
+                      'AUDIO TARHIM LOOP PLAY DITOLAK:',
                       label,
                       error
                     );
@@ -2040,7 +2032,7 @@
                 }
               } catch (error) {
                 console.warn(
-                  'AUDIO LOOP EXCEPTION:',
+                  'AUDIO TARHIM LOOP EXCEPTION:',
                   label,
                   error
                 );
@@ -2962,56 +2954,33 @@
 
     function loadEventRunningText() {
 
-      if (
-        typeof google === 'undefined' ||
-        !google.script ||
-        !google.script.run
-      ) return;
+      gasApiCall('getEventRunningText')
+        .then(function(text) {
 
-      google.script.run
-        .withSuccessHandler(
-          function(text) {
-
-            const element =
-              document.getElementById(
-                'event-running'
-              );
-
-            if (!element) return;
-
-            const newText =
-              text || '';
-
-            if (
-              newText ===
-              previousEventText
-            ) return;
-
-            previousEventText =
-              newText;
-
-            element.innerText =
-              newText;
-
-            requestAnimationFrame(
-              function() {
-                startEventRunning();
-              }
+          const element =
+            document.getElementById(
+              'event-running'
             );
 
-          }
-        )
-        .withFailureHandler(
-          function(error) {
+          if (!element) return;
 
-            console.error(
-              'Gagal mengambil data Event:',
-              error
-            );
+          const newText = text || '';
 
-          }
-        )
-        .getEventRunningText();
+          if (newText === previousEventText) return;
+
+          previousEventText = newText;
+          element.innerText = newText;
+
+          requestAnimationFrame(function() {
+            startEventRunning();
+          });
+        })
+        .catch(function(error) {
+          console.error(
+            'Gagal mengambil data Event:',
+            error
+          );
+        });
 
     }
 
@@ -3116,26 +3085,13 @@
 
     function fetchSheetData() {
 
-      // GitHub Pages memakai JSONP. Apps Script lama tetap kompatibel
-      // karena updateUI() menerima objek data yang sama.
-      callGithubApi('getDataFromSheet', {})
-        .then(function(data) {
-
-          console.log(
-            'DATA API GITHUB:',
-            data
-          );
-
-          updateUI(data);
-
-        })
+      gasApiCall('getDataFromSheet')
+        .then(updateUI)
         .catch(function(error) {
-
           console.error(
-            'Gagal mengambil data dari Apps Script API:',
+            'Gagal mengambil data sheet:',
             error
           );
-
         });
 
     }
@@ -3165,17 +3121,12 @@
         Object.prototype.hasOwnProperty.call(
           data,
           'RamadanDisplay'
-        ) &&
-        typeof data.RamadanDisplay === 'boolean'
+        )
       ) {
         setRamadanDisplay(
           data.RamadanDisplay
         );
       }
-
-      // Jika jadwal sudah tersedia, terapkan mode display sekarang juga.
-      // Fungsi ini hanya mengubah label/waktu visual IMSAK-SUBUH.
-      updateRamadanPrayerCards();
 
       setAudioConfig(data);
 
@@ -3949,19 +3900,8 @@
       const apiDate =
         getApiDate();
 
-      if (
-        typeof google === 'undefined' ||
-        !google.script ||
-        !google.script.run
-      ) {
-        console.warn(
-          'HIJRI API: google.script.run belum tersedia.'
-        );
-        return;
-      }
-
-      google.script.run
-        .withSuccessHandler(function(result) {
+      gasApiCall('getHijriDateFromApi', { date: apiDate })
+        .then(function(result) {
 
           if (
             !result ||
@@ -4033,7 +3973,7 @@
           );
 
         })
-        .withFailureHandler(function(error) {
+        .catch(function(error) {
 
           console.error(
             'HIJRI API ERROR:',
@@ -4042,10 +3982,7 @@
               : error
           );
 
-        })
-        .getHijriDateFromApi(
-          apiDate
-        );
+        });
 
     }
 
@@ -4440,26 +4377,13 @@
       );
 
       // Kunci C1 dan paksa OFF di Spreadsheet.
-      if (
-        typeof google !== 'undefined' &&
-        google.script &&
-        google.script.run
-      ) {
-        google.script.run
-          .withSuccessHandler(function(result) {
-            console.log(
-              'YOUTUBE CONTROL LOCK + OFF:',
-              result
-            );
-          })
-          .withFailureHandler(function(error) {
-            console.error(
-              'YOUTUBE CONTROL LOCK + OFF GAGAL:',
-              error
-            );
-          })
-          .lockYoutubeControl();
-      }
+      gasApiCall('lockYoutubeControl')
+        .then(function(result) {
+          console.log('YOUTUBE CONTROL LOCK + OFF:', result);
+        })
+        .catch(function(error) {
+          console.error('YOUTUBE CONTROL LOCK + OFF GAGAL:', error);
+        });
 
     }
 
@@ -4478,27 +4402,14 @@
 
       // Lepaskan lock hari sebelumnya agar operator tidak terkunci
       // ketika tanggal WITA sudah berganti.
-      if (
-        youtubeAutoLockDateKey &&
-        youtubeAutoLockDateKey !== dateKey &&
-        typeof google !== 'undefined' &&
-        google.script &&
-        google.script.run
-      ) {
-        google.script.run
-          .withSuccessHandler(function(result) {
-            console.log(
-              'YOUTUBE CONTROL UNLOCK TANGGAL BARU:',
-              result
-            );
+      if (youtubeAutoLockDateKey && youtubeAutoLockDateKey !== dateKey) {
+        gasApiCall('unlockYoutubeControl')
+          .then(function(result) {
+            console.log('YOUTUBE CONTROL UNLOCK TANGGAL BARU:', result);
           })
-          .withFailureHandler(function(error) {
-            console.error(
-              'YOUTUBE CONTROL UNLOCK TANGGAL BARU GAGAL:',
-              error
-            );
-          })
-          .unlockYoutubeControl();
+          .catch(function(error) {
+            console.error('YOUTUBE CONTROL UNLOCK TANGGAL BARU GAGAL:', error);
+          });
       }
 
       youtubeAutoStoppedForAudio = false;
@@ -4540,26 +4451,13 @@
 
         youtubeAutoLockActive = false;
 
-        if (
-          typeof google !== 'undefined' &&
-          google.script &&
-          google.script.run
-        ) {
-          google.script.run
-            .withSuccessHandler(function(result) {
-              console.log(
-                'YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI:',
-                result
-              );
-            })
-            .withFailureHandler(function(error) {
-              console.error(
-                'YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI GAGAL:',
-                error
-              );
-            })
-            .unlockYoutubeControl();
-        }
+        gasApiCall('unlockYoutubeControl')
+          .then(function(result) {
+            console.log('YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI:', result);
+          })
+          .catch(function(error) {
+            console.error('YOUTUBE CONTROL UNLOCK SETELAH AUDIO SELESAI GAGAL:', error);
+          });
 
         console.log(
           'YOUTUBE AUTO LOCK SELESAI:',
@@ -4809,30 +4707,14 @@
 
       }
 
-      if (
-        typeof google ===
-          'undefined' ||
-        !google.script ||
-        !google.script.run
-      ) return;
-
-      google.script.run
-        .withSuccessHandler(
-          updatePrayerSchedule
-        )
-        .withFailureHandler(
-          function(error) {
-
-            console.error(
-              'Gagal mengambil jadwal sholat:',
-              error
-            );
-
-          }
-        )
-        .getPrayerSchedule(
-          apiDate
-        );
+      gasApiCall('getPrayerSchedule', { date: apiDate })
+        .then(updatePrayerSchedule)
+        .catch(function(error) {
+          console.error(
+            'Gagal mengambil jadwal sholat:',
+            error
+          );
+        });
 
     }
 
@@ -4880,18 +4762,14 @@
         j.isya
       );
 
-      // Render visual Ramadan segera setelah waktu API tersedia.
-      // Tidak mengubah data-prayer maupun rawPrayerTime.
-      updateRamadanPrayerCards();
-
       WEB_APP_STATE
         .prayer
         .dateLoaded =
         result.tanggal ||
         getApiDate();
 
-      // Render kartu segera setelah waktu asli dari API tersedia.
-      // Ini tidak mengubah data scheduler/audio karena rawPrayerTime tetap disimpan.
+      // Terapkan ulang tampilan setelah jadwal Subuh/Terbit masuk.
+      // Hanya tampilan yang berubah; data raw tetap dipakai scheduler audio.
       updateRamadanPrayerCards();
 
       WEB_APP_STATE
@@ -6163,40 +6041,21 @@
 
 
     // =========================================================
-    // RAMADAN DISPLAY - LIVE REAL-TIME
+    // RAMADAN DISPLAY - MANUAL SCRIPT PROPERTY
     // =========================================================
-
-    // TRUE  = tampilkan IMSAK + SUBUH.
-    // FALSE = tampilkan SUBUH + TERBIT.
+    // Nilai dikirim dari Apps Script melalui data.RamadanDisplay.
     //
-    // Nilai ini diisi dari Code.gs -> Script Properties:
-    // RAMADAN_DISPLAY = true / false
-    //
-    // Default FALSE agar bila server belum mengirim konfigurasi,
-    // sistem tetap memakai tampilan normal SUBUH + TERBIT.
+    // true  = IMSAK + SUBUH
+    // false = SUBUH + TERBIT
     //
     // PENTING:
-    // Variabel ini hanya untuk DISPLAY Ramadan.
-    // Sistem AUDIO tidak membaca variabel ini.
+    // - Tidak membaca tanggal Hijriah untuk menentukan mode.
+    // - Tidak mengubah waktu raw Subuh/Terbit.
+    // - Tidak mengubah schedule, durasi, urutan, atau proses AUDIO.
     let RAMADAN_DISPLAY = false;
 
 
     function setRamadanDisplay(value) {
-
-      // Boolean adalah override eksplisit dari Script Properties.
-      if (typeof value === 'boolean') {
-        RAMADAN_DISPLAY = value;
-        console.log(
-          'RAMADAN DISPLAY OVERRIDE:',
-          RAMADAN_DISPLAY ? 'AKTIF' : 'NONAKTIF'
-        );
-        return;
-      }
-
-      // null/undefined/kosong = jangan menimpa default frontend.
-      if (value === null || value === undefined || String(value).trim() === '') {
-        return;
-      }
 
       const normalized =
         String(
@@ -6207,24 +6066,37 @@
           .trim()
           .toLowerCase();
 
-      RAMADAN_DISPLAY =
-        normalized === 'true' ||
-        normalized === '1' ||
-        normalized === 'yes' ||
-        normalized === 'ya' ||
-        normalized === 'on' ||
-        normalized === 'aktif';
+      if (typeof value === 'boolean') {
+        RAMADAN_DISPLAY = value;
+      } else if (normalized !== '') {
+        RAMADAN_DISPLAY =
+          normalized === 'true' ||
+          normalized === '1' ||
+          normalized === 'yes' ||
+          normalized === 'ya' ||
+          normalized === 'on' ||
+          normalized === 'aktif';
+      } else {
+        return;
+      }
 
+      console.log(
+        'RAMADAN DISPLAY =',
+        RAMADAN_DISPLAY,
+        '=>',
+        RAMADAN_DISPLAY
+          ? 'IMSAK + SUBUH'
+          : 'SUBUH + TERBIT'
+      );
+
+      updateRamadanPrayerCards();
     }
 
 
     function isRamadanDisplay() {
 
-      // RAMADAN_DISPLAY adalah sakelar manual/eksplisit.
-      // true  = tampilkan IMSAK + SUBUH
-      // false = tampilkan SUBUH + TERBIT
-      // Tidak boleh kembali membaca tanggal Hijriah karena itu
-      // membuat RAMADAN_DISPLAY=false tetap menampilkan Ramadan.
+      // Mode DISPLAY sepenuhnya mengikuti Script Property.
+      // Tidak ada lagi fallback otomatis berdasarkan tanggal Hijriah.
       return RAMADAN_DISPLAY === true;
 
     }
@@ -6721,7 +6593,6 @@
         // TIDAK TERGANTUNG AUDIO SCHEDULE / DURASI MP3
         // =====================================================
         if (
-          p.name !== 'TERBIT' &&
           nowSeconds < pSec &&
           (pSec - nowSeconds) <= 300
         ) {
@@ -6766,11 +6637,11 @@
 
         if (p.hasIqomah) {
 
-          // Setelah IQOMAH selesai, SUBUH tetap ditampilkan selama 15 menit.
-          // Setelah 15 menit berlalu, display langsung masuk ke countdown
-          // menuju DZUHUR. TERBIT tidak pernah menjadi state countdown.
+          // DOA tetap diputar oleh Audio Scheduler, tetapi tidak menjadi
+          // state yang ditampilkan pada countdown. Display tetap berada
+          // pada MENUJU IQOMAH sampai waktu IQOMAH tiba.
           if (
-            nowSeconds >= adzanEndSec &&
+            nowSeconds >= doaEndSec &&
             nowSeconds < iqomahTimeSec
           ) {
 
@@ -6808,55 +6679,6 @@
 
             break;
           }
-
-          // SUBUH: setelah IQOMAH selesai, tetap tampil WAKTU SUBUH
-          // selama 15 menit. Sesudah itu lanjut ke MENUJU DZUHUR.
-          if (
-            p.name === 'SUBUH' &&
-            nowSeconds >= iqomahEndSec &&
-            nowSeconds < (iqomahEndSec + 15 * 60)
-          ) {
-
-            activeState = {
-              title: 'WAKTU SUBUH',
-              timer: 'SUBUH',
-              prayerName: p.name
-            };
-
-            break;
-          }
-
-          // Setelah 15 menit dari selesai IQOMAH SUBUH,
-          // langsung gunakan countdown menuju DZUHUR.
-          if (
-            p.name === 'SUBUH' &&
-            nowSeconds >= (iqomahEndSec + 15 * 60)
-          ) {
-
-            const dzuhurPrayer = prayerList.find(function(prayer) {
-              return prayer.name === 'DZUHUR';
-            });
-
-            if (
-              dzuhurPrayer &&
-              nowSeconds < dzuhurPrayer.seconds
-            ) {
-
-              const diff = Math.max(1, dzuhurPrayer.seconds - nowSeconds);
-              const m = Math.floor(diff / 60);
-              const s = Math.floor(diff % 60);
-
-              activeState = {
-                title: 'MENUJU DZUHUR',
-                timer:
-                  String(m).padStart(2, '0') + ':' +
-                  String(s).padStart(2, '0'),
-                prayerName: 'DZUHUR'
-              };
-
-              break;
-            }
-          }
         }
       }
 
@@ -6880,7 +6702,6 @@
         ) {
 
           if (
-            prayerList[i].name !== 'TERBIT' &&
             prayerList[i].seconds >
             nowSeconds
           ) {
