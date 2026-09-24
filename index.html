@@ -280,6 +280,7 @@
     }
 
     .countdown-title {
+      white-space: pre-line;
       color: #ffffff;
       font-size: clamp(0.7rem, 1vw, 1.1rem);
       font-weight: bold;
@@ -6969,14 +6970,14 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
             break;
           }
 
-          // ADZAN SUBUH pada Ramadan ditampilkan sebagai WAKTU SUBUH.
+          // ADZAN SUBUH pada Ramadan ditampilkan dengan format dua baris.
           if (
             nowSeconds >= adzanStartSec &&
             nowSeconds < adzanEndSec
           ) {
 
             activeState = {
-              title: 'WAKTU SUBUH',
+              title: 'ADZAN\nSUBUH',
               timer: 'SUBUH',
               prayerName: 'SUBUH'
             };
@@ -7075,9 +7076,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
 
           activeState = {
             title:
-              (isFridayWita() && p.name === 'DZUHUR')
-                ? "ADZAN SHOLAT JUM'AT"
-                : 'ADZAN ' + displayName,
+              'ADZAN\n' + displayName,
             timer: displayName,
             prayerName: p.name
           };
@@ -7117,7 +7116,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
         ) {
 
           activeState = {
-            title: 'IQOMAH ' + displayName,
+            title: 'IQOMAH\n' + displayName,
             timer: displayName,
             prayerName: p.name
           };
