@@ -6915,10 +6915,11 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             imsakStartSec +
             (sirineDuration > 0 ? sirineDuration : 60);
 
-          // 5 menit sebelum IMSAK.
+          // Sebelum waktu IMSAK: selalu tampilkan MENUJU IMSAK.
+          // Jangan melewati SUBUH/DZUHUR hanya karena masih lebih
+          // dari 5 menit sebelum IMSAK.
           if (
-            nowSeconds < imsakStartSec &&
-            (imsakStartSec - nowSeconds) <= 300
+            nowSeconds < imsakStartSec
           ) {
 
             const diff =
