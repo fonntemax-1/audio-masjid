@@ -6244,6 +6244,385 @@
     }
 
 
+
+// =========================================================
+// HIGHLIGHT KARTU SHOLAT
+// LOGIKA FINAL
+//
+// RAMADAN:
+// IMSAK → SUBUH → DZUHUR → ASHAR → MAGRIB → ISYA → SUBUH → IMSAK
+//
+// NON-RAMADAN:
+// SUBUH → TERBIT → DZUHUR → ASHAR → MAGRIB → ISYA → SUBUH
+//
+// Fungsi ini HANYA mengatur class active-prayer.
+// Tidak mengubah AUDIO / COUNTDOWN / SCHEDULER.
+// =========================================================
+
+function updatePrayerCardHighlight(nowSeconds, prayerList) {
+
+  try {
+
+    if (!Array.isArray(prayerList) || prayerList.length === 0) {
+      return;
+    }
+
+    const computedSchedules =
+      WEB_APP_STATE.audio.computedSchedules instanceof Map
+        ? WEB_APP_STATE.audio.computedSchedules
+        : new Map();
+
+    function getIqomahEndSec(prayerName, fallbackSec) {
+
+      const computed = computedSchedules.get(prayerName);
+
+      const events =
+        computed && Array.isArray(computed.events)
+          ? computed.events
+          : [];
+
+      const iqomahEvent =
+        events.find(function(event) {
+          return String(event.eventName || '').toUpperCase() === 'IQOMAH';
+        });
+
+      if (
+        iqomahEvent &&
+        Number.isFinite(Number(iqomahEvent.endSec))
+      ) {
+        return Number(iqomahEvent.endSec);
+      }
+
+      return fallbackSec;
+    }
+
+    function getPrayerSec(name) {
+
+      const prayer =
+        prayerList.find(function(p) {
+          return p.name === name;
+        });
+
+      return prayer
+        ? Number(prayer.seconds)
+        : null;
+    }
+
+    const subuhSec   = getPrayerSec('SUBUH');
+    const terbitSec  = getPrayerSec('TERBIT');
+    const dzuhurSec  = getPrayerSec('DZUHUR');
+    const asharSec   = getPrayerSec('ASHAR');
+    const maghribSec = getPrayerSec('MAGHRIB');
+    const isyaSec    = getPrayerSec('ISYA');
+
+    if (
+      !Number.isFinite(subuhSec) ||
+      !Number.isFinite(dzuhurSec) ||
+      !Number.isFinite(asharSec) ||
+      !Number.isFinite(maghribSec) ||
+      !Number.isFinite(isyaSec)
+    ) {
+      return;
+    }
+
+    const subuhIqomahEnd =
+      getIqomahEndSec(
+        'SUBUH',
+        subuhSec + (5 * 60) + 180
+      );
+
+    const dzuhurIqomahEnd =
+      getIqomahEndSec(
+        'DZUHUR',
+        dzuhurSec + (5 * 60) + 180
+      );
+
+    const asharIqomahEnd =
+      getIqomahEndSec(
+        'ASHAR',
+        asharSec + (5 * 60) + 180
+      );
+
+    const maghribIqomahEnd =
+      getIqomahEndSec(
+        'MAGHRIB',
+        maghribSec + (5 * 60) + 180
+      );
+
+    const isyaIqomahEnd =
+      getIqomahEndSec(
+        'ISYA',
+        isyaSec + (5 * 60) + 180
+      );
+
+    const batasSubuh =
+      subuhIqomahEnd + (15 * 60);
+
+    const batasDzuhur =
+      dzuhurIqomahEnd + (15 * 60);
+
+    const batasAshar =
+      asharIqomahEnd + (15 * 60);
+
+    const batasMaghrib =
+      maghribIqomahEnd + (15 * 60);
+
+    const batasIsya =
+      isyaIqomahEnd + (60 * 60);
+
+    let targetPrayerName = null;
+
+    // =======================================================
+    // RAMADAN
+    // =======================================================
+
+    if (isRamadanDisplay()) {
+
+      const imsakSec =
+        subuhSec - (10 * 60);
+
+      const sirineDuration =
+        getSubuhSirineDuration();
+
+      // Jika audio schedule belum tersedia, jangan mengunci
+      // kartu IMSAK sepanjang hari. Gunakan fallback pendek.
+      const imsakSirineDuration =
+        sirineDuration > 0
+          ? sirineDuration
+          : 60;
+
+      const imsakSirineEnd =
+        imsakSec + imsakSirineDuration;
+
+      // 5 menit sebelum IMSAK:
+      // kartu visual IMSAK = data-prayer SUBUH.
+      const highlightImsakStart =
+        imsakSec - (5 * 60);
+
+      // -----------------------------------------------------
+      // IMSAK
+      // -----------------------------------------------------
+
+      if (
+        nowSeconds >= highlightImsakStart &&
+        nowSeconds < imsakSirineEnd
+      ) {
+
+        targetPrayerName = 'SUBUH';
+
+      }
+
+      // -----------------------------------------------------
+      // SUBUH
+      // Setelah sirine IMSAK selesai sampai
+      // IQOMAH SUBUH selesai + 15 menit.
+      //
+      // Visual SUBUH = data-prayer TERBIT.
+      // -----------------------------------------------------
+
+      else if (
+        nowSeconds >= imsakSirineEnd &&
+        nowSeconds < batasSubuh
+      ) {
+
+        targetPrayerName = 'TERBIT';
+
+      }
+
+      // -----------------------------------------------------
+      // DZUHUR
+      // -----------------------------------------------------
+
+      else if (
+        nowSeconds >= batasSubuh &&
+        nowSeconds < batasDzuhur
+      ) {
+
+        targetPrayerName = 'DZUHUR';
+
+      }
+
+      // -----------------------------------------------------
+      // ASHAR
+      // -----------------------------------------------------
+
+      else if (
+        nowSeconds >= batasDzuhur &&
+        nowSeconds < batasAshar
+      ) {
+
+        targetPrayerName = 'ASHAR';
+
+      }
+
+      // -----------------------------------------------------
+      // MAGHRIB
+      // -----------------------------------------------------
+
+      else if (
+        nowSeconds >= batasAshar &&
+        nowSeconds < batasMaghrib
+      ) {
+
+        targetPrayerName = 'MAGHRIB';
+
+      }
+
+      // -----------------------------------------------------
+      // ISYA
+      // -----------------------------------------------------
+
+      else if (
+        nowSeconds >= batasMaghrib &&
+        nowSeconds < batasIsya
+      ) {
+
+        targetPrayerName = 'ISYA';
+
+      }
+
+      // -----------------------------------------------------
+      // SUBUH SETELAH ISYA
+      //
+      // Tetap SUBUH sampai 5 menit menjelang IMSAK.
+      // Visual SUBUH = data-prayer TERBIT.
+      // -----------------------------------------------------
+
+      else {
+
+        targetPrayerName = 'TERBIT';
+
+      }
+
+    }
+
+    // =======================================================
+    // NON-RAMADAN
+    // =======================================================
+
+    else {
+
+      // SUBUH setelah ISYA dan sampai batas SUBUH.
+      if (
+        nowSeconds >= batasIsya ||
+        nowSeconds < batasSubuh
+      ) {
+
+        targetPrayerName = 'SUBUH';
+
+      }
+
+      // TERBIT sampai waktu TERBIT.
+      else if (
+        Number.isFinite(terbitSec) &&
+        nowSeconds >= batasSubuh &&
+        nowSeconds < terbitSec
+      ) {
+
+        targetPrayerName = 'TERBIT';
+
+      }
+
+      // DZUHUR.
+      else if (
+        Number.isFinite(terbitSec) &&
+        nowSeconds >= terbitSec &&
+        nowSeconds < batasDzuhur
+      ) {
+
+        targetPrayerName = 'DZUHUR';
+
+      }
+
+      // ASHAR.
+      else if (
+        nowSeconds >= batasDzuhur &&
+        nowSeconds < batasAshar
+      ) {
+
+        targetPrayerName = 'ASHAR';
+
+      }
+
+      // MAGHRIB.
+      else if (
+        nowSeconds >= batasAshar &&
+        nowSeconds < batasMaghrib
+      ) {
+
+        targetPrayerName = 'MAGHRIB';
+
+      }
+
+      // ISYA.
+      else if (
+        nowSeconds >= batasMaghrib &&
+        nowSeconds < batasIsya
+      ) {
+
+        targetPrayerName = 'ISYA';
+
+      }
+
+      else {
+
+        targetPrayerName = 'SUBUH';
+
+      }
+
+    }
+
+    // =======================================================
+    // TERAPKAN CLASS ACTIVE
+    // =======================================================
+
+    if (
+      targetPrayerName !== lastActivePrayerCardName
+    ) {
+
+      if (lastActivePrayerCardName) {
+
+        const oldCard =
+          document.querySelector(
+            `.prayer-card[data-prayer="${lastActivePrayerCardName}"]`
+          );
+
+        if (oldCard) {
+          oldCard.classList.remove('active-prayer');
+        }
+
+      }
+
+      if (targetPrayerName) {
+
+        const activeCard =
+          document.querySelector(
+            `.prayer-card[data-prayer="${targetPrayerName}"]`
+          );
+
+        if (activeCard) {
+          activeCard.classList.add('active-prayer');
+        }
+
+      }
+
+      lastActivePrayerCardName =
+        targetPrayerName || null;
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      'HIGHLIGHT ERROR:',
+      error
+    );
+
+  }
+
+}
+
+
     // =========================================================
     // COUNTDOWN SHOLAT
     // =========================================================
@@ -6736,56 +7115,17 @@
 
 
       // =======================================================
-      // ACTIVE CARD
+      // ACTIVE CARD / HIGHLIGHT
+      // =======================================================
+      //
+      // Highlight sekarang berdiri sendiri dari countdown.
+      // Audio scheduler dan countdown tidak diubah.
       // =======================================================
 
-      let targetPrayerName =
-        activeState
-          ? activeState.prayerName
-          : (
-              nextPrayer
-                ? nextPrayer.name
-                : null
-            );
-
-      // Saat sudah masuk waktu Subuh Ramadan, kartu kedua (internal TERBIT)
-      // menjadi kartu visual SUBUH aktif. Struktur data-prayer tidak berubah.
-      if (
-        isRamadanDisplay() &&
-        activeState &&
-        activeState.prayerName === 'SUBUH' &&
-        activeState.title !== 'WAKTU IMSAK'
-      ) {
-        targetPrayerName = 'TERBIT';
-      }
-
-      if (targetPrayerName !== lastActivePrayerCardName) {
-
-        if (lastActivePrayerCardName) {
-          const oldCard =
-            document.querySelector(
-              `.prayer-card[data-prayer="${lastActivePrayerCardName}"]`
-            );
-
-          if (oldCard) {
-            oldCard.classList.remove('active-prayer');
-          }
-        }
-
-        if (targetPrayerName) {
-          const activeCard =
-            document.querySelector(
-              `.prayer-card[data-prayer="${targetPrayerName}"]`
-            );
-
-          if (activeCard) {
-            activeCard.classList.add('active-prayer');
-          }
-        }
-
-        lastActivePrayerCardName =
-          targetPrayerName || null;
-      }
+      updatePrayerCardHighlight(
+        nowSeconds,
+        prayerList
+      );
 
 
       // =======================================================
