@@ -6594,12 +6594,18 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
     const fridayTransitionSec =
       13 * 3600;
 
-    if (
-      isFridayWita() &&
-      nowSeconds >= fridayTransitionSec &&
-      nowSeconds < batasAshar
-    ) {
-      targetPrayerName = 'ASHAR';
+    // Khusus Jumat:
+    // sebelum 13:00 WITA kartu HARUS tetap JUM'AT,
+    // walaupun batas IQOMAH + 15 menit sudah terlewati.
+    // Tepat 13:00 WITA baru pindah ke ASHAR.
+    if (isFridayWita()) {
+
+      if (nowSeconds < fridayTransitionSec) {
+        targetPrayerName = 'DZUHUR';
+      } else if (nowSeconds < batasAshar) {
+        targetPrayerName = 'ASHAR';
+      }
+
     }
 
     // =======================================================
