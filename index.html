@@ -7076,7 +7076,9 @@ function updatePrayerCardHighlight(nowSeconds, prayerList) {
 
           activeState = {
             title:
-              'ADZAN\n' + displayName,
+              (isFridayWita() && p.name === 'DZUHUR')
+                ? "WAKTU SHOLAT\nJUM'AT"
+                : 'ADZAN\n' + displayName,
             timer: displayName,
             prayerName: p.name
           };
