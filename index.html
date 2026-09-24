@@ -298,22 +298,8 @@
       line-height: 1.1;
     }
 
-    /* =========================================================
-       KHUSUS WAKTU IMSAK
-       Mengikuti tampilan ADZAN SUBUH
-       ========================================================= */
-    .countdown-title.imsak-time-title {
-      /* Sama persis dengan style ADZAN SUBUH */
-      white-space: pre-line;
-      color: #ffffff;
-      font-size: clamp(0.7rem, 1vw, 1.1rem);
-      font-weight: bold;
-      line-height: normal;
-      letter-spacing: normal;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
+    /* WAKTU IMSAK menggunakan style ADZAN SUBUH
+       secara langsung: title=WAKTU, timer=IMSAK. */
 
     .countdown-timer {
       color: #ffcc00;
@@ -6853,9 +6839,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           return;
         }
 
-        if (normalizedTitle === 'WAKTU IMSAK') {
-          countdownTitle.classList.add('imsak-time-title');
-        }
+        // WAKTU IMSAK menggunakan struktur dan style ADZAN:
+        // title = WAKTU, timer = IMSAK.
       }
 
       let activeState =
@@ -7041,8 +7026,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           ) {
 
             activeState = {
-              title: 'WAKTU\nIMSAK',
-              timer: '',
+              title: 'WAKTU',
+              timer: 'IMSAK',
               // Visual kartu IMSAK = data-prayer SUBUH.
               prayerName: 'SUBUH'
             };
@@ -7402,8 +7387,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
           } else if (nowSeconds < nextImsakEndSec) {
 
-            nextTitle = 'WAKTU\\nIMSAK';
-            nextTimer = '';
+            nextTitle = 'WAKTU';
+            nextTimer = 'IMSAK';
 
           } else {
 
