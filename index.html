@@ -7103,12 +7103,22 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             break;
           }
 
-          // Setelah IQOMAH SUBUH selesai +15 menit,
-          // loop diteruskan ke DZUHUR.
+          // Setelah IQOMAH SUBUH selesai, tampilkan
+          // SHOLAT / SUBUH dengan style yang sama seperti ADZAN.
+          // State ini bertahan sampai batas perpindahan kartu
+          // (+15 menit setelah waktu IQOMAH).
           if (
+            nowSeconds >= iqomahEndSec &&
             nowSeconds < afterIqomahSec
           ) {
-            continue;
+
+            activeState = {
+              title: 'SHOLAT',
+              timer: 'SUBUH',
+              prayerName: 'TERBIT'
+            };
+
+            break;
           }
 
           continue;
@@ -7207,13 +7217,26 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           break;
         }
 
-        // Setelah IQOMAH sampai +15 menit: tidak menampilkan
-        // state sholat tersebut. Loop akan mencari sholat berikutnya.
+        // Setelah IQOMAH selesai, tampilkan
+        // SHOLAT / nama sholat aktif dengan style yang sama
+        // seperti ADZAN. State ini bertahan sampai batas
+        // perpindahan kartu (+15 menit setelah IQOMAH).
         if (
           p.hasIqomah &&
+          nowSeconds >= iqomahEndSec &&
           nowSeconds < afterIqomahSec
         ) {
-          continue;
+
+          activeState = {
+            title: 'SHOLAT',
+            timer:
+              (isFridayWita() && p.name === 'DZUHUR')
+                ? "JUM'AT"
+                : displayName,
+            prayerName: p.name
+          };
+
+          break;
         }
       }
 
