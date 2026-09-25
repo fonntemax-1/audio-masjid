@@ -319,6 +319,7 @@
       position: absolute;
       top: 1.5vh;
       right: 1.5vw;
+      bottom: 6vh;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -466,8 +467,9 @@
        * mengubah lebar frame. Panel tetap berada di dalam
        * clock-overlay dan dibatasi agar tidak menutup event-banner.
        */
-      flex-shrink: 0;
-      max-height: min(34vh, 280px);
+      flex-shrink: 1;
+      min-height: 0;
+      max-height: min(22vh, 220px);
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
@@ -522,7 +524,7 @@
       width: auto;
       height: auto;
       max-width: min(100%, 28vh);
-      max-height: 19vh;
+      max-height: 15vh;
       object-fit: contain;
       margin: 0.5vh auto;
       flex-shrink: 1;
