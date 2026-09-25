@@ -7337,6 +7337,30 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
               ? Number(maghribSirineEvent.endSec)
               : Number(pSec);
 
+          // 5 menit sebelum waktu Maghrib:
+          // tampilkan countdown MENUJU WAKTU BERBUKA.
+          if (
+            nowSeconds >= (Number(pSec) - (5 * 60)) &&
+            nowSeconds < Number(pSec)
+          ) {
+
+            const diff =
+              Number(pSec) - nowSeconds;
+
+            const m = Math.floor(diff / 60);
+            const s = Math.floor(diff % 60);
+
+            activeState = {
+              title: 'MENUJU WAKTU BERBUKA',
+              timer:
+                String(m).padStart(2, '0') + ':' +
+                String(s).padStart(2, '0'),
+              prayerName: 'MAGHRIB'
+            };
+
+            break;
+          }
+
           if (
             nowSeconds >= Number(pSec) &&
             nowSeconds < maghribSirineEndSec
