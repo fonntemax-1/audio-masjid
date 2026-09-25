@@ -5633,79 +5633,89 @@
 
       // =========================================================
       // EVENT SEBELUM ADZAN
-      // Susun mundur sampai waktu Maghrib untuk Ramadan.
-      // Sirine Ramadan Maghrib tidak ikut disusun mundur karena
-      // harus mulai TEPAT pada waktu Maghrib.
+      //
+      // NORMAL:
+      //   seluruh sequence sebelum adzan disusun mundur agar
+      //   tetap berakhir tepat pada waktu sholat.
+      //
+      // RAMADAN MAGHRIB:
+      //   timeline Sheet dipertahankan secara literal:
+      //   Qiroah/Tarhim -> SIRINE -> GAP -> BEEP -> GAP -> ADZAN.
+      //
+      //   Sirine dimulai tepat pada pSec (waktu Maghrib).
+      //   Item setelah sirine dan sebelum adzan dihitung MAJU,
+      //   sehingga adzan mengikuti gap + beep + gap dari Sheet.
       // =========================================================
 
       let cursor =
-        isRamadanMaghrib
-          ? Number(pSec)
-          : Number(pSec);
+        Number(pSec);
 
-      for (
-        let i = adzanIndex - 1;
-        i >= 0;
-        i--
-      ) {
+      if (isRamadanMaghrib && sirineEnabled) {
 
-        const item = activeSequence[i];
-        const event =
-          String(item && item.event || '')
-            .trim()
-            .toLowerCase();
-        const duration = Number(item && item.duration);
+        const sirineIndex =
+          activeSequence.findIndex(function(item) {
+            return String(item && item.event || '')
+              .trim()
+              .toLowerCase() === 'sirine';
+          });
 
-        if (!Number.isFinite(duration) || duration <= 0) {
-          continue;
-        }
-
-        cursor -= duration;
-
-        if (event === 'gap') {
-          continue;
-        }
-
-        // Pada Ramadan Maghrib, sirine dimainkan tepat saat Maghrib,
-        // bukan dihitung mundur dari waktu Adzan.
-        if (
-          isRamadanMaghrib &&
-          event === 'sirine'
+        // -------------------------------------------------------
+        // BAGIAN SEBELUM SIRINE
+        // Qiroah/Tarhim tetap disusun mundur dan berakhir
+        // tepat pada waktu Maghrib.
+        // -------------------------------------------------------
+        for (
+          let i = sirineIndex - 1;
+          i >= 0;
+          i--
         ) {
-          continue;
+
+          const item = activeSequence[i];
+          const event =
+            String(item && item.event || '')
+              .trim()
+              .toLowerCase();
+          const duration = Number(item && item.duration);
+
+          if (!Number.isFinite(duration) || duration <= 0) {
+            continue;
+          }
+
+          cursor -= duration;
+
+          if (event === 'gap') {
+            continue;
+          }
+
+          const audioType =
+            mapSheetEventToAudioType(event, name);
+
+          if (!audioType) {
+            continue;
+          }
+
+          const label =
+            /^qiroah-\d+$/.test(event) || event === 'qiroah'
+              ? 'Qiroah - ' + name
+              : event === 'tarhim'
+                ? 'Tarhim - ' + name
+                : event === 'beep'
+                  ? 'Beep sebelum Adzan - ' + name
+                  : event + ' - ' + name;
+
+          add(
+            event === 'beep'
+              ? 'BEEP_ADZAN'
+              : event.toUpperCase(),
+            cursor,
+            duration,
+            label,
+            audioType,
+            item.status
+          );
         }
 
-        const audioType =
-          mapSheetEventToAudioType(event, name);
-
-        if (!audioType) {
-          continue;
-        }
-
-        let label =
-          /^qiroah-\d+$/.test(event) || event === 'qiroah'
-            ? 'Qiroah - ' + name
-            : event === 'tarhim'
-              ? 'Tarhim - ' + name
-              : event === 'beep'
-                ? 'Beep sebelum Adzan - ' + name
-                : event + ' - ' + name;
-
-        add(
-          event === 'beep'
-            ? 'BEEP_ADZAN'
-            : event.toUpperCase(),
-          cursor,
-          duration,
-          label,
-          audioType,
-          item.status
-        );
-      }
-
-      // Ramadan Maghrib: sirine tepat pada waktu Maghrib,
-      // lalu Adzan Maghrib setelah sirine selesai.
-      if (sirineEnabled) {
+        // Sirine tepat saat Maghrib.
         add(
           'SIRINE',
           Number(pSec),
@@ -5714,6 +5724,121 @@
           'sirine',
           sirineItem.status
         );
+
+        // -------------------------------------------------------
+        // BAGIAN SETELAH SIRINE SEBELUM ADZAN
+        // Ikuti Sheet secara literal: gap -> beep -> gap -> adzan.
+        // Dengan data saat ini:
+        // 52s sirine + 2s gap + 3s beep + 3s gap
+        // = adzan mulai 60s setelah waktu Maghrib.
+        // -------------------------------------------------------
+        cursor =
+          Number(pSec) +
+          ramadanMaghribSirineDuration;
+
+        for (
+          let i = sirineIndex + 1;
+          i < adzanIndex;
+          i++
+        ) {
+
+          const item = activeSequence[i];
+          const event =
+            String(item && item.event || '')
+              .trim()
+              .toLowerCase();
+          const duration = Number(item && item.duration);
+
+          if (!Number.isFinite(duration) || duration <= 0) {
+            continue;
+          }
+
+          if (event === 'gap') {
+            cursor += duration;
+            continue;
+          }
+
+          const audioType =
+            mapSheetEventToAudioType(event, name);
+
+          if (!audioType) {
+            continue;
+          }
+
+          const label =
+            event === 'beep'
+              ? 'Beep sebelum Adzan - ' + name
+              : event + ' - ' + name;
+
+          add(
+            event === 'beep'
+              ? 'BEEP_ADZAN'
+              : event.toUpperCase(),
+            cursor,
+            duration,
+            label,
+            audioType,
+            item.status
+          );
+
+          cursor += duration;
+        }
+
+      } else {
+
+        // Sequence normal tetap tidak diubah.
+        cursor = Number(pSec);
+
+        for (
+          let i = adzanIndex - 1;
+          i >= 0;
+          i--
+        ) {
+
+          const item = activeSequence[i];
+          const event =
+            String(item && item.event || '')
+              .trim()
+              .toLowerCase();
+          const duration = Number(item && item.duration);
+
+          if (!Number.isFinite(duration) || duration <= 0) {
+            continue;
+          }
+
+          cursor -= duration;
+
+          if (event === 'gap') {
+            continue;
+          }
+
+          const audioType =
+            mapSheetEventToAudioType(event, name);
+
+          if (!audioType) {
+            continue;
+          }
+
+          const label =
+            /^qiroah-\d+$/.test(event) || event === 'qiroah'
+              ? 'Qiroah - ' + name
+              : event === 'tarhim'
+                ? 'Tarhim - ' + name
+                : event === 'beep'
+                  ? 'Beep sebelum Adzan - ' + name
+                  : event + ' - ' + name;
+
+          add(
+            event === 'beep'
+              ? 'BEEP_ADZAN'
+              : event.toUpperCase(),
+            cursor,
+            duration,
+            label,
+            audioType,
+            item.status
+          );
+        }
       }
 
       // =========================================================
@@ -7361,9 +7486,15 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             break;
           }
 
+          // WAKTU BERBUKA / PUASA tetap tampil selama
+          // sirine dan seluruh jeda sebelum Adzan sesuai Sheet.
+          // Adzan baru tampil tepat saat audio Adzan dimulai.
+          const maghribAdzanStartSec =
+            Number(adzanStartSec);
+
           if (
             nowSeconds >= Number(pSec) &&
-            nowSeconds < maghribSirineEndSec
+            nowSeconds < maghribAdzanStartSec
           ) {
 
             activeState = {
@@ -7376,7 +7507,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           }
 
           if (
-            nowSeconds >= maghribSirineEndSec &&
+            nowSeconds >= maghribAdzanStartSec &&
             nowSeconds < adzanEndSec
           ) {
 
