@@ -953,32 +953,22 @@ function parseAdzanSheetV6(data) {
   function normalizeEvent(value) {
     let v = normalize(value);
     if (!v) return '';
-
-    // Nilai ini adalah kontrol/status atau angka, bukan nama audio.
     if (v === 'on' || v === 'off') return '';
     if (/^[+-]?(?:\d+(?:[.,]\d+)?)$/.test(v)) return '';
-
     v = v.replace(/_/g, '-').replace(/\s+/g, '-');
-
-    if (/^qiroah-?\d+$/.test(v)) {
-      return v.replace(/^qiroah-?(\d+)$/, 'qiroah-$1');
-    }
-    if (/^qiraah-?\d+$/.test(v)) {
-      return v.replace(/^qiraah-?(\d+)$/, 'qiroah-$1');
-    }
-
-    if (v === 'qiroah' || v === 'qiraah') return 'qiroah';
-    if (v === 'gap' || v === 'jeda') return 'gap';
-    if (v === 'tarhim' || v === 'shalawat-tarhim' || v === 'sholawat-tarhim') return 'tarhim';
-    if (v === 'beep') return 'beep';
-    if (v === 'adzan-subuh' || v === 'azan-subuh') return 'adzan-subuh';
-    if (v === 'adzan-biasa' || v === 'azan-biasa') return 'adzan-biasa';
-    if (v === 'adzan' || v === 'azan') return 'adzan';
-    if (v === 'doa' || v === "do'a") return 'doa';
-    if (v === 'iqomah' || v === 'iqamah') return 'iqomah';
-    if (v === 'sirine' || v === 'siren') return 'sirine';
-
-    return '';
+    if (/^qiroah-?\d+$/.test(v)) return v.replace(/^qiroah-?(\d+)$/, 'qiroah-$1');
+    if (/^qiraah-?\d+$/.test(v)) return v.replace(/^qiraah-?(\d+)$/, 'qiroah-$1');
+    if (v === 'qiraah') return 'qiroah';
+    if (v === 'jeda') return 'gap';
+    if (v === 'shalawat-tarhim' || v === 'sholawat-tarhim') return 'tarhim';
+    if (v === 'azan-subuh') return 'adzan-subuh';
+    if (v === 'azan-biasa') return 'adzan-biasa';
+    if (v === 'azan') return 'adzan';
+    if (v === "do'a") return 'doa';
+    if (v === 'iqamah') return 'iqomah';
+    if (v === 'siren') return 'sirine';
+    // Semua nama event lain dari Sheet diteruskan apa adanya.
+    return v;
   }
 
   function parseDuration(value) {
@@ -1105,136 +1095,13 @@ function parseAdzanSheetV6(data) {
   };
 
   // ==========================================================
-  // BANGUN SELURUH JADWAL TERLEBIH DAHULU
-  //
-  // SIRINE mengikuti konfigurasi Spreadsheet:
-  // 1. Jika SIRINE ada pada blok sholat tersebut, gunakan DURASI
-  //    dan STATUS dari blok tersebut (custom per waktu sholat).
-  // 2. Jika blok tersebut sama sekali tidak mempunyai SIRINE,
-  //    gunakan konfigurasi SIRINE global pertama yang valid sebagai
-  //    fallback kompatibilitas. Tidak ada durasi hard-code.
-  // 3. Jika SIRINE ada tetapi durasinya 0, jangan auto-insert.
-  //    Ini berarti SIRINE memang dinonaktifkan untuk waktu tersebut.
-  // ==========================================================
-  const builtSchedules = {};
-  let globalSirineConfig = null;
-
+  // BANGUN JADWAL LANGSUNG DARI SHEET.
+  // Tidak ada event yang disisipkan, dihapus, atau dipindahkan.
+  // Urutan, durasi, GAP, dan STATUS mengikuti Sheet.
   prayerNames.forEach(function(prayerName) {
-    const a = layout2[prayerName];
-    const b = layout3[prayerName];
-
-    const c2 = makeCandidate(prayerName, a.event, a.duration, a.status);
-    const c3 = makeCandidate(prayerName, b.event, b.duration, b.status);
-
-    let chosen = null;
-    if (c2 && c2.validDuration > 0 && c2.invalidDuration === 0) chosen = c2;
-    if (c3 && c3.validDuration > 0 && c3.invalidDuration === 0 &&
-        (!chosen || c3.score > chosen.score)) chosen = c3;
-
-    // Jika keduanya tidak sempurna, pilih yang mempunyai event valid
-    // dan jumlah durasi valid terbanyak.
-    if (!chosen) {
-      [c2, c3].forEach(function(c) {
-        if (!c) return;
-        if (!chosen ||
-            c.validDuration > chosen.validDuration ||
-            (c.validDuration === chosen.validDuration && c.score > chosen.score)) {
-          chosen = c;
-        }
-      });
-    }
-
-    result.detected[prayerName] = chosen;
-
-    const schedule = buildSchedule(chosen);
-    builtSchedules[prayerName] = schedule;
-
-    // Ambil SIRINE pertama yang benar-benar aktif sebagai fallback global.
-    if (!globalSirineConfig) {
-      const found = schedule.find(function(item) {
-        return (
-          String(item && item.event || '').trim().toLowerCase() === 'sirine' &&
-          Number(item && item.duration) > 0
-        );
-      });
-
-      if (found) {
-        globalSirineConfig = {
-          duration: Number(found.duration),
-          status: found.status || 'ON',
-          row: found.row || null
-        };
-      }
-    }
-  });
-
-  // Terapkan aturan SIRINE tanpa mengubah event audio lainnya.
-  prayerNames.forEach(function(prayerName) {
-    const schedule = builtSchedules[prayerName] || [];
-
-    let sirineIndex = -1;
-
-    for (let i = 0; i < schedule.length; i++) {
-      const eventName = String(schedule[i] && schedule[i].event || '')
-        .trim()
-        .toLowerCase();
-
-      if (eventName === 'sirine') {
-        sirineIndex = i;
-        break;
-      }
-    }
-
-    if (sirineIndex >= 0) {
-      const sirine = schedule[sirineIndex];
-      const duration = Number(sirine.duration);
-
-      // SIRINE 0/kosong/tidak valid = sengaja tidak dimainkan.
-      if (!Number.isFinite(duration) || duration <= 0) {
-        Logger.log(
-          'AUDIO ' + prayerName + ': SIRINE dilewati karena durasi Spreadsheet = 0/tidak valid. ' +
-          '(row ' + (sirine.row || '-') + ')'
-        );
-        schedule.splice(sirineIndex, 1);
-      }
-    } else if (globalSirineConfig && Number(globalSirineConfig.duration) > 0) {
-      // Hanya jika blok sholat benar-benar tidak memiliki baris SIRINE,
-      // gunakan fallback global dari Spreadsheet.
-      // Tidak ada angka durasi hard-code.
-      let insertIndex = schedule.findIndex(function(item) {
-        return String(item && item.event || '').trim().toLowerCase() === 'beep';
-      });
-
-      if (insertIndex < 0) {
-        insertIndex = schedule.findIndex(function(item) {
-          const eventName = String(item && item.event || '').trim().toLowerCase();
-          return eventName === 'adzan-biasa' ||
-                 eventName === 'adzan-subuh' ||
-                 eventName === 'adzan';
-        });
-      }
-
-      if (insertIndex >= 0) {
-        schedule.splice(
-          insertIndex,
-          0,
-          {
-            event: 'sirine',
-            duration: Number(globalSirineConfig.duration),
-            status: globalSirineConfig.status || 'ON',
-            row: globalSirineConfig.row || null,
-            autoInserted: true
-          }
-        );
-
-        Logger.log(
-          'AUDIO ' + prayerName + ': SIRINE otomatis ditambahkan dari konfigurasi Spreadsheet. ' +
-          'durasi=' + globalSirineConfig.duration + ' detik.'
-        );
-      }
-    }
-
-    result.schedule[prayerName] = schedule;
+    const d = result.detected[prayerName];
+    result.schedule[prayerName] = buildSchedule(d);
+    Logger.log('AUDIO SCHEDULE ' + prayerName + ': ' + JSON.stringify(result.schedule[prayerName]));
   });
 
   // Jum'at: layout Y:AA adalah layout aktif 3 kolom.
@@ -1323,68 +1190,39 @@ function processAdzanScheduleSheet(sheet, resultObj) {
 // GAP tidak mempunyai kontrol suara dan tidak dipengaruhi status ini.
 // =========================================================
 
-function processAdzanAudioStatusSheet(
-  sheet,
-  resultObj
-) {
-
+function processAdzanAudioStatusSheet(sheet, resultObj) {
   if (!sheet) return;
-
-  const lastRow = Math.max(sheet.getLastRow(), 1);
-  const data = sheet
-    .getRange(1, 20, lastRow, 2)
-    .getDisplayValues();
-
+  // Status per-event berasal dari kolom STATUS setiap blok.
+  // AudioStatus hanya ringkasan kompatibilitas.
   const status = {
-    qiroah: 'ON',
-    tarhim: 'ON',
-    beep: 'ON',
-    adzan: 'ON',
-    doa: 'ON',
-    iqomah: 'ON'
+    qiroah: 'ON', tarhim: 'ON', beep: 'ON', adzan: 'ON',
+    doa: 'ON', iqomah: 'ON', sirine: 'ON'
   };
-
-  function normalizeStatusEvent(value) {
-    return String(value == null ? '' : value)
-      .trim()
-      .toLowerCase();
+  function categoryForEvent(event) {
+    const e = String(event || '').trim().toLowerCase();
+    if (/^qiroah-\d+$/.test(e) || e === 'qiroah') return 'qiroah';
+    if (e === 'tarhim') return 'tarhim';
+    if (e === 'beep') return 'beep';
+    if (e === 'adzan' || e === 'adzan-subuh' || e === 'adzan-biasa') return 'adzan';
+    if (e === 'doa') return 'doa';
+    if (e === 'iqomah') return 'iqomah';
+    if (e === 'sirine') return 'sirine';
+    return '';
   }
-
-  function normalizeStatusValue(value) {
-    const v = String(value == null ? '' : value)
-      .trim()
-      .toUpperCase();
-    return v === 'OFF' ? 'OFF' : 'ON';
-  }
-
-  for (let r = 0; r < data.length; r++) {
-    const event = normalizeStatusEvent(data[r][0]);
-    const value = normalizeStatusValue(data[r][1]);
-
-    if (event === 'qiroah') status.qiroah = value;
-    else if (event === 'tarhim') status.tarhim = value;
-    else if (event === 'beep') status.beep = value;
-    else if (event === 'adzan' || event === 'adzan-subuh' || event === 'adzan-biasa') status.adzan = value;
-    else if (event === 'doa') status.doa = value;
-    else if (event === 'iqomah') status.iqomah = value;
-  }
-
+  Object.keys(resultObj.AudioSchedule || {}).forEach(function(prayerName) {
+    (resultObj.AudioSchedule[prayerName] || []).forEach(function(item) {
+      const category = categoryForEvent(item && item.event);
+      if (category && String(item.status || 'ON').toUpperCase() === 'OFF') status[category] = 'OFF';
+    });
+  });
+  (Array.isArray(resultObj.AudioFriday) ? resultObj.AudioFriday : []).forEach(function(item) {
+    const category = categoryForEvent(item && item.event);
+    if (category && String(item.status || 'ON').toUpperCase() === 'OFF') status[category] = 'OFF';
+  });
   resultObj.AudioStatus = status;
-
-  Logger.log(
-    'AUDIO STATUS T/U = ' +
-    JSON.stringify(status)
-  );
+  Logger.log('AUDIO STATUS DARI BLOK SHEET = ' + JSON.stringify(status));
 }
 
-
-// =========================================================
-// REALTIME KONFIGURASI AUDIO DARI SHEET ADZAN
-//
-// Endpoint ringan khusus untuk membaca URL audio + urutan + durasi.
-// Dipanggil browser secara berkala agar perubahan Spreadsheet dapat
-// diterapkan tanpa menunggu refresh seluruh data halaman.
-// =========================================================
 
 function getRealtimeAudioConfig() {
   try {
@@ -1458,28 +1296,37 @@ function getRealtimeAudioConfig() {
     });
     result.AudioDurations = genericDurations;
 
-    // T:U = kontrol global audio.
-    // ON  = diputar normal.
-    // OFF = tetap dijadwalkan, tetapi frontend melakukan mute.
-    for (let r = 0; r < data.length; r++) {
-      const event = String(data[r][19] == null ? '' : data[r][19])
-        .trim()
-        .toLowerCase();
-      const value = String(data[r][20] == null ? '' : data[r][20])
-        .trim()
-        .toUpperCase();
+    // STATUS per-event berasal dari sequence Sheet, bukan T:U.
+    const summaryStatus = {
+      qiroah: 'ON', tarhim: 'ON', beep: 'ON', adzan: 'ON',
+      doa: 'ON', iqomah: 'ON', sirine: 'ON'
+    };
 
-      if (!event) continue;
-      const status = value === 'OFF' ? 'OFF' : 'ON';
-
-      if (event === 'qiroah') result.AudioStatus.qiroah = status;
-      else if (event === 'tarhim') result.AudioStatus.tarhim = status;
-      else if (event === 'beep') result.AudioStatus.beep = status;
-      else if (event === 'adzan' || event === 'adzan-subuh' || event === 'adzan-biasa') result.AudioStatus.adzan = status;
-      else if (event === 'doa') result.AudioStatus.doa = status;
-      else if (event === 'iqomah') result.AudioStatus.iqomah = status;
-      else if (event === 'sirine') result.AudioStatus.sirine = status;
+    function statusCategory(event) {
+      const e = String(event || '').trim().toLowerCase();
+      if (/^qiroah-\d+$/.test(e) || e === 'qiroah') return 'qiroah';
+      if (e === 'tarhim') return 'tarhim';
+      if (e === 'beep') return 'beep';
+      if (e === 'adzan' || e === 'adzan-subuh' || e === 'adzan-biasa') return 'adzan';
+      if (e === 'doa') return 'doa';
+      if (e === 'iqomah') return 'iqomah';
+      if (e === 'sirine') return 'sirine';
+      return '';
     }
+
+    Object.keys(result.AudioSchedule).forEach(function(prayerName) {
+      (result.AudioSchedule[prayerName] || []).forEach(function(item) {
+        const category = statusCategory(item && item.event);
+        if (category && String(item.status || 'ON').toUpperCase() === 'OFF') summaryStatus[category] = 'OFF';
+      });
+    });
+
+    (result.AudioFriday || []).forEach(function(item) {
+      const category = statusCategory(item && item.event);
+      if (category && String(item.status || 'ON').toUpperCase() === 'OFF') summaryStatus[category] = 'OFF';
+    });
+
+    result.AudioStatus = summaryStatus;
 
     Logger.log('=== REALTIME AUDIO CONFIG FIX ===');
     Logger.log('AUDIO URL = ' + JSON.stringify(result.Audio));
