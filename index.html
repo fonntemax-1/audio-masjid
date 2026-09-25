@@ -5073,10 +5073,22 @@
       // AUTO tidak mengubah suara di sini.
       // updateYouTubeAudioStop() mengatur mute/unmute
       // berdasarkan jadwal qiroah.
+      // Saat AUTO sedang berada dalam periode mute qiroah,
+      // jangan reload video menjadi unmute hanya karena fetch Sheet.
+      const embedMute =
+        mode === 'OFF'
+          ? 1
+          : (
+              mode === 'AUTO' &&
+              youtubeAutoMuted
+                ? 1
+                : 0
+            );
+
       const embedUrl =
         getYouTubeEmbedUrl(
           url,
-          mode === 'OFF' ? 1 : 0
+          embedMute
         );
 
       if (!embedUrl) {
