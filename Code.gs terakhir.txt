@@ -1591,37 +1591,6 @@ function processYoutubeSheet(
   }
 
   // =====================================================
-  // YOUTUBE!B1 = URL VIDEO
-  // YOUTUBE!C1 = ON / OFF
-  // YOUTUBE!B2 = OFFSET HENING OTOMATIS DALAM DETIK
-  // =====================================================
-
-  let youtubeUrl = '';
-
-  if (
-    data[0] &&
-    data[0].length > 1
-  ) {
-    youtubeUrl =
-      data[0][1] !== null &&
-      data[0][1] !== undefined
-        ? data[0]// =========================================================
-// PROSES SHEET YOUTUBE
-// =========================================================
-
-function processYoutubeSheet(
-  data,
-  resultObj
-) {
-
-  if (
-    !data ||
-    data.length === 0
-  ) {
-    return;
-  }
-
-  // =====================================================
   // STRUKTUR FINAL SHEET YOUTUBE
   // B1 = LINK YOUTUBE
   // B2 = STATUS
