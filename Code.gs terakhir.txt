@@ -1746,7 +1746,58 @@ function getYoutubeStatus() {
 }
 
 
-       'tgl_khotbah',
+// =========================================================
+// PROSES SHEET JUM'AT
+// =========================================================
+
+function processJumatSheet(
+  data,
+  resultObj
+) {
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+    return;
+  }
+
+  for (
+    let r = 0;
+    r < data.length;
+    r++
+  ) {
+
+    if (
+      data[r].length < 2
+    ) {
+      continue;
+    }
+
+    let key =
+      data[r][0];
+
+    let value =
+      data[r][1];
+
+    if (
+      !key
+    ) {
+      continue;
+    }
+
+    key =
+      key
+        .toString()
+        .trim()
+        .toLowerCase();
+
+    if (
+      [
+        'tanggal',
+        'tgl',
+        'tgl khotbah',
+        'tgl_khotbah',
         'tanggal khotbah'
       ].includes(key)
     ) {
