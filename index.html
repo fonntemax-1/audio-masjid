@@ -5618,18 +5618,26 @@
         String(sirineItem && sirineItem.status || 'ON')
           .toUpperCase() !== 'OFF';
 
-      const ramadanMaghribAdzanSec =
+      // Untuk Ramadan MAGHRIB, target ADZAN TIDAK langsung
+      // dihitung sebagai pSec + durasi sirine.
+      // Target ADZAN harus mengikuti seluruh sequence Sheet:
+      // SIRINE -> GAP 2 -> BEEP 3 -> GAP 3 -> ADZAN.
+      // Nilainya akan ditentukan setelah bagian sebelum ADZAN
+      // dihitung secara berurutan di bawah.
+      let ramadanMaghribAdzanSec =
         Number(pSec) +
         (sirineEnabled ? ramadanMaghribSirineDuration : 0);
 
-      add(
-        'ADZAN',
-        ramadanMaghribAdzanSec,
-        adzanDuration,
-        'Adzan - ' + name,
-        adzanType,
-        adzanItem.status
-      );
+      if (!isRamadanMaghrib) {
+        add(
+          'ADZAN',
+          ramadanMaghribAdzanSec,
+          adzanDuration,
+          'Adzan - ' + name,
+          adzanType,
+          adzanItem.status
+        );
+      }
 
       // =========================================================
       // EVENT SEBELUM ADZAN
@@ -5783,6 +5791,21 @@
 
           cursor += duration;
         }
+
+        // Setelah seluruh item setelah SIRINE dan sebelum ADZAN
+        // diproses, posisi cursor adalah target ADZAN yang sebenarnya.
+        // Dengan Sheet saat ini:
+        // 52 + 2 + 3 + 3 = 60 detik setelah Maghrib.
+        ramadanMaghribAdzanSec = cursor;
+
+        add(
+          'ADZAN',
+          ramadanMaghribAdzanSec,
+          adzanDuration,
+          'Adzan - ' + name,
+          adzanType,
+          adzanItem.status
+        );
 
       } else {
 
