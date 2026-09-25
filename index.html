@@ -5588,9 +5588,43 @@
         Number(adzanItem.duration) ||
         getSheetAudioDuration(adzanType);
 
+      // RAMADAN MAGHRIB:
+      // sirine dimulai tepat pada waktu Maghrib, kemudian Adzan Maghrib.
+      // Durasi sirine tetap mengikuti Sheet Adzan.
+      const isRamadanMaghrib =
+        isRamadanDisplay() &&
+        name === 'MAGHRIB';
+
+      const sirineItem =
+        isRamadanMaghrib
+          ? activeSequence.find(function(item) {
+              return String(item && item.event || '')
+                .trim()
+                .toLowerCase() === 'sirine';
+            })
+          : null;
+
+      const ramadanMaghribSirineDuration =
+        isRamadanMaghrib
+          ? (
+              Number(sirineItem && sirineItem.duration) ||
+              getSheetAudioDuration('sirine')
+            )
+          : 0;
+
+      const sirineEnabled =
+        isRamadanMaghrib &&
+        ramadanMaghribSirineDuration > 0 &&
+        String(sirineItem && sirineItem.status || 'ON')
+          .toUpperCase() !== 'OFF';
+
+      const ramadanMaghribAdzanSec =
+        Number(pSec) +
+        (sirineEnabled ? ramadanMaghribSirineDuration : 0);
+
       add(
         'ADZAN',
-        Number(pSec),
+        ramadanMaghribAdzanSec,
         adzanDuration,
         'Adzan - ' + name,
         adzanType,
@@ -5599,10 +5633,15 @@
 
       // =========================================================
       // EVENT SEBELUM ADZAN
-      // Susun mundur agar sequence berakhir tepat di waktu adzan.
+      // Susun mundur sampai waktu Maghrib untuk Ramadan.
+      // Sirine Ramadan Maghrib tidak ikut disusun mundur karena
+      // harus mulai TEPAT pada waktu Maghrib.
       // =========================================================
 
-      let cursor = Number(pSec);
+      let cursor =
+        isRamadanMaghrib
+          ? Number(pSec)
+          : Number(pSec);
 
       for (
         let i = adzanIndex - 1;
@@ -5624,6 +5663,15 @@
         cursor -= duration;
 
         if (event === 'gap') {
+          continue;
+        }
+
+        // Pada Ramadan Maghrib, sirine dimainkan tepat saat Maghrib,
+        // bukan dihitung mundur dari waktu Adzan.
+        if (
+          isRamadanMaghrib &&
+          event === 'sirine'
+        ) {
           continue;
         }
 
@@ -5655,13 +5703,26 @@
         );
       }
 
+      // Ramadan Maghrib: sirine tepat pada waktu Maghrib,
+      // lalu Adzan Maghrib setelah sirine selesai.
+      if (sirineEnabled) {
+        add(
+          'SIRINE',
+          Number(pSec),
+          ramadanMaghribSirineDuration,
+          'Sirine Ramadan - MAGHRIB',
+          'sirine',
+          sirineItem.status
+        );
+      }
+
       // =========================================================
       // EVENT SETELAH ADZAN
       // Durasi dan jeda mengikuti Sheet secara berurutan.
       // =========================================================
 
       cursor =
-        Number(pSec) +
+        ramadanMaghribAdzanSec +
         adzanDuration;
 
       for (
@@ -7013,12 +7074,20 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             return String(event.eventName || '').toUpperCase() === 'IQOMAH';
           });
 
-        // Countdown selalu mengikuti waktu sholat asli (pSec).
-        // Jangan memakai targetSec dari audio schedule karena schedule
-        // audio dapat masih dalam proses/sinkronisasi dan tidak boleh
-        // menentukan apakah waktu sholat sudah lewat.
+        // Normalnya countdown mengikuti waktu sholat asli.
+        // Khusus Ramadan Maghrib, sirine dimulai tepat pada waktu
+        // Maghrib dan Adzan berlangsung setelah sirine selesai.
+        const ramadanMaghribAdzanEvent =
+          isRamadanDisplay() &&
+          p.name === 'MAGHRIB'
+            ? adzanEvent
+            : null;
+
         const adzanStartSec =
-          pSec;
+          ramadanMaghribAdzanEvent &&
+          Number.isFinite(Number(ramadanMaghribAdzanEvent.targetSec))
+            ? Number(ramadanMaghribAdzanEvent.targetSec)
+            : pSec;
 
         const adzanEndSec =
           adzanEvent && Number.isFinite(Number(adzanEvent.endSec))
