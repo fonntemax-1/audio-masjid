@@ -7310,6 +7310,62 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         }
 
         // -------------------------------------------------------
+        // -------------------------------------------------------
+        // RAMADAN KHUSUS MAGHRIB
+        // Sirine mulai tepat pada waktu Maghrib.
+        // Selama sirine berbunyi, tampilkan:
+        // WAKTU BERBUKA
+        // PUASA
+        // Setelah sirine selesai, lanjut ADZAN MAGHRIB.
+        // -------------------------------------------------------
+        if (
+          isRamadanDisplay() &&
+          p.name === 'MAGHRIB'
+        ) {
+
+          const maghribSirineEvent =
+            events.find(function(event) {
+              return (
+                String(event.eventName || '').toUpperCase() === 'SIRINE' &&
+                Number(event.targetSec) === Number(pSec)
+              );
+            });
+
+          const maghribSirineEndSec =
+            maghribSirineEvent &&
+            Number.isFinite(Number(maghribSirineEvent.endSec))
+              ? Number(maghribSirineEvent.endSec)
+              : Number(pSec);
+
+          if (
+            nowSeconds >= Number(pSec) &&
+            nowSeconds < maghribSirineEndSec
+          ) {
+
+            activeState = {
+              title: 'WAKTU BERBUKA',
+              timer: 'PUASA',
+              prayerName: 'MAGHRIB'
+            };
+
+            break;
+          }
+
+          if (
+            nowSeconds >= maghribSirineEndSec &&
+            nowSeconds < adzanEndSec
+          ) {
+
+            activeState = {
+              title: 'ADZAN',
+              timer: 'MAGHRIB',
+              prayerName: 'MAGHRIB'
+            };
+
+            break;
+          }
+        }
+
         // NON-RAMADAN / SHOLAT SELAIN SUBUH PADA RAMADAN
         // -------------------------------------------------------
 
