@@ -112,12 +112,16 @@ function getDataFromSheet() {
     result.YoutubeMute = false;
 
     // =====================================================
-    // KONFIGURASI HENING OTOMATIS YOUTUBE
-    // Youtube!B2 = detik sebelum Qiroah
-    // Youtube!C1 = SUARA / HENING
+    // KONFIGURASI KONTROL YOUTUBE
+    // Youtube!B1 = LINK YOUTUBE
+    // Youtube!B2 = STATUS: AUTO / ON / OFF
+    //
+    // 5 menit sebelum QIROAH = aturan tetap sistem.
+    // Tidak lagi membaca B2 sebagai angka detik.
     // =====================================================
 
-    result.YoutubeMuteBeforeQiroahSeconds = 0;
+    result.YoutubeStatus = 'AUTO';
+    result.YoutubeMuteBeforeQiroahSeconds = 300;
     result.YoutubeControlLocked = false;
 
     // =====================================================
@@ -502,37 +506,9 @@ function getDataFromSheet() {
             result
           );
 
-          // B2 sekarang khusus untuk OFFSET HENING YOUTUBE (detik).
-          // Fungsi lama AdzanSubuh dari Youtube!B2 hanya dipertahankan
-          // bila isi B2 ternyata masih berupa URL audio.
-          if (
-            data.length > 1 &&
-            data[1].length > 1
-          ) {
-
-            const youtubeB2 =
-              data[1][1] !== null &&
-              data[1][1] !== undefined
-                ? data[1][1].toString().trim()
-                : '';
-
-            const numericOffset =
-              Number(youtubeB2.replace(',', '.'));
-
-            if (
-              youtubeB2 !== '' &&
-              Number.isFinite(numericOffset) &&
-              numericOffset >= 0
-            ) {
-              result.YoutubeMuteBeforeQiroahSeconds =
-                Math.floor(numericOffset);
-            } else if (
-              /^https?:\/\//i.test(youtubeB2)
-            ) {
-              result.AdzanSubuh = youtubeB2;
-            }
-          }
-
+          // Youtube!B1 = LINK YOUTUBE
+          // Youtube!B2 = STATUS AUTO / ON / OFF.
+          // 5 menit sebelum qiroah adalah aturan tetap sistem.
           return;
         }
 
@@ -1629,212 +1605,11 @@ function processYoutubeSheet(
     youtubeUrl =
       data[0][1] !== null &&
       data[0][1] !== undefined
-        ? data[0][1].toString().trim()
-        : '';
-  }
-
-  resultObj.Youtube = youtubeUrl;
-
-  let soundControl = '';
-
-  if (
-    data[0] &&
-    data[0].length > 2
-  ) {
-    soundControl =
-      data[0][2] !== null &&
-      data[0][2] !== undefined
-        ? data[0][2].toString().trim().toLowerCase()
-        : '';
-  }
-
-  // ON  = UNMUTE / bersuara
-  // OFF = MUTE / hening
-  // Tetap menerima SUARA/HENING lama agar konfigurasi lama tidak rusak.
-  resultObj.YoutubeMute =
-    soundControl === 'off' ||
-    soundControl === 'hening';
-
-  // Youtube!B2 = jumlah detik sebelum Qiroah.
-  let muteBeforeSeconds = 0;
-
-  if (
-    data.length > 1 &&
-    data[1] &&
-    data[1].length > 1
-  ) {
-    const rawOffset =
-      data[1][1] !== null &&
-      data[1][1] !== undefined
-        ? data[1][1].toString().trim()
-        : '';
-
-    const parsedOffset =
-      Number(rawOffset.replace(',', '.'));
-
-    if (
-      rawOffset !== '' &&
-      Number.isFinite(parsedOffset) &&
-      parsedOffset >= 0
-    ) {
-      muteBeforeSeconds = Math.floor(parsedOffset);
-    }
-  }
-
-  resultObj.YoutubeMuteBeforeQiroahSeconds =
-    muteBeforeSeconds;
-
-  Logger.log(
-    'YOUTUBE: URL=' + youtubeUrl +
-    ' | STATUS=' + soundControl +
-    ' | OFFSET_QIROAH=' + muteBeforeSeconds + ' detik'
-  );
-}
-
-
-// =========================================================
-// KUNCI / BUKA KONTROL SUARA YOUTUBE
-//
-// Cell kontrol: Youtube!C1
-// ON  = UNMUTE
-// OFF = MUTE
-// Setelah auto-hening selesai, status TETAP OFF.
-// Sistem tidak pernah mengubah OFF menjadi ON otomatis.
-// OFFSET:       Youtube!B2
-//
-// Proteksi dibuat khusus oleh sistem dengan description unik.
-// Proteksi lain pada sheet tidak disentuh.
+        ? data[0]// =========================================================
+// PROSES SHEET YOUTUBE
 // =========================================================
 
-const YOUTUBE_CONTROL_CELL = 'C1';
-const YOUTUBE_LOCK_DESCRIPTION =
-  'SYSTEM_YOUTUBE_AUTO_HENING_LOCK';
-
-
-function setYoutubeControlLock(locked) {
-
-  const ss = getSpreadsheet();
-  const sheet = ss.getSheetByName('youtube');
-
-  if (!sheet) {
-    throw new Error('Sheet youtube tidak ditemukan.');
-  }
-
-  const range = sheet.getRange(YOUTUBE_CONTROL_CELL);
-  const protections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
-
-  const ownProtection = protections.find(function(protection) {
-    return protection.getDescription() === YOUTUBE_LOCK_DESCRIPTION;
-  });
-
-  if (locked) {
-
-    // Jika sudah terkunci, tidak perlu membuat protection baru.
-    if (!ownProtection) {
-      const protection = range.protect();
-      protection.setDescription(YOUTUBE_LOCK_DESCRIPTION);
-
-      try {
-        // Hapus editor lain hanya dari protection milik sistem.
-        const editors = protection.getEditors();
-        if (editors && editors.length > 0) {
-          protection.removeEditors(editors);
-        }
-      } catch (e) {
-        Logger.log('YOUTUBE LOCK: removeEditors tidak dapat diterapkan: ' + e.message);
-      }
-
-      try {
-        if (protection.canDomainEdit()) {
-          protection.setDomainEdit(false);
-        }
-      } catch (e) {
-        Logger.log('YOUTUBE LOCK: setDomainEdit gagal: ' + e.message);
-      }
-    }
-
-    // Sistem selalu memastikan status OFF ketika lock aktif.
-    // OFF = MUTE. Status ini TIDAK akan dikembalikan ke ON otomatis.
-    const current =
-      range.getDisplayValue().toString().trim().toUpperCase();
-
-    if (current !== 'OFF') {
-      range.setValue('OFF');
-    }
-
-    SpreadsheetApp.flush();
-
-    Logger.log('YOUTUBE CONTROL: LOCKED + OFF (MUTE)');
-
-    return {
-      locked: true,
-      status: 'OFF'
-    };
-  }
-
-  // UNLOCK: hanya hapus protection yang dibuat sistem.
-  if (ownProtection) {
-    try {
-      ownProtection.remove();
-    } catch (e) {
-      Logger.log('YOUTUBE UNLOCK: gagal menghapus protection: ' + e.message);
-    }
-  }
-
-  SpreadsheetApp.flush();
-
-  Logger.log('YOUTUBE CONTROL: UNLOCKED - STATUS TETAP OFF SAMPAI MANUAL ON');
-
-  return {
-    locked: false,
-    status: range.getDisplayValue().toString().trim().toUpperCase()
-  };
-}
-
-
-function lockYoutubeControl() {
-  return setYoutubeControlLock(true);
-}
-
-
-function unlockYoutubeControl() {
-  return setYoutubeControlLock(false);
-}
-
-
-function getYoutubeControlProtectionState() {
-
-  const ss = getSpreadsheet();
-  const sheet = ss.getSheetByName('youtube');
-
-  if (!sheet) {
-    return {
-      locked: false,
-      status: ''
-    };
-  }
-
-  const protections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
-  const locked = protections.some(function(protection) {
-    return protection.getDescription() === YOUTUBE_LOCK_DESCRIPTION;
-  });
-
-  return {
-    locked: locked,
-    status: sheet.getRange(YOUTUBE_CONTROL_CELL)
-      .getDisplayValue()
-      .toString()
-      .trim()
-      .toUpperCase()
-  };
-}
-
-
-// =========================================================
-// PROSES SHEET JUM'AT
-// =========================================================
-
-function processJumatSheet(
+function processYoutubeSheet(
   data,
   resultObj
 ) {
@@ -1846,42 +1621,163 @@ function processJumatSheet(
     return;
   }
 
-  for (
-    let r = 0;
-    r < data.length;
-    r++
+  // =====================================================
+  // STRUKTUR FINAL SHEET YOUTUBE
+  // B1 = LINK YOUTUBE
+  // B2 = STATUS
+  //
+  // STATUS:
+  // AUTO = mute 5 menit sebelum qiroah, lalu unmute
+  //        saat masuk waktu sholat.
+  // ON   = normal ON sampai 5 menit sebelum qiroah;
+  //        sistem mengubah B2 menjadi OFF dan tetap mute
+  //        sampai operator mengubah B2 kembali ke ON.
+  // OFF  = mute terus sampai operator mengubah B2 ke ON.
+  // =====================================================
+
+  let youtubeUrl = '';
+
+  if (
+    data[0] &&
+    data[0].length > 1
   ) {
+    youtubeUrl =
+      data[0][1] !== null &&
+      data[0][1] !== undefined
+        ? data[0][1].toString().trim()
+        : '';
+  }
 
-    if (
-      data[r].length < 2
-    ) {
-      continue;
-    }
+  resultObj.Youtube = youtubeUrl;
 
-    let key =
-      data[r][0];
+  let youtubeStatus = 'AUTO';
 
-    let value =
-      data[r][1];
+  if (
+    data.length > 1 &&
+    data[1] &&
+    data[1].length > 1
+  ) {
+    youtubeStatus =
+      data[1][1] !== null &&
+      data[1][1] !== undefined
+        ? data[1][1].toString().trim().toUpperCase()
+        : '';
+  }
 
-    if (
-      !key
-    ) {
-      continue;
-    }
+  if (
+    youtubeStatus !== 'AUTO' &&
+    youtubeStatus !== 'ON' &&
+    youtubeStatus !== 'OFF'
+  ) {
+    youtubeStatus = 'AUTO';
+  }
 
-    key =
-      key
-        .toString()
-        .trim()
-        .toLowerCase();
+  resultObj.YoutubeStatus =
+    youtubeStatus;
 
-    if (
-      [
-        'tanggal',
-        'tgl',
-        'tgl khotbah',
-        'tgl_khotbah',
+  // Kompatibilitas data lama:
+  // AUTO tidak memaksa mute saat halaman pertama kali dimuat.
+  // OFF langsung mute.
+  resultObj.YoutubeMute =
+    youtubeStatus === 'OFF';
+
+  // Aturan tetap: 5 menit sebelum qiroah.
+  resultObj.YoutubeMuteBeforeQiroahSeconds =
+    300;
+
+  resultObj.YoutubeControlLocked =
+    false;
+
+  Logger.log(
+    'YOUTUBE: URL=' + youtubeUrl +
+    ' | STATUS=' + youtubeStatus +
+    ' | AUTO_MUTE_BEFORE_QIROAH=300 detik'
+  );
+}
+
+
+// =========================================================
+// SET STATUS YOUTUBE KE OFF OLEH SISTEM
+//
+// Dipakai HANYA untuk mode B2=ON ketika sistem masuk
+// 5 menit sebelum qiroah.
+//
+// Tidak membuat protection/lock.
+// Operator tetap dapat mengubah B2 kembali ke ON.
+// =========================================================
+
+function setYoutubeStatusOff() {
+
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('youtube');
+
+  if (!sheet) {
+    throw new Error('Sheet youtube tidak ditemukan.');
+  }
+
+  const range = sheet.getRange('B2');
+  const current =
+    range.getDisplayValue()
+      .toString()
+      .trim()
+      .toUpperCase();
+
+  // Jangan menimpa AUTO atau OFF.
+  // Hanya ON yang boleh diubah otomatis menjadi OFF.
+  if (current === 'ON') {
+    range.setValue('OFF');
+    SpreadsheetApp.flush();
+
+    Logger.log(
+      'YOUTUBE STATUS AUTO-OFF: B2 ON -> OFF'
+    );
+
+    return {
+      changed: true,
+      status: 'OFF'
+    };
+  }
+
+  return {
+    changed: false,
+    status: current || 'AUTO'
+  };
+}
+
+
+function getYoutubeStatus() {
+
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('youtube');
+
+  if (!sheet) {
+    return {
+      status: 'AUTO'
+    };
+  }
+
+  let status =
+    sheet.getRange('B2')
+      .getDisplayValue()
+      .toString()
+      .trim()
+      .toUpperCase();
+
+  if (
+    status !== 'AUTO' &&
+    status !== 'ON' &&
+    status !== 'OFF'
+  ) {
+    status = 'AUTO';
+  }
+
+  return {
+    status: status
+  };
+}
+
+
+       'tgl_khotbah',
         'tanggal khotbah'
       ].includes(key)
     ) {
