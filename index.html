@@ -461,19 +461,6 @@
        ========================================================= */
 
     .infaq-panel {
-      /*
-       * INFAQ & SHADAQAH dibuat sebagai panel mandiri di dalam
-       * .center-panel agar tidak ikut terpotong oleh tinggi
-       * .clock-overlay. Posisi tetap di bawah jam digital.
-       */
-      position: absolute;
-      left: 1.5vw;
-      right: 1.5vw;
-      bottom: 7vh;
-      width: auto;
-      max-height: 25%;
-      overflow: hidden;
-
       /* Static background is much lighter than backdrop-filter on TCL 32S5400. */
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
@@ -1152,12 +1139,11 @@
             <div class="tz-text">WITA</div>
           </div>
 
-        </div>
-
-        <div class="infaq-panel">
-          <div class="panel-title">INFAQ &amp; SHADAQAH</div>
-          <div class="infaq-list" id="infaq-list">
-            <div class="infaq-empty">-</div>
+          <div class="infaq-panel">
+            <div class="panel-title">INFAQ &amp; SHADAQAH</div>
+            <div class="infaq-list" id="infaq-list">
+              <div class="infaq-empty">-</div>
+            </div>
           </div>
         </div>
 
