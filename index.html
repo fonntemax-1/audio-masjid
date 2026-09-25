@@ -7348,6 +7348,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         if (
           p.hasIqomah &&
           nowSeconds >= iqomahEndSec &&
+          nowSeconds < afterIqomahSec &&
           (
             !isFridayJumat ||
             nowSeconds < fridayTransitionSec
