@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>TV Display Masjid Al Sobirin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600;700&family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="favicon.png">
 
   <!-- MOMENT -->
@@ -75,50 +75,79 @@
   display: block;
 }
 
+    /* =========================================================
+       HEADER - FORMAT MENGIKUTI CONTOH DISPLAY
+       Data nama, alamat, nomor HP dan slogan tetap dari Spreadsheet.
+       ========================================================= */
+
     .header-center {
       flex: 1;
+      min-width: 0;
       text-align: center;
-      transform: translateX(-2vw);
+      transform: none;
+      padding: 0 1vw;
     }
 
     .header-center h1 {
-      color: #ff5555;
-      font-size: clamp(1.5rem, 2.2vw, 2.4rem);
+      color: #e84b3c;
+      font-size: clamp(1.65rem, 2.55vw, 2.8rem);
+      line-height: 1.05;
       font-weight: 900;
-      letter-spacing: 0.1vw;
+      letter-spacing: 0.06vw;
+      text-transform: uppercase;
+      text-shadow:
+        0.08vh 0.08vh 0 #ffd7a0,
+        0.18vh 0.18vh 0 #7a1d12,
+        0 0.35vh 0.6vh rgba(0, 0, 0, 0.75);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .header-center .sub {
       color: #ffffff;
-      font-size: clamp(0.7rem, 1.1vw, 1.1rem);
-      margin-top: 0.1vh;
-      font-weight: bold;
+      font-size: clamp(0.78rem, 1.18vw, 1.25rem);
+      line-height: 1.15;
+      margin-top: 0.45vh;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 0.15vh 0.25vh rgba(0, 0, 0, 0.85);
     }
 
     .wa-contact {
       display: inline-flex;
       align-items: center;
-      gap: 0.35vw;
+      justify-content: center;
+      gap: 0.32vw;
       white-space: nowrap;
     }
 
     .wa-icon {
-      width: 1.15em;
-      height: 1.15em;
+      width: 1.08em;
+      height: 1.08em;
       flex: 0 0 auto;
       fill: currentColor;
       vertical-align: middle;
     }
 
     .info-separator {
-      margin: 0 0.2vw;
+      margin: 0 0.28vw;
     }
 
     .header-center .slogan {
-      color: #00ffaa;
-      font-style: italic;
-      font-size: clamp(0.65rem, 1vw, 1rem);
-      margin-top: 0.1vh;
+      color: #e7d7b0;
+      font-family: 'Dancing Script', cursive;
+      font-style: normal;
+      font-size: clamp(0.95rem, 1.45vw, 1.55rem);
+      font-weight: 600;
+      line-height: 1.05;
+      margin-top: 0.35vh;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 0.15vh 0.25vh rgba(0, 0, 0, 0.8);
     }
 
     .header-right {
