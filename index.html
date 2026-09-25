@@ -529,9 +529,9 @@
        */
       width: auto !important;
       height: auto !important;
-      max-width: min(9vh, 100%) !important;
-      max-height: 9vh !important;
-      aspect-ratio: 1 / 1;
+      max-width: min(7vh, 100%) !important;
+      max-height: 7vh !important;
+      aspect-ratio: auto !important;
       object-fit: contain;
       margin: 0.5vh auto;
       flex-shrink: 0;
@@ -3518,9 +3518,11 @@
           img.decoding = 'async';
           img.loading = 'eager';
           img.style.display = 'block';
-          img.style.width = '100%';
+          img.style.width = 'auto';
           img.style.height = 'auto';
-          img.style.maxHeight = '12vh';
+          img.style.maxWidth = '7vh';
+          img.style.maxHeight = '7vh';
+          img.style.aspectRatio = 'auto';
           img.style.objectFit = 'contain';
           img.style.margin = '0 auto';
           img.style.borderRadius = '0.4vh';
