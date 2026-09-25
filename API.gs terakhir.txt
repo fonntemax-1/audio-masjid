@@ -8,6 +8,12 @@
 //
 // GitHub Pages memanggil Apps Script menggunakan JSONP karena
 // browser tidak mengizinkan google.script.run dari origin GitHub.
+//
+// DATA AUDIO TIDAK DIFILTER DI BRIDGE.
+// Seluruh Audio, AudioSchedule, AudioDurations, AudioStatus,
+// dan AudioFriday dari getDataFromSheet() diteruskan apa adanya.
+// Dengan demikian event baru di Sheet Adzan seperti takbiran,
+// doa-buka, doa-puasa, atau event lain tetap sampai ke GitHub Pages.
 // ============================================================
 
 function handleGithubApiRequest_(params) {
