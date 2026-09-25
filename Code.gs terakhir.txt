@@ -908,7 +908,7 @@ function processKeyAudioSheet(
 // =========================================================
 
 // =========================================================
-// PARSER SHEET ADZAN V6 - DETEKSI STRUKTUR OTOMATIS
+// PARSER SHEET ADZAN V7 - DETEKSI STRUKTUR OTOMATIS
 // =========================================================
 // Tujuan:
 // - Tidak mengunci Sheet pada satu susunan kolom tertentu.
@@ -918,7 +918,7 @@ function processKeyAudioSheet(
 // - getDataFromSheet() dan getRealtimeAudioConfig() memakai parser sama.
 // =========================================================
 
-function parseAdzanSheetV6(data) {
+function parseAdzanSheetV7(data) {
   const prayerNames = ['SUBUH', 'DZUHUR', 'ASHAR', 'MAGHRIB', 'ISYA'];
 
   const result = {
@@ -1117,7 +1117,7 @@ function processAdzanScheduleSheet(sheet, resultObj) {
     .getRange(1, 1, lastRow, 27)
     .getValues();
 
-  const parsed = parseAdzanSheetV6(data);
+  const parsed = parseAdzanSheetV7(data);
 
   resultObj.AudioSchedule = parsed.schedule;
   resultObj.AudioFriday = parsed.friday;
@@ -1260,7 +1260,7 @@ function getRealtimeAudioConfig() {
       result.Audio[key] = String(data[r][1] == null ? '' : data[r][1]).trim();
     }
 
-    const parsed = parseAdzanSheetV6(data);
+    const parsed = parseAdzanSheetV7(data);
     result.AudioSchedule = parsed.schedule;
     result.AudioFriday = parsed.friday;
 
