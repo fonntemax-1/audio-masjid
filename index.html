@@ -5451,6 +5451,13 @@
       if (event === 'adzan-subuh') return 'adzan-subuh';
       if (event === 'adzan-biasa' || event === 'adzan') return 'adzan-biasa';
 
+      // Semua event lain yang berasal dari Sheet Adzan
+      // langsung memakai nama event sebagai key audio.
+      // Ini sengaja GENERIK agar event baru seperti:
+      // takbiran, doa-buka, doa-puasa, dan event lain
+      // tidak perlu ditambahkan satu per satu ke frontend.
+      if (event && event !== 'gap') return event;
+
       return '';
     }
 
