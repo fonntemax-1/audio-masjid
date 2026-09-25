@@ -6448,19 +6448,17 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       );
 
     const batasSubuh =
-      subuhIqomahEnd + (15 * 60);
+      subuhIqomahEnd + (30 * 60);
 
     const batasDzuhur =
-      dzuhurIqomahEnd + (15 * 60);
+      dzuhurIqomahEnd + (30 * 60);
 
     const batasAshar =
-      asharIqomahEnd + (15 * 60);
+      asharIqomahEnd + (30 * 60);
 
     const batasMaghrib =
-      maghribIqomahEnd + (15 * 60);
+      maghribIqomahEnd + (30 * 60);
 
-    // Sinkron dengan countdown:
-// khusus ISYA, SHOLAT / ISYA berlangsung 30 menit.
     const batasIsya =
       isyaIqomahEnd + (30 * 60);
 
@@ -7042,16 +7040,11 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             ? Number(iqomahEvent.endSec)
             : iqomahTimeSec + 180;
 
-        // Durasi tampilan SHOLAT setelah IQOMAH.
-// Khusus ISYA: 30 menit. Sholat lainnya: 15 menit.
+        // Durasi tampilan SHOLAT setelah IQOMAH:
+// semua waktu sholat = 30 menit.
 // Ini hanya mengatur countdown/display; sistem audio tidak berubah.
-        const afterIqomahDurationSec =
-          String(p.name).toUpperCase() === 'ISYA'
-            ? 30 * 60
-            : 15 * 60;
-
         const afterIqomahSec =
-          iqomahEndSec + afterIqomahDurationSec;
+          iqomahEndSec + (30 * 60);
 
         // -------------------------------------------------------
         // RAMADAN KHUSUS SUBUH
