@@ -5641,17 +5641,17 @@
       // Ramadan MAGHRIB tetap memakai timeline Sheet walaupun
       // SIRINE berstatus OFF. OFF hanya memute audio, bukan
       // menghapus durasi/gap dari sequence.
+      const sirineIndex =
+        activeSequence.findIndex(function(item) {
+          return String(item && item.event || '')
+            .trim()
+            .toLowerCase() === 'sirine';
+        });
+
       if (
         isRamadanMaghrib &&
         sirineIndex >= 0
       ) {
-
-        const sirineIndex =
-          activeSequence.findIndex(function(item) {
-            return String(item && item.event || '')
-              .trim()
-              .toLowerCase() === 'sirine';
-          });
 
         // -------------------------------------------------------
         // BAGIAN SEBELUM SIRINE
