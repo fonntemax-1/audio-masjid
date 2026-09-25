@@ -97,10 +97,15 @@
       letter-spacing: 0;
       direction: rtl;
       text-align: center;
+      /* White outline/glow yang lebih tegas agar terlihat di TV */
       text-shadow:
-        0 0 0.12vh rgba(255,255,255,0.95), 0 0 0.45vh rgba(255,255,255,0.75), 0 0.22vh 0.45vh rgba(0,0,0,0.9);
-  
-  
+        -0.07vh 0 0 rgba(255,255,255,0.95),
+         0.07vh 0 0 rgba(255,255,255,0.95),
+         0 -0.07vh 0 rgba(255,255,255,0.95),
+         0  0.07vh 0 rgba(255,255,255,0.95),
+         0 0 0.22vh rgba(255,255,255,0.9),
+         0 0 0.55vh rgba(255,255,255,0.7),
+         0 0.22vh 0.45vh rgba(0,0,0,0.9);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -160,7 +165,7 @@
     }
 
     .header-center .slogan {
-      color: #35c759;
+      color: #00ffaa;
       font-family: 'Cormorant Garamond', serif;
       font-style: italic;
       font-size: clamp(0.78rem, 1.2vw, 1.3rem);
@@ -170,7 +175,13 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      text-shadow: 0 0 0.1vh rgba(255,255,255,0.95), 0 0 0.38vh rgba(255,255,255,0.7), 0 0.16vh 0.3vh rgba(0,0,0,0.8);
+      text-shadow:
+        -0.04vh 0 0 rgba(255,255,255,0.9),
+         0.04vh 0 0 rgba(255,255,255,0.9),
+         0 -0.04vh 0 rgba(255,255,255,0.9),
+         0 0.04vh 0 rgba(255,255,255,0.9),
+         0 0 0.18vh rgba(255,255,255,0.75),
+         0 0.14vh 0.28vh rgba(0,0,0,0.85);
     }
 
     .header-right {
