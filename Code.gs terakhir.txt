@@ -1072,11 +1072,11 @@ function parseAdzanSheetV7(data) {
   // ==========================================================
 
   const layout3 = {
-    SUBUH:   { event: 4,  duration: 5,  status: 6 },
-    DZUHUR:  { event: 8,  duration: 9,  status: 10 },
-    ASHAR:   { event: 12, duration: 13, status: 14 },
-    MAGHRIB: { event: 16, duration: 17, status: 18 },
-    ISYA:    { event: 20, duration: 21, status: 22 }
+    SUBUH:   { event: 4,  duration: 5,  status: 6,  startRow: 1 },
+    DZUHUR:  { event: 8,  duration: 9,  status: 10, startRow: 1 },
+    ASHAR:   { event: 12, duration: 13, status: 14, startRow: 1 },
+    MAGHRIB: { event: 16, duration: 17, status: 18, startRow: 1 },
+    ISYA:    { event: 20, duration: 21, status: 22, startRow: 1 }
   };
 
   // ==========================================================
