@@ -50,16 +50,12 @@ function handleGithubApiRequest_(params) {
         result = getRealtimeAudioConfig();
         break;
 
-      case 'lockYoutubeControl':
-        result = lockYoutubeControl();
+      case 'setYoutubeStatusOff':
+        result = setYoutubeStatusOff();
         break;
 
-      case 'unlockYoutubeControl':
-        result = unlockYoutubeControl();
-        break;
-
-      case 'getYoutubeControlProtectionState':
-        result = getYoutubeControlProtectionState();
+      case 'getYoutubeStatus':
+        result = getYoutubeStatus();
         break;
 
       default:
