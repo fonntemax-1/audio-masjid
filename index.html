@@ -521,13 +521,20 @@
     /* Ukuran QRIS B3 otomatis menyesuaikan frame */
       .infaq-item img {
       display: block;
-      width: auto;
-      height: auto;
-      max-width: min(100%, 28vh);
-      max-height: 15vh;
+
+      /*
+       * QRIS harus tetap 1:1 agar pola QR tidak berubah.
+       * Ukuran dibatasi berdasarkan tinggi, bukan dipaksa
+       * memenuhi lebar frame.
+       */
+      width: auto !important;
+      height: auto !important;
+      max-width: min(15vh, 100%) !important;
+      max-height: 15vh !important;
+      aspect-ratio: 1 / 1;
       object-fit: contain;
       margin: 0.5vh auto;
-      flex-shrink: 1;
+      flex-shrink: 0;
     }
 
     .infaq-empty {
