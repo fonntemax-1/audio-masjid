@@ -1,0 +1,120 @@
+// ============================================================
+// DIGITAL SIGNAGE MASJID AL MUJAHIDIN
+// API.GS - BRIDGE UNTUK GITHUB PAGES
+// ============================================================
+//
+// File ini TIDAK mengubah logika audio, jadwal, Ramadan, Jumat,
+// keuangan, khutbah, atau fungsi server yang sudah ada.
+//
+// GitHub Pages memanggil Apps Script menggunakan JSONP karena
+// browser tidak mengizinkan google.script.run dari origin GitHub.
+// ============================================================
+
+function handleGithubApiRequest_(params) {
+  const callback = sanitizeJsonpCallback_(params.callback);
+
+  if (!callback) {
+    return ContentService
+      .createTextOutput('Invalid JSONP callback.')
+      .setMimeType(ContentService.MimeType.TEXT);
+  }
+
+  const action = String(params.action || '').trim();
+  let result;
+
+  try {
+    switch (action) {
+      case 'getDataFromSheet':
+        result = getDataFromSheet();
+        break;
+
+      case 'getEventRunningText':
+        result = getEventRunningText();
+        break;
+
+      case 'getHijriDateFromApi':
+        result = getHijriDateFromApi(params.date || '');
+        break;
+
+      case 'getPrayerSchedule':
+        result = getPrayerSchedule(params.date || '');
+        break;
+
+      case 'getRealtimeAudioConfig':
+        result = getRealtimeAudioConfig();
+        break;
+
+      case 'lockYoutubeControl':
+        result = lockYoutubeControl();
+        break;
+
+      case 'unlockYoutubeControl':
+        result = unlockYoutubeControl();
+        break;
+
+      case 'getYoutubeControlProtectionState':
+        result = getYoutubeControlProtectionState();
+        break;
+
+      default:
+        throw new Error(
+          'API action tidak dikenal: ' + action
+        );
+    }
+
+    return createJsonpResponse_(
+      callback,
+      {
+        success: true,
+        data: result
+      }
+    );
+
+  } catch (error) {
+    return createJsonpResponse_(
+      callback,
+      {
+        success: false,
+        error: error && error.message
+          ? error.message
+          : String(error)
+      }
+    );
+  }
+}
+
+
+function createJsonpResponse_(callback, payload) {
+  const json = JSON.stringify(
+    payload,
+    function(key, value) {
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+      return value;
+    }
+  );
+
+  return ContentService
+    .createTextOutput(
+      callback + '(' + json + ');'
+    )
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+
+function sanitizeJsonpCallback_(callback) {
+  if (!callback) return '';
+
+  const value = String(callback).trim();
+
+  // Hanya nama fungsi JavaScript yang aman, misalnya:
+  // testCallback atau window.testCallback.
+  if (
+    !/^[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*$/.test(value)
+  ) {
+    return '';
+  }
+
+  return value;
+}
