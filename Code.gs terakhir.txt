@@ -3183,6 +3183,122 @@ function TEST_HIJRI_CALENDAR() {
 
 
 // ============================================================
+// DIAGNOSTIK RAW SHEET ADZAN - PEMERIKSAAN BLOK AUDIO
+// ============================================================
+// Tujuan:
+// - Membaca langsung kolom D:AA dari Spreadsheet runtime.
+// - Memastikan posisi EVENT / DETIK / STATUS benar-benar terbaca.
+// - Tidak mengubah konfigurasi, sequence, audio, atau data Sheet.
+// - Dipakai untuk mencari penyebab AudioSchedule harian kosong.
+// ============================================================
+function DIAGNOSTIK_RAW_AUDIO_SHEET() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('Adzan');
+
+  Logger.log('======================================');
+  Logger.log('DIAGNOSTIK RAW SHEET ADZAN');
+  Logger.log('======================================');
+
+  if (!sheet) {
+    Logger.log('ERROR: Sheet Adzan tidak ditemukan.');
+    return;
+  }
+
+  const lastRow = Math.max(sheet.getLastRow(), 1);
+  const lastColumn = Math.max(sheet.getLastColumn(), 1);
+
+  Logger.log('Spreadsheet ID = ' + ss.getId());
+  Logger.log('Spreadsheet Name = ' + ss.getName());
+  Logger.log('Sheet = ' + sheet.getName());
+  Logger.log('Last Row = ' + lastRow);
+  Logger.log('Last Column = ' + lastColumn);
+
+  // Baca seluruh sheet sebagai nilai tampilan agar isi yang terlihat
+  // di Spreadsheet dapat dibandingkan langsung dengan parser.
+  const values = sheet
+    .getRange(1, 1, lastRow, Math.max(lastColumn, 27))
+    .getDisplayValues();
+
+  const cols = {
+    D: 3, E: 4, F: 5, G: 6,
+    I: 8, J: 9, K: 10,
+    M: 12, N: 13, O: 14,
+    Q: 16, R: 17, S: 18,
+    U: 20, V: 21, W: 22,
+    Y: 24, Z: 25, AA: 26
+  };
+
+  function showColumn(label, index) {
+    Logger.log('--- BLOK ' + label + ' ---');
+    for (let r = 0; r < values.length; r++) {
+      const value = values[r][index] == null ? '' : String(values[r][index]).trim();
+      if (value !== '') {
+        Logger.log('ROW ' + (r + 1) + ' | ' + label + ' = [' + value + ']');
+      }
+    }
+  }
+
+  showColumn('D NO', cols.D);
+  showColumn('E EVENT SUBUH', cols.E);
+  showColumn('F DETIK SUBUH', cols.F);
+  showColumn('G STATUS SUBUH', cols.G);
+
+  showColumn('I EVENT DZUHUR', cols.I);
+  showColumn('J DETIK DZUHUR', cols.J);
+  showColumn('K STATUS DZUHUR', cols.K);
+
+  showColumn('M EVENT ASHAR', cols.M);
+  showColumn('N DETIK ASHAR', cols.N);
+  showColumn('O STATUS ASHAR', cols.O);
+
+  showColumn('Q EVENT MAGHRIB', cols.Q);
+  showColumn('R DETIK MAGHRIB', cols.R);
+  showColumn('S STATUS MAGHRIB', cols.S);
+
+  showColumn('U EVENT ISYA', cols.U);
+  showColumn('V DETIK ISYA', cols.V);
+  showColumn('W STATUS ISYA', cols.W);
+
+  showColumn('Y EVENT JUMAT', cols.Y);
+  showColumn('Z DETIK JUMAT', cols.Z);
+  showColumn('AA STATUS JUMAT', cols.AA);
+
+  // Tampilkan hasil parser saat ini juga, sehingga raw Sheet dapat
+  // langsung dibandingkan dengan hasil AudioSchedule.
+  Logger.log('======================================');
+  Logger.log('HASIL PARSER SAAT INI');
+  Logger.log('======================================');
+
+  const rawData = sheet
+    .getRange(1, 1, lastRow, 27)
+    .getValues();
+
+  const parsed = parseAdzanSheetV7(rawData);
+
+  Logger.log('PARSED SUBUH = ' + JSON.stringify(parsed.schedule.SUBUH));
+  Logger.log('PARSED DZUHUR = ' + JSON.stringify(parsed.schedule.DZUHUR));
+  Logger.log('PARSED ASHAR = ' + JSON.stringify(parsed.schedule.ASHAR));
+  Logger.log('PARSED MAGHRIB = ' + JSON.stringify(parsed.schedule.MAGHRIB));
+  Logger.log('PARSED ISYA = ' + JSON.stringify(parsed.schedule.ISYA));
+  Logger.log("PARSED JUM'AT = " + JSON.stringify(parsed.friday));
+
+  Logger.log('======================================');
+  Logger.log('DIAGNOSTIK SELESAI');
+  Logger.log('======================================');
+
+  return {
+    success: true,
+    spreadsheetId: ss.getId(),
+    spreadsheetName: ss.getName(),
+    sheetName: sheet.getName(),
+    lastRow: lastRow,
+    lastColumn: lastColumn,
+    parsed: parsed
+  };
+}
+
+
+// ============================================================
 // TEST AUDIO SHEET - VERIFIKASI MAPPING PER SHOLAT
 // ============================================================
 function TEST_AUDIO_SHEET_CONFIG() {
