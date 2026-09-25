@@ -463,11 +463,11 @@
 
     .infaq-panel {
       /*
-       * Tambahkan ruang vertikal secukupnya untuk QRIS tanpa
-       * mengubah lebar frame. Panel tetap berada di dalam
-       * clock-overlay dan dibatasi agar tidak menutup event-banner.
+       * Optimasi TV 1366x768:
+       * QRIS diberi ruang vertikal lebih besar tanpa mengubah
+       * lebar frame dan tanpa menyentuh sistem audio.
        */
-      flex-shrink: 1;
+      flex: 0 1 auto;
       min-height: 0;
       max-height: min(22vh, 220px);
       box-sizing: border-box;
@@ -482,8 +482,8 @@
       backface-visibility: hidden;
       border: 0.2vh solid #ff9900;
       border-radius: 0.8vh;
-      padding: 0.8vh 1vw;
-      margin-top: 0.8vh;
+      padding: 0.35vh 1vw;
+      margin-top: 0.35vh;
       width: 100%;
       box-sizing: border-box;
       text-align: center;
@@ -496,24 +496,24 @@
       font-weight: 900;
       color: #ffcc00;
       letter-spacing: 0.05vw;
-      margin-bottom: 0.5vh;
+      margin-bottom: 0.2vh;
       }
 
     .infaq-list {
       display: flex;
       flex-direction: column;
-      gap: 0.35vh;
+      gap: 0.15vh;
       width: 100%;
       min-height: 0;
-      overflow: hidden;
+      overflow: visible;
       flex: 1 1 auto;
     }
 
     .infaq-item {
       color: #ffffff;
-      font-size: clamp(0.62rem, 0.78vw, 0.85rem);
+      font-size: clamp(0.58rem, 0.70vw, 0.78rem);
       font-weight: 700;
-      line-height: 1.05;
+      line-height: 1.0;
       white-space: normal;
       overflow-wrap: break-word;
     }
@@ -529,11 +529,11 @@
        */
       width: auto !important;
       height: auto !important;
-      max-width: min(11vh, 100%) !important;
-      max-height: 11vh !important;
+      max-width: min(12vh, 100%) !important;
+      max-height: 12vh !important;
       aspect-ratio: auto !important;
       object-fit: contain;
-      margin: 0.5vh auto;
+      margin: 0.15vh auto;
       flex-shrink: 0;
     }
 
