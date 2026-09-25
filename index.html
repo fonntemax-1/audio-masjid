@@ -5323,33 +5323,13 @@
     // HELPER AUDIO SCHEDULE - DYNAMIC DURASI
     // =========================================================
 
-    const AUDIO_GAP = {
-      // Nilai fallback lama tetap dipertahankan sebagai pengaman.
-      // Time sequence aktif dibaca langsung dari Sheet Adzan.
-      tarhimToTarhim: 3,
-      tarhimToBeep: 3,
-      beepToAdzan: 3,
-      adzanToDoa: 3,
-      doaToBeepIqomah: 300,
-      beepToIqomah: 3,
-      maghribBeepToAdzan: 3
-    };
-
     // =========================================================
-    // DURASI FALLBACK - SESUAI SHEET ADZAN
+    // AUDIO TIMING = 100% DARI SPREADSHEET
     // =========================================================
-
-    const AUDIO_DURATION_FALLBACK = {
-      qiroah: 1800,
-      beep: 3,
-      adzanSubuh: 240,
-      adzanBiasa: 205,
-      tarhimSubuh: 315,
-      tarhimBiasa: 315,
-      iqomah: 45,
-      doa: 40
-    };
-
+    // Tidak ada angka durasi/GAP cadangan di frontend.
+    // Jika Spreadsheet belum menyediakan durasi, nilai 0 dikembalikan
+    // dan schedule tidak mengarang durasi dari hardcode lama.
+    //
 
     function getSheetAudioDuration(audioType) {
 
@@ -5389,7 +5369,7 @@
         }
       }
 
-      return Number(AUDIO_DURATION_FALLBACK[type]) || 0;
+      return 0;
     }
 
 
@@ -5491,42 +5471,21 @@
           ? audioScheduleConfig[name]
           : [];
 
-      // Fallback hanya digunakan bila sequence Sheet belum tersedia.
-      const fallbackSequence =
-        name === 'MAGHRIB' || name === 'ISYA'
-          ? [
-              { event: 'beep', duration: 3 },
-              { event: 'gap', duration: 3 },
-              { event: 'adzan-biasa', duration: 205 },
-              { event: 'gap', duration: 3 },
-              { event: 'doa', duration: 40 },
-              { event: 'gap', duration: 300 },
-              { event: 'beep', duration: 3 },
-              { event: 'gap', duration: 3 },
-              { event: 'iqomah', duration: 45 }
-            ]
-          : [
-              { event: 'qiroah-1', duration: 1800 },
-              { event: 'gap', duration: 3 },
-              { event: 'tarhim', duration: 315 },
-              { event: 'gap', duration: 3 },
-              { event: 'sirine', duration: name === 'ASHAR' ? 0 : 52 },
-              { event: 'gap', duration: 2 },
-              { event: 'beep', duration: 3 },
-              { event: 'gap', duration: 3 },
-              { event: name === 'SUBUH' ? 'adzan-subuh' : 'adzan-biasa', duration: name === 'SUBUH' ? 240 : 205 },
-              { event: 'gap', duration: 3 },
-              { event: 'doa', duration: 40 },
-              { event: 'gap', duration: 300 },
-              { event: 'beep', duration: 3 },
-              { event: 'gap', duration: 3 },
-              { event: 'iqomah', duration: 45 }
-            ];
+      // Spreadsheet adalah satu-satunya sumber sequence.
+      // Jangan pernah mengganti sequence kosong dengan hardcode.
+      const activeSequence = sheetSequence;
 
-      const activeSequence =
-        sheetSequence.length > 0
-          ? sheetSequence
-          : fallbackSequence;
+      if (activeSequence.length === 0) {
+        console.warn(
+          'AUDIO SCHEDULE: sequence Spreadsheet kosong:',
+          name
+        );
+
+        return {
+          events: [],
+          durations: await getAllAudioDurations()
+        };
+      }
 
       console.log(
         '=== AUDIO SEQUENCE AKTIF:',
@@ -5604,9 +5563,10 @@
           name
         );
 
+      // DURASI ADZAN WAJIB memakai nilai row Spreadsheet.
+      // Nilai 0 tetap 0; tidak boleh diganti fallback.
       const adzanDuration =
-        Number(adzanItem.duration) ||
-        getSheetAudioDuration(adzanType);
+        Number(adzanItem.duration);
 
       // RAMADAN MAGHRIB:
       // sirine dimulai tepat pada waktu Maghrib, kemudian Adzan Maghrib.
@@ -5624,16 +5584,16 @@
             })
           : null;
 
+      // DURASI SIRINE RAMADAN MAGHRIB wajib memakai row Spreadsheet.
+      // Nilai 0 tetap 0.
       const ramadanMaghribSirineDuration =
-        isRamadanMaghrib
-          ? (
-              Number(sirineItem && sirineItem.duration) ||
-              getSheetAudioDuration('sirine')
-            )
+        isRamadanMaghrib && sirineItem
+          ? Number(sirineItem.duration)
           : 0;
 
       const sirineEnabled =
         isRamadanMaghrib &&
+        Number.isFinite(ramadanMaghribSirineDuration) &&
         ramadanMaghribSirineDuration > 0 &&
         String(sirineItem && sirineItem.status || 'ON')
           .toUpperCase() !== 'OFF';
@@ -5642,8 +5602,8 @@
       // SEQUENCE SPREADSHEET secara literal.
       // Status ON/OFF hanya menentukan suara aktif/mute; durasi
       // dan GAP tetap dihitung sehingga timing tidak berubah.
-      // Sequence saat ini:
-      // SIRINE 52 -> GAP 3 -> BEEP 3 -> GAP 1 -> ADZAN 203.
+      // Semua nilai SIRINE/GAP/BEEP/ADZAN diambil dari
+      // sequence Spreadsheet. Tidak ada angka timing hardcode.
       let ramadanMaghribAdzanSec =
         Number(pSec) +
         (sirineEnabled ? ramadanMaghribSirineDuration : 0);
@@ -5683,7 +5643,7 @@
       // menghapus durasi/gap dari sequence.
       if (
         isRamadanMaghrib &&
-        ramadanMaghribSirineDuration > 0
+        sirineIndex >= 0
       ) {
 
         const sirineIndex =
@@ -5763,16 +5723,8 @@
         // BAGIAN SETELAH SIRINE SEBELUM ADZAN
         // IKUTI SPREADSHEET SECARA LITERAL.
         //
-        // Sequence:
-        // sirine 52
-        // gap 3
-        // beep 3
-        // gap 1
-        // adzan 203
-        //
-        // Jadi ADZAN mulai +59 detik dari waktu Maghrib.
-        // Tidak ada gap/durasi yang di-hardcode di sini;
-        // seluruh nilai dibaca dari activeSequence (Spreadsheet).
+        // Seluruh item setelah SIRINE sampai sebelum ADZAN
+        // dibaca literal dari activeSequence (Spreadsheet).
         // -------------------------------------------------------
         cursor =
           Number(pSec) +
@@ -5828,8 +5780,6 @@
 
         // Setelah seluruh item setelah SIRINE dan sebelum ADZAN
         // diproses, posisi cursor adalah target ADZAN yang sebenarnya.
-        // Dengan sequence Spreadsheet saat ini:
-        // 52 + 3 + 3 + 1 = 59 detik setelah Maghrib.
         ramadanMaghribAdzanSec = cursor;
 
         add(
@@ -6107,9 +6057,9 @@
           'JUMAT'
         );
 
+      // DURASI ADZAN JUMAT wajib berasal dari row Spreadsheet.
       const adzanDuration =
-        Number(adzanItem && adzanItem.duration) ||
-        getSheetAudioDuration(adzanType);
+        Number(adzanItem && adzanItem.duration);
 
       // Susun seluruh sequence SEBELUM ADZAN mundur dari pSec.
       // Ini membuat qiroah/gap mengikuti Sheet secara literal.
