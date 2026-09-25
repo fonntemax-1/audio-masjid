@@ -2202,24 +2202,51 @@
             audio.preload = 'auto';
             audio.load();
 
-            // currentTime dapat di-set setelah load(); browser akan menerapkan
-            // seek ketika metadata audio tersedia. Jika durasi sudah diketahui,
-            // gunakan modulo agar event yang lebih panjang dari file tetap loop.
+            // Browser TV tertentu belum mengetahui durasi file tepat setelah
+            // audio.load(). Karena itu CATCH-UP harus diulang setelah metadata
+            // tersedia. Tanpa ini, audio yang dimulai setelah target (termasuk
+            // DOA) dapat tetap mulai dari posisi 0 atau gagal seek secara diam-diam.
             if (catchUpElapsed > 0) {
-              try {
-                if (Number.isFinite(Number(audio.duration)) && Number(audio.duration) > 0) {
-                  audio.currentTime = catchUpElapsed % Number(audio.duration);
-                } else {
-                  audio.currentTime = catchUpElapsed;
+              const applyCatchUpPosition = function() {
+                try {
+                  const mediaDuration = Number(audio.duration);
+
+                  if (
+                    Number.isFinite(mediaDuration) &&
+                    mediaDuration > 0
+                  ) {
+                    audio.currentTime =
+                      catchUpElapsed % mediaDuration;
+                  } else {
+                    audio.currentTime = catchUpElapsed;
+                  }
+
+                  console.log(
+                    'AUDIO CATCH-UP POSITION:',
+                    label,
+                    'elapsedSec=', catchUpElapsed,
+                    'currentTime=', audio.currentTime
+                  );
+                } catch (seekError) {
+                  console.warn(
+                    'AUDIO CATCH-UP SEEK GAGAL:',
+                    label,
+                    seekError
+                  );
                 }
-                console.log(
-                  'AUDIO CATCH-UP POSITION:',
-                  label,
-                  'elapsedSec=', catchUpElapsed,
-                  'currentTime=', audio.currentTime
+              };
+
+              if (
+                Number.isFinite(Number(audio.duration)) &&
+                Number(audio.duration) > 0
+              ) {
+                applyCatchUpPosition();
+              } else {
+                audio.addEventListener(
+                  'loadedmetadata',
+                  applyCatchUpPosition,
+                  { once: true }
                 );
-              } catch (seekError) {
-                console.warn('AUDIO CATCH-UP SEEK GAGAL:', label, seekError);
               }
             }
 
@@ -2727,6 +2754,9 @@
           'AUDIO PLAY:',
           item.prayerName || '-',
           item.eventName || item.label || '-',
+          'status=', item.status,
+          'targetSec=', item.targetSec,
+          'endSec=', item.endSec,
           url
         );
 
