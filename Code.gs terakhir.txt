@@ -1059,65 +1059,49 @@ function parseAdzanSheetV6(data) {
   // ==========================================================
   // PEMETAAN PASTI SHEET ADZAN
   //
-  // Layout lama/stabil:
-  // D = No
-  // E:F = SUBUH
-  // G:H = DZUHUR
-  // I:J = ASHAR
-  // K:L = MAGHRIB
-  // M:N = ISYA
-  // Q:R = JUM'AT
+  // STRUKTUR RUNTIME SHEET ADZAN:
+  // D:G  = NO | EVENT | DETIK | STATUS   -> SUBUH
+  // I:K  = EVENT | DETIK | STATUS         -> DZUHUR
+  // M:O  = EVENT | DETIK | STATUS         -> ASHAR
+  // Q:S  = EVENT | DETIK | STATUS         -> MAGHRIB
+  // U:W  = EVENT | DETIK | STATUS         -> ISYA
+  // Y:AA = EVENT | DETIK | STATUS         -> JUM'AT
   //
-  // Layout 3 kolom aktif:
-  // E:G, I:K, M:O, Q:S, U:W dan Y:AA untuk Jum'at.
-  //
-  // Kita TIDAK lagi mencari kolom secara acak. Hanya dua layout
-  // yang memang digunakan sistem yang dibandingkan berdasarkan
-  // jumlah EVENT valid + DURASI valid. Ini mencegah kolom durasi/
-  // status terbaca sebagai nama event.
+  // Baris 1 adalah header/deskripsi. Data dimulai baris 2.
+  // Tidak ada fallback sequence, event, durasi, GAP, atau status.
   // ==========================================================
-
-  const layout2 = {
-    SUBUH:   { event: 4,  duration: 5,  status: -1 },
-    DZUHUR:  { event: 6,  duration: 7,  status: -1 },
-    ASHAR:   { event: 8,  duration: 9,  status: -1 },
-    MAGHRIB: { event: 10, duration: 11, status: -1 },
-    ISYA:    { event: 12, duration: 13, status: -1 }
-  };
 
   const layout3 = {
-    // Layout aktif yang digunakan Sheet Adzan: E:G / I:K / M:O / Q:S / U:W
-    SUBUH:   { event: 4,  duration: 5,  status: 6 },  // E:G
-    DZUHUR:  { event: 8,  duration: 9,  status: 10 }, // I:K
-    ASHAR:   { event: 12, duration: 13, status: 14 }, // M:O
-    MAGHRIB: { event: 16, duration: 17, status: 18 }, // Q:S
-    ISYA:    { event: 20, duration: 21, status: 22 }  // U:W
+    SUBUH:   { event: 4,  duration: 5,  status: 6 },
+    DZUHUR:  { event: 8,  duration: 9,  status: 10 },
+    ASHAR:   { event: 12, duration: 13, status: 14 },
+    MAGHRIB: { event: 16, duration: 17, status: 18 },
+    ISYA:    { event: 20, duration: 21, status: 22 }
   };
 
   // ==========================================================
-  // BANGUN JADWAL LANGSUNG DARI SHEET.
-  // Tidak ada event yang disisipkan, dihapus, atau dipindahkan.
-  // Urutan, durasi, GAP, dan STATUS mengikuti Sheet.
+  // BANGUN JADWAL LANGSUNG DARI BLOK SHEET YANG DITENTUKAN.
+  // ==========================================================
   prayerNames.forEach(function(prayerName) {
-    const d = result.detected[prayerName];
-    result.schedule[prayerName] = buildSchedule(d);
-    Logger.log('AUDIO SCHEDULE ' + prayerName + ': ' + JSON.stringify(result.schedule[prayerName]));
+    const block = layout3[prayerName];
+    result.detected[prayerName] = block;
+    result.schedule[prayerName] = buildSchedule(block);
+
+    Logger.log(
+      'AUDIO SCHEDULE ' + prayerName + ': ' +
+      JSON.stringify(result.schedule[prayerName])
+    );
   });
 
-  // Jum'at: layout Y:AA adalah layout aktif 3 kolom.
-  // Q:R dipertahankan sebagai kompatibilitas layout lama 2 kolom.
-  const friday2 = makeCandidate('JUMAT', 16, 17, -1); // Q:R
-  const friday3 = makeCandidate('JUMAT', 24, 25, 26); // Y:AA
-  let friday = null;
-
-  [friday2, friday3].forEach(function(c) {
-    if (!c) return;
-    if (!friday || c.score > friday.score) friday = c;
-  });
-
+  // Jum'at: Y:AA = EVENT | DETIK | STATUS.
+  const friday = makeCandidate('JUMAT', 24, 25, 26);
   result.detected.JUMAT = friday;
   result.friday = buildSchedule(friday);
 
+  Logger.log(
+    "AUDIO JUM'AT: " +
+    JSON.stringify(result.friday)
+  );
   return result;
 }
 
