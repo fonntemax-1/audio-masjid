@@ -461,6 +461,17 @@
        ========================================================= */
 
     .infaq-panel {
+      /*
+       * Tambahkan ruang vertikal secukupnya untuk QRIS tanpa
+       * mengubah lebar frame. Panel tetap berada di dalam
+       * clock-overlay dan dibatasi agar tidak menutup event-banner.
+       */
+      flex-shrink: 0;
+      max-height: min(34vh, 280px);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+
       /* Static background is much lighter than backdrop-filter on TCL 32S5400. */
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
@@ -491,6 +502,9 @@
       flex-direction: column;
       gap: 0.35vh;
       width: 100%;
+      min-height: 0;
+      overflow: hidden;
+      flex: 1 1 auto;
     }
 
     .infaq-item {
@@ -505,11 +519,13 @@
     /* Ukuran QRIS B3 otomatis menyesuaikan frame */
       .infaq-item img {
       display: block;
-      width: min(28vh, 80%);
-      height: min(28vh, 80%);
-      max-width: 100%;
+      width: auto;
+      height: auto;
+      max-width: min(100%, 28vh);
+      max-height: 19vh;
       object-fit: contain;
       margin: 0.5vh auto;
+      flex-shrink: 1;
     }
 
     .infaq-empty {
