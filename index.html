@@ -5618,12 +5618,12 @@
         String(sirineItem && sirineItem.status || 'ON')
           .toUpperCase() !== 'OFF';
 
-      // Untuk Ramadan MAGHRIB, target ADZAN TIDAK langsung
-      // dihitung sebagai pSec + durasi sirine.
-      // Target ADZAN harus mengikuti seluruh sequence Sheet:
-      // SIRINE -> GAP 2 -> BEEP 3 -> GAP 3 -> ADZAN.
-      // Nilainya akan ditentukan setelah bagian sebelum ADZAN
-      // dihitung secara berurutan di bawah.
+      // Untuk Ramadan MAGHRIB, target ADZAN selalu mengikuti
+      // SEQUENCE SPREADSHEET secara literal.
+      // Status ON/OFF hanya menentukan suara aktif/mute; durasi
+      // dan GAP tetap dihitung sehingga timing tidak berubah.
+      // Sequence saat ini:
+      // SIRINE 52 -> GAP 3 -> BEEP 3 -> GAP 1 -> ADZAN 203.
       let ramadanMaghribAdzanSec =
         Number(pSec) +
         (sirineEnabled ? ramadanMaghribSirineDuration : 0);
@@ -5658,7 +5658,13 @@
       let cursor =
         Number(pSec);
 
-      if (isRamadanMaghrib && sirineEnabled) {
+      // Ramadan MAGHRIB tetap memakai timeline Sheet walaupun
+      // SIRINE berstatus OFF. OFF hanya memute audio, bukan
+      // menghapus durasi/gap dari sequence.
+      if (
+        isRamadanMaghrib &&
+        ramadanMaghribSirineDuration > 0
+      ) {
 
         const sirineIndex =
           activeSequence.findIndex(function(item) {
@@ -5735,10 +5741,18 @@
 
         // -------------------------------------------------------
         // BAGIAN SETELAH SIRINE SEBELUM ADZAN
-        // Ikuti Sheet secara literal: gap -> beep -> gap -> adzan.
-        // Dengan data saat ini:
-        // 52s sirine + 2s gap + 3s beep + 3s gap
-        // = adzan mulai 60s setelah waktu Maghrib.
+        // IKUTI SPREADSHEET SECARA LITERAL.
+        //
+        // Sequence:
+        // sirine 52
+        // gap 3
+        // beep 3
+        // gap 1
+        // adzan 203
+        //
+        // Jadi ADZAN mulai +59 detik dari waktu Maghrib.
+        // Tidak ada gap/durasi yang di-hardcode di sini;
+        // seluruh nilai dibaca dari activeSequence (Spreadsheet).
         // -------------------------------------------------------
         cursor =
           Number(pSec) +
@@ -5794,8 +5808,8 @@
 
         // Setelah seluruh item setelah SIRINE dan sebelum ADZAN
         // diproses, posisi cursor adalah target ADZAN yang sebenarnya.
-        // Dengan Sheet saat ini:
-        // 52 + 2 + 3 + 3 = 60 detik setelah Maghrib.
+        // Dengan sequence Spreadsheet saat ini:
+        // 52 + 3 + 3 + 1 = 59 detik setelah Maghrib.
         ramadanMaghribAdzanSec = cursor;
 
         add(
