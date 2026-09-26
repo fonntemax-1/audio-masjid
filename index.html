@@ -342,6 +342,81 @@
       box-shadow: 0 0.6vh 1.6vh rgba(0, 0, 0, 0.8);
     }
 
+    /* =========================================================
+       EVENT COUNTDOWN - TANPA FRAME
+       Mengikuti Sheet Event: A=EVENT, B=HARI, C=STATUS, D=KETERANGAN.
+       ========================================================= */
+
+    .event-countdown-display {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      pointer-events: none;
+      padding: 4vh 3vw;
+      background: transparent;
+    }
+
+    .event-countdown-display.active {
+      display: flex;
+    }
+
+    .event-countdown-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4vh;
+      min-width: 35vw;
+    }
+
+    .event-countdown-title {
+      color: #ffcc00;
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.5rem, 3.0vw, 3.4rem);
+      font-weight: 800;
+      letter-spacing: 0.10vw;
+      line-height: 1.05;
+      text-transform: uppercase;
+      text-shadow: 0 0.18vh 0.35vh rgba(0,0,0,0.95);
+    }
+
+    .event-countdown-number {
+      color: #ffffff;
+      font-family: 'Roboto', sans-serif;
+      font-size: clamp(5rem, 12vw, 12rem);
+      font-weight: 900;
+      line-height: 0.9;
+      font-variant-numeric: tabular-nums;
+      text-shadow:
+        0 0.25vh 0.5vh rgba(0,0,0,0.95),
+        0 0 1.2vh rgba(0,0,0,0.8);
+    }
+
+    .event-countdown-unit {
+      color: #ffcc00;
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.2rem, 2.2vw, 2.6rem);
+      font-weight: 800;
+      letter-spacing: 0.20vw;
+      line-height: 1;
+      text-transform: uppercase;
+      text-shadow: 0 0.18vh 0.35vh rgba(0,0,0,0.95);
+    }
+
+    .event-countdown-description {
+      color: #ffffff;
+      font-size: clamp(0.9rem, 1.5vw, 1.6rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-top: 1.0vh;
+      text-transform: uppercase;
+      text-shadow: 0 0.18vh 0.35vh rgba(0,0,0,0.95);
+    }
+
     .countdown-title {
       white-space: pre-line;
       color: #ffffff;
@@ -1067,6 +1142,15 @@
             <div class="countdown-timer" id="countdown">00:00:00</div>
           </div>
 
+          <div class="event-countdown-display" id="event-countdown-display" aria-hidden="true">
+            <div class="event-countdown-inner">
+              <div class="event-countdown-title" id="event-countdown-title">COUNTDOWN RAMADHAN</div>
+              <div class="event-countdown-number" id="event-countdown-number">270</div>
+              <div class="event-countdown-unit">HARI</div>
+              <div class="event-countdown-description" id="event-countdown-description">270 HARI MENUJU 1 SYAWAL</div>
+            </div>
+          </div>
+
           <div class="analog-clock">
             <svg class="clock-face-svg" viewBox="0 0 200 200">
               <g stroke="#333333" stroke-linecap="round">
@@ -1424,6 +1508,12 @@
 
         active: null
 
+      },
+
+      event: {
+        rows: [],
+        active: null,
+        targetKey: ''
       }
 
     };
@@ -3271,6 +3361,12 @@
 
       setAudioConfig(data);
 
+      if (Array.isArray(data.Event)) {
+        WEB_APP_STATE.event.rows = data.Event;
+      }
+
+      updateEventCountdown();
+
       updateInfaq(data.Infaq);
 
       if (
@@ -4227,6 +4323,181 @@
           'deg)';
 
       }
+
+      updateEventCountdown();
+
+    }
+
+
+    // =========================================================
+    // EVENT COUNTDOWN
+    // =========================================================
+
+    function getNextOneSyawalGregorian() {
+
+      if (
+        typeof moment !== 'function' ||
+        !moment.iConvert ||
+        typeof moment.iConvert.toGregorian !== 'function'
+      ) {
+        return null;
+      }
+
+      const now = moment();
+      let hijriYear = now.iYear();
+      let greg = moment.iConvert.toGregorian(
+        hijriYear,
+        9,
+        1
+      );
+
+      let target = moment([
+        greg.gy,
+        greg.gm,
+        greg.gd
+      ]).startOf('day');
+
+      if (target.valueOf() <= now.clone().startOf('day').valueOf()) {
+        hijriYear += 1;
+        greg = moment.iConvert.toGregorian(
+          hijriYear,
+          9,
+          1
+        );
+        target = moment([
+          greg.gy,
+          greg.gm,
+          greg.gd
+        ]).startOf('day');
+      }
+
+      return {
+        moment: target,
+        hijriYear: hijriYear
+      };
+    }
+
+
+    function getEventCountdownConfig() {
+
+      const rows =
+        Array.isArray(WEB_APP_STATE.event.rows)
+          ? WEB_APP_STATE.event.rows
+          : [];
+
+      return rows.find(function(row) {
+        return (
+          String(row.event || '').trim().toLowerCase() ===
+          'countdown ramadhan' &&
+          String(row.status || '').trim().toUpperCase() === 'ON'
+        );
+      }) || null;
+    }
+
+
+    function updateEventCountdown() {
+
+      const display =
+        document.getElementById('event-countdown-display');
+
+      const title =
+        document.getElementById('event-countdown-title');
+
+      const number =
+        document.getElementById('event-countdown-number');
+
+      const description =
+        document.getElementById('event-countdown-description');
+
+      if (!display || !title || !number || !description) {
+        return;
+      }
+
+      const config =
+        getEventCountdownConfig();
+
+      if (!config) {
+        display.classList.remove('active');
+        display.setAttribute('aria-hidden', 'true');
+        WEB_APP_STATE.event.active = null;
+        return;
+      }
+
+      const limit =
+        Number(config.days);
+
+      if (!Number.isFinite(limit) || limit < 0) {
+        display.classList.remove('active');
+        display.setAttribute('aria-hidden', 'true');
+        WEB_APP_STATE.event.active = null;
+        return;
+      }
+
+      const targetInfo =
+        getNextOneSyawalGregorian();
+
+      if (!targetInfo) {
+        return;
+      }
+
+      const today =
+        moment().startOf('day');
+
+      const target =
+        targetInfo.moment;
+
+      const diffDays =
+        Math.max(
+          0,
+          Math.ceil(
+            (target.valueOf() - today.valueOf()) /
+            86400000
+          )
+        );
+
+      // B adalah angka durasi/periode hitungan hari:
+      // event mulai tampil saat sisa hari <= B.
+      // D tidak dipakai sebagai konfigurasi; hanya keterangan tampilan.
+      const shouldShow =
+        diffDays >= 0 &&
+        diffDays <= limit;
+
+      if (!shouldShow) {
+        display.classList.remove('active');
+        display.setAttribute('aria-hidden', 'true');
+        WEB_APP_STATE.event.active = null;
+        return;
+      }
+
+      const eventName =
+        String(config.event || 'COUNTDOWN RAMADHAN')
+          .trim()
+          .toUpperCase();
+
+      const rawDescription =
+        String(config.description || '').trim();
+
+      title.innerText =
+        eventName;
+
+      number.innerText =
+        String(diffDays);
+
+      description.innerText =
+        rawDescription ||
+        (String(diffDays) + ' HARI MENUJU 1 SYAWAL');
+
+      display.classList.add('active');
+      display.setAttribute('aria-hidden', 'false');
+
+      WEB_APP_STATE.event.active = {
+        event: eventName,
+        days: diffDays,
+        limit: limit,
+        description: rawDescription,
+        targetGregorian: target.format('YYYY-MM-DD'),
+        targetHijri: targetInfo.hijriYear + ' / 10 / 1'
+      };
 
     }
 
