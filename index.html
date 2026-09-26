@@ -4727,11 +4727,31 @@
           return;
         }
 
-        // Setelah Qiroah dimulai sampai waktu sholat/card berpindah,
-        // YouTube HARUS tetap mute.
+        // Cari akhir IQOMAH dari computed schedule.
+        // Audio sequence/durasi tetap 100% berasal dari Sheet Adzan.
+        const iqomahEvent =
+          schedule.events.find(function(event) {
+            return (
+              String(event && event.eventName ? event.eventName : '')
+                .trim()
+                .toLowerCase() === 'iqomah' &&
+              Number.isFinite(Number(event.targetSec)) &&
+              Number.isFinite(Number(event.endSec))
+            );
+          });
+
+        const iqomahEndSec =
+          iqomahEvent
+            ? Number(iqomahEvent.endSec)
+            : prayerSec;
+
+        // Setelah IQOMAH selesai, YouTube tetap MUTE 30 menit.
+        const muteUntilSec =
+          iqomahEndSec + (30 * 60);
+
         if (
           nowSeconds >= targetSec &&
-          nowSeconds < prayerSec
+          nowSeconds < muteUntilSec
         ) {
           const distance = Math.abs(nowSeconds - targetSec);
 
@@ -4742,6 +4762,8 @@
               qiroahTargetSec: targetSec,
               muteStartSec: targetSec,
               prayerSec: prayerSec,
+              iqomahEndSec: iqomahEndSec,
+              muteUntilSec: muteUntilSec,
               distance: distance
             };
           }
@@ -4750,7 +4772,6 @@
 
       return selected;
     }
-
 
     function getPrayerTimeSecondsForYouTube(
       prayerName
