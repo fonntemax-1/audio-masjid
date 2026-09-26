@@ -4744,7 +4744,7 @@
       const today =
         moment().startOf('day');
 
-      const active =
+      const activeConfigs =
         configs
           .map(function(config) {
 
@@ -4770,6 +4770,21 @@
           })
           .filter(function(config) {
 
+            const key =
+              normalizeEventCountdownName_(config.event);
+
+            // Lailatul Qadr hanya aktif H-10 s.d. H-1.
+            // Pada H-0 (1 Syawal) langsung berhenti.
+            if (
+              key === 'countdown malam lailatul qadr' ||
+              key === 'countdown lailatul qadr'
+            ) {
+              return (
+                config.diffDays >= 1 &&
+                config.diffDays <= 10
+              );
+            }
+
             return (
               config.diffDays > 0 &&
               config.diffDays <= config.days
@@ -4777,14 +4792,25 @@
 
           })
           .sort(function(a, b) {
-
-            if (a.diffDays !== b.diffDays) {
-              return a.diffDays - b.diffDays;
-            }
-
             return a.row - b.row;
+          });
 
-          })[0] || null;
+      // Jika beberapa event AUTO aktif bersamaan,
+      // kartu berganti setiap 5 menit.
+      let active = null;
+
+      if (activeConfigs.length > 0) {
+        const rotationSlot =
+          Math.floor(
+            moment().valueOf() /
+            (5 * 60 * 1000)
+          );
+
+        active =
+          activeConfigs[
+            rotationSlot % activeConfigs.length
+          ];
+      }
 
       if (!active) {
 
