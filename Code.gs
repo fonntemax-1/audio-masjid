@@ -114,10 +114,10 @@ function getDataFromSheet() {
     // =====================================================
     // KONFIGURASI KONTROL YOUTUBE
     // Youtube!B1 = LINK YOUTUBE
-    // Youtube!B2 = STATUS: AUTO / ON / OFF
+    // Youtube!C1 = STATUS: AUTO / ON / OFF / STOP
     //
     // 5 menit sebelum QIROAH = aturan tetap sistem.
-    // Tidak lagi membaca B2 sebagai angka detik.
+    // Tidak lagi membaca C1 sebagai angka detik.
     // =====================================================
 
     result.YoutubeStatus = 'AUTO';
