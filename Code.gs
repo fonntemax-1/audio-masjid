@@ -1780,14 +1780,13 @@ function processYoutubeSheet(
   let youtubeStatus = 'AUTO';
 
   if (
-    data.length > 1 &&
-    data[1] &&
-    data[1].length > 1
+    data[0] &&
+    data[0].length > 2
   ) {
     youtubeStatus =
-      data[1][1] !== null &&
-      data[1][1] !== undefined
-        ? data[1][1].toString().trim().toUpperCase()
+      data[0][2] !== null &&
+      data[0][2] !== undefined
+        ? data[0][2].toString().trim().toUpperCase()
         : '';
   }
 
