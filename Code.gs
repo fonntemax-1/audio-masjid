@@ -1756,10 +1756,12 @@ function processYoutubeSheet(
   // C1 = STATUS
   //
   // STATUS:
-  // AUTO = mute 5 menit sebelum Qiroah, tetap mute sampai
+  // ON   = YouTube berjalan + UNMUTE; 5 menit sebelum Qiroah
+  //        sistem mengubah C1 ON -> OFF sehingga YouTube MUTE.
+  // OFF  = YouTube tetap berjalan tetapi MUTE.
+  // AUTO = MUTE 5 menit sebelum Qiroah, tetap MUTE sampai
   //        30 menit setelah IQOMAH selesai, lalu UNMUTE.
-  // ON   = YouTube berjalan + UNMUTE terus.
-  // OFF  = YouTube STOP.
+  // STOP = YouTube benar-benar dihentikan.
   // =====================================================
 
   let youtubeUrl = '';
@@ -1793,7 +1795,8 @@ function processYoutubeSheet(
   if (
     youtubeStatus !== 'AUTO' &&
     youtubeStatus !== 'ON' &&
-    youtubeStatus !== 'OFF'
+    youtubeStatus !== 'OFF' &&
+    youtubeStatus !== 'STOP'
   ) {
     youtubeStatus = 'AUTO';
   }
@@ -1802,10 +1805,14 @@ function processYoutubeSheet(
     youtubeStatus;
 
   // Kompatibilitas data lama:
-  // AUTO tidak memaksa mute saat halaman pertama kali dimuat.
-  // OFF langsung mute.
+  // AUTO dihitung oleh frontend berdasarkan jadwal.
+  // OFF = tetap berjalan tetapi MUTE.
+  // STOP = benar-benar dihentikan oleh frontend.
   resultObj.YoutubeMute =
     youtubeStatus === 'OFF';
+
+  resultObj.YoutubeStopped =
+    youtubeStatus === 'STOP';
 
   // Aturan tetap: 5 menit sebelum qiroah.
   resultObj.YoutubeMuteBeforeQiroahSeconds =
@@ -1825,11 +1832,12 @@ function processYoutubeSheet(
 // =========================================================
 // SET STATUS YOUTUBE KE OFF OLEH SISTEM
 //
-// Dipakai HANYA untuk mode B2=ON ketika sistem masuk
-// 5 menit sebelum qiroah.
+// Dipakai HANYA untuk mode C1=ON ketika sistem masuk
+// 5 menit sebelum Qiroah.
 //
+// C1=OFF berarti YouTube tetap berjalan tetapi MUTE.
+// Operator dapat mengubah C1 kembali ke ON untuk UNMUTE manual.
 // Tidak membuat protection/lock.
-// Operator tetap dapat mengubah B2 kembali ke ON.
 // =========================================================
 
 function setYoutubeStatusOff() {
@@ -1892,7 +1900,8 @@ function getYoutubeStatus() {
   if (
     status !== 'AUTO' &&
     status !== 'ON' &&
-    status !== 'OFF'
+    status !== 'OFF' &&
+    status !== 'STOP'
   ) {
     status = 'AUTO';
   }
