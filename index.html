@@ -5021,21 +5021,18 @@
     //
     // Sheet youtube:
     //   B1 = Link YouTube
-    //   B2 = AUTO / ON / OFF
+    //   C1 = AUTO / ON / OFF
     //
     // AUTO:
-    //   - mute 5 menit sebelum qiroah pertama pada schedule
-    //   - unmute saat masuk waktu sholat/kartu waktu sholat
-    //   - IMSAK dan TERBIT tidak menjadi trigger unmute
+    //   - mute 5 menit sebelum Qiroah
+    //   - tetap mute sampai 30 menit setelah IQOMAH selesai
+    //   - setelah itu UNMUTE
     //
     // ON:
-    //   - normal ON
-    //   - 5 menit sebelum qiroah -> mute
-    //   - B2 otomatis menjadi OFF
-    //   - tetap mute sampai operator mengubah B2 -> ON
+    //   - YouTube berjalan + UNMUTE terus
     //
     // OFF:
-    //   - mute terus sampai operator mengubah B2 -> ON
+    //   - YouTube benar-benar STOP
     //
     // 5 menit = 300 detik, aturan tetap sistem.
     // =========================================================
@@ -5212,6 +5209,28 @@
       );
 
     }
+
+    function stopYouTubeIframe() {
+
+      const iframe =
+        document.getElementById(
+          'youtube-video'
+        );
+
+      if (!iframe) return;
+
+      iframe.removeAttribute('src');
+
+      currentYouTubeUrl =
+        '';
+
+      console.log(
+        'YOUTUBE STOP: iframe dihentikan karena mode OFF'
+      );
+
+    }
+
+
 
 
     function getYouTubeQiroahWindow(nowSeconds) {
@@ -5545,10 +5564,10 @@
 
       if (mode === 'OFF') {
 
-        muteYouTubeIframe();
+        stopYouTubeIframe();
 
         youtubeAutoMuted =
-          true;
+          false;
 
         return;
 
@@ -5557,75 +5576,24 @@
 
       // =======================================================
       // MODE ON
-      //
-      // Di luar window qiroah -> ON.
-      // Masuk 5 menit sebelum qiroah -> MUTE + tulis B2=OFF.
-      // Setelah B2 kembali ON secara manual, jangan mute lagi
-      // pada window qiroah yang sama.
       // =======================================================
-
-      const selected =
-        getYouTubeQiroahWindow(now);
+      // ON adalah mode manual: YouTube selalu PLAY + UNMUTE.
+      // C1 tidak diubah otomatis.
+      // =======================================================
 
       if (mode === 'ON') {
 
-        if (
-          selected &&
-          youtubeManualOnOverrideKey !==
-          (
-            String(dateKey) +
-            '|' +
-            String(selected.prayerName || '') +
-            '|' +
-            String(selected.qiroahTargetSec)
-          )
-        ) {
+        unmuteYouTubeIframe();
 
-          const key =
-            String(dateKey) +
-            '|' +
-            String(selected.prayerName || '') +
-            '|' +
-            String(selected.qiroahTargetSec);
+        youtubeAutoMuted =
+          false;
 
-          if (
-            youtubeAutoMuteKey !== key
-          ) {
+        return;
 
-            setYouTubeAutoMuted(
-              selected,
-              dateKey
-            );
+      }
 
-            // Status ON hanya diubah menjadi OFF sekali
-            // ketika masuk window qiroah.
-            gasApiCall('setYoutubeStatusOff')
-              .then(function(result) {
-
-                console.log(
-                  'YOUTUBE STATUS OTOMATIS OFF:',
-                  result
-                );
-
-              })
-              .catch(function(error) {
-
-                console.error(
-                  'YOUTUBE STATUS OTOMATIS OFF GAGAL:',
-                  error
-                );
-
-              });
-
-          } else {
-
-            muteYouTubeIframe();
-
-          }
-
-          return;
-
-        }
+      const selected =
+        getYouTubeQiroahWindow(now);
 
         // B2 sudah dikembalikan ON oleh operator.
         // Jika masih berada di window qiroah, ON manual menang.
@@ -5642,9 +5610,9 @@
       // =======================================================
       // MODE AUTO
       //
-      // Mute 5 menit sebelum qiroah.
-      // Unmute saat masuk waktu sholat.
-      // IMSAK / TERBIT tidak pernah menjadi trigger unmute.
+      // MUTE 5 menit sebelum Qiroah.
+      // Tetap MUTE sampai 30 menit setelah IQOMAH selesai.
+      // Setelah batas tersebut tercapai -> UNMUTE.
       // =======================================================
 
       if (mode === 'AUTO') {
@@ -5677,9 +5645,8 @@
 
         }
 
-        // Setelah Qiroah dimulai tetapi countdown belum berpindah
-        // ke waktu sholat, YouTube tetap HARUS mute. Ini juga
-        // menangani halaman yang baru dibuka/reload setelah Qiroah.
+        // Qiroah sudah dimulai: tahan mute sampai
+        // 30 menit setelah IQOMAH selesai.
         const hold =
           getYouTubeQiroahHoldWindow(now);
 
@@ -5696,88 +5663,90 @@
 
             youtubeAutoMuted = true;
             youtubeAutoMuteKey = holdKey;
-            youtubeAutoMutePrayer = String(hold.prayerName || '');
-            youtubeAutoMuteQiroahTargetSec = hold.qiroahTargetSec;
-
-            muteYouTubeIframe();
-
-            console.log(
-              'YOUTUBE AUTO MUTE HOLD: Qiroah sudah mulai, menunggu waktu sholat',
-              'prayer=', hold.prayerName,
-              'qiroah=', hold.qiroahEvent.eventName,
-              'qiroahTargetSec=', hold.qiroahTargetSec,
-              'prayerSec=', hold.prayerSec
-            );
-
-          } else {
-
-            muteYouTubeIframe();
+            youtubeAutoMutePrayer =
+              String(hold.prayerName || '');
+            youtubeAutoMuteQiroahTargetSec =
+              hold.qiroahTargetSec;
 
           }
 
+          muteYouTubeIframe();
+
           return;
+
         }
 
-        // Tidak sedang 5-menit sebelum qiroah.
-        // Jika sebelumnya mute untuk qiroah, tunggu sampai
-        // waktu sholat tiba lalu unmute.
+        // Setelah hold selesai, cek batas IQOMAH + 30 menit.
         if (youtubeAutoMuted) {
 
-          const prayerName =
-            youtubeAutoMutePrayer;
+          const schedules =
+            WEB_APP_STATE &&
+            WEB_APP_STATE.audio
+              ? WEB_APP_STATE.audio.computedSchedules
+              : null;
 
-          // Jangan pernah menggunakan IMSAK atau TERBIT
-          // sebagai trigger unmute.
+          let unmuteAtSec = null;
+
           if (
-            prayerName === 'SUBUH' ||
-            prayerName === 'DZUHUR' ||
-            prayerName === 'ASHAR' ||
-            prayerName === 'MAGHRIB' ||
-            prayerName === 'ISYA'
+            schedules &&
+            typeof schedules.get === 'function'
           ) {
 
-            const prayerSec =
-              getPrayerTimeSecondsForYouTube(
-                prayerName
+            const schedule =
+              schedules.get(
+                youtubeAutoMutePrayer
               );
 
             if (
-              Number.isFinite(prayerSec) &&
-              now >= prayerSec
+              schedule &&
+              Array.isArray(schedule.events)
             ) {
 
-              const transitionKey =
-                String(dateKey) +
-                '|' +
-                prayerName +
-                '|' +
-                prayerSec;
+              const iqomahEvent =
+                schedule.events.find(function(event) {
+                  return (
+                    String(event && event.eventName ? event.eventName : '')
+                      .trim()
+                      .toLowerCase() === 'iqomah' &&
+                    Number.isFinite(Number(event.endSec))
+                  );
+                });
 
-              if (
-                youtubeLastPrayerTimeKey !==
-                transitionKey
-              ) {
-
-                youtubeLastPrayerTimeKey =
-                  transitionKey;
-
-                unmuteYouTubeIframe();
-
-                youtubeAutoMuted =
-                  false;
-
-                console.log(
-                  'YOUTUBE AUTO UNMUTE:',
-                  'mengikuti perpindahan kartu/waktu sholat',
-                  'prayer=', prayerName,
-                  'prayerSec=', prayerSec
-                );
-
+              if (iqomahEvent) {
+                unmuteAtSec =
+                  Number(iqomahEvent.endSec) +
+                  (30 * 60);
               }
 
             }
 
           }
+
+          if (
+            Number.isFinite(unmuteAtSec) &&
+            now >= unmuteAtSec
+          ) {
+
+            unmuteYouTubeIframe();
+
+            youtubeAutoMuted =
+              false;
+
+            console.log(
+              'YOUTUBE AUTO UNMUTE:',
+              '30 menit setelah IQOMAH selesai',
+              'prayer=', youtubeAutoMutePrayer,
+              'unmuteAtSec=', unmuteAtSec
+            );
+
+            return;
+
+          }
+
+          // Belum mencapai batas -> tetap mute.
+          muteYouTubeIframe();
+
+          return;
 
         }
 
@@ -5836,24 +5805,26 @@
       const mode =
         youtubeControlMode;
 
-      // OFF = selalu mute.
+      // OFF = YouTube benar-benar dihentikan.
       if (mode === 'OFF') {
-        muteYouTubeIframe();
+
+        stopYouTubeIframe();
+
+        youtubeAutoMuted =
+          false;
+
+        return;
+
       }
 
-      // ON = status sheet adalah otoritas manual.
-      // Di luar window qiroah, ON langsung unmute.
+      // ON = mode manual, selalu PLAY + UNMUTE.
       if (mode === 'ON') {
-        // Jika sebelumnya sistem memicu auto-OFF dan operator
-        // mengubah B2 kembali ke ON, ON manual mengalahkan
-        // auto-mute untuk window qiroah yang sedang aktif.
-        if (youtubeAutoMuteKey) {
-          youtubeManualOnOverrideKey =
-            youtubeAutoMuteKey;
-        }
 
         unmuteYouTubeIframe();
-        youtubeAutoMuted = false;
+
+        youtubeAutoMuted =
+          false;
+
       }
 
       // AUTO tidak mengubah suara di sini.
@@ -5862,14 +5833,9 @@
       // Saat AUTO sedang berada dalam periode mute qiroah,
       // jangan reload video menjadi unmute hanya karena fetch Sheet.
       const embedMute =
-        mode === 'OFF'
+        mode === 'AUTO' && youtubeAutoMuted
           ? 1
-          : (
-              mode === 'AUTO' &&
-              youtubeAutoMuted
-                ? 1
-                : 0
-            );
+          : 0;
 
       const embedUrl =
         getYouTubeEmbedUrl(
