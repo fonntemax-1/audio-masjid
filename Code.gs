@@ -838,28 +838,53 @@ function getEventSheetData_(ss) {
     return output;
   }
 
-  const lastRow = Math.max(sheet.getLastRow(), 1);
-  if (lastRow < 2) {
-    Logger.log('EVENT: Sheet Event tidak memiliki data.');
-    return output;
-  }
+  // ==========================================================
+  // STRUKTUR EVENT YANG DIGUNAKAN DISPLAY
+  //
+  // A8:A11 = nama event
+  // B8:B11 = jumlah hari / batas mulai countdown
+  // C8:C11 = ON / OFF
+  //
+  // D tidak digunakan sebagai pengaturan countdown.
+  // ==========================================================
 
-  const values = sheet.getRange(1, 1, lastRow, 4).getValues();
+  const values =
+    sheet
+      .getRange(8, 1, 4, 4)
+      .getValues();
 
-  for (let r = 1; r < values.length; r++) {
+  for (let r = 0; r < values.length; r++) {
     const row = values[r] || [];
 
-    const eventName = String(row[0] == null ? '' : row[0]).trim();
+    const eventName =
+      String(row[0] == null ? '' : row[0]).trim();
+
     if (!eventName) continue;
 
-    const daysRaw = row[1] == null ? '' : row[1];
-    const status = String(row[2] == null ? '' : row[2]).trim().toUpperCase();
-    const description = String(row[3] == null ? '' : row[3]).trim();
+    const daysRaw =
+      row[1] == null ? '' : row[1];
 
-    let days = Number(String(daysRaw).replace(',', '.').trim());
-    if (!Number.isFinite(days)) days = 0;
+    const status =
+      String(row[2] == null ? '' : row[2])
+        .trim()
+        .toUpperCase();
+
+    const description =
+      String(row[3] == null ? '' : row[3]).trim();
+
+    let days =
+      Number(
+        String(daysRaw)
+          .replace(',', '.')
+          .trim()
+      );
+
+    if (!Number.isFinite(days)) {
+      days = 0;
+    }
 
     output.push({
+      row: r + 8,
       event: eventName,
       days: days,
       status: status,
@@ -867,10 +892,13 @@ function getEventSheetData_(ss) {
     });
   }
 
-  Logger.log('EVENT EXPLICIT READ = ' + JSON.stringify(output));
+  Logger.log(
+    'EVENT B8:C11 READ = ' +
+    JSON.stringify(output)
+  );
+
   return output;
 }
-
 
 // =========================================================
 // PROSES SHEET ADZAN
