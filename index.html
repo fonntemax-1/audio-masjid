@@ -5032,7 +5032,7 @@
     //   - YouTube berjalan + UNMUTE terus
     //
     // OFF:
-    //   - YouTube benar-benar STOP
+    //   - YouTube tetap berjalan tetapi MUTE
     //
     // 5 menit = 300 detik, aturan tetap sistem.
     // =========================================================
@@ -5561,13 +5561,15 @@
       // =======================================================
       // MODE OFF
       // =======================================================
+      // OFF = YouTube tetap berjalan, tetapi selalu MUTE.
+      // =======================================================
 
       if (mode === 'OFF') {
 
-        stopYouTubeIframe();
+        muteYouTubeIframe();
 
         youtubeAutoMuted =
-          false;
+          true;
 
         return;
 
@@ -5793,13 +5795,13 @@
       const mode =
         youtubeControlMode;
 
-      // OFF = YouTube benar-benar dihentikan.
+      // OFF = YouTube tetap berjalan tetapi selalu MUTE.
       if (mode === 'OFF') {
 
-        stopYouTubeIframe();
+        muteYouTubeIframe();
 
         youtubeAutoMuted =
-          false;
+          true;
 
         return;
 
@@ -5821,7 +5823,8 @@
       // Saat AUTO sedang berada dalam periode mute qiroah,
       // jangan reload video menjadi unmute hanya karena fetch Sheet.
       const embedMute =
-        mode === 'AUTO' && youtubeAutoMuted
+        mode === 'OFF' ||
+        (mode === 'AUTO' && youtubeAutoMuted)
           ? 1
           : 0;
 
