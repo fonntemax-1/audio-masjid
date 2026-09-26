@@ -351,7 +351,7 @@
     .event-countdown-display {
       position: absolute;
       top: 1.5vh;
-      left: 0;
+      left: 1vw;
       right: 8vw;
       height: 12vh;
       z-index: 4;
@@ -393,7 +393,7 @@
     .event-countdown-text {
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-end;
       align-items: flex-start;
       min-width: 0;
     }
@@ -1138,7 +1138,7 @@
             <div class="event-countdown-inner">
               <div class="event-countdown-number" id="event-countdown-number">270</div>
               <div class="event-countdown-text">
-                <div class="event-countdown-line1" id="event-countdown-line1">HARI LAGI</div>
+                <div class="event-countdown-line1" id="event-countdown-line1">HARI</div>
                 <div class="event-countdown-line2" id="event-countdown-line2">menuju Ramadhan</div>
               </div>
             </div>
@@ -4658,7 +4658,7 @@
 
       if (key === 'countdown ramadhan') {
         return {
-          line1: 'HARI LAGI',
+          line1: 'HARI',
           line2: 'menuju Ramadhan'
         };
       }
