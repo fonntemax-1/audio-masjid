@@ -4533,8 +4533,11 @@
         key === 'countdown malam lailatul qadr' ||
         key === 'countdown lailatul qadr'
       ) {
-        targetMonth = 9;
-        targetDay = 27;
+        // Lailatul Qadr display is fixed:
+        // countdown targets 1 Syawal and starts exactly 10 days before it.
+        // B9 is not used to change this event's activation window.
+        targetMonth = 10;
+        targetDay = 1;
       } else if (key === 'countdown idul fitri') {
         targetMonth = 10;
         targetDay = 1;
@@ -4598,7 +4601,7 @@
             return false;
           }
 
-          const status =
+          let status =
             String(
               row.status !== undefined
                 ? row.status
@@ -4609,11 +4612,17 @@
               .trim()
               .toUpperCase();
 
+          // AUTO = aktif. ON/kosong lama diperlakukan sebagai AUTO.
+          // OFF = tidak ditampilkan.
+          if (!status || status === 'ON') {
+            status = 'AUTO';
+          }
+
           const rowNumber =
             Number(row.row);
 
           return (
-            status === 'ON' &&
+            status === 'AUTO' &&
             rowNumber >= 8 &&
             rowNumber <= 11
           );
@@ -4640,8 +4649,15 @@
           return {
             row: Number(row.row),
             event: String(row.event || '').trim(),
-            days: limit,
-            status: 'ON',
+            // Lailatul Qadr selalu aktif dalam jendela tetap 10 hari.
+            days:
+              (
+                normalizeEventCountdownName_(row.event) === 'countdown malam lailatul qadr' ||
+                normalizeEventCountdownName_(row.event) === 'countdown lailatul qadr'
+              )
+                ? 10
+                : limit,
+            status: 'AUTO',
             target: targetInfo.moment,
             targetHijriYear:
               targetInfo.hijriYear
@@ -4755,7 +4771,7 @@
           .filter(function(config) {
 
             return (
-              config.diffDays >= 0 &&
+              config.diffDays > 0 &&
               config.diffDays <= config.days
             );
 
