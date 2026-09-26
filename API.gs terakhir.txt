@@ -12,8 +12,8 @@
 // DATA AUDIO TIDAK DIFILTER DI BRIDGE.
 // Seluruh Audio, AudioSchedule, AudioDurations, AudioStatus,
 // dan AudioFriday dari getDataFromSheet() diteruskan apa adanya.
-// Dengan demikian event baru di Sheet Adzan seperti takbiran,
-// doa-buka, doa-puasa, atau event lain tetap sampai ke GitHub Pages.
+// Data Event juga diteruskan apa adanya.
+//
 // ============================================================
 
 function handleGithubApiRequest_(params) {
@@ -86,6 +86,10 @@ function handleGithubApiRequest_(params) {
 }
 
 
+// ============================================================
+// JSONP RESPONSE
+// ============================================================
+
 function createJsonpResponse_(callback, payload) {
   const json = JSON.stringify(
     payload,
@@ -104,6 +108,10 @@ function createJsonpResponse_(callback, payload) {
     .setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
 
+
+// ============================================================
+// JSONP CALLBACK SANITIZER
+// ============================================================
 
 function sanitizeJsonpCallback_(callback) {
   if (!callback) return '';
