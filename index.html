@@ -5107,6 +5107,11 @@
     // Catat status kartu/waktu sholat terakhir.
     let youtubeLastPrayerTimeKey = '';
 
+    // AUTO startup: player pertama kali dibuat MUTE.
+    // Setelah jadwal audio berhasil dievaluasi, status MUTE/UNMUTE
+    // ditentukan kembali berdasarkan posisi waktu saat ini.
+    let youtubeAutoScheduleEvaluated = false;
+
 
     function normalizeYouTubeControlMode(status) {
 
@@ -5423,43 +5428,55 @@
           return;
         }
 
-        const qiroah =
-          schedule.events.find(function(event) {
+        const events =
+          schedule.events.filter(function(event) {
+
             const eventName =
               String(event && event.eventName ? event.eventName : '')
                 .trim()
                 .toLowerCase();
 
             return (
-              /^qiroah-[1-5]$/.test(eventName) &&
+              eventName !== 'gap' &&
               Number.isFinite(Number(event.targetSec))
             );
+
           });
 
-        if (!qiroah) return;
+        if (events.length === 0) return;
 
-        const targetSec = Number(qiroah.targetSec);
-        const prayerSec = getPrayerTimeSecondsForYouTube(prayerName);
+        // Gunakan event audio pertama yang benar-benar ada.
+        // Dengan demikian AUTO tetap bekerja walaupun Qiroah = 0
+        // dan saat halaman dibuka tepat ketika TARHIM/SIRINE/ADZAN.
+        const firstAudioEvent =
+          events.reduce(function(first, event) {
 
-        if (
-          !Number.isFinite(targetSec) ||
-          !Number.isFinite(prayerSec) ||
-          prayerSec <= targetSec
-        ) {
-          return;
-        }
+            if (!first) return event;
 
-        // Cari akhir IQOMAH dari computed schedule.
-        // Audio sequence/durasi tetap 100% berasal dari Sheet Adzan.
+            return Number(event.targetSec) <
+              Number(first.targetSec)
+              ? event
+              : first;
+
+          }, null);
+
+        if (!firstAudioEvent) return;
+
+        const prayerSec =
+          getPrayerTimeSecondsForYouTube(prayerName);
+
+        if (!Number.isFinite(prayerSec)) return;
+
         const iqomahEvent =
-          schedule.events.find(function(event) {
+          events.find(function(event) {
+
             return (
               String(event && event.eventName ? event.eventName : '')
                 .trim()
                 .toLowerCase() === 'iqomah' &&
-              Number.isFinite(Number(event.targetSec)) &&
               Number.isFinite(Number(event.endSec))
             );
+
           });
 
         const iqomahEndSec =
@@ -5467,32 +5484,55 @@
             ? Number(iqomahEvent.endSec)
             : prayerSec;
 
-        // Setelah IQOMAH selesai, YouTube tetap MUTE 30 menit.
+        const firstAudioTargetSec =
+          Number(firstAudioEvent.targetSec);
+
+        // AUTO mulai mute 5 menit sebelum audio pertama.
+        // Setelah rangkaian audio dimulai, mute dipertahankan
+        // sampai 30 menit setelah IQOMAH selesai.
+        const muteStartSec =
+          firstAudioTargetSec -
+          YOUTUBE_AUTO_STOP_BEFORE_AUDIO;
+
         const muteUntilSec =
-          iqomahEndSec + (30 * 60);
+          iqomahEndSec +
+          (30 * 60);
 
         if (
-          nowSeconds >= targetSec &&
+          nowSeconds >= muteStartSec &&
           nowSeconds < muteUntilSec
         ) {
-          const distance = Math.abs(nowSeconds - targetSec);
 
-          if (!selected || distance < selected.distance) {
+          const distance =
+            Math.abs(
+              nowSeconds -
+              firstAudioTargetSec
+            );
+
+          if (
+            !selected ||
+            distance < selected.distance
+          ) {
+
             selected = {
               prayerName: prayerName,
-              qiroahEvent: qiroah,
-              qiroahTargetSec: targetSec,
-              muteStartSec: targetSec,
+              qiroahEvent: firstAudioEvent,
+              qiroahTargetSec: firstAudioTargetSec,
+              muteStartSec: muteStartSec,
               prayerSec: prayerSec,
               iqomahEndSec: iqomahEndSec,
               muteUntilSec: muteUntilSec,
               distance: distance
             };
+
           }
+
         }
+
       });
 
       return selected;
+
     }
 
     function getPrayerTimeSecondsForYouTube(
@@ -5743,6 +5783,59 @@
 
       if (mode === 'AUTO') {
 
+        // Jadwal sudah tersedia setelah prepareDailyAudioSchedule().
+        // Tandai evaluasi pertama agar startup AUTO tidak lagi
+        // diperlakukan sebagai status MUTE sementara.
+        const schedulesReady =
+          WEB_APP_STATE &&
+          WEB_APP_STATE.audio &&
+          WEB_APP_STATE.audio.computedSchedules instanceof Map;
+
+        if (schedulesReady) {
+          youtubeAutoScheduleEvaluated = true;
+        }
+
+        // AUTO sekarang menggunakan seluruh rangkaian audio:
+        // QIROAH/TARHIM/SIRINE/BEEP/ADZAN/DOA/IQOMAH.
+        // Jadi membuka web tepat saat TARHIM atau ADZAN tetap MUTE.
+        const activeAudioHold =
+          getYouTubeQiroahHoldWindow(now);
+
+        if (activeAudioHold) {
+
+          const holdKey =
+            String(dateKey) +
+            '|' +
+            String(activeAudioHold.prayerName || '') +
+            '|' +
+            String(activeAudioHold.qiroahTargetSec);
+
+          youtubeAutoMuted = true;
+
+          if (youtubeAutoMuteKey !== holdKey) {
+            youtubeAutoMuteKey = holdKey;
+            youtubeAutoMutePrayer =
+              String(activeAudioHold.prayerName || '');
+            youtubeAutoMuteQiroahTargetSec =
+              activeAudioHold.qiroahTargetSec;
+          }
+
+          muteYouTubeIframe();
+
+          console.log(
+            'YOUTUBE AUTO MUTE - AUDIO WINDOW:',
+            'prayer=', activeAudioHold.prayerName,
+            'event=', activeAudioHold.qiroahEvent &&
+              activeAudioHold.qiroahEvent.eventName,
+            'now=', now,
+            'muteStartSec=', activeAudioHold.muteStartSec,
+            'iqomahEndSec=', activeAudioHold.iqomahEndSec,
+            'muteUntilSec=', activeAudioHold.muteUntilSec
+          );
+
+          return;
+        }
+
         if (selected) {
 
           if (
@@ -5903,6 +5996,9 @@
       youtubeLastPrayerTimeKey =
         '';
 
+      youtubeAutoScheduleEvaluated =
+        false;
+
       console.log(
         'YOUTUBE CONTROL RESET TANGGAL BARU:',
         dateKey
@@ -5972,7 +6068,11 @@
       // jangan reload video menjadi unmute hanya karena fetch Sheet.
       const embedMute =
         mode === 'OFF' ||
-        (mode === 'AUTO' && youtubeAutoMuted)
+        (mode === 'AUTO' &&
+          (
+            youtubeAutoMuted ||
+            !youtubeAutoScheduleEvaluated
+          ))
           ? 1
           : 0;
 
