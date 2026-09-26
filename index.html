@@ -4675,6 +4675,83 @@
     }
 
 
+    function getYouTubeQiroahHoldWindow(nowSeconds) {
+
+      const schedules =
+        WEB_APP_STATE &&
+        WEB_APP_STATE.audio
+          ? WEB_APP_STATE.audio.computedSchedules
+          : null;
+
+      if (
+        !schedules ||
+        typeof schedules.forEach !== 'function'
+      ) {
+        return null;
+      }
+
+      let selected = null;
+
+      schedules.forEach(function(schedule, prayerName) {
+
+        if (
+          !schedule ||
+          !Array.isArray(schedule.events)
+        ) {
+          return;
+        }
+
+        const qiroah =
+          schedule.events.find(function(event) {
+            const eventName =
+              String(event && event.eventName ? event.eventName : '')
+                .trim()
+                .toLowerCase();
+
+            return (
+              /^qiroah-[1-5]$/.test(eventName) &&
+              Number.isFinite(Number(event.targetSec))
+            );
+          });
+
+        if (!qiroah) return;
+
+        const targetSec = Number(qiroah.targetSec);
+        const prayerSec = getPrayerTimeSecondsForYouTube(prayerName);
+
+        if (
+          !Number.isFinite(targetSec) ||
+          !Number.isFinite(prayerSec) ||
+          prayerSec <= targetSec
+        ) {
+          return;
+        }
+
+        // Setelah Qiroah dimulai sampai waktu sholat/card berpindah,
+        // YouTube HARUS tetap mute.
+        if (
+          nowSeconds >= targetSec &&
+          nowSeconds < prayerSec
+        ) {
+          const distance = Math.abs(nowSeconds - targetSec);
+
+          if (!selected || distance < selected.distance) {
+            selected = {
+              prayerName: prayerName,
+              qiroahEvent: qiroah,
+              qiroahTargetSec: targetSec,
+              muteStartSec: targetSec,
+              prayerSec: prayerSec,
+              distance: distance
+            };
+          }
+        }
+      });
+
+      return selected;
+    }
+
+
     function getPrayerTimeSecondsForYouTube(
       prayerName
     ) {
@@ -4930,6 +5007,47 @@
 
           return;
 
+        }
+
+        // Setelah Qiroah dimulai tetapi countdown belum berpindah
+        // ke waktu sholat, YouTube tetap HARUS mute. Ini juga
+        // menangani halaman yang baru dibuka/reload setelah Qiroah.
+        const hold =
+          getYouTubeQiroahHoldWindow(now);
+
+        if (hold) {
+
+          const holdKey =
+            String(dateKey) +
+            '|' +
+            String(hold.prayerName || '') +
+            '|' +
+            String(hold.qiroahTargetSec);
+
+          if (youtubeAutoMuteKey !== holdKey) {
+
+            youtubeAutoMuted = true;
+            youtubeAutoMuteKey = holdKey;
+            youtubeAutoMutePrayer = String(hold.prayerName || '');
+            youtubeAutoMuteQiroahTargetSec = hold.qiroahTargetSec;
+
+            muteYouTubeIframe();
+
+            console.log(
+              'YOUTUBE AUTO MUTE HOLD: Qiroah sudah mulai, menunggu waktu sholat',
+              'prayer=', hold.prayerName,
+              'qiroah=', hold.qiroahEvent.eventName,
+              'qiroahTargetSec=', hold.qiroahTargetSec,
+              'prayerSec=', hold.prayerSec
+            );
+
+          } else {
+
+            muteYouTubeIframe();
+
+          }
+
+          return;
         }
 
         // Tidak sedang 5-menit sebelum qiroah.
@@ -7548,6 +7666,14 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       );
 
       processAudioQueue();
+
+      // YouTube dikontrol setiap detik setelah jadwal audio
+      // dihitung. AUTO: mute 5 menit sebelum Qiroah, tetap mute
+      // selama Qiroah sampai waktu sholat/card benar-benar tiba.
+      updateYouTubeAudioStop(
+        nowSeconds,
+        nowDate
+      );
 
       // =========================================================
       // STYLE KHUSUS COUNTDOWN
