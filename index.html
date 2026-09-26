@@ -125,6 +125,36 @@
   overflow: hidden;
   text-overflow: ellipsis;
   text-shadow: none;
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(
+    110deg,
+    #ffcc00 0%,
+    #ffcc00 38%,
+    #fff8c4 48%,
+    #ffffff 50%,
+    #fff8c4 52%,
+    #ffcc00 62%,
+    #ffcc00 100%
+  );
+  background-size: 250% 100%;
+  background-position: 120% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: mosqueNameHighlight 8s ease-in-out infinite;
+}
+
+@keyframes mosqueNameHighlight {
+  0%, 45% {
+    background-position: 120% 0;
+  }
+  65%, 72% {
+    background-position: -20% 0;
+  }
+  100% {
+    background-position: -20% 0;
+  }
 }
 
 .header-center .sub {
