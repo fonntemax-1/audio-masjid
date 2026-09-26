@@ -3367,9 +3367,57 @@
 
       setAudioConfig(data);
 
+      // =======================================================
+      // EVENT COUNTDOWN - NORMALISASI DATA DARI APPS SCRIPT
+      // =======================================================
+      // API lama/baru dapat mengirim Event sebagai:
+      //   1) array langsung
+      //   2) { rows: [...] }
+      //   3) JSON string
+      // Normalisasi di sini agar perubahan backend tidak membuat
+      // countdown diam tanpa informasi.
+      // =======================================================
+      let eventRows = [];
+
       if (Array.isArray(data.Event)) {
-        WEB_APP_STATE.event.rows = data.Event;
+        eventRows = data.Event;
+      } else if (
+        data.Event &&
+        Array.isArray(data.Event.rows)
+      ) {
+        eventRows = data.Event.rows;
+      } else if (typeof data.Event === 'string') {
+        try {
+          const parsedEvent = JSON.parse(data.Event);
+          if (Array.isArray(parsedEvent)) {
+            eventRows = parsedEvent;
+          } else if (
+            parsedEvent &&
+            Array.isArray(parsedEvent.rows)
+          ) {
+            eventRows = parsedEvent.rows;
+          }
+        } catch (eventParseError) {
+          console.warn(
+            'EVENT COUNTDOWN: data.Event bukan JSON valid:',
+            eventParseError
+          );
+        }
       }
+
+      WEB_APP_STATE.event.rows = eventRows;
+
+      console.log(
+        'EVENT DATA DITERIMA:',
+        {
+          hasEventProperty:
+            Object.prototype.hasOwnProperty.call(data, 'Event'),
+          rows:
+            eventRows.length,
+          raw:
+            data.Event
+        }
+      );
 
       updateEventCountdown();
 
@@ -4391,13 +4439,42 @@
           ? WEB_APP_STATE.event.rows
           : [];
 
-      return rows.find(function(row) {
-        return (
-          String(row.event || '').trim().toLowerCase() ===
-          'countdown ramadhan' &&
-          String(row.status || '').trim().toUpperCase() === 'ON'
-        );
-      }) || null;
+      const config =
+        rows.find(function(row) {
+          if (!row || typeof row !== 'object') {
+            return false;
+          }
+
+          const eventName =
+            String(
+              row.event !== undefined
+                ? row.event
+                : (row.EVENT !== undefined ? row.EVENT : '')
+            )
+              .trim()
+              .toLowerCase();
+
+          const status =
+            String(
+              row.status !== undefined
+                ? row.status
+                : (row.STATUS !== undefined ? row.STATUS : '')
+            )
+              .trim()
+              .toUpperCase();
+
+          return (
+            eventName === 'countdown ramadhan' &&
+            status === 'ON'
+          );
+        }) || null;
+
+      console.log(
+        'EVENT COUNTDOWN CONFIG:',
+        config
+      );
+
+      return config;
     }
 
 
@@ -4439,10 +4516,22 @@
         return;
       }
 
-      const targetInfo =
-        getNextOneSyawalGregorian();
+      let targetInfo = null;
+
+      try {
+        targetInfo =
+          getNextOneSyawalGregorian();
+      } catch (eventTargetError) {
+        console.error(
+          'EVENT COUNTDOWN: gagal menghitung 1 Syawal:',
+          eventTargetError
+        );
+      }
 
       if (!targetInfo) {
+        console.warn(
+          'EVENT COUNTDOWN: target 1 Syawal tidak tersedia.'
+        );
         return;
       }
 
@@ -4467,6 +4556,20 @@
       const shouldShow =
         diffDays >= 0 &&
         diffDays <= limit;
+
+      console.log(
+        'EVENT COUNTDOWN TARGET:',
+        {
+          target:
+            target.format('YYYY-MM-DD'),
+          diffDays:
+            diffDays,
+          limit:
+            limit,
+          shouldShow:
+            shouldShow
+        }
+      );
 
       if (!shouldShow) {
         display.classList.remove('active');
@@ -4504,6 +4607,11 @@
         targetGregorian: target.format('YYYY-MM-DD'),
         targetHijri: targetInfo.hijriYear + ' / 10 / 1'
       };
+
+      console.log(
+        'EVENT COUNTDOWN TAMPIL:',
+        WEB_APP_STATE.event.active
+      );
 
     }
 
