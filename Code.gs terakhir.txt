@@ -190,6 +190,9 @@ function getDataFromSheet() {
     // Sumber: sheet "infaq", range B1:B3
     // =====================================================
     result.Infaq = [];
+    // Event: A=EVENT, B=ANGKA DURASI HITUNGAN HARI, C=STATUS, D=KETERANGAN.
+    // Kolom B adalah angka konfigurasi; kolom D hanya keterangan.
+    result.Event = [];
 
     const targetSheets = [
       'Nama_Mesjid',
@@ -477,6 +480,63 @@ function getDataFromSheet() {
 
 
         // =====================================================
+        // KHUSUS SHEET EVENT
+        // A = EVENT
+        // B = ANGKA DURASI HITUNGAN HARI
+        // C = STATUS ON/OFF
+        // D = KETERANGAN
+        // =====================================================
+
+        if (
+          sheetName === 'Event'
+        ) {
+
+          result.Event = [];
+
+          for (
+            let r = 1;
+            r < data.length;
+            r++
+          ) {
+
+            const row = data[r] || [];
+
+            const eventName =
+              String(row[0] == null ? '' : row[0]).trim();
+
+            const daysRaw =
+              row[1] == null ? '' : row[1];
+
+            const status =
+              String(row[2] == null ? '' : row[2]).trim().toUpperCase();
+
+            const description =
+              String(row[3] == null ? '' : row[3]).trim();
+
+            if (!eventName) {
+              continue;
+            }
+
+            let days =
+              Number(String(daysRaw).replace(',', '.').trim());
+
+            if (!Number.isFinite(days)) {
+              days = 0;
+            }
+
+            result.Event.push({
+              event: eventName,
+              days: days,
+              status: status,
+              description: description
+            });
+          }
+
+          return;
+        }
+
+
+        // =====================================================
         // KHUSUS SHEET RUNNING TEXT
         // =====================================================
 
@@ -624,6 +684,15 @@ function getDataFromSheet() {
 
 
     // =====================================================
+    // PASTIKAN EVENT SELALU ADA
+    // =====================================================
+
+    if (!Array.isArray(result.Event)) {
+      result.Event = [];
+    }
+
+
+    // =====================================================
     // PASTIKAN STATUS YOUTUBE MUTE SELALU ADA
     // =====================================================
 
@@ -713,6 +782,7 @@ function getDataFromSheet() {
       error: error.message,
       Keuangan: [],
       KeuanganTanggal: '',
+      Event: [],
       Youtube: '',
       YoutubeMute: false,
       YoutubeMuteBeforeQiroahSeconds: 0,
