@@ -567,8 +567,9 @@ function getDataFromSheet() {
           );
 
           // Youtube!B1 = LINK YOUTUBE
-          // Youtube!B2 = STATUS AUTO / ON / OFF.
-          // 5 menit sebelum qiroah adalah aturan tetap sistem.
+    // Youtube!C1 = STATUS AUTO / ON / OFF.
+    // AUTO: mute 5 menit sebelum Qiroah, unmute 30 menit
+    // setelah IQOMAH selesai.
           return;
         }
 
@@ -1752,15 +1753,13 @@ function processYoutubeSheet(
   // =====================================================
   // STRUKTUR FINAL SHEET YOUTUBE
   // B1 = LINK YOUTUBE
-  // B2 = STATUS
+  // C1 = STATUS
   //
   // STATUS:
-  // AUTO = mute 5 menit sebelum qiroah, lalu unmute
-  //        saat masuk waktu sholat.
-  // ON   = normal ON sampai 5 menit sebelum qiroah;
-  //        sistem mengubah B2 menjadi OFF dan tetap mute
-  //        sampai operator mengubah B2 kembali ke ON.
-  // OFF  = mute terus sampai operator mengubah B2 ke ON.
+  // AUTO = mute 5 menit sebelum Qiroah, tetap mute sampai
+  //        30 menit setelah IQOMAH selesai, lalu UNMUTE.
+  // ON   = YouTube berjalan + UNMUTE terus.
+  // OFF  = YouTube STOP.
   // =====================================================
 
   let youtubeUrl = '';
@@ -1843,7 +1842,7 @@ function setYoutubeStatusOff() {
     throw new Error('Sheet youtube tidak ditemukan.');
   }
 
-  const range = sheet.getRange('B2');
+  const range = sheet.getRange('C1');
   const current =
     range.getDisplayValue()
       .toString()
@@ -1857,7 +1856,7 @@ function setYoutubeStatusOff() {
     SpreadsheetApp.flush();
 
     Logger.log(
-      'YOUTUBE STATUS AUTO-OFF: B2 ON -> OFF'
+      'YOUTUBE STATUS AUTO-OFF: C1 ON -> OFF'
     );
 
     return {
@@ -1885,7 +1884,7 @@ function getYoutubeStatus() {
   }
 
   let status =
-    sheet.getRange('B2')
+    sheet.getRange('C1')
       .getDisplayValue()
       .toString()
       .trim()
