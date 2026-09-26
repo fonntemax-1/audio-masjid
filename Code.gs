@@ -843,7 +843,7 @@ function getEventSheetData_(ss) {
   //
   // A8:A11 = nama event
   // B8:B11 = jumlah hari / batas mulai countdown
-  // C8:C11 = ON / OFF
+  // C8:C11 = AUTO / OFF
   //
   // D tidak digunakan sebagai pengaturan countdown.
   // ==========================================================
