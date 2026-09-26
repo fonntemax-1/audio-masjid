@@ -3322,8 +3322,42 @@
 
     function fetchSheetData() {
 
+      console.log(
+        'SHEET API: meminta getDataFromSheet termasuk Event...'
+      );
+
       gasApiCall('getDataFromSheet')
-        .then(updateUI)
+        .then(function(data) {
+
+          console.log(
+            'SHEET API: respons diterima.',
+            {
+              isObject:
+                !!(
+                  data &&
+                  typeof data === 'object'
+                ),
+              keys:
+                data &&
+                typeof data === 'object'
+                  ? Object.keys(data)
+                  : [],
+              hasEvent:
+                !!(
+                  data &&
+                  typeof data === 'object' &&
+                  (
+                    data.Event !== undefined ||
+                    data.event !== undefined ||
+                    data.events !== undefined
+                  )
+                )
+            }
+          );
+
+          updateUI(data);
+
+        })
         .catch(function(error) {
           console.error(
             'Gagal mengambil data sheet:',
@@ -3377,47 +3411,113 @@
       // Normalisasi di sini agar perubahan backend tidak membuat
       // countdown diam tanpa informasi.
       // =======================================================
-      let eventRows = [];
+      // =======================================================
+      // EVENT COUNTDOWN - PEMBACAAN DATA YANG TAHAN FORMAT API
+      // =======================================================
+      // Backend normal: data.Event
+      // Beberapa versi bridge/API dapat membungkus data di
+      // data.data atau menggunakan huruf kecil. Semua bentuk ini
+      // dinormalisasi tanpa menyentuh sistem audio.
+      // =======================================================
+      let eventSource = null;
 
-      if (Array.isArray(data.Event)) {
-        eventRows = data.Event;
-      } else if (
-        data.Event &&
-        Array.isArray(data.Event.rows)
-      ) {
-        eventRows = data.Event.rows;
-      } else if (typeof data.Event === 'string') {
-        try {
-          const parsedEvent = JSON.parse(data.Event);
-          if (Array.isArray(parsedEvent)) {
-            eventRows = parsedEvent;
-          } else if (
-            parsedEvent &&
-            Array.isArray(parsedEvent.rows)
-          ) {
-            eventRows = parsedEvent.rows;
+      if (data && typeof data === 'object') {
+        if (data.Event !== undefined) {
+          eventSource = data.Event;
+        } else if (data.event !== undefined) {
+          eventSource = data.event;
+        } else if (data.events !== undefined) {
+          eventSource = data.events;
+        } else if (
+          data.data &&
+          typeof data.data === 'object'
+        ) {
+          if (data.data.Event !== undefined) {
+            eventSource = data.data.Event;
+          } else if (data.data.event !== undefined) {
+            eventSource = data.data.event;
           }
-        } catch (eventParseError) {
-          console.warn(
-            'EVENT COUNTDOWN: data.Event bukan JSON valid:',
-            eventParseError
-          );
         }
       }
 
-      WEB_APP_STATE.event.rows = eventRows;
+      function normalizeEventRows(source) {
+        if (Array.isArray(source)) {
+          return source;
+        }
+
+        if (
+          source &&
+          typeof source === 'object' &&
+          Array.isArray(source.rows)
+        ) {
+          return source.rows;
+        }
+
+        if (typeof source === 'string') {
+          try {
+            const parsedEvent = JSON.parse(source);
+
+            if (Array.isArray(parsedEvent)) {
+              return parsedEvent;
+            }
+
+            if (
+              parsedEvent &&
+              typeof parsedEvent === 'object' &&
+              Array.isArray(parsedEvent.rows)
+            ) {
+              return parsedEvent.rows;
+            }
+          } catch (eventParseError) {
+            console.warn(
+              'EVENT COUNTDOWN: data Event bukan JSON valid:',
+              eventParseError
+            );
+          }
+        }
+
+        return [];
+      }
+
+      const eventRows =
+        normalizeEventRows(eventSource);
+
+      WEB_APP_STATE.event.rows =
+        eventRows;
 
       console.log(
         'EVENT DATA DITERIMA:',
         {
           hasEventProperty:
-            Object.prototype.hasOwnProperty.call(data, 'Event'),
+            !!(
+              data &&
+              Object.prototype.hasOwnProperty.call(
+                data,
+                'Event'
+              )
+            ),
+          sourceType:
+            eventSource === null
+              ? 'NULL'
+              : Array.isArray(eventSource)
+                ? 'ARRAY'
+                : typeof eventSource,
           rows:
             eventRows.length,
           raw:
-            data.Event
+            eventSource,
+          dataKeys:
+            data && typeof data === 'object'
+              ? Object.keys(data)
+              : []
         }
       );
+
+      if (eventRows.length === 0) {
+        console.warn(
+          'EVENT COUNTDOWN: TIDAK ADA BARIS EVENT DITERIMA DARI API.'
+        );
+      }
 
       updateEventCountdown();
 
