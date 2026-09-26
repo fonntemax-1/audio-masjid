@@ -1082,6 +1082,8 @@
           id="logo_masjid"
           src="https://cdn-icons-png.flaticon.com/512/2913/2913008.png"
           alt="Logo Masjid"
+          fetchpriority="high"
+          decoding="async"
           onerror="this.onerror=null;this.src='https://cdn-icons-png.flaticon.com/512/2913/2913008.png';"
         >
       </div>
@@ -1396,6 +1398,10 @@
         query.set('action', action);
         query.set('callback', callbackName);
 
+        // Cache-buster: Apps Script JSONP harus selalu mengambil
+        // data Spreadsheet terbaru. Tidak mengubah payload/action.
+        query.set('_ts', String(Date.now()));
+
         if (params && typeof params === 'object') {
           Object.keys(params).forEach(function(key) {
             const value = params[key];
@@ -1475,6 +1481,7 @@
     let lastCountdownTitle = '';
     let lastCountdownTimer = '';
     let currentLogoUrl = '';
+    let currentLogoCacheKey = '';
 
     const EVENT_SPEED = 8;
 
@@ -3265,6 +3272,45 @@
 
 
     // =========================================================
+    // ASSET CACHE
+    // =========================================================
+    // Logo/QRIS tetap cache-friendly, tetapi otomatis mendapat
+    // URL baru setiap jam agar TV tidak mempertahankan aset lama
+    // terlalu lama. Tidak ada reload halaman.
+    function getAssetCacheKey_() {
+      const wita = getWitaTime();
+      const hour = String(Number(wita.hour) || 0).padStart(2, '0');
+
+      return (
+        String(wita.year) +
+        String(wita.month) +
+        String(wita.day) +
+        hour
+      );
+    }
+
+    function withAssetCacheBust_(url, type) {
+      if (!url) return '';
+
+      try {
+        const parsed = new URL(String(url), window.location.href);
+        parsed.searchParams.set(
+          '_asset',
+          String(type || 'asset') + '-' + getAssetCacheKey_()
+        );
+        return parsed.toString();
+      } catch (e) {
+        const separator = String(url).indexOf('?') >= 0 ? '&' : '?';
+        return String(url) +
+          separator +
+          '_asset=' +
+          encodeURIComponent(
+            String(type || 'asset') + '-' + getAssetCacheKey_()
+          );
+      }
+    }
+
+    // =========================================================
     // LOGO
     // =========================================================
 
@@ -3286,11 +3332,20 @@
       const resolvedUrl =
         finalUrl || fallback;
 
-      if (currentLogoUrl === resolvedUrl) {
+      const cacheKey = getAssetCacheKey_();
+
+      if (
+        currentLogoUrl === resolvedUrl &&
+        currentLogoCacheKey === cacheKey
+      ) {
         return;
       }
 
       currentLogoUrl = resolvedUrl;
+      currentLogoCacheKey = cacheKey;
+
+      const assetUrl =
+        withAssetCacheBust_(resolvedUrl, 'logo');
 
       element.onerror =
         function() {
@@ -3301,7 +3356,7 @@
         };
 
       element.src =
-        resolvedUrl;
+        assetUrl;
 
     }
 
@@ -3855,10 +3910,11 @@
           const img =
             document.createElement('img');
 
-          img.src = value;
+          img.src = withAssetCacheBust_(value, 'qris');
           img.alt = 'INFAQ & SHADAQAH';
           img.decoding = 'async';
           img.loading = 'eager';
+          img.fetchPriority = 'high';
           img.style.display = 'block';
           img.style.width = 'auto';
           img.style.height = 'auto';
@@ -4596,8 +4652,11 @@
         return null;
       }
 
+      // Gunakan tanggal WITA, bukan timezone browser TV.
+      // Ini mencegah countdown Event tertinggal/maju satu hari.
+      const apiDate = getApiDate();
       const today =
-        moment().startOf('day');
+        moment(apiDate, 'YYYY-MM-DD').startOf('day');
 
       const currentHijriYear =
         today.iYear();
@@ -4789,8 +4848,9 @@
       const configs =
         getEventCountdownConfigs();
 
+      // Tanggal acuan countdown wajib WITA.
       const today =
-        moment().startOf('day');
+        moment(getApiDate(), 'YYYY-MM-DD').startOf('day');
 
       const activeConfigs =
         configs
@@ -4848,9 +4908,20 @@
       let active = null;
 
       if (activeConfigs.length > 0) {
+        const witaNow = getWitaTime();
+        const witaEpochMs =
+          Date.UTC(
+            Number(witaNow.year),
+            Number(witaNow.month) - 1,
+            Number(witaNow.day),
+            Number(witaNow.hour),
+            Number(witaNow.minute),
+            Number(witaNow.second)
+          );
+
         const rotationSlot =
           Math.floor(
-            moment().valueOf() /
+            witaEpochMs /
             (5 * 60 * 1000)
           );
 
@@ -9287,6 +9358,11 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           null;
 
         fetchPrayerSchedule();
+
+        // Refresh Event/Logo/QRIS segera saat hari berganti,
+        // tanpa menunggu interval polling 30 detik berikutnya.
+        fetchSheetData();
+        loadEventRunningText();
 
         updateGregorianDate();
 
