@@ -349,14 +349,17 @@
 
     .event-countdown-display {
       position: absolute;
-      inset: 0;
+      top: 1.5vh;
+      left: 1.5vw;
+      right: 8vw;
+      height: 11vh;
       z-index: 4;
       display: none;
       align-items: center;
       justify-content: center;
       text-align: center;
       pointer-events: none;
-      padding: 4vh 3vw;
+      padding: 0;
       background: transparent;
     }
 
@@ -366,17 +369,19 @@
 
     .event-countdown-inner {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
       justify-content: center;
-      gap: 0.4vh;
-      min-width: 35vw;
+      gap: 0.8vw;
+      min-width: 0;
+      width: 100%;
+      height: 100%;
     }
 
     .event-countdown-title {
       color: #ffcc00;
       font-family: 'Cinzel', serif;
-      font-size: clamp(1.5rem, 3.0vw, 3.4rem);
+      font-size: clamp(0.9rem, 1.7vw, 1.9rem);
       font-weight: 800;
       letter-spacing: 0.10vw;
       line-height: 1.05;
@@ -387,7 +392,7 @@
     .event-countdown-number {
       color: #ffffff;
       font-family: 'Roboto', sans-serif;
-      font-size: clamp(5rem, 12vw, 12rem);
+      font-size: clamp(2.8rem, 5.5vw, 6rem);
       font-weight: 900;
       line-height: 0.9;
       font-variant-numeric: tabular-nums;
@@ -399,7 +404,7 @@
     .event-countdown-unit {
       color: #ffcc00;
       font-family: 'Cinzel', serif;
-      font-size: clamp(1.2rem, 2.2vw, 2.6rem);
+      font-size: clamp(0.75rem, 1.3vw, 1.4rem);
       font-weight: 800;
       letter-spacing: 0.20vw;
       line-height: 1;
@@ -409,10 +414,10 @@
 
     .event-countdown-description {
       color: #ffffff;
-      font-size: clamp(0.9rem, 1.5vw, 1.6rem);
+      font-size: clamp(0.65rem, 1.0vw, 1.05rem);
       font-weight: 700;
       line-height: 1.15;
-      margin-top: 1.0vh;
+      margin-top: 0;
       text-transform: uppercase;
       text-shadow: 0 0.18vh 0.35vh rgba(0,0,0,0.95);
     }
@@ -1136,12 +1141,6 @@
           </iframe>
         </div>
 
-        <div class="clock-overlay">
-          <div class="countdown-box">
-            <div class="countdown-title" id="countdown-title">MENUJU SHOLAT</div>
-            <div class="countdown-timer" id="countdown">00:00:00</div>
-          </div>
-
           <div class="event-countdown-display" id="event-countdown-display" aria-hidden="true">
             <div class="event-countdown-inner">
               <div class="event-countdown-title" id="event-countdown-title">COUNTDOWN RAMADHAN</div>
@@ -1149,6 +1148,13 @@
               <div class="event-countdown-unit">HARI</div>
               <div class="event-countdown-description" id="event-countdown-description">270 HARI MENUJU 1 SYAWAL</div>
             </div>
+          </div>
+
+
+        <div class="clock-overlay">
+          <div class="countdown-box">
+            <div class="countdown-title" id="countdown-title">MENUJU SHOLAT</div>
+            <div class="countdown-timer" id="countdown">00:00:00</div>
           </div>
 
           <div class="analog-clock">
