@@ -5017,22 +5017,29 @@
     let currentYouTubeUrl = '';
 
     // =========================================================
-    // YOUTUBE AUTO MUTE - 3 MODE
+    // YOUTUBE CONTROL - 4 MODE
     //
     // Sheet youtube:
     //   B1 = Link YouTube
-    //   C1 = AUTO / ON / OFF
-    //
-    // AUTO:
-    //   - mute 5 menit sebelum Qiroah
-    //   - tetap mute sampai 30 menit setelah IQOMAH selesai
-    //   - setelah itu UNMUTE
+    //   C1 = AUTO / ON / OFF / STOP
     //
     // ON:
-    //   - YouTube berjalan + UNMUTE terus
+    //   - YouTube PLAY + UNMUTE
+    //   - 5 menit sebelum Qiroah -> MUTE
+    //   - sistem mengubah C1 ON -> OFF
+    //   - OFF kemudian menjadi MUTE sampai operator mengubah C1
+    //     kembali ke ON untuk UNMUTE manual.
     //
     // OFF:
-    //   - YouTube tetap berjalan tetapi MUTE
+    //   - YouTube tetap PLAY tetapi MUTE.
+    //
+    // AUTO:
+    //   - MUTE 5 menit sebelum Qiroah
+    //   - tetap MUTE sampai 30 menit setelah IQOMAH selesai
+    //   - setelah itu UNMUTE otomatis.
+    //
+    // STOP:
+    //   - YouTube benar-benar STOP.
     //
     // 5 menit = 300 detik, aturan tetap sistem.
     // =========================================================
@@ -5063,7 +5070,8 @@
       if (
         mode === 'ON' ||
         mode === 'OFF' ||
-        mode === 'AUTO'
+        mode === 'AUTO' ||
+        mode === 'STOP'
       ) {
         return mode;
       }
@@ -5225,7 +5233,7 @@
         '';
 
       console.log(
-        'YOUTUBE STOP: iframe dihentikan karena mode OFF'
+        'YOUTUBE STOP: iframe dihentikan karena mode STOP'
       );
 
     }
@@ -5577,15 +5585,14 @@
 
 
       // =======================================================
-      // MODE ON
+      // MODE STOP
       // =======================================================
-      // ON adalah mode manual: YouTube selalu PLAY + UNMUTE.
-      // C1 tidak diubah otomatis.
+      // STOP = video benar-benar dihentikan.
       // =======================================================
 
-      if (mode === 'ON') {
+      if (mode === 'STOP') {
 
-        unmuteYouTubeIframe();
+        stopYouTubeIframe();
 
         youtubeAutoMuted =
           false;
@@ -5594,8 +5601,89 @@
 
       }
 
+
       const selected =
         getYouTubeQiroahWindow(now);
+
+
+      // =======================================================
+      // MODE ON
+      // =======================================================
+      // ON = PLAY + UNMUTE secara normal.
+      // Ketika masuk 5 menit sebelum Qiroah:
+      //   1. YouTube di-MUTE
+      //   2. C1 otomatis berubah ON -> OFF
+      //   3. OFF mempertahankan YouTube tetap MUTE
+      //   4. Operator dapat mengubah C1 kembali ke ON
+      //      untuk UNMUTE manual.
+      // =======================================================
+
+      if (mode === 'ON') {
+
+        if (selected) {
+
+          const onMuteKey =
+            String(dateKey) +
+            '|' +
+            String(selected.prayerName || '') +
+            '|' +
+            String(selected.qiroahTargetSec);
+
+          muteYouTubeIframe();
+
+          youtubeAutoMuted =
+            true;
+
+          // Jangan memanggil Apps Script berulang-ulang
+          // setiap detik untuk event Qiroah yang sama.
+          if (
+            youtubeManualOnOverrideKey !==
+            onMuteKey
+          ) {
+
+            youtubeManualOnOverrideKey =
+              onMuteKey;
+
+            gasApiCall(
+              'setYoutubeStatusOff'
+            )
+              .then(function(result) {
+
+                console.log(
+                  'YOUTUBE ON -> OFF:',
+                  '5 menit sebelum Qiroah',
+                  result
+                );
+
+              })
+              .catch(function(error) {
+
+                // Jika bridge gagal, lokal tetap MUTE.
+                // Percobaan berikutnya untuk event yang sama
+                // tidak dilakukan berulang-ulang.
+                console.warn(
+                  'YOUTUBE ON -> OFF gagal:',
+                  error
+                );
+
+              });
+
+          }
+
+          return;
+
+        }
+
+        // Di luar window 5 menit sebelum Qiroah,
+        // ON tetap PLAY + UNMUTE.
+        unmuteYouTubeIframe();
+
+        youtubeAutoMuted =
+          false;
+
+        return;
+
+      }
 
       // =======================================================
       // MODE AUTO
@@ -5795,6 +5883,18 @@
       const mode =
         youtubeControlMode;
 
+      // STOP = YouTube benar-benar dihentikan.
+      if (mode === 'STOP') {
+
+        stopYouTubeIframe();
+
+        youtubeAutoMuted =
+          false;
+
+        return;
+
+      }
+
       // OFF = YouTube tetap berjalan tetapi selalu MUTE.
       if (mode === 'OFF') {
 
@@ -5807,7 +5907,7 @@
 
       }
 
-      // ON = mode manual, selalu PLAY + UNMUTE.
+      // ON = PLAY + UNMUTE.
       if (mode === 'ON') {
 
         unmuteYouTubeIframe();
