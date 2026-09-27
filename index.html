@@ -1912,6 +1912,42 @@
         rawAudioSchedule = rawAudioSchedule.schedule;
       }
 
+      // Jika getDataFromSheet berasal dari deployment Apps Script lama,
+      // AudioSchedule dapat masih kosong walaupun URL audio sudah terbaru.
+      // Coba endpoint realtime yang membaca Sheet Adzan langsung.
+      let realtimeScheduleFallback = null;
+      if (
+        (!rawAudioSchedule || typeof rawAudioSchedule !== 'object') ||
+        Object.keys(rawAudioSchedule).length === 0 ||
+        [
+          'SUBUH_RAMADHAN','SUBUH_BIASA','DZUHUR','ASHAR',
+          'MAGHRIB_RAMADHAN','MAGHRIB_BIASA','ISYA'
+        ].every(function(k) {
+          return !Array.isArray(rawAudioSchedule[k]) || rawAudioSchedule[k].length === 0;
+        })
+      ) {
+        try {
+          realtimeScheduleFallback = await gasApiCall('getRealtimeAudioConfig');
+          if (realtimeScheduleFallback && realtimeScheduleFallback.AudioSchedule) {
+            rawAudioSchedule = realtimeScheduleFallback.AudioSchedule;
+            console.log(
+              'AUDIO SCHEDULE FALLBACK REALTIME BERHASIL:',
+              Object.keys(rawAudioSchedule).map(function(k) {
+                return k + '=' + (
+                  Array.isArray(rawAudioSchedule[k])
+                    ? rawAudioSchedule[k].length : 0
+                );
+              }).join(', ')
+            );
+          }
+        } catch (e) {
+          console.warn(
+            'AUDIO SCHEDULE FALLBACK REALTIME GAGAL:',
+            e && e.message ? e.message : e
+          );
+        }
+      }
+
       const normalizedAudioSchedule = {};
       [
         'SUBUH_RAMADHAN',
