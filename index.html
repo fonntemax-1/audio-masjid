@@ -290,9 +290,14 @@
       background: #211800 !important;
     }
 
-    /* Saat kartu highlight, ikon dibuat putih agar tetap kontras. */
+    /* Ikon SUBUH selalu kuning. */
+    .prayer-card[data-prayer="SUBUH"] .prayer-icon img {
+      filter: brightness(0) saturate(100%) invert(79%) sepia(96%) saturate(1000%) hue-rotate(5deg) brightness(105%) contrast(103%);
+    }
+
+    /* Saat kartu highlight, ikon menjadi hijau mengikuti warna frame. */
     .prayer-card.active-prayer .prayer-icon img {
-      filter: brightness(0) invert(1);
+      filter: brightness(0) saturate(100%) invert(59%) sepia(98%) saturate(850%) hue-rotate(105deg) brightness(95%) contrast(105%);
     }
 
     .prayer-icon {
