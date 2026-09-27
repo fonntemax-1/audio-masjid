@@ -1123,7 +1123,7 @@
 
         <div class="prayer-card" data-prayer="TERBIT">
           <div class="prayer-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/4814/4814275.png" alt="Terbit">
+            <img src="data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2223%22%20fill%3D%22%23FFD54A%22%2F%3E%3Cpath%20d%3D%22M50%2010v15M50%2075v15M10%2050h15M75%2050h15M22%2022l11%2011M67%2067l11%2011M78%2022L67%2033M33%2067L22%2078%22%20fill%3D%22none%22%20stroke%3D%22%23FFD54A%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E" alt="Terbit">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">TERBIT</div>
@@ -7932,6 +7932,11 @@
           ?.querySelector('.prayer-name');
 
       if (!isRamadanDisplay()) {
+
+        if (subuhIcon) {
+          subuhIcon.src = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2248%22%20r%3D%2220%22%20fill%3D%22%23FFD54A%22%2F%3E%3Cpath%20d%3D%22M15%2073h70M28%2065a22%2022%200%200%201%2044%200M50%2012v13M25%2023l9%209M75%2023l-9%209M13%2045h13M87%2045H74%22%20fill%3D%22none%22%20stroke%3D%22%23FFD54A%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E";
+          subuhIcon.alt = 'Subuh';
+        }
 
         if (firstName) {
           firstName.innerText = 'SUBUH';
