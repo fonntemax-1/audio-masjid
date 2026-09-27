@@ -151,10 +151,12 @@ function getDataFromSheet() {
     // =====================================================
 
     result.AudioSchedule = {
-      SUBUH: [],
+      SUBUH_RAMADHAN: [],
+      SUBUH_BIASA: [],
       DZUHUR: [],
       ASHAR: [],
-      MAGHRIB: [],
+      MAGHRIB_RAMADHAN: [],
+      MAGHRIB_BIASA: [],
       ISYA: []
     };
 
@@ -1055,14 +1057,30 @@ function processKeyAudioSheet(
 // =========================================================
 
 function parseAdzanSheetV7(data) {
-  const prayerNames = ['SUBUH', 'DZUHUR', 'ASHAR', 'MAGHRIB', 'ISYA'];
-
+  // Sheet Adzan saat ini memakai:
+  // EVENT | STATUS
+  // URL audio TIDAK berada di blok sequence; URL diambil dari A:B.
+  //
+  // Struktur:
+  // E:F  SUBUH RAMADHAN
+  // H:I  SUBUH BIASA
+  // K:L  DZUHUR
+  // N:O  ASHAR
+  // Q:R  MAGRIB RAMADHAN
+  // T:U  MAGRIB BIASA
+  // W:X  ISYA
+  // Z:AA JUM'AT
+  //
+  // Durasi TIDAK dibaca dari Sheet sequence.
+  // Frontend membaca durasi asli file melalui HTMLAudioElement.metadata.
   const result = {
     schedule: {
-      SUBUH: [],
+      SUBUH_RAMADHAN: [],
+      SUBUH_BIASA: [],
       DZUHUR: [],
       ASHAR: [],
-      MAGHRIB: [],
+      MAGHRIB_RAMADHAN: [],
+      MAGHRIB_BIASA: [],
       ISYA: []
     },
     friday: [],
@@ -1072,172 +1090,60 @@ function parseAdzanSheetV7(data) {
 
   if (!Array.isArray(data) || data.length === 0) return result;
 
-  function cell(r, c) {
-    if (r < 0 || r >= data.length) return '';
-    const row = data[r] || [];
-    return c >= 0 && c < row.length ? row[c] : '';
+  function cell(r,c) {
+    const row=data[r]||[];
+    return c>=0 && c<row.length ? row[c] : '';
   }
-
-  function normalize(value) {
-    return String(value == null ? '' : value)
-      .trim()
-      .toLowerCase()
-      .replace(/[’`]/g, "'")
-      .replace(/\s+/g, ' ');
+  function normalize(v) {
+    return String(v==null?'':v).trim().toLowerCase()
+      .replace(/[’`]/g,"'").replace(/\s+/g,' ');
   }
-
-  function normalizeEvent(value) {
-    let v = normalize(value);
-    if (!v) return '';
-    if (v === 'on' || v === 'off') return '';
-    if (/^[+-]?(?:\d+(?:[.,]\d+)?)$/.test(v)) return '';
-    v = v.replace(/_/g, '-').replace(/\s+/g, '-');
-    if (/^qiroah-?\d+$/.test(v)) return v.replace(/^qiroah-?(\d+)$/, 'qiroah-$1');
-    if (/^qiraah-?\d+$/.test(v)) return v.replace(/^qiraah-?(\d+)$/, 'qiroah-$1');
-    if (v === 'qiraah') return 'qiroah';
-    if (v === 'jeda') return 'gap';
-    if (v === 'shalawat-tarhim' || v === 'sholawat-tarhim') return 'tarhim';
-    if (v === 'azan-subuh') return 'adzan-subuh';
-    if (v === 'azan-biasa') return 'adzan-biasa';
-    if (v === 'azan') return 'adzan';
-    if (v === "do'a") return 'doa';
-    if (v === 'iqamah') return 'iqomah';
-    if (v === 'siren') return 'sirine';
-    // Semua nama event lain dari Sheet diteruskan apa adanya.
-    return v;
+  function normalizeEvent(v) {
+    let x=normalize(v);
+    if (!x || x==='on' || x==='off') return '';
+    x=x.replace(/_/g,'-').replace(/\s+/g,'-');
+    if (/^qiroah-?\d+$/.test(x)) return x.replace(/^qiroah-?(\d+)$/,'qiroah-$1');
+    if (/^qiraah-?\d+$/.test(x)) return x.replace(/^qiraah-?(\d+)$/,'qiroah-$1');
+    if (x==='qiraah') return 'qiroah';
+    if (x==='shalawat-tarhim'||x==='sholawat-tarhim') return 'tarhim';
+    if (x==='azan-subuh') return 'adzan-subuh';
+    if (x==='azan-biasa'||x==='azan') return x==='azan'?'adzan':'adzan-biasa';
+    if (x==="do'a") return 'doa';
+    if (x==='iqamah') return 'iqomah';
+    if (x==='siren') return 'sirine';
+    return x;
   }
-
-  function parseDuration(value) {
-    if (value == null || value === '') return 0;
-    if (typeof value === 'number') {
-      return Number.isFinite(value) && value >= 0 ? value : null;
+  function isStatus(v) {
+    const x=normalize(v).toUpperCase();
+    return x==='ON'||x==='OFF';
+  }
+  function buildPair(eventCol,statusCol,name) {
+    const items=[];
+    for(let r=1;r<data.length;r++){
+      const event=normalizeEvent(cell(r,eventCol));
+      if(!event) continue;
+      const status=isStatus(cell(r,statusCol))
+        ? (normalize(cell(r,statusCol)).toUpperCase()==='OFF'?'OFF':'ON')
+        : 'ON';
+      items.push({event:event,duration:0,status:status});
     }
-    const n = Number(String(value).trim().replace(',', '.'));
-    return Number.isFinite(n) && n >= 0 ? n : null;
-  }
-
-  function isStatus(value) {
-    const v = normalize(value).toUpperCase();
-    return v === 'ON' || v === 'OFF';
-  }
-
-  function makeCandidate(prayer, eventCol, durationCol, statusCol) {
-    if (eventCol >= 27 || durationCol >= 27) return null;
-
-    let eventCount = 0;
-    let validDuration = 0;
-    let invalidDuration = 0;
-    let statusCount = 0;
-
-    for (let r = 1; r < data.length; r++) {
-      const event = normalizeEvent(cell(r, eventCol));
-      if (!event) continue;
-
-      eventCount++;
-
-      const duration = parseDuration(cell(r, durationCol));
-      if (duration === null) invalidDuration++;
-      else validDuration++;
-
-      if (statusCol >= 0 && isStatus(cell(r, statusCol))) statusCount++;
-    }
-
-    if (eventCount === 0) return null;
-
-    // Event adalah indikator terpenting. Durasi harus angka 0 atau lebih.
-    // 2-column layout mendapat bonus bila durasi tepat di sebelah event.
-    let score = eventCount * 100 + validDuration * 10 - invalidDuration * 100;
-    if (durationCol === eventCol + 1) score += 20;
-    if (statusCol >= 0 && statusCount > 0) score += statusCount * 2;
-
-    return {
-      prayer: prayer,
-      event: eventCol,
-      duration: durationCol,
-      status: statusCol,
-      eventCount: eventCount,
-      validDuration: validDuration,
-      invalidDuration: invalidDuration,
-      statusCount: statusCount,
-      score: score,
-      startRow: 1
-    };
-  }
-
-  function buildSchedule(block) {
-    const items = [];
-    if (!block) return items;
-
-    for (let r = block.startRow; r < data.length; r++) {
-      const event = normalizeEvent(cell(r, block.event));
-      if (!event) continue;
-
-      const duration = parseDuration(cell(r, block.duration));
-      if (duration === null) continue;
-
-      let status = 'ON';
-      if (block.status >= 0 && isStatus(cell(r, block.status))) {
-        status = normalize(cell(r, block.status)).toUpperCase() === 'OFF'
-          ? 'OFF'
-          : 'ON';
-      }
-
-      items.push({
-        event: event,
-        duration: duration,
-        status: status
-      });
-    }
-
+    result.detected[name]={event:eventCol,status:statusCol,startRow:1};
     return items;
   }
 
-  // ==========================================================
-  // PEMETAAN PASTI SHEET ADZAN
-  //
-  // STRUKTUR RUNTIME SHEET ADZAN:
-  // D:G  = NO | EVENT | DETIK | STATUS   -> SUBUH
-  // I:K  = EVENT | DETIK | STATUS         -> DZUHUR
-  // M:O  = EVENT | DETIK | STATUS         -> ASHAR
-  // Q:S  = EVENT | DETIK | STATUS         -> MAGHRIB
-  // U:W  = EVENT | DETIK | STATUS         -> ISYA
-  // Y:AA = EVENT | DETIK | STATUS         -> JUM'AT
-  //
-  // Baris 1 adalah header/deskripsi. Data dimulai baris 2.
-  // Tidak ada fallback sequence, event, durasi, GAP, atau status.
-  // ==========================================================
+  result.schedule.SUBUH_RAMADHAN = buildPair(4,5,'SUBUH_RAMADHAN');
+  result.schedule.SUBUH_BIASA    = buildPair(7,8,'SUBUH_BIASA');
+  result.schedule.DZUHUR         = buildPair(10,11,'DZUHUR');
+  result.schedule.ASHAR          = buildPair(13,14,'ASHAR');
+  result.schedule.MAGHRIB_RAMADHAN = buildPair(16,17,'MAGHRIB_RAMADHAN');
+  result.schedule.MAGHRIB_BIASA    = buildPair(19,20,'MAGHRIB_BIASA');
+  result.schedule.ISYA           = buildPair(22,23,'ISYA');
+  result.friday = buildPair(25,26,'JUMAT');
 
-  const layout3 = {
-    SUBUH:   { event: 4,  duration: 5,  status: 6,  startRow: 1 },
-    DZUHUR:  { event: 8,  duration: 9,  status: 10, startRow: 1 },
-    ASHAR:   { event: 12, duration: 13, status: 14, startRow: 1 },
-    MAGHRIB: { event: 16, duration: 17, status: 18, startRow: 1 },
-    ISYA:    { event: 20, duration: 21, status: 22, startRow: 1 }
-  };
-
-  // ==========================================================
-  // BANGUN JADWAL LANGSUNG DARI BLOK SHEET YANG DITENTUKAN.
-  // ==========================================================
-  prayerNames.forEach(function(prayerName) {
-    const block = layout3[prayerName];
-    result.detected[prayerName] = block;
-    result.schedule[prayerName] = buildSchedule(block);
-
-    Logger.log(
-      'AUDIO SCHEDULE ' + prayerName + ': ' +
-      JSON.stringify(result.schedule[prayerName])
-    );
+  Object.keys(result.schedule).forEach(function(name){
+    Logger.log('AUDIO SCHEDULE '+name+': '+JSON.stringify(result.schedule[name]));
   });
-
-  // Jum'at: Y:AA = EVENT | DETIK | STATUS.
-  const friday = makeCandidate('JUMAT', 24, 25, 26);
-  result.detected.JUMAT = friday;
-  result.friday = buildSchedule(friday);
-
-  Logger.log(
-    "AUDIO JUM'AT: " +
-    JSON.stringify(result.friday)
-  );
+  Logger.log("AUDIO JUM'AT: "+JSON.stringify(result.friday));
   return result;
 }
 
@@ -1367,10 +1273,12 @@ function getRealtimeAudioConfig() {
       success: true,
       Audio: {},
       AudioSchedule: {
-        SUBUH: [],
+        SUBUH_RAMADHAN: [],
+        SUBUH_BIASA: [],
         DZUHUR: [],
         ASHAR: [],
-        MAGHRIB: [],
+        MAGHRIB_RAMADHAN: [],
+        MAGHRIB_BIASA: [],
         ISYA: []
       },
       AudioDurations: {},
