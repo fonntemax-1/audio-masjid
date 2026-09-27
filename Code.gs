@@ -1122,15 +1122,43 @@ function parseAdzanSheetV7(data) {
   }
   function buildPair(eventCol,statusCol,name) {
     const items=[];
-    for(let r=1;r<data.length;r++){
-      const event=normalizeEvent(cell(r,eventCol));
-      if(!event) continue;
-      const status=isStatus(cell(r,statusCol))
-        ? (normalize(cell(r,statusCol)).toUpperCase()==='OFF'?'OFF':'ON')
+    const knownEvents = {
+      'qiroah':1, 'qiroah-1':1, 'qiroah-2':1, 'qiroah-3':1,
+      'qiroah-4':1, 'qiroah-5':1, 'tarhim':1, 'beep':1,
+      'adzan':1, 'adzan-subuh':1, 'adzan-biasa':1, 'doa':1,
+      'doa-adzan':1, 'doa-puasa':1, 'doa-buka':1, 'iqomah':1,
+      'sirine':1
+    };
+
+    for(let r=0;r<data.length;r++){
+      let event = normalizeEvent(cell(r,eventCol));
+      let statusValue = cell(r,statusCol);
+
+      // Toleransi jika EVENT/STATUS pada blok tertukar.
+      if(!knownEvents[event]){
+        const reverseEvent = normalizeEvent(cell(r,statusCol));
+        if(knownEvents[reverseEvent]){
+          event = reverseEvent;
+          statusValue = cell(r,eventCol);
+        }
+      }
+
+      // Abaikan header/baris lain yang bukan nama audio.
+      if(!knownEvents[event]) continue;
+
+      const status = isStatus(statusValue)
+        ? (normalize(statusValue).toUpperCase()==='OFF'?'OFF':'ON')
         : 'ON';
+
       items.push({event:event,duration:0,status:status});
     }
-    result.detected[name]={event:eventCol,status:statusCol,startRow:1};
+
+    result.detected[name]={
+      event:eventCol,
+      status:statusCol,
+      startRow:0,
+      count:items.length
+    };
     return items;
   }
 
