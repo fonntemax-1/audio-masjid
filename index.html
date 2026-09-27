@@ -6896,9 +6896,16 @@
 
         const adzanItem = items[adzanIndex];
 
+        // Ramadan Maghrib: Maghrib astronomis = waktu berbuka/sirine.
+        // Adzan Maghrib dimulai 5 menit kemudian.
+        const adzanTarget =
+          name === 'MAGHRIB'
+            ? Number(pSec) + 300
+            : Number(pSec);
+
         add(
           'ADZAN',
-          Number(pSec),
+          adzanTarget,
           adzanItem.duration,
           'Adzan - ' + name,
           adzanItem.audioType,
@@ -6906,7 +6913,7 @@
         );
 
         // Setelah adzan tetap berurutan dari Sheet dengan GAP 3 detik.
-        let cursorAfterAdzan = Number(pSec) + adzanItem.duration;
+        let cursorAfterAdzan = adzanTarget + adzanItem.duration;
 
         for (let i = adzanIndex + 1; i < items.length; i++) {
           const item = items[i];
