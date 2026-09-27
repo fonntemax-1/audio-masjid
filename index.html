@@ -9520,6 +9520,11 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
     let autoRefreshTimer =
       null;
 
+    // Pengaman: dalam satu page-load, reload hanya boleh terjadi
+    // satu kali untuk tanggal WITA yang sama.
+    let autoRefreshReloadedDate =
+      '';
+
 
     function startAutoRefresh() {
 
@@ -9566,8 +9571,24 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           setTimeout(
             function() {
 
+              const currentDate =
+                getApiDate();
+
+              // Reload tepat satu kali setelah hari WITA berganti.
+              // Tidak ada reload berkala per jam/menit.
+              if (
+                autoRefreshReloadedDate === currentDate
+              ) {
+                return;
+              }
+
+              autoRefreshReloadedDate =
+                currentDate;
+
               console.log(
-                '=== AUTO REFRESH PERGANTIAN HARI WITA ==='
+                '=== AUTO REFRESH PERGANTIAN HARI WITA: ' +
+                currentDate +
+                ' ==='
               );
 
               window.location.reload();
