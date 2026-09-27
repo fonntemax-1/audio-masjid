@@ -1398,7 +1398,7 @@ function getRealtimeAudioConfig() {
 
     result.AudioStatus = summaryStatus;
 
-    Logger.log('=== REALTIME AUDIO CONFIG FIX ===');
+    Logger.log('=== REALTIME AUDIO CONFIG FIX v2026-09-27 ===');
     Logger.log('AUDIO URL = ' + JSON.stringify(result.Audio));
     Logger.log('AUDIO SCHEDULE = ' + JSON.stringify(result.AudioSchedule));
     Logger.log('AUDIO DURATIONS = ' + JSON.stringify(result.AudioDurations));
