@@ -1873,6 +1873,11 @@
       nextConfig['tarhim-biasa'] =
         nextConfig['tarhim-biasa'] || nextConfig.tarhim || '';
 
+      // Sequence Sheet memakai event "doa", sedangkan tabel URL
+      // memakai key "doa-adzan". Gunakan URL Sheet yang sama.
+      nextConfig.doa =
+        nextConfig.doa || nextConfig['doa-adzan'] || '';
+
       audioConfig = nextConfig;
 
       audioScheduleConfig =
@@ -1890,7 +1895,6 @@
         'adzan-biasa',
         'tarhim',
         'sirine',
-        'doa',
         'doa-adzan',
         'doa-puasa',
         'doa-buka',
