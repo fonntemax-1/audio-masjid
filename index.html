@@ -7110,31 +7110,6 @@
             continue;
           }
 
-          // BEEP terakhir sebelum ADZAN selalu menjadi tanda 3 menit
-          // sebelum waktu Adzan, bukan 3 detik sebelum Adzan.
-          const isFinalBeepBeforeAdzan =
-            item.event === 'beep' &&
-            i === adzanIndex - 1;
-
-          if (isFinalBeepBeforeAdzan) {
-            const beepTarget = Number(pSec) - (3 * 60);
-
-            const label = 'Beep - ' + name;
-
-            add(
-              item.event.toUpperCase(),
-              beepTarget,
-              item.duration,
-              label,
-              item.audioType,
-              item.status
-            );
-
-            // Event sebelumnya tetap berada sebelum BEEP.
-            cursorAfter = beepTarget + item.duration;
-            continue;
-          }
-
           cursorAfter += GAP;
 
           const label =
@@ -7209,7 +7184,13 @@
             continue;
           }
 
-          cursorAfterAdzan += GAP;
+          // Setelah DOA-ADZAN, jeda menuju BEEP = 5 menit.
+          // Jeda lainnya tetap 3 detik.
+          cursorAfterAdzan += (
+            item.event === 'beep' &&
+            i > adzanIndex + 1 &&
+            String(items[i - 1] && items[i - 1].event || '').toLowerCase() === 'doa-adzan'
+          ) ? (5 * 60) : GAP;
 
           const label =
             item.event === 'doa' || item.event === 'doa-adzan'
@@ -7265,29 +7246,6 @@
           continue;
         }
 
-        // BEEP terakhir sebelum ADZAN selalu menjadi tanda 3 menit
-        // sebelum waktu Adzan.
-        const isFinalBeepBeforeAdzan =
-          item.event === 'beep' &&
-          i === adzanIndex - 1;
-
-        if (isFinalBeepBeforeAdzan) {
-          const beepTarget = Number(pSec) - (3 * 60);
-
-          add(
-            item.event.toUpperCase(),
-            beepTarget,
-            item.duration,
-            'Beep - ' + name,
-            item.audioType,
-            item.status
-          );
-
-          // Event sebelumnya tetap dihitung mundur dari posisi BEEP.
-          cursor = beepTarget - GAP;
-          continue;
-        }
-
         cursor -= item.duration;
 
         const label =
@@ -7334,7 +7292,13 @@
           continue;
         }
 
-        cursor += GAP;
+        // Setelah DOA-ADZAN, jeda menuju BEEP = 5 menit.
+        // Jeda lainnya tetap 3 detik.
+        cursor += (
+          item.event === 'beep' &&
+          i > adzanIndex + 1 &&
+          String(items[i - 1] && items[i - 1].event || '').toLowerCase() === 'doa-adzan'
+        ) ? (5 * 60) : GAP;
 
         const label =
           item.event==='doa' || item.event==='doa-adzan'
