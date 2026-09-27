@@ -7092,193 +7092,120 @@
     // STATUS OFF = event tetap terjadwal tetapi audionya mute.
     // =========================================================
 
-    async function getFridayQiroahSchedule(
-      pSec
-    ) {
-
+    async function getFridayQiroahSchedule(pSec) {
       const events = [];
-      const durations = await getAllAudioDurations();
+      const fridayItems = Array.isArray(audioFridayConfig) ? audioFridayConfig : [];
+      const GAP = 3;
 
-      const fridayItems =
-        Array.isArray(audioFridayConfig)
-          ? audioFridayConfig
-          : [];
-
-      if (fridayItems.length === 0) {
-        console.warn(
-          "AUDIO JUM'AT: sequence Sheet kosong."
-        );
-        return {
-          events: events,
-          durations: durations
-        };
+      if (!fridayItems.length) {
+        console.warn("AUDIO JUM'AT: sequence Sheet kosong.");
+        return {events:events,durations:{}};
       }
 
-      const adzanIndex =
-        fridayItems.findIndex(function(item) {
-          const event =
-            String(item && item.event || '')
-              .trim()
-              .toLowerCase();
+      const items = [];
+      for (const raw of fridayItems) {
+        const event = String(raw && raw.event || '').trim().toLowerCase();
+        if (!event) continue;
 
-          return (
-            event === 'adzan-subuh' ||
-            event === 'adzan-biasa' ||
-            event === 'adzan'
-          );
+        if (event === 'gap') {
+          items.push({event:event,duration:GAP,status:'ON',audioType:''});
+          continue;
+        }
+
+        const audioType = mapSheetEventToAudioType(event,'JUMAT');
+        if (!audioType) continue;
+
+        const duration = await getAudioDuration(audioType);
+        if (!(duration > 0)) {
+          console.warn("AUDIO JUM'AT: metadata durasi tidak tersedia:",audioType);
+          continue;
+        }
+
+        items.push({
+          event:event,
+          duration:duration,
+          status:String(raw.status || 'ON').toUpperCase()==='OFF'?'OFF':'ON',
+          audioType:audioType
         });
+      }
+
+      const adzanIndex = items.findIndex(function(item) {
+        return item.event==='adzan-subuh' || item.event==='adzan-biasa' || item.event==='adzan';
+      });
 
       if (adzanIndex < 0) {
-        console.warn(
-          "AUDIO JUM'AT: ADZAN tidak ditemukan di sequence Sheet."
-        );
-        return {
-          events: events,
-          durations: durations
-        };
+        console.warn("AUDIO JUM'AT: ADZAN tidak ditemukan.");
+        return {events:events,durations:{}};
       }
 
-      function addFriday(
-        eventName,
-        targetSec,
-        duration,
-        label,
-        audioType,
-        status
-      ) {
-        const safeTarget = Number(targetSec);
-        const safeDuration = Number(duration);
-
-        if (
-          !Number.isFinite(safeTarget) ||
-          !Number.isFinite(safeDuration) ||
-          safeDuration <= 0 ||
-          !audioType
-        ) {
-          return;
-        }
-
+      function addFriday(eventName,target,duration,label,audioType,status) {
+        if (!(duration > 0) || !audioType || !Number.isFinite(target)) return;
         events.push({
-          eventName: eventName,
-          targetSec: safeTarget,
-          endSec: safeTarget + safeDuration,
-          label: label,
-          audioType: audioType,
-          status:
-            String(status || 'ON').toUpperCase() === 'OFF'
-              ? 'OFF'
-              : 'ON'
+          eventName:eventName,
+          targetSec:target,
+          endSec:target+duration,
+          label:label,
+          audioType:audioType,
+          status:String(status || 'ON').toUpperCase()==='OFF'?'OFF':'ON'
         });
       }
 
-      // ADZAN selalu tepat pada waktu Jumat (pSec).
-      const adzanItem = fridayItems[adzanIndex];
-      const adzanEvent =
-        String(adzanItem && adzanItem.event || '')
-          .trim()
-          .toLowerCase();
-
-      const adzanType =
-        mapSheetEventToAudioType(
-          adzanEvent,
-          'JUMAT'
-        );
-
-      // DURASI ADZAN JUMAT wajib berasal dari row Spreadsheet.
-      const adzanDuration =
-        Number(adzanItem && adzanItem.duration);
-
-      // Susun seluruh sequence SEBELUM ADZAN mundur dari pSec.
-      // Ini membuat qiroah/gap mengikuti Sheet secara literal.
       let cursor = Number(pSec);
 
-      for (let i = adzanIndex - 1; i >= 0; i--) {
+      for (let i=adzanIndex-1;i>=0;i--) {
+        const item=items[i];
 
-        const item = fridayItems[i];
-
-        const event =
-          String(item && item.event || '')
-            .trim()
-            .toLowerCase();
-
-        const duration =
-          Number(item && item.duration);
-
-        if (
-          !Number.isFinite(duration) ||
-          duration <= 0
-        ) {
+        if (item.event==='gap') {
+          cursor -= item.duration;
           continue;
         }
 
-        cursor -= duration;
-
-        // GAP hanya menggeser timeline, tidak menghasilkan audio.
-        if (event === 'gap') {
-          continue;
-        }
-
-        const audioType =
-          mapSheetEventToAudioType(
-            event,
-            'JUMAT'
-          );
-
-        if (!audioType) {
-          continue;
-        }
-
-        const label =
-          /^qiroah-\d+$/.test(event)
-            ? 'Qiroah - JUMAT'
-            : event + ' - JUMAT';
+        cursor -= item.duration;
 
         addFriday(
-          event === 'qiroah' || /^qiroah-\d+$/.test(event)
+          /^qiroah-\d+$/.test(item.event) || item.event==='qiroah'
             ? 'QIROAH_JUMAT'
-            : event.toUpperCase(),
+            : item.event.toUpperCase(),
           cursor,
-          duration,
-          label,
-          audioType,
+          item.duration,
+          /^qiroah-\d+$/.test(item.event) || item.event==='qiroah'
+            ? 'Qiroah - JUMAT'
+            : item.event+' - JUMAT',
+          item.audioType,
           item.status
         );
+
+        cursor -= GAP;
       }
 
-      // ADZAN tetap masuk schedule walaupun STATUS = OFF.
-      // OFF hanya membuat audio mute; durasi event tetap dipakai.
+      const adzanItem=items[adzanIndex];
+
       addFriday(
         'ADZAN',
         Number(pSec),
-        adzanDuration,
+        adzanItem.duration,
         'Adzan - JUMAT',
-        adzanType,
+        adzanItem.audioType,
         adzanItem.status
       );
 
-      events.sort(function(a, b) {
-        return a.targetSec - b.targetSec;
+      const durations={};
+      items.forEach(function(item){
+        if(item.audioType && durations[item.audioType]===undefined){
+          durations[item.audioType]=item.duration;
+        }
       });
 
-      console.log("=== AUDIO JUM'AT: SEQUENCE SPREADSHEET ===");
-      console.log(fridayItems);
-      events.forEach(function(event) {
-        console.log(
-          "AUDIO JUM'AT:",
-          event.eventName,
-          'target=', event.targetSec,
-          'end=', event.endSec,
-          'duration=', event.endSec - event.targetSec,
-          'status=', event.status,
-          'type=', event.audioType
-        );
-      });
+      events.sort(function(a,b){return a.targetSec-b.targetSec;});
+
+      console.log("=== AUDIO JUM'AT METADATA ===",events);
 
       return {
-        events: events,
-        durations: durations
+        events:events,
+        durations:durations
       };
     }
+
 
     async function prepareDailyAudioSchedule(
       dateKey,
