@@ -1885,14 +1885,20 @@
       // beberapa bridge/versi lama dapat membungkusnya sebagai
       // { schedule: {...} }. Terima keduanya.
       let rawAudioSchedule =
+        data.AudioScheduleJSON ||
         data.AudioSchedule ||
         data.audioSchedule ||
+        data.schedule ||
         {};
 
+      // JSONP bridge compatibility:
+      // prioritas string JSON karena nested object kadang berubah
+      // bentuk saat melewati bridge Apps Script -> GitHub Pages.
       if (typeof rawAudioSchedule === 'string') {
         try {
           rawAudioSchedule = JSON.parse(rawAudioSchedule);
         } catch (e) {
+          console.warn('AUDIO SCHEDULE JSON invalid:', e);
           rawAudioSchedule = {};
         }
       }
@@ -6709,8 +6715,6 @@
           probe.onloadedmetadata = null;
           probe.onerror = null;
           probe.onabort = null;
-          try { probe.removeAttribute('src'); } catch (e) {}
-          try { probe.load(); } catch (e) {}
         }
 
         function finishSafe(value, isError) {
