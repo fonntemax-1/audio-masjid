@@ -6063,6 +6063,9 @@
 
       if (!iframe) return;
 
+      const previousMode =
+        youtubeControlMode;
+
       youtubeControlMode =
         normalizeYouTubeControlMode(
           status
@@ -6070,6 +6073,15 @@
 
       const mode =
         youtubeControlMode;
+
+      // Jika mode berubah, reset hanya state kontrol YouTube.
+      // Tidak menyentuh jadwal audio, urutan audio, atau data sholat.
+      if (previousMode !== mode) {
+        youtubeAutoMuted = false;
+        youtubeAutoMuteKey = '';
+        youtubeAutoMutePrayer = '';
+        youtubeAutoMuteQiroahTargetSec = null;
+      }
 
       // STOP = YouTube benar-benar dihentikan.
       if (mode === 'STOP') {
