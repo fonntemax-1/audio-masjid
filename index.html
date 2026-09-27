@@ -2967,9 +2967,21 @@
 
         }
 
+        // Jangan menganggap event "sudah dimainkan" bila event tersebut
+        // SEDANG berada di dalam jendela waktunya. Ini penting saat
+        // schedule/queue dibangun ulang setelah refresh data Spreadsheet:
+        // marker lama tidak boleh membuat SIRINE, DOA-PUASA, DOA-ADZAN,
+        // ADZAN, BEEP atau IQOMAH yang sedang aktif terlewati.
+        const eventIsCurrentlyActive =
+          typeof item.targetSec === 'number' &&
+          typeof item.endSec === 'number' &&
+          nowSeconds >= item.targetSec &&
+          nowSeconds <= item.endSec;
+
         if (
           item.eventKey &&
-          hasAudioEventPlayed(item.eventKey)
+          hasAudioEventPlayed(item.eventKey) &&
+          !eventIsCurrentlyActive
         ) {
 
           state.queue.shift();
