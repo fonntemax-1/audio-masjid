@@ -1131,14 +1131,23 @@ function parseAdzanSheetV7(data) {
     return items;
   }
 
+  // Posisi kolom final Sheet Adzan:
+  // E:F = SUBUH RAMADHAN
+  // H:I = SUBUH BIASA
+  // J:K = DZUHUR
+  // M:N = ASHAR
+  // P:Q = MAGHRIB RAMADHAN
+  // S:T = MAGHRIB BIASA
+  // V:W = ISYA
+  // Y:Z = JUM'AT
   result.schedule.SUBUH_RAMADHAN = buildPair(4,5,'SUBUH_RAMADHAN');
   result.schedule.SUBUH_BIASA    = buildPair(7,8,'SUBUH_BIASA');
-  result.schedule.DZUHUR         = buildPair(10,11,'DZUHUR');
-  result.schedule.ASHAR          = buildPair(13,14,'ASHAR');
-  result.schedule.MAGHRIB_RAMADHAN = buildPair(16,17,'MAGHRIB_RAMADHAN');
-  result.schedule.MAGHRIB_BIASA    = buildPair(19,20,'MAGHRIB_BIASA');
-  result.schedule.ISYA           = buildPair(22,23,'ISYA');
-  result.friday = buildPair(25,26,'JUMAT');
+  result.schedule.DZUHUR         = buildPair(9,10,'DZUHUR');
+  result.schedule.ASHAR          = buildPair(12,13,'ASHAR');
+  result.schedule.MAGHRIB_RAMADHAN = buildPair(15,16,'MAGHRIB_RAMADHAN');
+  result.schedule.MAGHRIB_BIASA    = buildPair(18,19,'MAGHRIB_BIASA');
+  result.schedule.ISYA           = buildPair(21,22,'ISYA');
+  result.friday = buildPair(24,25,'JUMAT');
 
   Object.keys(result.schedule).forEach(function(name){
     Logger.log('AUDIO SCHEDULE '+name+': '+JSON.stringify(result.schedule[name]));
