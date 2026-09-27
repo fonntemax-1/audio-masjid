@@ -290,12 +290,12 @@
       background: #211800 !important;
     }
 
-    /* Ikon SUBUH kembali ke warna asli PNG. */
-    .prayer-card[data-prayer="SUBUH"] .prayer-icon img {
+    /* Semua ikon sholat menggunakan warna asli PNG. */
+    .prayer-card .prayer-icon img {
       filter: none;
     }
 
-    /* Saat kartu highlight, ikon menjadi hijau mengikuti warna frame. */
+    /* Saat kartu highlight, ikon berubah hijau mengikuti warna frame. */
     .prayer-card.active-prayer .prayer-icon img {
       filter: brightness(0) saturate(100%) invert(59%) sepia(98%) saturate(850%) hue-rotate(105deg) brightness(95%) contrast(105%);
     }
