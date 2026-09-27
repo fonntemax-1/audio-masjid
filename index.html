@@ -7139,7 +7139,15 @@
             continue;
           }
 
-          cursorAfter += GAP;
+          // Pada Ramadan Maghrib, BEEP sebelum ADZAN menjadi
+          // penanda persiapan dan diberi jeda 5 menit menuju ADZAN.
+          // Jeda lainnya tetap 3 detik.
+          cursorAfter += (
+            name === 'MAGHRIB' &&
+            item.event === 'beep' &&
+            i > sirineIndex &&
+            i === adzanIndex - 1
+          ) ? (5 * 60) : GAP;
 
           const label =
             item.event === 'doa-puasa'
