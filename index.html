@@ -6594,105 +6594,96 @@
     // dan schedule tidak mengarang durasi dari hardcode lama.
     //
 
+    // =========================================================
+    // AUDIO DURATION = METADATA FILE AKTUAL
+    //
+    // ID audio dan URL dipisahkan:
+    //   audioConfig["qiroah-1"] = URL dari Sheet A:B
+    //
+    // Durasi tidak lagi berasal dari kolom sequence.
+    // =========================================================
+
     function getSheetAudioDuration(audioType) {
-
-      const type =
-        String(audioType || '').trim();
-
-      const value =
-        Number(audioDurationConfig[type]);
-
-      if (
-        Number.isFinite(value) &&
-        value > 0
-      ) {
-        return value;
-      }
-
-      // AudioDurations backend lama masih dapat memakai key generik.
-      // Bila key exact belum ada, cari langsung dari sequence Sheet.
-      const schedules =
-        audioScheduleConfig || {};
-
-      for (const prayerName of Object.keys(schedules)) {
-        const list = Array.isArray(schedules[prayerName])
-          ? schedules[prayerName]
-          : [];
-
-        for (const item of list) {
-          const event =
-            String(item && item.event || '').trim().toLowerCase();
-
-          if (event === type) {
-            const duration = Number(item.duration);
-            if (Number.isFinite(duration) && duration > 0) {
-              return duration;
-            }
-          }
-        }
-      }
-
-      return 0;
+      const type = String(audioType || '').trim().toLowerCase();
+      const value = Number(audioDurationConfig[type]);
+      return Number.isFinite(value) && value > 0 ? value : 0;
     }
 
+    function loadAudioMetadataDuration(audioType) {
+      const type = String(audioType || '').trim().toLowerCase();
+      if (!type) return Promise.resolve(0);
 
-    function getAudioDuration(audioType) {
+      if (WEB_APP_STATE.audio.durationCache.has(type)) {
+        return Promise.resolve(WEB_APP_STATE.audio.durationCache.get(type));
+      }
 
-      const type =
-        String(audioType || '').trim();
-
-      if (!type) {
+      const url = normalizeAudioUrl(audioConfig[type] || '');
+      if (!url) {
+        console.warn('AUDIO DURASI: URL tidak ditemukan untuk ID:', type);
         return Promise.resolve(0);
       }
 
-      if (
-        WEB_APP_STATE.audio.durationCache.has(type)
-      ) {
-        return Promise.resolve(
-          WEB_APP_STATE.audio.durationCache.get(type)
-        );
-      }
+      return new Promise(function(resolve) {
+        const probe = new Audio();
+        let done = false;
 
-      const duration =
-        getSheetAudioDuration(type);
+        function finish(value) {
+          if (done) return;
+          done = true;
+          const duration = Number(value);
+          const safe = Number.isFinite(duration) && duration > 0 ? duration : 0;
+          if (safe > 0) WEB_APP_STATE.audio.durationCache.set(type, safe);
+          resolve(safe);
+        }
 
-      if (duration > 0) {
-        WEB_APP_STATE.audio.durationCache.set(
-          type,
-          duration
-        );
+        probe.preload = 'metadata';
+        probe.onloadedmetadata = function() {
+          finish(probe.duration);
+          try { probe.src = ''; } catch (e) {}
+        };
+        probe.onerror = function() {
+          console.warn('AUDIO DURASI: gagal membaca metadata:', type, url);
+          finish(0);
+        };
 
-        console.log(
-          'AUDIO DURASI SHEET:',
-          type,
-          duration,
-          'detik'
-        );
-      }
-
-      return Promise.resolve(duration);
+        try {
+          probe.src = url;
+          probe.load();
+        } catch (error) {
+          console.warn('AUDIO DURASI: exception metadata:', type, error);
+          finish(0);
+        }
+      });
     }
 
+    async function getAudioDuration(audioType) {
+      const type = String(audioType || '').trim().toLowerCase();
+      if (!type) return 0;
+
+      const metadataDuration = await loadAudioMetadataDuration(type);
+      if (metadataDuration > 0) {
+        console.log('AUDIO DURASI FILE:', type, metadataDuration, 'detik');
+        return metadataDuration;
+      }
+
+      // Kompatibilitas hanya bila backend lama memang sudah mengirim
+      // durasi > 0. Bukan fallback angka hard-code.
+      return getSheetAudioDuration(type);
+    }
 
     async function getAllAudioDurations() {
-
       const types = [
-        'qiroah-1', 'qiroah-2', 'qiroah-3', 'qiroah-4', 'qiroah-5',
-        'beep', 'adzan-subuh', 'adzan-biasa', 'tarhim', 'sirine',
-        'doa', 'iqomah'
+        'qiroah-1','qiroah-2','qiroah-3','qiroah-4','qiroah-5',
+        'tarhim','beep','adzan-subuh','adzan-biasa','doa-adzan',
+        'doa','doa-puasa','doa-buka','sirine','iqomah','takbiran'
       ];
 
       const result = {};
+      for (const type of types) {
+        result[type] = await getAudioDuration(type);
+      }
 
-      types.forEach(function(type) {
-        result[type] = getSheetAudioDuration(type);
-      });
-
-      console.log('=== AUDIO DURASI DARI SHEET ADZAN ===');
-      types.forEach(function(type) {
-        console.log(type + ':', result[type], 'detik');
-      });
-
+      console.log('=== AUDIO DURASI METADATA ===', result);
       return result;
     }
 
@@ -6724,491 +6715,174 @@
       return '';
     }
 
-    async function getPrayerAudioSchedule(
-      prayerName,
-      pSec
-    ) {
-
+    async function getPrayerAudioSchedule(prayerName,pSec) {
       const events = [];
+      const name = String(prayerName || '').toUpperCase().trim();
+      const ramadan = isRamadanDisplay();
 
-      const name =
-        String(prayerName || '')
-          .toUpperCase()
-          .trim();
+      let sequenceName = name;
+      if (name === 'SUBUH') sequenceName = ramadan ? 'SUBUH_RAMADHAN' : 'SUBUH_BIASA';
+      if (name === 'MAGHRIB') sequenceName = ramadan ? 'MAGHRIB_RAMADHAN' : 'MAGHRIB_BIASA';
 
-      const sheetSequence =
-        Array.isArray(audioScheduleConfig[name])
-          ? audioScheduleConfig[name]
-          : [];
+      const sheetSequence = Array.isArray(audioScheduleConfig[sequenceName])
+        ? audioScheduleConfig[sequenceName] : [];
 
-      // Spreadsheet adalah satu-satunya sumber sequence.
-      // Jangan pernah mengganti sequence kosong dengan hardcode.
-      const activeSequence = sheetSequence;
-
-      if (activeSequence.length === 0) {
-        console.warn(
-          'AUDIO SCHEDULE: sequence Spreadsheet kosong:',
-          name
-        );
-
-        return {
-          events: [],
-          durations: await getAllAudioDurations()
-        };
+      if (!sheetSequence.length) {
+        console.warn('AUDIO SCHEDULE: sequence Sheet kosong:', sequenceName);
+        return {events:events,durations:await getAllAudioDurations()};
       }
 
-      console.log(
-        '=== AUDIO SEQUENCE AKTIF:',
-        name,
-        '===',
-        activeSequence
-      );
+      const GAP = 3;
+      const items = [];
 
-      const adzanIndex =
-        activeSequence.findIndex(function(item) {
-          const event =
-            String(item && item.event || '')
-              .trim()
-              .toLowerCase();
-
-          return (
-            event === 'adzan-subuh' ||
-            event === 'adzan-biasa'
-          );
-        });
-
-      if (adzanIndex < 0) {
-        console.warn(
-          'AUDIO SCHEDULE: event ADZAN tidak ditemukan:',
-          name
-        );
-
-        return {
-          events: [],
-          durations: await getAllAudioDurations()
-        };
-      }
-
-      function add(
-        eventName,
-        targetSec,
-        duration,
-        label,
-        audioType,
-        status
-      ) {
-
-        const safeTarget = Number(targetSec);
-        const safeDuration = Number(duration);
-
-        if (
-          !Number.isFinite(safeTarget) ||
-          !Number.isFinite(safeDuration) ||
-          safeDuration <= 0 ||
-          !audioType
-        ) {
-          return;
-        }
-
-        events.push({
-          eventName: eventName,
-          targetSec: safeTarget,
-          endSec: safeTarget + safeDuration,
-          label: label,
-          audioType: audioType,
-          status: String(status || 'ON').toUpperCase() === 'OFF' ? 'OFF' : 'ON'
-        });
-      }
-
-      // =========================================================
-      // ADZAN TEPAT PADA WAKTU SHOLAT
-      // =========================================================
-
-      const adzanItem =
-        activeSequence[adzanIndex];
-
-      const adzanType =
-        mapSheetEventToAudioType(
-          adzanItem.event,
-          name
-        );
-
-      // DURASI ADZAN WAJIB memakai nilai row Spreadsheet.
-      // Nilai 0 tetap 0; tidak boleh diganti fallback.
-      const adzanDuration =
-        Number(adzanItem.duration);
-
-      // RAMADAN MAGHRIB:
-      // sirine dimulai tepat pada waktu Maghrib, kemudian Adzan Maghrib.
-      // Durasi sirine tetap mengikuti Sheet Adzan.
-      const isRamadanMaghrib =
-        isRamadanDisplay() &&
-        name === 'MAGHRIB';
-
-      const sirineItem =
-        isRamadanMaghrib
-          ? activeSequence.find(function(item) {
-              return String(item && item.event || '')
-                .trim()
-                .toLowerCase() === 'sirine';
-            })
-          : null;
-
-      // DURASI SIRINE RAMADAN MAGHRIB wajib memakai row Spreadsheet.
-      // Nilai 0 tetap 0.
-      const ramadanMaghribSirineDuration =
-        isRamadanMaghrib && sirineItem
-          ? Number(sirineItem.duration)
-          : 0;
-
-      const sirineEnabled =
-        isRamadanMaghrib &&
-        Number.isFinite(ramadanMaghribSirineDuration) &&
-        ramadanMaghribSirineDuration > 0 &&
-        String(sirineItem && sirineItem.status || 'ON')
-          .toUpperCase() !== 'OFF';
-
-      // Untuk Ramadan MAGHRIB, target ADZAN selalu mengikuti
-      // SEQUENCE SPREADSHEET secara literal.
-      // Status ON/OFF hanya menentukan suara aktif/mute; durasi
-      // dan GAP tetap dihitung sehingga timing tidak berubah.
-      // Semua nilai SIRINE/GAP/BEEP/ADZAN diambil dari
-      // sequence Spreadsheet. Tidak ada angka timing hardcode.
-      let ramadanMaghribAdzanSec =
-        Number(pSec) +
-        (sirineEnabled ? ramadanMaghribSirineDuration : 0);
-
-      if (!isRamadanMaghrib) {
-        add(
-          'ADZAN',
-          ramadanMaghribAdzanSec,
-          adzanDuration,
-          'Adzan - ' + name,
-          adzanType,
-          adzanItem.status
-        );
-      }
-
-      // =========================================================
-      // EVENT SEBELUM ADZAN
-      //
-      // NORMAL:
-      //   seluruh sequence sebelum adzan disusun mundur agar
-      //   tetap berakhir tepat pada waktu sholat.
-      //
-      // RAMADAN MAGHRIB:
-      //   timeline Sheet dipertahankan secara literal:
-      //   Qiroah/Tarhim -> SIRINE -> GAP -> BEEP -> GAP -> ADZAN.
-      //
-      //   Sirine dimulai tepat pada pSec (waktu Maghrib).
-      //   Item setelah sirine dan sebelum adzan dihitung MAJU,
-      //   sehingga adzan mengikuti gap + beep + gap dari Sheet.
-      // =========================================================
-
-      let cursor =
-        Number(pSec);
-
-      // Ramadan MAGHRIB tetap memakai timeline Sheet walaupun
-      // SIRINE berstatus OFF. OFF hanya memute audio, bukan
-      // menghapus durasi/gap dari sequence.
-      const sirineIndex =
-        activeSequence.findIndex(function(item) {
-          return String(item && item.event || '')
-            .trim()
-            .toLowerCase() === 'sirine';
-        });
-
-      if (
-        isRamadanMaghrib &&
-        sirineIndex >= 0
-      ) {
-
-        // -------------------------------------------------------
-        // BAGIAN SEBELUM SIRINE
-        // Qiroah/Tarhim tetap disusun mundur dan berakhir
-        // tepat pada waktu Maghrib.
-        // -------------------------------------------------------
-        for (
-          let i = sirineIndex - 1;
-          i >= 0;
-          i--
-        ) {
-
-          const item = activeSequence[i];
-          const event =
-            String(item && item.event || '')
-              .trim()
-              .toLowerCase();
-          const duration = Number(item && item.duration);
-
-          if (!Number.isFinite(duration) || duration <= 0) {
-            continue;
-          }
-
-          cursor -= duration;
-
-          if (event === 'gap') {
-            continue;
-          }
-
-          const audioType =
-            mapSheetEventToAudioType(event, name);
-
-          if (!audioType) {
-            continue;
-          }
-
-          const label =
-            /^qiroah-\d+$/.test(event) || event === 'qiroah'
-              ? 'Qiroah - ' + name
-              : event === 'tarhim'
-                ? 'Tarhim - ' + name
-                : event === 'beep'
-                  ? 'Beep sebelum Adzan - ' + name
-                  : event + ' - ' + name;
-
-          add(
-            event === 'beep'
-              ? 'BEEP_ADZAN'
-              : event.toUpperCase(),
-            cursor,
-            duration,
-            label,
-            audioType,
-            item.status
-          );
-        }
-
-        // Sirine tepat saat Maghrib.
-        add(
-          'SIRINE',
-          Number(pSec),
-          ramadanMaghribSirineDuration,
-          'Sirine Ramadan - MAGHRIB',
-          'sirine',
-          sirineItem.status
-        );
-
-        // -------------------------------------------------------
-        // BAGIAN SETELAH SIRINE SEBELUM ADZAN
-        // IKUTI SPREADSHEET SECARA LITERAL.
-        //
-        // Seluruh item setelah SIRINE sampai sebelum ADZAN
-        // dibaca literal dari activeSequence (Spreadsheet).
-        // -------------------------------------------------------
-        cursor =
-          Number(pSec) +
-          ramadanMaghribSirineDuration;
-
-        for (
-          let i = sirineIndex + 1;
-          i < adzanIndex;
-          i++
-        ) {
-
-          const item = activeSequence[i];
-          const event =
-            String(item && item.event || '')
-              .trim()
-              .toLowerCase();
-          const duration = Number(item && item.duration);
-
-          if (!Number.isFinite(duration) || duration <= 0) {
-            continue;
-          }
-
-          if (event === 'gap') {
-            cursor += duration;
-            continue;
-          }
-
-          const audioType =
-            mapSheetEventToAudioType(event, name);
-
-          if (!audioType) {
-            continue;
-          }
-
-          const label =
-            event === 'beep'
-              ? 'Beep sebelum Adzan - ' + name
-              : event + ' - ' + name;
-
-          add(
-            event === 'beep'
-              ? 'BEEP_ADZAN'
-              : event.toUpperCase(),
-            cursor,
-            duration,
-            label,
-            audioType,
-            item.status
-          );
-
-          cursor += duration;
-        }
-
-        // Setelah seluruh item setelah SIRINE dan sebelum ADZAN
-        // diproses, posisi cursor adalah target ADZAN yang sebenarnya.
-        ramadanMaghribAdzanSec = cursor;
-
-        add(
-          'ADZAN',
-          ramadanMaghribAdzanSec,
-          adzanDuration,
-          'Adzan - ' + name,
-          adzanType,
-          adzanItem.status
-        );
-
-      } else {
-
-        // Sequence normal tetap tidak diubah.
-        cursor = Number(pSec);
-
-        for (
-          let i = adzanIndex - 1;
-          i >= 0;
-          i--
-        ) {
-
-          const item = activeSequence[i];
-          const event =
-            String(item && item.event || '')
-              .trim()
-              .toLowerCase();
-          const duration = Number(item && item.duration);
-
-          if (!Number.isFinite(duration) || duration <= 0) {
-            continue;
-          }
-
-          cursor -= duration;
-
-          if (event === 'gap') {
-            continue;
-          }
-
-          const audioType =
-            mapSheetEventToAudioType(event, name);
-
-          if (!audioType) {
-            continue;
-          }
-
-          const label =
-            /^qiroah-\d+$/.test(event) || event === 'qiroah'
-              ? 'Qiroah - ' + name
-              : event === 'tarhim'
-                ? 'Tarhim - ' + name
-                : event === 'beep'
-                  ? 'Beep sebelum Adzan - ' + name
-                  : event + ' - ' + name;
-
-          add(
-            event === 'beep'
-              ? 'BEEP_ADZAN'
-              : event.toUpperCase(),
-            cursor,
-            duration,
-            label,
-            audioType,
-            item.status
-          );
-        }
-      }
-
-      // =========================================================
-      // EVENT SETELAH ADZAN
-      // Durasi dan jeda mengikuti Sheet secara berurutan.
-      // =========================================================
-
-      cursor =
-        ramadanMaghribAdzanSec +
-        adzanDuration;
-
-      for (
-        let i = adzanIndex + 1;
-        i < activeSequence.length;
-        i++
-      ) {
-
-        const item = activeSequence[i];
-        const event =
-          String(item && item.event || '')
-            .trim()
-            .toLowerCase();
-        const duration = Number(item && item.duration);
-
-        if (!Number.isFinite(duration) || duration <= 0) {
-          continue;
-        }
+      for (const raw of sheetSequence) {
+        const event = String(raw && raw.event || '').trim().toLowerCase();
+        if (!event) continue;
 
         if (event === 'gap') {
-          cursor += duration;
+          items.push({event:event,duration:GAP,status:'ON',audioType:''});
           continue;
         }
 
-        const audioType =
-          mapSheetEventToAudioType(event, name);
+        const audioType = mapSheetEventToAudioType(event,name);
+        if (!audioType) continue;
 
-        if (!audioType) {
+        const duration = await getAudioDuration(audioType);
+        if (!(duration > 0)) {
+          console.warn('AUDIO SCHEDULE: metadata durasi tidak tersedia:', audioType);
           continue;
         }
+
+        items.push({
+          event:event,
+          duration:duration,
+          status:String(raw.status || 'ON').toUpperCase()==='OFF'?'OFF':'ON',
+          audioType:audioType
+        });
+      }
+
+      const adzanIndex = items.findIndex(function(item) {
+        return item.event === 'adzan-subuh' || item.event === 'adzan-biasa' || item.event === 'adzan';
+      });
+
+      if (adzanIndex < 0) {
+        console.warn('AUDIO SCHEDULE: ADZAN tidak ditemukan:', sequenceName);
+        return {events:events,durations:await getAllAudioDurations()};
+      }
+
+      function add(eventName,target,duration,label,audioType,status) {
+        if (!(duration > 0) || !audioType || !Number.isFinite(target)) return;
+        events.push({
+          eventName:eventName,
+          targetSec:target,
+          endSec:target+duration,
+          label:label,
+          audioType:audioType,
+          status:String(status || 'ON').toUpperCase()==='OFF'?'OFF':'ON'
+        });
+      }
+
+      // Semua event sebelum ADZAN dihitung mundur dari waktu adzan.
+      // Setiap audio selesai -> GAP 3 detik -> audio berikutnya.
+      let cursor = Number(pSec);
+
+      for (let i=adzanIndex-1;i>=0;i--) {
+        const item=items[i];
+        if (item.event==='gap') {
+          cursor -= item.duration;
+          continue;
+        }
+
+        cursor -= item.duration;
 
         const label =
-          event === 'doa'
-            ? 'Doa - ' + name
-            : event === 'beep'
-              ? 'Beep sebelum Iqomah - ' + name
-              : 'Iqomah - ' + name;
+          /^qiroah-\d+$/.test(item.event) || item.event==='qiroah'
+            ? 'Qiroah - '+name
+            : item.event==='tarhim'
+              ? 'Tarhim - '+name
+              : item.event==='sirine'
+                ? 'Sirine - '+name
+                : item.event+' - '+name;
 
         add(
-          event === 'beep'
-            ? 'BEEP_IQOMAH'
-            : event.toUpperCase(),
+          item.event.toUpperCase(),
           cursor,
-          duration,
+          item.duration,
           label,
-          audioType,
+          item.audioType,
           item.status
         );
 
-        cursor += duration;
+        // GAP default 3 detik antara dua audio.
+        cursor -= GAP;
       }
 
-      events.sort(function(a, b) {
-        return a.targetSec - b.targetSec;
-      });
-
-      const durations =
-        await getAllAudioDurations();
-
-      console.log(
-        '=== AUDIO SCHEDULE FINAL:',
-        name,
-        '==='
+      // ADZAN tepat pada waktu sholat.
+      const adzanItem=items[adzanIndex];
+      add(
+        'ADZAN',
+        Number(pSec),
+        adzanItem.duration,
+        'Adzan - '+name,
+        adzanItem.audioType,
+        adzanItem.status
       );
 
-      events.forEach(function(event) {
-        console.log(
-          'AUDIO SCHEDULE:',
-          event.eventName,
-          'target=',
-          event.targetSec,
-          'end=',
-          event.endSec,
-          'duration=',
-          event.endSec - event.targetSec,
-          'type=',
-          event.audioType
-        );
-      });
+      // Event setelah ADZAN maju berurutan dengan GAP 3 detik.
+      cursor = Number(pSec) + adzanItem.duration;
 
-      return {
-        events: events,
-        durations: durations
-      };
+      for (let i=adzanIndex+1;i<items.length;i++) {
+        const item=items[i];
+
+        if (item.event==='gap') {
+          cursor += item.duration;
+          continue;
+        }
+
+        cursor += GAP;
+
+        const label =
+          item.event==='doa' || item.event==='doa-adzan'
+            ? 'Doa - '+name
+            : item.event==='beep'
+              ? 'Beep - '+name
+              : item.event==='iqomah'
+                ? 'Iqomah - '+name
+                : item.event+' - '+name;
+
+        add(
+          item.event.toUpperCase(),
+          cursor,
+          item.duration,
+          label,
+          item.audioType,
+          item.status
+        );
+
+        cursor += item.duration;
+      }
+
+      // Ramadan Maghrib: waktu Maghrib = berbuka + sirine.
+      // Adzan tetap mengikuti urutan Sheet; bila urutan tidak tepat +5 menit,
+      // log akan memperlihatkan waktu aktual berdasarkan durasi file + GAP.
+      if (name==='MAGHRIB' && ramadan) {
+        const sirineEvent=events.find(function(e){return e.eventName==='SIRINE';});
+        if (sirineEvent) {
+          console.log('RAMADAN MAGHRIB: WAKTU BERBUKA/SIRINE =',pSec);
+        }
+      }
+
+      events.sort(function(a,b){return a.targetSec-b.targetSec;});
+
+      const durations={};
+      for (const item of items) {
+        if (item.audioType && durations[item.audioType]===undefined) {
+          durations[item.audioType]=item.duration;
+        }
+      }
+
+      console.log('=== AUDIO SCHEDULE FINAL:',sequenceName,'===',events);
+      return {events:events,durations:durations};
     }
 
 
