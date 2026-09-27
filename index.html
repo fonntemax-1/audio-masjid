@@ -1462,11 +1462,22 @@
         timeoutId = setTimeout(function() {
           if (finished) return;
           finished = true;
-          cleanup();
+
+          // Jangan hapus callback saat timeout. Apps Script JSONP
+          // kadang datang terlambat; callback tetap dibiarkan hidup
+          // agar respons terlambat tidak menjadi ReferenceError.
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+
           reject(new Error(
             'Timeout menghubungi Apps Script API.'
           ));
-        }, 7000);
+        }, action === 'getDataFromSheet' ? 12000 : 7000);
 
         script.src =
           GAS_API_URL + '?' + query.toString();
@@ -6018,9 +6029,21 @@
     }
 
 
+    let youtubeAutoResetDateKey = '';
+
     function resetYouTubeAutoStopForNewDate(
       dateKey
     ) {
+
+      if (!dateKey) return;
+
+      // Jangan reset berulang kali pada setiap tick scheduler.
+      // Reset hanya sekali ketika tanggal benar-benar berubah.
+      if (youtubeAutoResetDateKey === String(dateKey)) {
+        return;
+      }
+
+      youtubeAutoResetDateKey = String(dateKey);
 
       youtubeAutoMuted =
         false;
