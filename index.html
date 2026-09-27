@@ -7110,6 +7110,31 @@
             continue;
           }
 
+          // BEEP terakhir sebelum ADZAN selalu menjadi tanda 3 menit
+          // sebelum waktu Adzan, bukan 3 detik sebelum Adzan.
+          const isFinalBeepBeforeAdzan =
+            item.event === 'beep' &&
+            i === adzanIndex - 1;
+
+          if (isFinalBeepBeforeAdzan) {
+            const beepTarget = Number(pSec) - (3 * 60);
+
+            const label = 'Beep - ' + name;
+
+            add(
+              item.event.toUpperCase(),
+              beepTarget,
+              item.duration,
+              label,
+              item.audioType,
+              item.status
+            );
+
+            // Event sebelumnya tetap berada sebelum BEEP.
+            cursorAfter = beepTarget + item.duration;
+            continue;
+          }
+
           cursorAfter += GAP;
 
           const label =
@@ -7237,6 +7262,29 @@
         const item=items[i];
         if (item.event==='gap') {
           cursor -= item.duration;
+          continue;
+        }
+
+        // BEEP terakhir sebelum ADZAN selalu menjadi tanda 3 menit
+        // sebelum waktu Adzan.
+        const isFinalBeepBeforeAdzan =
+          item.event === 'beep' &&
+          i === adzanIndex - 1;
+
+        if (isFinalBeepBeforeAdzan) {
+          const beepTarget = Number(pSec) - (3 * 60);
+
+          add(
+            item.event.toUpperCase(),
+            beepTarget,
+            item.duration,
+            'Beep - ' + name,
+            item.audioType,
+            item.status
+          );
+
+          // Event sebelumnya tetap dihitung mundur dari posisi BEEP.
+          cursor = beepTarget - GAP;
           continue;
         }
 
