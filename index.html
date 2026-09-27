@@ -5864,73 +5864,13 @@
       // =======================================================
       // MODE ON
       // =======================================================
-      // ON = PLAY + UNMUTE secara normal.
-      // Ketika masuk 5 menit sebelum Qiroah:
-      //   1. YouTube di-MUTE
-      //   2. C1 otomatis berubah ON -> OFF
-      //   3. OFF mempertahankan YouTube tetap MUTE
-      //   4. Operator dapat mengubah C1 kembali ke ON
-      //      untuk UNMUTE manual.
+      // ON = YouTube selalu PLAY + UNMUTE.
+      // Tidak mengikuti mute otomatis Qiroah.
+      // Untuk mute otomatis berdasarkan jadwal, gunakan AUTO.
       // =======================================================
 
       if (mode === 'ON') {
 
-        if (selected) {
-
-          const onMuteKey =
-            String(dateKey) +
-            '|' +
-            String(selected.prayerName || '') +
-            '|' +
-            String(selected.qiroahTargetSec);
-
-          muteYouTubeIframe();
-
-          youtubeAutoMuted =
-            true;
-
-          // Jangan memanggil Apps Script berulang-ulang
-          // setiap detik untuk event Qiroah yang sama.
-          if (
-            youtubeManualOnOverrideKey !==
-            onMuteKey
-          ) {
-
-            youtubeManualOnOverrideKey =
-              onMuteKey;
-
-            gasApiCall(
-              'setYoutubeStatusOff'
-            )
-              .then(function(result) {
-
-                console.log(
-                  'YOUTUBE ON -> OFF:',
-                  '5 menit sebelum Qiroah',
-                  result
-                );
-
-              })
-              .catch(function(error) {
-
-                // Jika bridge gagal, lokal tetap MUTE.
-                // Percobaan berikutnya untuk event yang sama
-                // tidak dilakukan berulang-ulang.
-                console.warn(
-                  'YOUTUBE ON -> OFF gagal:',
-                  error
-                );
-
-              });
-
-          }
-
-          return;
-
-        }
-
-        // Di luar window 5 menit sebelum Qiroah,
-        // ON tetap PLAY + UNMUTE.
         unmuteYouTubeIframe();
 
         youtubeAutoMuted =
@@ -5939,6 +5879,7 @@
         return;
 
       }
+
 
       // =======================================================
       // MODE AUTO
