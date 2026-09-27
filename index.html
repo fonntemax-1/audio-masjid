@@ -6998,26 +6998,85 @@
       const ramadan = isRamadanDisplay();
 
       let sequenceName = name;
-      if (name === 'SUBUH') sequenceName = ramadan ? 'SUBUH_RAMADHAN' : 'SUBUH_BIASA';
-      if (name === 'MAGHRIB') sequenceName = ramadan ? 'MAGHRIB_RAMADHAN' : 'MAGHRIB_BIASA';
-
-      const sheetSequence = Array.isArray(audioScheduleConfig[sequenceName])
-        ? audioScheduleConfig[sequenceName] : [];
-
-      if (!sheetSequence.length) {
-        console.warn('AUDIO SCHEDULE: sequence Sheet kosong:', sequenceName);
-        return {events:events,durations:await getAllAudioDurations()};
+      if (name === 'SUBUH') {
+        sequenceName = ramadan ? 'SUBUH_RAMADHAN' : 'SUBUH_BIASA';
+      }
+      if (name === 'MAGHRIB') {
+        sequenceName = ramadan ? 'MAGHRIB_RAMADHAN' : 'MAGHRIB_BIASA';
       }
 
+      const sheetSequence = Array.isArray(audioScheduleConfig[sequenceName])
+        ? audioScheduleConfig[sequenceName]
+        : [];
+
+      if (!sheetSequence.length) {
+        console.warn(
+          'AUDIO SCHEDULE: sequence Sheet kosong:',
+          sequenceName
+        );
+        return {
+          events: events,
+          durations: await getAllAudioDurations()
+        };
+      }
+
+      // =========================================================
+      // ATURAN TIMELINE AUDIO
+      //
+      // Spreadsheet HANYA mengatur:
+      //   1. urutan event
+      //   2. status ON/OFF
+      //
+      // Spreadsheet TIDAK mengatur durasi dan TIDAK memerlukan
+      // baris GAP. Semua durasi diambil dari audio aktual.
+      //
+      // Jeda sistem:
+      //   - normal antar audio = 3 detik
+      //   - DOA-ADZAN -> BEEP = 5 menit
+      //   - Ramadan Maghrib DOA-BUKA -> BEEP = 5 menit
+      //
+      // OFF hanya mematikan suara. Durasi dan posisi timeline
+      // tetap dihitung agar sequence tidak berubah.
+      // =========================================================
+
       const GAP = 3;
+
+      function getSystemGapSeconds(previousEvent,nextEvent) {
+        const prev = String(previousEvent || '').toLowerCase();
+        const next = String(nextEvent || '').toLowerCase();
+
+        if (
+          prev === 'doa-adzan' &&
+          next === 'beep'
+        ) {
+          return 5 * 60;
+        }
+
+        if (
+          ramadan &&
+          name === 'MAGHRIB' &&
+          prev === 'doa-buka' &&
+          next === 'beep'
+        ) {
+          return 5 * 60;
+        }
+
+        return GAP;
+      }
+
       const items = [];
 
       for (const raw of sheetSequence) {
         const event = String(raw && raw.event || '').trim().toLowerCase();
         if (!event) continue;
 
+        // Format baru tidak memakai GAP di Spreadsheet.
+        // Jika row GAP lama masih tersisa, abaikan agar row tersebut
+        // tidak lagi mengatur timeline.
         if (event === 'gap') {
-          items.push({event:event,duration:GAP,status:'ON',audioType:''});
+          console.warn(
+            'AUDIO SCHEDULE: row GAP diabaikan; GAP sekarang ditentukan sistem.'
+          );
           continue;
         }
 
@@ -7025,47 +7084,116 @@
         if (!audioType) continue;
 
         const duration = await getAudioDuration(audioType);
+
         if (!(duration > 0)) {
-          console.warn('AUDIO SCHEDULE: metadata durasi tidak tersedia:', audioType);
+          console.warn(
+            'AUDIO SCHEDULE: durasi audio tidak tersedia:',
+            audioType
+          );
           continue;
         }
 
         items.push({
-          event:event,
-          duration:duration,
-          status:String(raw.status || 'ON').toUpperCase()==='OFF'?'OFF':'ON',
-          audioType:audioType
+          event: event,
+          duration: duration,
+          status:
+            String(raw.status || 'ON').toUpperCase() === 'OFF'
+              ? 'OFF'
+              : 'ON',
+          audioType: audioType
         });
       }
 
       const adzanIndex = items.findIndex(function(item) {
-        return item.event === 'adzan-subuh' || item.event === 'adzan-biasa' || item.event === 'adzan';
+        return (
+          item.event === 'adzan-subuh' ||
+          item.event === 'adzan-biasa' ||
+          item.event === 'adzan'
+        );
       });
 
       if (adzanIndex < 0) {
-        console.warn('AUDIO SCHEDULE: ADZAN tidak ditemukan:', sequenceName);
-        return {events:events,durations:await getAllAudioDurations()};
+        console.warn(
+          'AUDIO SCHEDULE: ADZAN tidak ditemukan:',
+          sequenceName
+        );
+        return {
+          events: events,
+          durations: await getAllAudioDurations()
+        };
       }
 
-      function add(eventName,target,duration,label,audioType,status) {
-        if (!(duration > 0) || !audioType || !Number.isFinite(target)) return;
+      function add(
+        eventName,
+        target,
+        duration,
+        label,
+        audioType,
+        status
+      ) {
+        if (
+          !(duration > 0) ||
+          !audioType ||
+          !Number.isFinite(target)
+        ) {
+          return;
+        }
+
         events.push({
-          eventName:eventName,
-          targetSec:target,
-          endSec:target+duration,
-          label:label,
-          audioType:audioType,
-          status:String(status || 'ON').toUpperCase()==='OFF'?'OFF':'ON'
+          eventName: eventName,
+          targetSec: target,
+          endSec: target + duration,
+          label: label,
+          audioType: audioType,
+          status:
+            String(status || 'ON').toUpperCase() === 'OFF'
+              ? 'OFF'
+              : 'ON'
         });
       }
 
-      // =========================================================
-      // ANCHOR KHUSUS RAMADAN
-      // SUBUH   : SIRINE tepat 10 menit sebelum Subuh.
-      // MAGHRIB : SIRINE tepat pada waktu Maghrib/berbuka.
-      // Setelah sirine, sequence diteruskan dengan GAP 3 detik.
-      // ADZAN tetap menjadi anchor waktu sholat.
-      // =========================================================
+      function getLabel(item) {
+        if (
+          /^qiroah-\\d+$/.test(item.event) ||
+          item.event === 'qiroah'
+        ) {
+          return 'Qiroah - ' + name;
+        }
+
+        if (item.event === 'tarhim') {
+          return 'Tarhim - ' + name;
+        }
+
+        if (item.event === 'sirine') {
+          return 'Sirine - ' + name;
+        }
+
+        if (item.event === 'doa-puasa') {
+          return 'Doa Puasa - ' + name;
+        }
+
+        if (item.event === 'doa-buka') {
+          return 'Doa Buka - ' + name;
+        }
+
+        if (
+          item.event === 'doa' ||
+          item.event === 'doa-adzan'
+        ) {
+          return 'Doa - ' + name;
+        }
+
+        if (item.event === 'beep') {
+          return 'Beep - ' + name;
+        }
+
+        if (item.event === 'iqomah') {
+          return 'Iqomah - ' + name;
+        }
+
+        return item.event + ' - ' + name;
+      }
+
       const isRamadanAnchored =
         ramadan &&
         (name === 'SUBUH' || name === 'MAGHRIB');
@@ -7074,48 +7202,56 @@
         return item.event === 'sirine';
       });
 
+      // =========================================================
+      // RAMADAN KHUSUS SUBUH / MAGHRIB
+      //
+      // SUBUH:
+      //   WAKTU IMSAK = ADZAN SUBUH - 10 menit.
+      //   SIRINE dimulai tepat pada WAKTU IMSAK.
+      //
+      // MAGHRIB:
+      //   SIRINE dimulai tepat pada waktu Maghrib/berbuka.
+      //   ADZAN dimulai 5 menit kemudian.
+      //
+      // Durasi audio tetap durasi aktual file.
+      // =========================================================
       if (isRamadanAnchored && sirineIndex >= 0) {
         const sirineItem = items[sirineIndex];
 
-        // SUBUH: Imsak = 10 menit sebelum waktu Subuh.
-        // MAGHRIB: berbuka/sirine = tepat waktu Maghrib.
         const sirineTarget =
           name === 'SUBUH'
-            ? Number(pSec) - 600
+            ? Number(pSec) - (10 * 60)
             : Number(pSec);
 
-        // Event sebelum sirine dihitung mundur dari anchor sirine.
+        // -------------------------------------------------------
+        // Audio sebelum SIRINE dihitung mundur dari WAKTU IMSAK
+        // (Subuh) atau WAKTU BERBUKA (Maghrib).
+        // -------------------------------------------------------
         let cursorBefore = sirineTarget;
 
         for (let i = sirineIndex - 1; i >= 0; i--) {
           const item = items[i];
 
-          if (item.event === 'gap') {
-            cursorBefore -= item.duration;
-            continue;
-          }
-
           cursorBefore -= item.duration;
-
-          const label =
-            /^qiroah-\d+$/.test(item.event) || item.event === 'qiroah'
-              ? 'Qiroah - ' + name
-              : item.event === 'tarhim'
-                ? 'Tarhim - ' + name
-                : item.event + ' - ' + name;
 
           add(
             item.event.toUpperCase(),
             cursorBefore,
             item.duration,
-            label,
+            getLabel(item),
             item.audioType,
             item.status
           );
 
-          cursorBefore -= GAP;
+          if (i > 0) {
+            cursorBefore -= getSystemGapSeconds(
+              items[i - 1].event,
+              item.event
+            );
+          }
         }
 
+        // SIRINE selalu tepat pada anchor.
         add(
           'SIRINE',
           sirineTarget,
@@ -7127,61 +7263,30 @@
           sirineItem.status
         );
 
-        // Event sesudah sirine sampai sebelum adzan.
-        // ADZAN tetap dipaksa tepat pada pSec.
-        let cursorAfter = sirineTarget + sirineItem.duration;
+        // -------------------------------------------------------
+        // Audio setelah SIRINE sampai ADZAN.
+        // -------------------------------------------------------
+        let cursorAfter =
+          sirineTarget + sirineItem.duration;
 
-        for (let i = sirineIndex + 1; i < adzanIndex; i++) {
+        for (
+          let i = sirineIndex + 1;
+          i < adzanIndex;
+          i++
+        ) {
           const item = items[i];
+          const previousItem = items[i - 1];
 
-          if (item.event === 'gap') {
-            // KHUSUS MAGHRIB RAMADHAN:
-            // setelah DOA-BUKA, jeda menuju BEEP adalah 5 menit.
-            // GAP 5 menit ditempatkan pada item gap itu sendiri,
-            // sehingga tidak ada tambahan 3 detik sebelum BEEP.
-            const previousEvent =
-              i > sirineIndex
-                ? String(items[i - 1] && items[i - 1].event || '').toLowerCase()
-                : '';
-
-            cursorAfter += (
-              name === 'MAGHRIB' &&
-              previousEvent === 'doa-buka'
-            ) ? (5 * 60) : item.duration;
-
-            continue;
-          }
-
-          // Jeda normal antar-audio tetap 3 detik.
-          // KHUSUS DOA-BUKA -> BEEP pada Maghrib Ramadan,
-          // jedanya sudah ditangani oleh item GAP di atas.
-          const previousItemEvent =
-            i > sirineIndex
-              ? String(items[i - 1] && items[i - 1].event || '').toLowerCase()
-              : '';
-
-          cursorAfter += (
-            name === 'MAGHRIB' &&
-            item.event === 'beep' &&
-            previousItemEvent === 'gap' &&
-            i >= 2 &&
-            String(items[i - 2] && items[i - 2].event || '').toLowerCase() === 'doa-buka'
-          ) ? 0 : GAP;
-
-          const label =
-            item.event === 'doa-puasa'
-              ? 'Doa Puasa - ' + name
-              : item.event === 'doa-buka'
-                ? 'Doa Buka - ' + name
-                : item.event === 'beep'
-                  ? 'Beep - ' + name
-                  : item.event + ' - ' + name;
+          cursorAfter += getSystemGapSeconds(
+            previousItem.event,
+            item.event
+          );
 
           add(
             item.event.toUpperCase(),
             cursorAfter,
             item.duration,
-            label,
+            getLabel(item),
             item.audioType,
             item.status
           );
@@ -7189,23 +7294,28 @@
           cursorAfter += item.duration;
         }
 
-        if (cursorAfter > Number(pSec)) {
-          console.warn(
-            'AUDIO RAMADAN: sequence sebelum ADZAN melewati waktu anchor:',
-            name,
-            'cursor=', cursorAfter,
-            'adzan=', pSec
-          );
-        }
-
+        // Ramadan Maghrib:
+        // waktu Maghrib/berbuka adalah anchor Sirine.
+        // Adzan dimulai 5 menit setelahnya.
         const adzanItem = items[adzanIndex];
 
-        // Ramadan Maghrib: Maghrib astronomis = waktu berbuka/sirine.
-        // Adzan Maghrib dimulai 5 menit kemudian.
         const adzanTarget =
           name === 'MAGHRIB'
-            ? Number(pSec) + 300
+            ? Number(pSec) + (5 * 60)
             : Number(pSec);
+
+        if (
+          cursorAfter > adzanTarget
+        ) {
+          console.warn(
+            'AUDIO RAMADAN: sequence sebelum ADZAN melewati anchor:',
+            name,
+            'cursor=',
+            cursorAfter,
+            'adzan=',
+            adzanTarget
+          );
+        }
 
         add(
           'ADZAN',
@@ -7216,17 +7326,22 @@
           adzanItem.status
         );
 
-        // Setelah adzan tetap berurutan dari Sheet dengan GAP 3 detik.
-        let cursorAfterAdzan = adzanTarget + adzanItem.duration;
+        // -------------------------------------------------------
+        // Setelah ADZAN:
+        // ADZAN -> event berikutnya = 3 detik.
+        // DOA-ADZAN -> BEEP = 5 menit.
+        // SIRINE setelah ADZAN tidak digunakan pada Ramadan.
+        // -------------------------------------------------------
+        let cursorAfterAdzan =
+          adzanTarget + adzanItem.duration;
 
-        for (let i = adzanIndex + 1; i < items.length; i++) {
+        for (
+          let i = adzanIndex + 1;
+          i < items.length;
+          i++
+        ) {
           const item = items[i];
 
-          // Pada mode Ramadan, SIRINE adalah anchor khusus:
-          // SUBUH = Imsak (10 menit sebelum Subuh)
-          // MAGHRIB = waktu berbuka.
-          // Jangan membuat SIRINE kedua setelah Adzan/Iqomah,
-          // walaupun data bridge/Sheet pernah mengirim duplikat.
           if (ramadan && item.event === 'sirine') {
             console.log(
               'AUDIO RAMADAN: SIRINE setelah ADZAN diabaikan:',
@@ -7235,33 +7350,18 @@
             continue;
           }
 
-          if (item.event === 'gap') {
-            cursorAfterAdzan += item.duration;
-            continue;
-          }
+          const previousItem = items[i - 1];
 
-          // Setelah DOA-ADZAN, jeda menuju BEEP = 5 menit.
-          // Jeda lainnya tetap 3 detik.
-          cursorAfterAdzan += (
-            item.event === 'beep' &&
-            i > adzanIndex + 1 &&
-            String(items[i - 1] && items[i - 1].event || '').toLowerCase() === 'doa-adzan'
-          ) ? (5 * 60) : GAP;
-
-          const label =
-            item.event === 'doa' || item.event === 'doa-adzan'
-              ? 'Doa - ' + name
-              : item.event === 'beep'
-                ? 'Beep - ' + name
-                : item.event === 'iqomah'
-                  ? 'Iqomah - ' + name
-                  : item.event + ' - ' + name;
+          cursorAfterAdzan += getSystemGapSeconds(
+            previousItem.event,
+            item.event
+          );
 
           add(
             item.event.toUpperCase(),
             cursorAfterAdzan,
             item.duration,
-            label,
+            getLabel(item),
             item.audioType,
             item.status
           );
@@ -7269,11 +7369,17 @@
           cursorAfterAdzan += item.duration;
         }
 
-        events.sort(function(a,b){ return a.targetSec-b.targetSec; });
+        events.sort(function(a,b) {
+          return a.targetSec - b.targetSec;
+        });
 
         const durations = {};
+
         items.forEach(function(item) {
-          if (item.audioType && durations[item.audioType] === undefined) {
+          if (
+            item.audioType &&
+            durations[item.audioType] === undefined
+          ) {
             durations[item.audioType] = item.duration;
           }
         });
@@ -7291,85 +7397,81 @@
         };
       }
 
-      // Semua event sebelum ADZAN dihitung mundur dari waktu adzan.
-      // Setiap audio selesai -> GAP 3 detik -> audio berikutnya.
+      // =========================================================
+      // SHOLAT BIASA
+      //
+      // Berlaku untuk:
+      //   SUBUH BIASA
+      //   MAGHRIB BIASA
+      //   DZUHUR
+      //   ASHAR
+      //   ISYA
+      //
+      // ADZAN adalah anchor absolut.
+      // Semua event sebelum Adzan dihitung mundur.
+      // Semua event setelah Adzan dihitung maju.
+      // Tidak ada GAP dari Spreadsheet.
+      // =========================================================
+
       let cursor = Number(pSec);
 
-      for (let i=adzanIndex-1;i>=0;i--) {
-        const item=items[i];
-        if (item.event==='gap') {
-          cursor -= item.duration;
-          continue;
-        }
+      // Sebelum ADZAN: hitung mundur.
+      for (let i = adzanIndex - 1; i >= 0; i--) {
+        const item = items[i];
 
         cursor -= item.duration;
-
-        const label =
-          /^qiroah-\d+$/.test(item.event) || item.event==='qiroah'
-            ? 'Qiroah - '+name
-            : item.event==='tarhim'
-              ? 'Tarhim - '+name
-              : item.event==='sirine'
-                ? 'Sirine - '+name
-                : item.event+' - '+name;
 
         add(
           item.event.toUpperCase(),
           cursor,
           item.duration,
-          label,
+          getLabel(item),
           item.audioType,
           item.status
         );
 
-        // GAP default 3 detik antara dua audio.
-        cursor -= GAP;
+        if (i > 0) {
+          cursor -= getSystemGapSeconds(
+            items[i - 1].event,
+            item.event
+          );
+        }
       }
 
+      const adzanItem = items[adzanIndex];
+
       // ADZAN tepat pada waktu sholat.
-      const adzanItem=items[adzanIndex];
       add(
         'ADZAN',
         Number(pSec),
         adzanItem.duration,
-        'Adzan - '+name,
+        'Adzan - ' + name,
         adzanItem.audioType,
         adzanItem.status
       );
 
-      // Event setelah ADZAN maju berurutan dengan GAP 3 detik.
-      cursor = Number(pSec) + adzanItem.duration;
+      // Setelah ADZAN: hitung maju.
+      cursor =
+        Number(pSec) + adzanItem.duration;
 
-      for (let i=adzanIndex+1;i<items.length;i++) {
-        const item=items[i];
+      for (
+        let i = adzanIndex + 1;
+        i < items.length;
+        i++
+      ) {
+        const item = items[i];
+        const previousItem = items[i - 1];
 
-        if (item.event==='gap') {
-          cursor += item.duration;
-          continue;
-        }
-
-        // Setelah DOA-ADZAN, jeda menuju BEEP = 5 menit.
-        // Jeda lainnya tetap 3 detik.
-        cursor += (
-          item.event === 'beep' &&
-          i > adzanIndex + 1 &&
-          String(items[i - 1] && items[i - 1].event || '').toLowerCase() === 'doa-adzan'
-        ) ? (5 * 60) : GAP;
-
-        const label =
-          item.event==='doa' || item.event==='doa-adzan'
-            ? 'Doa - '+name
-            : item.event==='beep'
-              ? 'Beep - '+name
-              : item.event==='iqomah'
-                ? 'Iqomah - '+name
-                : item.event+' - '+name;
+        cursor += getSystemGapSeconds(
+          previousItem.event,
+          item.event
+        );
 
         add(
           item.event.toUpperCase(),
           cursor,
           item.duration,
-          label,
+          getLabel(item),
           item.audioType,
           item.status
         );
@@ -7377,29 +7479,33 @@
         cursor += item.duration;
       }
 
-      // Ramadan Maghrib: waktu Maghrib = berbuka + sirine.
-      // Adzan dimulai tepat 5 menit setelah waktu Maghrib.
-      // Durasi audio tetap memakai metadata file aktual dan GAP default 3 detik.
-      if (name==='MAGHRIB' && ramadan) {
-        const sirineEvent=events.find(function(e){return e.eventName==='SIRINE';});
-        if (sirineEvent) {
-          console.log('RAMADAN MAGHRIB: WAKTU BERBUKA/SIRINE =',pSec);
+      events.sort(function(a,b) {
+        return a.targetSec - b.targetSec;
+      });
+
+      const durations = {};
+
+      items.forEach(function(item) {
+        if (
+          item.audioType &&
+          durations[item.audioType] === undefined
+        ) {
+          durations[item.audioType] = item.duration;
         }
-      }
+      });
 
-      events.sort(function(a,b){return a.targetSec-b.targetSec;});
+      console.log(
+        '=== AUDIO SCHEDULE FINAL:',
+        sequenceName,
+        '===',
+        events
+      );
 
-      const durations={};
-      for (const item of items) {
-        if (item.audioType && durations[item.audioType]===undefined) {
-          durations[item.audioType]=item.duration;
-        }
-      }
-
-      console.log('=== AUDIO SCHEDULE FINAL:',sequenceName,'===',events);
-      return {events:events,durations:durations};
+      return {
+        events: events,
+        durations: durations
+      };
     }
-
 
     // =========================================================
     // AUDIO KHUSUS JUM'AT - QIROAH DINAMIS DARI SHEET
