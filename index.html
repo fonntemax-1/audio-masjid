@@ -290,21 +290,23 @@
       background: #211800 !important;
     }
 
-    /* Ikon SUBUH normal mengikuti warna jam/waktu pada kartu. */
-    .prayer-card[data-prayer="SUBUH"] .prayer-icon img {
-      filter: brightness(0) saturate(100%) invert(78%) sepia(96%) saturate(1200%) hue-rotate(2deg) brightness(104%) contrast(104%);
+    /* Ikon SUBUH dan ASHAR mengikuti warna asli PNG,
+       sama seperti ikon DZUHUR. */
+    .prayer-card[data-prayer="SUBUH"] .prayer-icon img,
+    .prayer-card[data-prayer="ASHAR"] .prayer-icon img {
+      filter: none;
     }
 
     /* Saat kartu SUBUH dipakai sebagai tampilan IMSAK pada Ramadan,
-       ikon kembali ke warna asli PNG. */
+       ikon tetap menggunakan warna asli PNG. */
     .prayer-card.ramadan-imsak[data-prayer="SUBUH"] .prayer-icon img {
       filter: none;
     }
 
     /* Kartu kedua menampilkan SUBUH pada Ramadan.
-       Ikonnya mengikuti warna waktu SUBUH: kuning. */
+       Ikonnya juga mengikuti warna asli PNG seperti DZUHUR. */
     .prayer-card.ramadan-subuh-display .prayer-icon img {
-      filter: brightness(0) saturate(100%) invert(78%) sepia(96%) saturate(1200%) hue-rotate(2deg) brightness(104%) contrast(104%);
+      filter: none;
     }
 
     /* Semua ikon sholat lainnya menggunakan warna asli PNG. */
