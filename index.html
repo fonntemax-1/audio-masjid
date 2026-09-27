@@ -5416,27 +5416,26 @@
     //   C1 = AUTO / ON / OFF / STOP
     //
     // ON:
-    //   - YouTube PLAY + UNMUTE
-    //   - 5 menit sebelum Qiroah -> MUTE
-    //   - sistem mengubah C1 ON -> OFF
-    //   - OFF kemudian menjadi MUTE sampai operator mengubah C1
-    //     kembali ke ON untuk UNMUTE manual.
+    //   - YouTube PLAY + UNMUTE terus.
+    //   - Tidak mengikuti jadwal Qiroah.
     //
     // OFF:
-    //   - YouTube tetap PLAY tetapi MUTE.
+    //   - YouTube PLAY tetapi MUTE terus.
     //
     // AUTO:
-    //   - MUTE 5 menit sebelum Qiroah
-    //   - tetap MUTE sampai 30 menit setelah IQOMAH selesai
-    //   - setelah itu UNMUTE otomatis.
+    //   - MUTE mulai 5 menit sebelum Qiroah.
+    //   - Tetap MUTE selama Qiroah sampai IQOMAH selesai.
+    //   - Tetap MUTE 30 menit setelah IQOMAH selesai.
+    //   - Setelah 30 menit tersebut, YouTube PLAY + UNMUTE otomatis.
     //
     // STOP:
-    //   - YouTube benar-benar STOP.
+    //   - YouTube benar-benar STOP / iframe dilepas.
     //
-    // 5 menit = 300 detik, aturan tetap sistem.
+    // 5 menit = 300 detik. AUTO kembali ON 30 menit setelah IQOMAH selesai.
     // =========================================================
 
     const YOUTUBE_AUTO_STOP_BEFORE_AUDIO = 5 * 60;
+    const YOUTUBE_AUTO_ON_AFTER_IQOMAH = 30 * 60;
 
     let youtubeControlMode = 'AUTO';
     let youtubeAutoMuted = false;
@@ -5822,7 +5821,7 @@
 
         const muteUntilSec =
           iqomahEndSec +
-          (30 * 60);
+          YOUTUBE_AUTO_ON_AFTER_IQOMAH;
 
         if (
           nowSeconds >= targetSec &&
