@@ -1064,12 +1064,12 @@ function parseAdzanSheetV7(data) {
   // Struktur:
   // E:F  SUBUH RAMADHAN
   // H:I  SUBUH BIASA
-  // K:L  DZUHUR
-  // N:O  ASHAR
-  // Q:R  MAGRIB RAMADHAN
-  // T:U  MAGRIB BIASA
-  // W:X  ISYA
-  // Z:AA JUM'AT
+  // J:K  DZUHUR
+  // M:N  ASHAR
+  // P:Q  MAGRIB RAMADHAN
+  // S:T  MAGRIB BIASA
+  // V:W  ISYA
+  // Y:Z  JUM'AT
   //
   // Durasi TIDAK dibaca dari Sheet sequence.
   // Frontend membaca durasi asli file melalui HTMLAudioElement.metadata.
@@ -1183,7 +1183,7 @@ function processAdzanScheduleSheet(sheet, resultObj) {
       else if (type === 'adzan-subuh') type = 'adzanSubuh';
       else if (type === 'adzan-biasa' || type === 'adzan') type = 'adzanBiasa';
       else if (type === 'tarhim') {
-        type = prayerName === 'SUBUH' ? 'tarhimSubuh' : 'tarhimBiasa';
+        type = /^SUBUH/.test(prayerName) ? 'tarhimSubuh' : 'tarhimBiasa';
       }
 
       if (genericDurations[type] === undefined) {
@@ -3195,7 +3195,7 @@ function DIAGNOSTIK_RAW_AUDIO_SHEET() {
   const sheet = ss.getSheetByName('Adzan');
 
   Logger.log('======================================');
-  Logger.log('DIAGNOSTIK RAW SHEET ADZAN');
+  Logger.log('DIAGNOSTIK RAW SHEET ADZAN - FORMAT FINAL');
   Logger.log('======================================');
 
   if (!sheet) {
@@ -3204,83 +3204,50 @@ function DIAGNOSTIK_RAW_AUDIO_SHEET() {
   }
 
   const lastRow = Math.max(sheet.getLastRow(), 1);
-  const lastColumn = Math.max(sheet.getLastColumn(), 1);
-
-  Logger.log('Spreadsheet ID = ' + ss.getId());
-  Logger.log('Spreadsheet Name = ' + ss.getName());
-  Logger.log('Sheet = ' + sheet.getName());
-  Logger.log('Last Row = ' + lastRow);
-  Logger.log('Last Column = ' + lastColumn);
-
-  // Baca seluruh sheet sebagai nilai tampilan agar isi yang terlihat
-  // di Spreadsheet dapat dibandingkan langsung dengan parser.
+  const lastColumn = Math.max(sheet.getLastColumn(), 26);
   const values = sheet
-    .getRange(1, 1, lastRow, Math.max(lastColumn, 27))
+    .getRange(1, 1, lastRow, lastColumn)
     .getDisplayValues();
 
-  const cols = {
-    D: 3, E: 4, F: 5, G: 6,
-    I: 8, J: 9, K: 10,
-    M: 12, N: 13, O: 14,
-    Q: 16, R: 17, S: 18,
-    U: 20, V: 21, W: 22,
-    Y: 24, Z: 25, AA: 26
-  };
+  const blocks = [
+    ['E:F SUBUH RAMADHAN', 4, 5],
+    ['H:I SUBUH BIASA', 7, 8],
+    ['J:K DZUHUR', 9, 10],
+    ['M:N ASHAR', 12, 13],
+    ['P:Q MAGRIB RAMADHAN', 15, 16],
+    ['S:T MAGRIB BIASA', 18, 19],
+    ['V:W ISYA', 21, 22],
+    ["Y:Z JUM'AT", 24, 25]
+  ];
 
-  function showColumn(label, index) {
-    Logger.log('--- BLOK ' + label + ' ---');
+  blocks.forEach(function(block) {
+    Logger.log('--- ' + block[0] + ' ---');
     for (let r = 0; r < values.length; r++) {
-      const value = values[r][index] == null ? '' : String(values[r][index]).trim();
-      if (value !== '') {
-        Logger.log('ROW ' + (r + 1) + ' | ' + label + ' = [' + value + ']');
+      const event = String(values[r][block[1]] == null ? '' : values[r][block[1]]).trim();
+      const status = String(values[r][block[2]] == null ? '' : values[r][block[2]]).trim();
+      if (event || status) {
+        Logger.log(
+          'ROW ' + (r + 1) +
+          ' | EVENT=[' + event + ']' +
+          ' | STATUS=[' + status + ']'
+        );
       }
     }
-  }
-
-  showColumn('D NO', cols.D);
-  showColumn('E EVENT SUBUH', cols.E);
-  showColumn('F DETIK SUBUH', cols.F);
-  showColumn('G STATUS SUBUH', cols.G);
-
-  showColumn('I EVENT DZUHUR', cols.I);
-  showColumn('J DETIK DZUHUR', cols.J);
-  showColumn('K STATUS DZUHUR', cols.K);
-
-  showColumn('M EVENT ASHAR', cols.M);
-  showColumn('N DETIK ASHAR', cols.N);
-  showColumn('O STATUS ASHAR', cols.O);
-
-  showColumn('Q EVENT MAGHRIB', cols.Q);
-  showColumn('R DETIK MAGHRIB', cols.R);
-  showColumn('S STATUS MAGHRIB', cols.S);
-
-  showColumn('U EVENT ISYA', cols.U);
-  showColumn('V DETIK ISYA', cols.V);
-  showColumn('W STATUS ISYA', cols.W);
-
-  showColumn('Y EVENT JUMAT', cols.Y);
-  showColumn('Z DETIK JUMAT', cols.Z);
-  showColumn('AA STATUS JUMAT', cols.AA);
-
-  // Tampilkan hasil parser saat ini juga, sehingga raw Sheet dapat
-  // langsung dibandingkan dengan hasil AudioSchedule.
-  Logger.log('======================================');
-  Logger.log('HASIL PARSER SAAT INI');
-  Logger.log('======================================');
+  });
 
   const rawData = sheet
-    .getRange(1, 1, lastRow, 27)
+    .getRange(1, 1, lastRow, Math.max(lastColumn, 26))
     .getValues();
 
   const parsed = parseAdzanSheetV7(rawData);
 
-  Logger.log('PARSED SUBUH = ' + JSON.stringify(parsed.schedule.SUBUH));
-  Logger.log('PARSED DZUHUR = ' + JSON.stringify(parsed.schedule.DZUHUR));
-  Logger.log('PARSED ASHAR = ' + JSON.stringify(parsed.schedule.ASHAR));
-  Logger.log('PARSED MAGHRIB = ' + JSON.stringify(parsed.schedule.MAGHRIB));
-  Logger.log('PARSED ISYA = ' + JSON.stringify(parsed.schedule.ISYA));
-  Logger.log("PARSED JUM'AT = " + JSON.stringify(parsed.friday));
-
+  Logger.log('======================================');
+  Logger.log('HASIL PARSER FORMAT FINAL');
+  Logger.log('======================================');
+  Object.keys(parsed.schedule).forEach(function(name) {
+    Logger.log(name + ' = ' + JSON.stringify(parsed.schedule[name]));
+  });
+  Logger.log("JUM'AT = " + JSON.stringify(parsed.friday));
   Logger.log('======================================');
   Logger.log('DIAGNOSTIK SELESAI');
   Logger.log('======================================');
@@ -3295,7 +3262,6 @@ function DIAGNOSTIK_RAW_AUDIO_SHEET() {
     parsed: parsed
   };
 }
-
 
 // ============================================================
 // TEST AUDIO SHEET - VERIFIKASI MAPPING PER SHOLAT
@@ -3313,10 +3279,12 @@ function TEST_AUDIO_SHEET_CONFIG() {
   }
 
   const names = [
-    'SUBUH',
+    'SUBUH_RAMADHAN',
+    'SUBUH_BIASA',
     'DZUHUR',
     'ASHAR',
-    'MAGHRIB',
+    'MAGHRIB_RAMADHAN',
+    'MAGHRIB_BIASA',
     'ISYA'
   ];
 
