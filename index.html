@@ -1891,6 +1891,9 @@
         'tarhim',
         'sirine',
         'doa',
+        'doa-adzan',
+        'doa-puasa',
+        'doa-buka',
         'iqomah'
       ];
 
@@ -1954,7 +1957,7 @@
         console.log('=== AUDIO CONFIG DARI SHEET ADZAN ===');
 
         ['qiroah-1','qiroah-2','qiroah-3','qiroah-4','qiroah-5',
-         'beep','adzan-subuh','adzan-biasa','tarhim','sirine','doa','iqomah']
+         'beep','adzan-subuh','adzan-biasa','tarhim','sirine','doa','doa-adzan','doa-puasa','doa-buka','iqomah']
           .forEach(function(key) {
             console.log(key + ':', audioConfig[key] || '(kosong)');
           });
@@ -7049,8 +7052,8 @@
       }
 
       // Ramadan Maghrib: waktu Maghrib = berbuka + sirine.
-      // Adzan tetap mengikuti urutan Sheet; bila urutan tidak tepat +5 menit,
-      // log akan memperlihatkan waktu aktual berdasarkan durasi file + GAP.
+      // Adzan dimulai tepat 5 menit setelah waktu Maghrib.
+      // Durasi audio tetap memakai metadata file aktual dan GAP default 3 detik.
       if (name==='MAGHRIB' && ramadan) {
         const sirineEvent=events.find(function(e){return e.eventName==='SIRINE';});
         if (sirineEvent) {
