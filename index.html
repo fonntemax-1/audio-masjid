@@ -295,6 +295,18 @@
       filter: brightness(0) saturate(100%) invert(78%) sepia(96%) saturate(1200%) hue-rotate(2deg) brightness(104%) contrast(104%);
     }
 
+    /* Saat kartu SUBUH dipakai sebagai tampilan IMSAK pada Ramadan,
+       ikon kembali ke warna asli PNG. */
+    .prayer-card.ramadan-imsak[data-prayer="SUBUH"] .prayer-icon img {
+      filter: none;
+    }
+
+    /* Kartu kedua menampilkan SUBUH pada Ramadan.
+       Ikonnya mengikuti warna waktu SUBUH: kuning. */
+    .prayer-card.ramadan-subuh-display .prayer-icon img {
+      filter: brightness(0) saturate(100%) invert(78%) sepia(96%) saturate(1200%) hue-rotate(2deg) brightness(104%) contrast(104%);
+    }
+
     /* Semua ikon sholat lainnya menggunakan warna asli PNG. */
     .prayer-card .prayer-icon img {
       filter: none;
@@ -7931,6 +7943,18 @@
 
       const subuhCard = subuhElement.closest('.prayer-card');
       const subuhIcon = subuhCard?.querySelector('.prayer-icon img');
+
+      const terbitCard = terbitElement.closest('.prayer-card');
+      const terbitIcon = terbitCard?.querySelector('.prayer-icon img');
+
+      if (subuhCard) {
+        subuhCard.classList.remove('ramadan-imsak');
+      }
+
+      if (terbitCard) {
+        terbitCard.classList.remove('ramadan-subuh-display');
+      }
+
       if (subuhIcon) {
         subuhIcon.src = "https://cdn-icons-png.flaticon.com/512/1113/1113739.png";
         subuhIcon.alt = 'Imsak';
@@ -7951,6 +7975,11 @@
         if (subuhIcon) {
           subuhIcon.src = "https://cdn-icons-png.flaticon.com/512/4814/4814275.png";
           subuhIcon.alt = 'Subuh';
+        }
+
+        if (terbitIcon) {
+          terbitIcon.src = "https://cdn-icons-png.flaticon.com/512/615/615594.png";
+          terbitIcon.alt = 'Terbit';
         }
 
         if (firstName) {
@@ -7982,6 +8011,19 @@
 
       // Hanya tampilan visual yang berubah.
       // data-prayer tetap SUBUH dan TERBIT agar audio/scheduler tidak berubah.
+      if (subuhCard) {
+        subuhCard.classList.add('ramadan-imsak');
+      }
+
+      if (terbitCard) {
+        terbitCard.classList.add('ramadan-subuh-display');
+      }
+
+      if (terbitIcon) {
+        terbitIcon.src = "https://cdn-icons-png.flaticon.com/512/4814/4814275.png";
+        terbitIcon.alt = 'Subuh';
+      }
+
       if (firstName) {
         firstName.innerText = 'IMSAK';
       }
