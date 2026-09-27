@@ -17,9 +17,19 @@ function doGet(e) {
     return handleGithubApiRequest_(params);
   }
 
-  // Akses /exec biasa tetap membuka halaman Apps Script lama.
-  return HtmlService
-    .createHtmlOutputFromFile('Index');
+  // =====================================================
+  // GITHUB PAGES ONLY
+  // =====================================================
+  // Code.gs tidak lagi menyajikan Index.html.
+  // Tampilan/signage dijalankan dari GitHub Pages.
+  //
+  // Request tanpa parameter API hanya mengembalikan
+  // respons informasi dan TIDAK menjalankan UI Apps Script.
+  // Jalur API di atas tetap dipertahankan.
+  // =====================================================
+  return ContentService
+    .createTextOutput('Digital Signage API - GitHub Pages')
+    .setMimeType(ContentService.MimeType.TEXT);
 }
 
 
