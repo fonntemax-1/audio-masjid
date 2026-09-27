@@ -2299,7 +2299,7 @@
     function playSingleAudio(url, label, stopAtSeconds, status, audioType, startAtSeconds) {
 
       return new Promise(
-        function(resolve) {
+        async function(resolve) {
 
           const audio =
             getAudioElement();
@@ -2504,54 +2504,112 @@
               String(status || 'ON').toUpperCase() === 'OFF';
             audio.src = source;
             audio.preload = 'auto';
-            audio.load();
 
-            // Browser TV tertentu belum mengetahui durasi file tepat setelah
-            // audio.load(). Karena itu CATCH-UP harus diulang setelah metadata
-            // tersedia. Tanpa ini, audio yang dimulai setelah target (termasuk
-            // DOA) dapat tetap mulai dari posisi 0 atau gagal seek secara diam-diam.
-            if (catchUpElapsed > 0) {
-              const applyCatchUpPosition = function() {
-                try {
-                  const mediaDuration = Number(audio.duration);
+            // CATCH-UP GLOBAL:
+            // targetSec = posisi 0 dari event.
+            // now - targetSec = posisi aktual yang harus dimainkan.
+            // Jangan memulai file dari 0 ketika event sudah berjalan.
+            //
+            // Metadata harus tersedia SEBELUM audio.play(), karena pada
+            // sebagian TV/browser seek yang dilakukan setelah play() dapat
+            // kalah balapan dengan audio.load() dan suara terdengar dari 0.
+            const applyCatchUpPosition = function() {
+              if (!(catchUpElapsed > 0)) return;
 
-                  if (
-                    Number.isFinite(mediaDuration) &&
-                    mediaDuration > 0
-                  ) {
-                    audio.currentTime =
-                      catchUpElapsed % mediaDuration;
-                  } else {
-                    audio.currentTime = catchUpElapsed;
-                  }
+              try {
+                const mediaDuration = Number(audio.duration);
 
-                  console.log(
-                    'AUDIO CATCH-UP POSITION:',
-                    label,
-                    'elapsedSec=', catchUpElapsed,
-                    'currentTime=', audio.currentTime
-                  );
-                } catch (seekError) {
-                  console.warn(
-                    'AUDIO CATCH-UP SEEK GAGAL:',
-                    label,
-                    seekError
-                  );
+                if (
+                  Number.isFinite(mediaDuration) &&
+                  mediaDuration > 0
+                ) {
+                  audio.currentTime =
+                    catchUpElapsed % mediaDuration;
+                } else {
+                  audio.currentTime = catchUpElapsed;
                 }
-              };
 
-              if (
-                Number.isFinite(Number(audio.duration)) &&
-                Number(audio.duration) > 0
-              ) {
-                applyCatchUpPosition();
-              } else {
-                audio.addEventListener(
-                  'loadedmetadata',
-                  applyCatchUpPosition,
-                  { once: true }
+                console.log(
+                  'AUDIO CATCH-UP POSITION:',
+                  label,
+                  'elapsedSec=', catchUpElapsed,
+                  'currentTime=', audio.currentTime,
+                  'targetSec=', startAtSeconds
+                );
+              } catch (seekError) {
+                console.warn(
+                  'AUDIO CATCH-UP SEEK GAGAL:',
+                  label,
+                  seekError
                 );
               }
+            };
+
+            let metadataReady = false;
+
+            const waitForMetadata = function() {
+              return new Promise(function(resolveMetadata) {
+                if (
+                  Number.isFinite(Number(audio.duration)) &&
+                  Number(audio.duration) > 0
+                ) {
+                  metadataReady = true;
+                  resolveMetadata();
+                  return;
+                }
+
+                let settled = false;
+
+                const finishMetadataWait = function() {
+                  if (settled) return;
+                  settled = true;
+                  metadataReady = true;
+                  audio.removeEventListener(
+                    'loadedmetadata',
+                    finishMetadataWait
+                  );
+                  audio.removeEventListener(
+                    'error',
+                    finishMetadataError
+                  );
+                  resolveMetadata();
+                };
+
+                const finishMetadataError = function() {
+                  if (settled) return;
+                  settled = true;
+                  audio.removeEventListener(
+                    'loadedmetadata',
+                    finishMetadataWait
+                  );
+                  audio.removeEventListener(
+                    'error',
+                    finishMetadataError
+                  );
+                  resolveMetadata();
+                };
+
+                audio.addEventListener(
+                  'loadedmetadata',
+                  finishMetadataWait,
+                  { once: true }
+                );
+
+                audio.addEventListener(
+                  'error',
+                  finishMetadataError,
+                  { once: true }
+                );
+
+                audio.load();
+              });
+            };
+
+            audio.load();
+
+            if (catchUpElapsed > 0) {
+              await waitForMetadata();
+              applyCatchUpPosition();
             }
 
           } catch (error) {
@@ -3012,15 +3070,24 @@
           nowSeconds <= item.endSec
         ) {
 
+          const catchUpElapsedSec =
+            Math.max(
+              0,
+              Number(nowSeconds) - Number(item.targetSec)
+            );
+
           console.log(
-            'AUDIO CATCH-UP:',
-            item.label,
+            'AUDIO CATCH-UP GLOBAL:',
+            item.prayerName || '-',
+            item.eventName || item.label || '-',
             'targetSec=',
             item.targetSec,
             'endSec=',
             item.endSec,
             'nowSec=',
-            nowSeconds
+            nowSeconds,
+            'startPositionSec=',
+            catchUpElapsedSec
           );
 
         }
@@ -7083,6 +7150,19 @@
 
         for (let i = adzanIndex + 1; i < items.length; i++) {
           const item = items[i];
+
+          // Pada mode Ramadan, SIRINE adalah anchor khusus:
+          // SUBUH = Imsak (10 menit sebelum Subuh)
+          // MAGHRIB = waktu berbuka.
+          // Jangan membuat SIRINE kedua setelah Adzan/Iqomah,
+          // walaupun data bridge/Sheet pernah mengirim duplikat.
+          if (ramadan && item.event === 'sirine') {
+            console.log(
+              'AUDIO RAMADAN: SIRINE setelah ADZAN diabaikan:',
+              name
+            );
+            continue;
+          }
 
           if (item.event === 'gap') {
             cursorAfterAdzan += item.duration;
