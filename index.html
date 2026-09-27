@@ -7135,19 +7135,38 @@
           const item = items[i];
 
           if (item.event === 'gap') {
-            cursorAfter += item.duration;
+            // KHUSUS MAGHRIB RAMADHAN:
+            // setelah DOA-BUKA, jeda menuju BEEP adalah 5 menit.
+            // GAP 5 menit ditempatkan pada item gap itu sendiri,
+            // sehingga tidak ada tambahan 3 detik sebelum BEEP.
+            const previousEvent =
+              i > sirineIndex
+                ? String(items[i - 1] && items[i - 1].event || '').toLowerCase()
+                : '';
+
+            cursorAfter += (
+              name === 'MAGHRIB' &&
+              previousEvent === 'doa-buka'
+            ) ? (5 * 60) : item.duration;
+
             continue;
           }
 
-          // Pada Ramadan Maghrib, BEEP sebelum ADZAN menjadi
-          // penanda persiapan dan diberi jeda 5 menit menuju ADZAN.
-          // Jeda lainnya tetap 3 detik.
+          // Jeda normal antar-audio tetap 3 detik.
+          // KHUSUS DOA-BUKA -> BEEP pada Maghrib Ramadan,
+          // jedanya sudah ditangani oleh item GAP di atas.
+          const previousItemEvent =
+            i > sirineIndex
+              ? String(items[i - 1] && items[i - 1].event || '').toLowerCase()
+              : '';
+
           cursorAfter += (
             name === 'MAGHRIB' &&
             item.event === 'beep' &&
-            i > sirineIndex &&
-            i === adzanIndex - 1
-          ) ? (5 * 60) : GAP;
+            previousItemEvent === 'gap' &&
+            i >= 2 &&
+            String(items[i - 2] && items[i - 2].event || '').toLowerCase() === 'doa-buka'
+          ) ? 0 : GAP;
 
           const label =
             item.event === 'doa-puasa'
