@@ -5961,6 +5961,123 @@
     }
 
 
+    // =========================================================
+    // YOUTUBE AUTO - AUDIO SEDANG BERLANGSUNG
+    //
+    // Saat halaman baru dibuka di tengah rangkaian audio,
+    // AUTO harus langsung MUTE. Pemeriksaan ini tidak mengubah
+    // scheduler audio; hanya membaca computedSchedules.
+    // =========================================================
+    function getYouTubeCurrentAudioEvent(nowSeconds) {
+
+      const schedules =
+        WEB_APP_STATE &&
+        WEB_APP_STATE.audio
+          ? WEB_APP_STATE.audio.computedSchedules
+          : null;
+
+      if (
+        !schedules ||
+        typeof schedules.forEach !== 'function'
+      ) {
+        return null;
+      }
+
+      const allowedAudioEvents = {
+        'qiroah-1': true,
+        'qiroah-2': true,
+        'qiroah-3': true,
+        'qiroah-4': true,
+        'qiroah-5': true,
+        'tarhim': true,
+        'sirine': true,
+        'beep': true,
+        'adzan-subuh': true,
+        'adzan-biasa': true,
+        'doa': true,
+        'doa-adzan': true,
+        'doa-puasa': true,
+        'doa-buka': true,
+        'iqomah': true
+      };
+
+      let selected = null;
+
+      schedules.forEach(function(schedule, prayerName) {
+
+        if (
+          !schedule ||
+          !Array.isArray(schedule.events)
+        ) {
+          return;
+        }
+
+        schedule.events.forEach(function(event) {
+
+          const eventName =
+            String(
+              event && event.eventName
+                ? event.eventName
+                : ''
+            )
+              .trim()
+              .toLowerCase();
+
+          if (!allowedAudioEvents[eventName]) {
+            return;
+          }
+
+          const startSec =
+            Number(event.targetSec);
+
+          const endSec =
+            Number(event.endSec);
+
+          if (
+            !Number.isFinite(startSec) ||
+            !Number.isFinite(endSec) ||
+            endSec <= startSec
+          ) {
+            return;
+          }
+
+          if (
+            nowSeconds >= startSec &&
+            nowSeconds < endSec
+          ) {
+
+            const distance =
+              Math.abs(
+                nowSeconds - startSec
+              );
+
+            if (
+              !selected ||
+              distance < selected.distance
+            ) {
+
+              selected = {
+                prayerName: prayerName,
+                event: event,
+                eventName: eventName,
+                startSec: startSec,
+                endSec: endSec,
+                distance: distance
+              };
+
+            }
+
+          }
+
+        });
+
+      });
+
+      return selected;
+
+    }
+
+
     function updateYouTubeAudioStop(
       nowSeconds,
       dateKey
@@ -6056,6 +6173,37 @@
         // Penting:
         // AUTO tidak pernah memanggil STOP.
         // YouTube tetap berjalan; hanya suaranya yang di-MUTE.
+
+        // Jika halaman dibuka/refresh ketika audio sedang berjalan,
+        // langsung MUTE tanpa menunggu Qiroah berikutnya.
+        // Berlaku untuk Qiroah, Tarhim, Sirine, Beep, Adzan,
+        // Doa, dan Iqomah.
+        const currentAudio =
+          getYouTubeCurrentAudioEvent(now);
+
+        if (currentAudio) {
+
+          const currentAudioKey =
+            String(dateKey) +
+            '|AUDIO|' +
+            String(currentAudio.prayerName || '') +
+            '|' +
+            String(currentAudio.eventName || '') +
+            '|' +
+            String(currentAudio.startSec);
+
+          youtubeAutoMuted = true;
+          youtubeAutoMuteKey = currentAudioKey;
+          youtubeAutoMutePrayer =
+            String(currentAudio.prayerName || '');
+          youtubeAutoMuteQiroahTargetSec =
+            null;
+
+          muteYouTubeIframe();
+
+          return;
+
+        }
 
         if (selected) {
 
