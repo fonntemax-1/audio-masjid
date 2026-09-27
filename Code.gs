@@ -161,7 +161,10 @@ function getDataFromSheet() {
     };
 
     result.AudioDurations = {};
-    result.AudioFriday = {};
+    result.AudioFriday = [];
+    // Jalur string untuk JSONP/bridge GitHub Pages.
+    result.AudioScheduleJSON = '';
+    result.AudioFridayJSON = '';
 
     // =====================================================
     // STATUS SUARA AUDIO DARI SHEET ADZAN T/U
@@ -1172,6 +1175,8 @@ function processAdzanScheduleSheet(sheet, resultObj) {
 
   resultObj.AudioSchedule = parsed.schedule;
   resultObj.AudioFriday = parsed.friday;
+  resultObj.AudioScheduleJSON = JSON.stringify(parsed.schedule);
+  resultObj.AudioFridayJSON = JSON.stringify(parsed.friday);
 
   const genericDurations = {};
 
