@@ -1475,6 +1475,58 @@
       });
     }
 
+    // =========================================================
+    // STARTUP CACHE
+    // Tampilkan data terakhir seketika sambil API diperbarui di background.
+    // Cache hanya mempercepat tampilan; data Spreadsheet/API tetap menjadi
+    // sumber utama dan akan menggantikan cache setelah respons diterima.
+    // =========================================================
+    const STARTUP_CACHE_SHEET = 'MASJID_STARTUP_SHEET_V1';
+    const STARTUP_CACHE_PRAYER = 'MASJID_STARTUP_PRAYER_V1';
+
+    function readStartupCache_(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed && parsed.data ? parsed : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function writeStartupCache_(key, data) {
+      try {
+        localStorage.setItem(key, JSON.stringify({
+          savedAt: Date.now(),
+          data: data
+        }));
+      } catch (e) {}
+    }
+
+    function hydrateStartupCache_() {
+      const sheetCache = readStartupCache_(STARTUP_CACHE_SHEET);
+      if (sheetCache && sheetCache.data) {
+        console.log('STARTUP CACHE: Sheet tampil dari cache.');
+        try { updateUI(sheetCache.data); } catch (e) {
+          console.warn('STARTUP CACHE Sheet gagal:', e);
+        }
+      }
+
+      const prayerCache = readStartupCache_(STARTUP_CACHE_PRAYER);
+      const today = getApiDate();
+      if (
+        prayerCache &&
+        prayerCache.data &&
+        prayerCache.data.tanggal === today
+      ) {
+        console.log('STARTUP CACHE: jadwal sholat tampil dari cache.');
+        try { updatePrayerSchedule(prayerCache.data); } catch (e) {
+          console.warn('STARTUP CACHE jadwal gagal:', e);
+        }
+      }
+    }
+
     let previousKeuanganJson = '';
     let previousInfaqJson = '';
     let previousRunningText = '';
@@ -3566,6 +3618,7 @@
             }
           );
 
+          writeStartupCache_(STARTUP_CACHE_SHEET, data);
           updateUI(data);
 
         })
@@ -6197,7 +6250,16 @@
       }
 
       gasApiCall('getPrayerSchedule', { date: apiDate })
-        .then(updatePrayerSchedule)
+        .then(function(result) {
+          if (result && result.jadwal) {
+            writeStartupCache_(STARTUP_CACHE_PRAYER, {
+              tanggal: result.tanggal || apiDate,
+              success: true,
+              jadwal: result.jadwal
+            });
+          }
+          updatePrayerSchedule(result);
+        })
         .catch(function(error) {
           console.error(
             'Gagal mengambil jadwal sholat:',
@@ -9379,6 +9441,9 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
     setLogoMasjid(
       DEFAULT_LOGO_MASJID
     );
+
+    // Render cache sebelum request jaringan agar TV tidak menunggu GAS.
+    hydrateStartupCache_();
 
     installAudioInteractionUnlock();
     startAutoRefresh();
