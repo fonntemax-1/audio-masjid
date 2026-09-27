@@ -2296,6 +2296,25 @@
           const source =
             normalizeAudioUrl(url);
 
+          // Audio berikut WAJIB selesai sampai event "ended".
+          // Tidak boleh dipotong oleh endSec/fallback scheduler.
+          const protectedAudioTypes = {
+            'sirine': true,
+            'doa-adzan': true,
+            'doa-puasa': true,
+            'doa-buka': true,
+            'adzan-subuh': true,
+            'adzan-biasa': true,
+            'beep': true,
+            'iqomah': true
+          };
+
+          const normalizedAudioType =
+            String(audioType || '').trim().toLowerCase();
+
+          const mustPlayUntilEnded =
+            !!protectedAudioTypes[normalizedAudioType];
+
           if (
             !audio ||
             !source
@@ -2347,6 +2366,21 @@
 
           audio.onended = function() {
 
+            // Audio protected wajib selesai natural.
+            // Jangan LOOP berdasarkan endSec karena dapat memulai
+            // event berikutnya sebelum file benar-benar selesai.
+            if (mustPlayUntilEnded) {
+              console.log(
+                'AUDIO SELESAI PENUH (WAJIB TIDAK TERPOTONG):',
+                label,
+                'type=',
+                normalizedAudioType
+              );
+              finish(true, false);
+              return;
+            }
+
+            // Audio lainnya tetap mengikuti mekanisme durasi event.
             // SEMUA AUDIO: durasi pada Spreadsheet adalah durasi event
             // yang harus dipenuhi. Jika file audio selesai lebih cepat
             // daripada endSec, audio diulang dari awal sampai batas event
@@ -2589,6 +2623,7 @@
           // mulai dihitung dari waktu Adzan, tetapi wajib berhenti
           // 15 menit sebelum Adzan.
           if (
+            !mustPlayUntilEnded &&
             Number.isFinite(Number(stopAtSeconds))
           ) {
 
@@ -2656,9 +2691,10 @@
                 )
               : 1000 * 60 * 15;
 
-          fallbackTimer =
-            setTimeout(
-              function() {
+          if (!mustPlayUntilEnded) {
+            fallbackTimer =
+              setTimeout(
+                function() {
 
                 if (
                   !finished &&
@@ -2671,8 +2707,9 @@
                 }
 
               },
-              fallbackMs
-            );
+                fallbackMs
+              );
+          }
 
         }
       );
