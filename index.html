@@ -9511,11 +9511,11 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
 
     // =========================================================
-    // AUTO REFRESH 1 JAM
+    // AUTO REFRESH SAAT PERGANTIAN HARI
+    // Full reload hanya dilakukan sekali setelah tanggal WITA berubah.
+    // Tidak ada reload berkala setiap 1 jam, sehingga audio/YouTube
+    // tidak akan terputus di tengah rangkaian sholat.
     // =========================================================
-
-    const AUTO_REFRESH_INTERVAL =
-      60 * 60 * 1000;
 
     let autoRefreshTimer =
       null;
@@ -9531,19 +9531,54 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
       }
 
-      autoRefreshTimer =
-        setTimeout(
-          function() {
+      function scheduleNextDayReload() {
 
-            console.log(
-              '=== AUTO REFRESH 1 JAM ==='
-            );
+        const now =
+          new Date();
 
-            window.location.reload();
+        // Waktu sekarang dalam WITA (UTC+8).
+        const witaNowMs =
+          now.getTime() +
+          (8 * 60 * 60 * 1000);
 
-          },
-          AUTO_REFRESH_INTERVAL
-        );
+        const witaNow =
+          new Date(witaNowMs);
+
+        const nextMidnightUtcMs =
+          Date.UTC(
+            witaNow.getUTCFullYear(),
+            witaNow.getUTCMonth(),
+            witaNow.getUTCDate() + 1,
+            0,
+            0,
+            5
+          ) -
+          (8 * 60 * 60 * 1000);
+
+        const delay =
+          Math.max(
+            1000,
+            nextMidnightUtcMs -
+            now.getTime()
+          );
+
+        autoRefreshTimer =
+          setTimeout(
+            function() {
+
+              console.log(
+                '=== AUTO REFRESH PERGANTIAN HARI WITA ==='
+              );
+
+              window.location.reload();
+
+            },
+            delay
+          );
+
+      }
+
+      scheduleNextDayReload();
 
     }
 
