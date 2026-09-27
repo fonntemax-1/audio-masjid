@@ -2967,6 +2967,17 @@
 
         }
 
+        // Ambil waktu WITA SEBELUM melakukan pemeriksaan queue apa pun.
+        // processAudioQueue() dipanggil langsung saat event di-enqueue,
+        // sehingga nowSeconds harus sudah tersedia di seluruh jalur di bawah.
+        const wita =
+          getWitaTime();
+
+        const nowSeconds =
+          Number(wita.hour) * 3600 +
+          Number(wita.minute) * 60 +
+          Number(wita.second);
+
         // Jangan menganggap event "sudah dimainkan" bila event tersebut
         // SEDANG berada di dalam jendela waktunya. Ini penting saat
         // schedule/queue dibangun ulang setelah refresh data Spreadsheet:
@@ -2991,14 +3002,6 @@
           return;
 
         }
-
-        const wita =
-          getWitaTime();
-
-        const nowSeconds =
-          Number(wita.hour) * 3600 +
-          Number(wita.minute) * 60 +
-          Number(wita.second);
 
         // Event belum waktunya: jangan diputar sekarang.
         // Lepaskan processing agar timer dapat memanggil kembali.
