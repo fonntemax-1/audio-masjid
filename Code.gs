@@ -3335,3 +3335,60 @@ function TEST_AUDIO_SHEET_CONFIG() {
 
   return result;
 }
+
+// ============================================================
+// DIAGNOSTIK ADZAN E:Z - 2026-09-27
+// ============================================================
+// Hanya membaca dan mencatat isi kolom E:Z.
+// Tidak mengubah parser, sequence, durasi, status, atau audio.
+// Jalankan fungsi ini secara manual dari Apps Script Editor.
+// ============================================================
+function DIAGNOSTIK_ADZAN_E_Z_20260927() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('Adzan');
+
+  Logger.log('========================================');
+  Logger.log('DIAGNOSTIK ADZAN E:Z - 2026-09-27');
+  Logger.log('========================================');
+
+  if (!sheet) {
+    Logger.log('ERROR: Sheet Adzan tidak ditemukan.');
+    return;
+  }
+
+  const lastRow = Math.max(sheet.getLastRow(), 1);
+  const values = sheet.getRange(1, 5, lastRow, 22).getDisplayValues();
+
+  const headers = [
+    'E','F','G','H','I','J','K','L','M','N','O',
+    'P','Q','R','S','T','U','V','W','X','Y','Z'
+  ];
+
+  Logger.log('Spreadsheet = ' + ss.getName());
+  Logger.log('Sheet = ' + sheet.getName());
+  Logger.log('Last Row = ' + lastRow);
+  Logger.log('Kolom = E:Z');
+
+  for (let r = 0; r < values.length; r++) {
+    const row = values[r] || [];
+    const hasContent = row.some(function(v) {
+      return String(v == null ? '' : v).trim() !== '';
+    });
+
+    if (!hasContent) continue;
+
+    const parts = [];
+    for (let c = 0; c < headers.length; c++) {
+      const value = String(row[c] == null ? '' : row[c]).trim();
+      if (value !== '') {
+        parts.push(headers[c] + '=[' + value + ']');
+      }
+    }
+
+    Logger.log('BARIS ' + (r + 1) + ' | ' + parts.join(' | '));
+  }
+
+  Logger.log('========================================');
+  Logger.log('DIAGNOSTIK ADZAN E:Z SELESAI');
+  Logger.log('========================================');
+}
