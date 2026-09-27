@@ -54,7 +54,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border: 0.2vh solid #008f57;
+      border: 0.3vh solid #008f57;
       border-radius: 0.8vh;
       padding: 1.6vh 1.5vw;
       background: radial-gradient(circle, #023320 0%, #01140c 100%);
@@ -290,12 +290,17 @@
       background: #211800 !important;
     }
 
-    /* Semua ikon sholat menggunakan warna asli PNG. */
+    /* Ikon SUBUH normal mengikuti warna jam/waktu pada kartu. */
+    .prayer-card[data-prayer="SUBUH"] .prayer-icon img {
+      filter: brightness(0) saturate(100%) invert(78%) sepia(96%) saturate(1200%) hue-rotate(2deg) brightness(104%) contrast(104%);
+    }
+
+    /* Semua ikon sholat lainnya menggunakan warna asli PNG. */
     .prayer-card .prayer-icon img {
       filter: none;
     }
 
-    /* Saat kartu highlight, ikon berubah hijau mengikuti warna frame. */
+    /* Prioritas kondisi highlight: ikon tetap hijau mengikuti frame. */
     .prayer-card.active-prayer .prayer-icon img {
       filter: brightness(0) saturate(100%) invert(59%) sepia(98%) saturate(850%) hue-rotate(105deg) brightness(95%) contrast(105%);
     }
