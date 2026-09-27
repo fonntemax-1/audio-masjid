@@ -1377,6 +1377,9 @@
       'https://script.google.com/macros/s/AKfycbz363_n9sqVZxwHkyDLYQXor4wtgf7IArCNQwNx23e9JMEbv_bKzXFQGkX5hmA3W9z8/exec';
 
     let gasApiCallbackCounter = 0;
+    // Fallback audio schedule cukup dicoba sekali per page load.
+    // Jangan biarkan refresh Sheet 30 detik mengulang request GAS yang lambat.
+    let audioScheduleFallbackAttempted = false;
 
     function gasApiCall(action, params) {
 
@@ -1463,7 +1466,7 @@
           reject(new Error(
             'Timeout menghubungi Apps Script API.'
           ));
-        }, 30000);
+        }, 7000);
 
         script.src =
           GAS_API_URL + '?' + query.toString();
@@ -1916,7 +1919,7 @@
       // AudioSchedule dapat masih kosong walaupun URL audio sudah terbaru.
       // Coba endpoint realtime yang membaca Sheet Adzan langsung.
       let realtimeScheduleFallback = null;
-      if (
+      const audioScheduleIsEmpty =
         (!rawAudioSchedule || typeof rawAudioSchedule !== 'object') ||
         Object.keys(rawAudioSchedule).length === 0 ||
         [
@@ -1924,8 +1927,10 @@
           'MAGHRIB_RAMADHAN','MAGHRIB_BIASA','ISYA'
         ].every(function(k) {
           return !Array.isArray(rawAudioSchedule[k]) || rawAudioSchedule[k].length === 0;
-        })
-      ) {
+        });
+
+      if (audioScheduleIsEmpty && !audioScheduleFallbackAttempted) {
+        audioScheduleFallbackAttempted = true;
         try {
           realtimeScheduleFallback = await gasApiCall('getRealtimeAudioConfig');
           if (realtimeScheduleFallback && realtimeScheduleFallback.AudioSchedule) {
