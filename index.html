@@ -1880,14 +1880,74 @@
 
       audioConfig = nextConfig;
 
-      audioScheduleConfig =
-        data.AudioSchedule || {};
+      // Normalisasi AudioSchedule dari JSONP/API.
+      // Backend terbaru mengirim object schedule langsung, tetapi
+      // beberapa bridge/versi lama dapat membungkusnya sebagai
+      // { schedule: {...} }. Terima keduanya.
+      let rawAudioSchedule =
+        data.AudioSchedule ||
+        data.audioSchedule ||
+        {};
+
+      if (typeof rawAudioSchedule === 'string') {
+        try {
+          rawAudioSchedule = JSON.parse(rawAudioSchedule);
+        } catch (e) {
+          rawAudioSchedule = {};
+        }
+      }
+
+      if (
+        rawAudioSchedule &&
+        typeof rawAudioSchedule === 'object' &&
+        rawAudioSchedule.schedule &&
+        typeof rawAudioSchedule.schedule === 'object'
+      ) {
+        rawAudioSchedule = rawAudioSchedule.schedule;
+      }
+
+      const normalizedAudioSchedule = {};
+      [
+        'SUBUH_RAMADHAN',
+        'SUBUH_BIASA',
+        'DZUHUR',
+        'ASHAR',
+        'MAGHRIB_RAMADHAN',
+        'MAGHRIB_BIASA',
+        'ISYA'
+      ].forEach(function(key) {
+        let sequence = rawAudioSchedule[key];
+
+        if (!Array.isArray(sequence)) {
+          sequence = rawAudioSchedule[key.toLowerCase()];
+        }
+
+        if (typeof sequence === 'string') {
+          try {
+            sequence = JSON.parse(sequence);
+          } catch (e) {
+            sequence = [];
+          }
+        }
+
+        normalizedAudioSchedule[key] =
+          Array.isArray(sequence) ? sequence : [];
+      });
+
+      audioScheduleConfig = normalizedAudioSchedule;
 
       audioDurationConfig =
         data.AudioDurations || {};
 
       audioFridayConfig =
-        data.AudioFriday || [];
+        data.AudioFriday || {};
+
+      console.log(
+        'AUDIO SCHEDULE CONFIG DITERIMA:',
+        Object.keys(audioScheduleConfig).map(function(key) {
+          return key + '=' + audioScheduleConfig[key].length;
+        }).join(', ')
+      );
 
       const requiredAudioTypes = [
         'beep',
@@ -6644,13 +6704,54 @@
         }
 
         probe.preload = 'metadata';
+
+        function cleanup() {
+          probe.onloadedmetadata = null;
+          probe.onerror = null;
+          probe.onabort = null;
+          try { probe.removeAttribute('src'); } catch (e) {}
+          try { probe.load(); } catch (e) {}
+        }
+
+        function finishSafe(value, isError) {
+          if (done) return;
+          done = true;
+
+          const duration = Number(value);
+          const safe =
+            Number.isFinite(duration) && duration > 0
+              ? duration
+              : 0;
+
+          if (isError) {
+            console.warn(
+              'AUDIO DURASI: gagal membaca metadata:',
+              type,
+              url
+            );
+          }
+
+          if (safe > 0) {
+            WEB_APP_STATE.audio.durationCache.set(type, safe);
+          }
+
+          cleanup();
+          resolve(safe);
+        }
+
+        // Setelah loadedmetadata berhasil, listener error dilepas
+        // sebelum src dibersihkan agar hasil durasi valid tidak
+        // diikuti false error dari proses cleanup.
         probe.onloadedmetadata = function() {
-          finish(probe.duration);
-          try { probe.src = ''; } catch (e) {}
+          finishSafe(probe.duration, false);
         };
+
         probe.onerror = function() {
-          console.warn('AUDIO DURASI: gagal membaca metadata:', type, url);
-          finish(0);
+          finishSafe(0, true);
+        };
+
+        probe.onabort = function() {
+          finishSafe(0, true);
         };
 
         try {
@@ -6658,7 +6759,7 @@
           probe.load();
         } catch (error) {
           console.warn('AUDIO DURASI: exception metadata:', type, error);
-          finish(0);
+          finishSafe(0, true);
         }
       });
     }
