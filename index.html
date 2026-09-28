@@ -6221,216 +6221,121 @@
       dateKey
     ) {
 
-      const now =
-        Number(nowSeconds);
+      const now = Number(nowSeconds);
 
-      if (
-        !Number.isFinite(now) ||
-        !dateKey
-      ) {
+      if (!Number.isFinite(now) || !dateKey) {
         return;
       }
 
-      const mode =
-        youtubeControlMode;
+      const mode = youtubeControlMode;
 
       // =======================================================
-      // MODE OFF
+      // MODE OFF / STOP / ON
+      // Kontrol manual tetap bekerja seperti sebelumnya.
       // =======================================================
-      // OFF = YouTube tetap berjalan, tetapi selalu MUTE.
-      // =======================================================
-
       if (mode === 'OFF') {
-
         muteYouTubeIframe();
-
-        youtubeAutoMuted =
-          true;
-
+        youtubeAutoMuted = true;
         return;
-
       }
-
-
-      // =======================================================
-      // MODE STOP
-      // =======================================================
-      // STOP = video benar-benar dihentikan.
-      // =======================================================
 
       if (mode === 'STOP') {
-
         stopYouTubeIframe();
-
-        youtubeAutoMuted =
-          false;
-
+        youtubeAutoMuted = false;
         return;
-
       }
-
-
-      const selected =
-        getYouTubeQiroahWindow(now);
-
-
-      // =======================================================
-      // MODE ON
-      // =======================================================
-      // ON = YouTube selalu PLAY + UNMUTE.
-      // Tidak mengikuti mute otomatis Qiroah.
-      // Untuk mute otomatis berdasarkan jadwal, gunakan AUTO.
-      // =======================================================
 
       if (mode === 'ON') {
-
         unmuteYouTubeIframe();
-
-        youtubeAutoMuted =
-          false;
-
+        youtubeAutoMuted = false;
         return;
-
       }
 
-
       // =======================================================
-      // MODE AUTO
+      // MODE AUTO - STARTUP CHECK SAJA
       //
-      // MUTE 5 menit sebelum Qiroah.
-      // Tetap MUTE sampai 30 menit setelah IQOMAH selesai.
-      // Setelah batas tersebut tercapai -> UNMUTE.
+      // AUTO hanya melakukan SATU kali pemeriksaan setelah
+      // computedSchedules selesai dibangun. Pemeriksaan ini hanya
+      // menentukan kondisi SUARA YOUTUBE saat TV/PC startup:
+      //   5 menit sebelum Qiroah -> MUTE
+      //   Qiroah sampai 30 menit setelah Iqomah -> MUTE
+      //   selain itu -> UNMUTE
+      //
+      // Tidak memeriksa Tarhim, Sirine, Beep, Adzan, Doa,
+      // Doa-Buka, Doa-Puasa, atau audio lain sebagai pemicu mute.
+      // Scheduler audio tetap sepenuhnya mengikuti status ON/OFF
+      // dari Spreadsheet.
       // =======================================================
-
-      if (mode === 'AUTO') {
-
-        // Saat halaman baru dibuka, terutama pada TV, jadwal audio
-        // belum tentu selesai dibangun. Jangan pernah UNMUTE pada
-        // fase startup AUTO hanya karena schedule masih kosong.
-        // Tetap MUTE sampai schedule benar-benar siap dievaluasi.
-        if (
-          !WEB_APP_STATE.audio.scheduleInitialized
-        ) {
-          youtubeAutoMuted = true;
-          muteYouTubeIframe();
-          return;
-        }
-
-        // AUTO = mute 5 menit sebelum Qiroah,
-        // tetap mute sampai IQOMAH selesai,
-        // lalu ON kembali 30 menit setelah IQOMAH.
-        //
-        // Penting:
-        // AUTO tidak pernah memanggil STOP.
-        // YouTube tetap berjalan; hanya suaranya yang di-MUTE.
-
-        // Jika halaman dibuka/refresh ketika audio sedang berjalan,
-        // langsung MUTE tanpa menunggu Qiroah berikutnya.
-        // Berlaku untuk Qiroah, Tarhim, Sirine, Beep, Adzan,
-        // Doa, dan Iqomah.
-        const currentAudio =
-          getYouTubeCurrentAudioEvent(now);
-
-        if (currentAudio) {
-
-          const currentAudioKey =
-            String(dateKey) +
-            '|AUDIO|' +
-            String(currentAudio.prayerName || '') +
-            '|' +
-            String(currentAudio.eventName || '') +
-            '|' +
-            String(currentAudio.startSec);
-
-          youtubeAutoMuted = true;
-          youtubeAutoMuteKey = currentAudioKey;
-          youtubeAutoMutePrayer =
-            String(currentAudio.prayerName || '');
-          youtubeAutoMuteQiroahTargetSec =
-            null;
-
-          muteYouTubeIframe();
-
-          return;
-
-        }
-
-        if (selected) {
-
-          const selectedKey =
-            String(dateKey) +
-            '|' +
-            String(selected.prayerName || '') +
-            '|' +
-            String(selected.qiroahTargetSec);
-
-          // Jangan memanggil helper yang tidak ada.
-          // Begitu masuk 5 menit sebelum Qiroah, langsung set state
-          // dan kirim perintah MUTE ke iframe tanpa reload YouTube.
-          youtubeAutoMuted = true;
-          youtubeAutoMuteKey = selectedKey;
-          youtubeAutoMutePrayer =
-            String(selected.prayerName || '');
-          youtubeAutoMuteQiroahTargetSec =
-            Number(selected.qiroahTargetSec);
-
-          muteYouTubeIframe();
-
-          return;
-
-        }
-
-        const hold =
-          getYouTubeQiroahHoldWindow(now);
-
-        if (hold) {
-
-          const holdKey =
-            String(dateKey) +
-            '|' +
-            String(hold.prayerName || '') +
-            '|' +
-            String(hold.qiroahTargetSec);
-
-          if (
-            youtubeAutoMuteKey !==
-            holdKey
-          ) {
-
-            youtubeAutoMuted =
-              true;
-
-            youtubeAutoMuteKey =
-              holdKey;
-
-            youtubeAutoMutePrayer =
-              String(
-                hold.prayerName || ''
-              );
-
-            youtubeAutoMuteQiroahTargetSec =
-              hold.qiroahTargetSec;
-
-          }
-
-          // Tetap PLAY, hanya MUTE.
-          muteYouTubeIframe();
-
-          return;
-
-        }
-
-        // Di luar periode AUTO-MUTE:
-        // YouTube continua PLAY + ON.
-        unmuteYouTubeIframe();
-
-        youtubeAutoMuted =
-          false;
-
+      if (mode !== 'AUTO') {
         return;
-
       }
 
+      // Selama schedule belum siap, YouTube tetap aman dalam keadaan
+      // MUTE. Jangan tandai evaluasi selesai sampai schedule tersedia.
+      if (!WEB_APP_STATE.audio.scheduleInitialized) {
+        youtubeAutoMuted = true;
+        muteYouTubeIframe();
+        return;
+      }
+
+      // Sudah diperiksa pada startup/page-load ini.
+      // Jangan mengevaluasi ulang setiap detik berdasarkan audio lain.
+      if (youtubeAutoScheduleEvaluated) {
+        return;
+      }
+
+      const selected = getYouTubeQiroahWindow(now);
+      const hold = getYouTubeQiroahHoldWindow(now);
+
+      if (selected) {
+        youtubeAutoMuted = true;
+        youtubeAutoMuteKey =
+          String(dateKey) + '|' +
+          String(selected.prayerName || '') + '|' +
+          String(selected.qiroahTargetSec);
+        youtubeAutoMutePrayer =
+          String(selected.prayerName || '');
+        youtubeAutoMuteQiroahTargetSec =
+          Number(selected.qiroahTargetSec);
+        muteYouTubeIframe();
+        youtubeAutoScheduleEvaluated = true;
+        console.log(
+          'YOUTUBE AUTO STARTUP: MUTE - berada 5 menit sebelum Qiroah.'
+        );
+        return;
+      }
+
+      if (hold) {
+        youtubeAutoMuted = true;
+        youtubeAutoMuteKey =
+          String(dateKey) + '|' +
+          String(hold.prayerName || '') + '|' +
+          String(hold.qiroahTargetSec);
+        youtubeAutoMutePrayer =
+          String(hold.prayerName || '');
+        youtubeAutoMuteQiroahTargetSec =
+          Number(hold.qiroahTargetSec);
+        muteYouTubeIframe();
+        youtubeAutoScheduleEvaluated = true;
+        console.log(
+          'YOUTUBE AUTO STARTUP: MUTE - berada dalam periode Qiroah/Iqomah.'
+        );
+        return;
+      }
+
+      // Tidak berada pada window Qiroah saat startup.
+      // YouTube langsung UNMUTE dan tidak akan disentuh lagi oleh
+      // scheduler audio selama page-load ini.
+      unmuteYouTubeIframe();
+      youtubeAutoMuted = false;
+      youtubeAutoMuteKey = '';
+      youtubeAutoMutePrayer = '';
+      youtubeAutoMuteQiroahTargetSec = null;
+      youtubeAutoScheduleEvaluated = true;
+
+      console.log(
+        'YOUTUBE AUTO STARTUP: UNMUTE - di luar window Qiroah.'
+      );
     }
 
 
@@ -6547,11 +6452,9 @@
 
       }
 
-      // AUTO tidak mengubah suara di sini.
-      // updateYouTubeAudioStop() mengatur mute/unmute
-      // berdasarkan jadwal qiroah.
-      // Saat AUTO sedang berada dalam periode mute qiroah,
-      // jangan reload video menjadi unmute hanya karena fetch Sheet.
+      // AUTO tidak mengubah suara setelah startup check selesai.
+      // Pemeriksaan jadwal dilakukan oleh updateYouTubeAudioStop()
+      // satu kali setelah schedule audio siap.
       const embedMute =
         mode === 'OFF' ||
         (mode === 'AUTO' && youtubeAutoMuted)
