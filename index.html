@@ -173,8 +173,8 @@
     align-items: center !important;
     justify-content: center !important;
     gap: 1.2vh !important;
-    width: 98vw !important;
-    max-width: 1600px !important;
+    width: 100% !important;
+    max-width: none !important;
     text-align: center !important;
     color: #ffffff !important;
     position: fixed !important;
@@ -182,8 +182,17 @@
     top: 50% !important;
     transform: translate(-50%, -50%) !important;
     margin: 0 !important;
+    padding: 0 !important;
     z-index: 100001 !important;
-    white-space: normal !important;
+    white-space: nowrap !important;
+  }
+
+  body.panel-countdown-auto .panel-black-line {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
   }
 
   body.panel-countdown-auto .panel-black-line {
