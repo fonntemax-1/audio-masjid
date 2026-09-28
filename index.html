@@ -3949,13 +3949,31 @@
       // AUTO   = hitam saat countdown sholat aktif
       // NORMAL = tampilan normal
       // =======================================================
-      if (
-        Object.prototype.hasOwnProperty.call(
-          data,
-          'PanelMode'
-        )
-      ) {
-        setPanelDisplayMode(data.PanelMode);
+      // Panels!C2 hanya mengatur mode layar hitam.
+      // Tidak pernah bergantung pada RAMADAN_DISPLAY.
+      const panelModeFromApi =
+        data.PanelMode !== undefined
+          ? data.PanelMode
+          : (
+              data.panelMode !== undefined
+                ? data.panelMode
+                : (
+                    data.panel && data.panel.mode !== undefined
+                      ? data.panel.mode
+                      : (
+                          data.data && data.data.PanelMode !== undefined
+                            ? data.data.PanelMode
+                            : null
+                        )
+                  )
+            );
+
+      if (panelModeFromApi !== null) {
+        console.log(
+          'PANELS MODE DITERIMA:',
+          panelModeFromApi
+        );
+        setPanelDisplayMode(panelModeFromApi);
       }
 
       // =======================================================
@@ -9353,9 +9371,11 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
     }
 
     function setCountdownBlackMode(enabled) {
+      // Panel AUTO adalah aturan visual yang berdiri sendiri.
+      // RAMADAN_DISPLAY tidak ikut menentukan layar hitam.
       const shouldBlack =
         WEB_APP_STATE.panel.mode === 'AUTO' &&
-        !!enabled;
+        Boolean(enabled);
 
       WEB_APP_STATE.panel.countdownBlack =
         shouldBlack;
@@ -10193,10 +10213,21 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
       if (activeState) {
 
-        // AUTO: selama ada state countdown sholat aktif
-        // (MENUJU ADZAN, ADZAN, MENUJU IQOMAH, IQOMAH,
-        // dan SHOLAT sampai +15 menit setelah IQOMAH)
-        // seluruh layar menjadi hitam dan hanya countdown tampil.
+        // MODE PANEL AUTO bersifat DISPLAY-ONLY.
+        // Tidak peduli RAMADAN_DISPLAY TRUE/FALSE.
+        // Selama countdown sholat memiliki activeState:
+        // MENUJU ADZAN -> ADZAN -> MENUJU IQOMAH -> IQOMAH
+        // -> SHOLAT sampai 15 menit setelah IQOMAH,
+        // layar dibuat hitam dan hanya countdown ditampilkan.
+        // Audio, YouTube, scheduler dan urutan audio TIDAK disentuh.
+        if (WEB_APP_STATE.panel.mode === 'AUTO') {
+          console.log(
+            'PANELS AUTO: LAYAR HITAM | RAMADAN=',
+            isRamadanDisplay(),
+            '| STATE=',
+            activeState.title
+          );
+        }
         setCountdownBlackMode(true);
 
         if (countdownTitle && activeState.title !== lastCountdownTitle) {
