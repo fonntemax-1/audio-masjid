@@ -109,7 +109,7 @@ function getDataFromSheet() {
 
     // =====================================================
     // KONTROL MODE DISPLAY COUNTDOWN
-    // Sumber: sheet "Panels"!B2
+    // Sumber: sheet "Panels"!C1
     // AUTO   = layar hitam saat countdown sholat aktif
     //          sampai 15 menit setelah IQOMAH selesai.
     // NORMAL = tampilan display tetap normal.
@@ -580,7 +580,7 @@ function getDataFromSheet() {
 
         // =====================================================
         // KHUSUS SHEET PANELS
-        // B2 = MODE DISPLAY: AUTO / NORMAL
+        // C1 = MODE DISPLAY: AUTO / NORMAL
         // =====================================================
 
         if (
@@ -602,7 +602,7 @@ function getDataFromSheet() {
               : 'NORMAL';
 
           Logger.log(
-            'PANELS!B2 = [' +
+            'PANELS!C1 = [' +
             panelMode +
             '] => PanelMode = [' +
             result.PanelMode +
