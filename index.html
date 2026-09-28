@@ -10046,6 +10046,16 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         Number(wita.minute) * 60 +
         Number(wita.second);
 
+      // Kontrol YouTube harus dievaluasi pada tick countdown yang sama
+      // dengan waktu audio. Tanpa pemanggilan ini, fungsi AUTO memang
+      // tersedia tetapi tidak pernah mengevaluasi saat Qiroah dimulai.
+      // Ini hanya mengubah MUTE/UNMUTE YouTube; tidak menyentuh scheduler
+      // audio, durasi, urutan, GAP, atau playback audio yang sedang jalan.
+      updateYouTubeAudioStop(
+        nowSeconds,
+        nowDate
+      );
+
       const rawPrayers = [
 
         {
