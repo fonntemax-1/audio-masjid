@@ -6878,11 +6878,32 @@
       const qiroahHold =
         getYouTubeQiroahHoldWindow(now);
 
+      // Qiroah yang benar-benar sedang berjalan menjadi kondisi MUTE
+      // paling kuat. Ini tidak bergantung pada apakah perhitungan
+      // hold-window menemukan IQOMAH dengan benar.
+      const currentAudioEvent =
+        getYouTubeCurrentAudioEvent(now);
+
+      const currentQiroah =
+        currentAudioEvent &&
+        /^qiroah-[1-5]$/.test(
+          String(currentAudioEvent.eventName || '').trim().toLowerCase()
+        )
+          ? currentAudioEvent
+          : null;
+
       const shouldMute =
-        Boolean(preQiroah || qiroahHold);
+        Boolean(preQiroah || qiroahHold || currentQiroah);
 
       const activeWindow =
-        preQiroah || qiroahHold;
+        preQiroah ||
+        qiroahHold ||
+        (currentQiroah
+          ? {
+              prayerName: currentAudioEvent.prayerName,
+              qiroahTargetSec: currentAudioEvent.startSec
+            }
+          : null);
 
       if (shouldMute) {
 
