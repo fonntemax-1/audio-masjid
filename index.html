@@ -2782,11 +2782,12 @@
 
           // Audio protected wajib berjalan UTUH satu kali.
           // Audio ini tidak boleh dipotong oleh endSec dan tidak boleh
-          // di-replay/loop: ADZAN, DOA, BEEP, dan IQOMAH.
+          // di-replay/loop: SIRINE, ADZAN, DOA, BEEP, dan IQOMAH.
           const normalizedAudioType =
             String(audioType || '').trim().toLowerCase();
 
           const protectedSequenceAudio =
+            normalizedAudioType === 'sirine' ||
             normalizedAudioType === 'adzan-subuh' ||
             normalizedAudioType === 'adzan-biasa' ||
             normalizedAudioType === 'adzan' ||
@@ -2973,18 +2974,18 @@
               Number(catchUpNowWita.hour) * 3600 +
               Number(catchUpNowWita.minute) * 60 +
               Number(catchUpNowWita.second);
-            // Audio protected selalu mulai dari 0 agar file berjalan
-            // UTUH. Catch-up tidak boleh memotong bagian awal Adzan/Doa/
-            // Beep/Iqomah hanya karena halaman dibuka terlambat.
+            // Catch-up tetap mengikuti POSISI WAKTU YANG SEDANG BERJALAN.
+            // Jadi bila web dibuka di tengah Sirine/Adzan/Doa/Beep/Iqomah,
+            // audio mulai dari posisi waktunya saat ini, bukan dari 0.
+            // Setelah mulai, audio protected wajib berjalan UTUH sampai
+            // file selesai dan tidak boleh dipotong oleh endSec.
             const catchUpElapsed =
-              protectedSequenceAudio
-                ? 0
-                : (
-                    Number.isFinite(catchUpTarget) &&
-                    Number.isFinite(catchUpNowSeconds)
-                      ? Math.max(0, catchUpNowSeconds - catchUpTarget)
-                      : 0
-                  );
+              (
+                Number.isFinite(catchUpTarget) &&
+                Number.isFinite(catchUpNowSeconds)
+              )
+                ? Math.max(0, catchUpNowSeconds - catchUpTarget)
+                : 0;
 
             // OFF = tetap memainkan event/durasi, tetapi hening.
             // ON  = terdengar normal.
@@ -3010,7 +3011,11 @@
             // CATCH-UP GLOBAL:
             // targetSec = posisi 0 dari event.
             // now - targetSec = posisi aktual yang harus dimainkan.
-            // Jangan memulai file dari 0 ketika event sudah berjalan.
+            // Jadi web yang dibuka di tengah event langsung mengikuti
+            // waktu yang sedang berjalan.
+            //
+            // Untuk audio protected, seek ini hanya menentukan POSISI AWAL.
+            // Setelah play(), audio tidak dipotong dan harus selesai natural.
             //
             // Metadata harus tersedia SEBELUM audio.play(), karena pada
             // sebagian TV/browser seek yang dilakukan setelah play() dapat
@@ -3558,6 +3563,7 @@
           String(item.audioType || '').trim().toLowerCase();
 
         const protectedQueueSequence =
+          normalizedQueueAudioType === 'sirine' ||
           normalizedQueueAudioType === 'adzan-subuh' ||
           normalizedQueueAudioType === 'adzan-biasa' ||
           normalizedQueueAudioType === 'adzan' ||
