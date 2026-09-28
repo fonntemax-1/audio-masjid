@@ -298,9 +298,10 @@
     background: transparent !important;
 
     /* Satukan area gelap gambar dengan layar hitam.
-       Tidak mengubah ukuran, posisi, audio, YouTube, atau scheduler. */
+       Blend langsung dengan backdrop hitam mode hitam.
+       Audio, YouTube, scheduler, ukuran, dan posisi tidak diubah. */
     mix-blend-mode: screen !important;
-    isolation: isolate !important;
+    isolation: auto !important;
   }
 
   /* Area pembungkus selalu hitam sehingga tepi gambar
