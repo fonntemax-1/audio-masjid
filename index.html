@@ -54,7 +54,8 @@
   }
 
   body.panel-countdown-auto .clock-overlay .countdown-box {
-    visibility: visible !important;
+    visibility: hidden !important;
+    display: none !important;
     position: relative !important;
     left: auto !important;
     top: auto !important;
@@ -164,8 +165,29 @@
   body.panel-countdown-auto .clock-overlay .countdown-title,
   body.panel-countdown-auto .clock-overlay .countdown-timer,
   body.panel-countdown-auto .clock-overlay .panel-black-line {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    text-align: center !important;
     font-family: 'Cinzel', serif !important;
+    font-size: clamp(1.45rem, 2.65vw, 2.75rem) !important;
+    line-height: 1.12 !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
     text-shadow: none !important;
+  }
+
+  body.panel-countdown-auto .clock-overlay .panel-black-prayer {
+    color: #ffcc00 !important;
+    -webkit-text-fill-color: #ffcc00 !important;
+    font-size: clamp(1.7rem, 3.1vw, 3.2rem) !important;
+    font-weight: 700 !important;
   }
 
   body.panel-countdown-auto .clock-overlay .countdown-title {
@@ -204,7 +226,7 @@
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 1.1vh !important;
+    gap: 0.8vh !important;
 
     text-align: center !important;
     background: transparent !important;
@@ -1605,13 +1627,13 @@
 
           </div>
 
-          <!-- Pesan khusus saat Panel AUTO masuk mode layar hitam -->
+          <!-- Tampilan khusus saat Panel AUTO masuk mode layar hitam -->
           <div class="panel-black-message" aria-hidden="true">
+            <div class="panel-black-line" id="panel-black-title">WAKTU SHOLAT</div>
+            <div class="panel-black-line panel-black-prayer" id="panel-black-prayer">SUBUH</div>
             <div class="panel-black-icon">
               <img src="./image/handphone.png" alt="Handphone">
             </div>
-            <div class="panel-black-line">DEMI KETENANGAN DAN KEKHUSYUKAN IBADAH SHOLAT KITA</div>
-            <div class="panel-black-line">MOHON UNTUK MENONAKTIFKAN HANDPHONE ATAU SILENT MODE</div>
           </div>
 
           <div class="analog-clock">
@@ -9769,6 +9791,10 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       // Window layar hitam Panel AUTO.
       // Mulai setelah Adzan selesai (fase MENUJU IQOMAH)
       // dan berakhir 15 menit setelah IQOMAH selesai.
+      // Window layar hitam Panel AUTO:
+// mulai 2 menit sebelum waktu IQOMAH
+// dan kembali normal 15 menit setelah waktu IQOMAH.
+// DISPLAY-ONLY; audio, YouTube, dan scheduler tetap sama.
       let panelBlackWindow = false;
 
       // =======================================================
@@ -9952,14 +9978,19 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         const afterIqomahSec =
           iqomahEndSec + (15 * 60);
 
-        // Panel AUTO mulai hitam tepat setelah Adzan selesai,
-        // saat countdown masuk fase MENUJU IQOMAH.
-        // Tetap hitam selama IQOMAH dan SHOLAT sampai
-        // 15 menit setelah IQOMAH selesai.
+        // Panel AUTO mulai hitam 2 menit SEBELUM waktu IQOMAH.
+        // Panel kembali normal tepat 15 menit SETELAH waktu IQOMAH.
+        // Tidak menggunakan durasi audio IQOMAH untuk batas visual.
+        const panelBlackStartSec =
+          iqomahTimeSec - (2 * 60);
+
+        const panelBlackEndSec =
+          iqomahTimeSec + (15 * 60);
+
         if (
           p.hasIqomah &&
-          nowSeconds >= adzanEndSec &&
-          nowSeconds < afterIqomahSec
+          nowSeconds >= panelBlackStartSec &&
+          nowSeconds < panelBlackEndSec
         ) {
           panelBlackWindow = true;
         }
@@ -10484,13 +10515,10 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       if (activeState) {
 
         // MODE PANEL AUTO bersifat DISPLAY-ONLY.
-        // Layar hitam DIMULAI saat fase MENUJU IQOMAH,
-        // yaitu setelah Adzan selesai.
-        // Layar tetap hitam selama IQOMAH dan SHOLAT,
-        // lalu kembali NORMAL tepat 15 menit setelah IQOMAH selesai.
-        //
-        // Sumber waktu berasal dari scheduler yang sudah ada.
-        // Audio, YouTube, scheduler dan urutan audio TIDAK disentuh.
+        // Layar hitam dimulai 2 menit sebelum IQOMAH
+        // dan kembali normal 15 menit setelah waktu IQOMAH.
+        // Isi layar hitam hanya WAKTU SHOLAT + nama sholat,
+        // handphone, dan jam digital. Audio/YouTube/scheduler tetap.
         if (WEB_APP_STATE.panel.mode === 'AUTO') {
           console.log(
             'PANELS AUTO:',
@@ -10500,12 +10528,31 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           );
         }
 
+        const panelBlackPrayerEl =
+          document.getElementById('panel-black-prayer');
+
+        const panelBlackPrayerName =
+          (
+            isFridayWita() &&
+            activeState.prayerName === 'DZUHUR'
+          )
+            ? "JUM'AT"
+            : String(activeState.prayerName || '')
+                .toUpperCase();
+
+        if (panelBlackPrayerEl && panelBlackPrayerName) {
+          panelBlackPrayerEl.innerText =
+            panelBlackPrayerName;
+        }
+
         setCountdownBlackMode(
           WEB_APP_STATE.panel.mode === 'AUTO'
             ? panelBlackWindow
             : false
         );
 
+        // Countdown utama disembunyikan pada mode hitam.
+        // Jangan mengubah state countdown karena audio tetap berjalan.
         // Jangan mengganti ADZAN menjadi "WAKTU SHOLAT".
         // Pada detik waktu sholat, countdown harus tetap menunjukkan
         // status sebenarnya: ADZAN + nama sholat.
