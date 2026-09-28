@@ -2644,6 +2644,18 @@
 
         audio.pause();
         audio.currentTime = 0;
+        // Paksa keadaan output audio normal saat proses unlock.
+        // Jangan biarkan state mute/volume bawaan browser TV terbawa.
+        try {
+          audio.defaultMuted = false;
+          audio.muted = false;
+          audio.volume = 1;
+        } catch (outputStateError) {
+          console.warn(
+            'AUDIO OUTPUT UNLOCK STATE GAGAL DISET:',
+            outputStateError
+          );
+        }
         audio.src = normalizeAudioUrl(testUrl);
         audio.preload = 'auto';
         audio.load();
@@ -2955,8 +2967,22 @@
 
             // OFF = tetap memainkan event/durasi, tetapi hening.
             // ON  = terdengar normal.
-            audio.muted =
+            const audioStatusOff =
               String(status || 'ON').toUpperCase() === 'OFF';
+
+            // Pastikan state output HTMLAudioElement eksplisit.
+            // Pada TCL/Chrome TV, jangan mengandalkan state default browser.
+            try {
+              audio.defaultMuted = audioStatusOff;
+              audio.muted = audioStatusOff;
+              audio.volume = 1;
+            } catch (outputStateError) {
+              console.warn(
+                'AUDIO OUTPUT STATE GAGAL DISET:',
+                label,
+                outputStateError
+              );
+            }
             audio.src = source;
             audio.preload = 'auto';
 
