@@ -10506,14 +10506,13 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             : false
         );
 
+        // Jangan mengganti ADZAN menjadi "WAKTU SHOLAT".
+        // Pada detik waktu sholat, countdown harus tetap menunjukkan
+        // status sebenarnya: ADZAN + nama sholat.
+        // Mode Panel AUTO hanya mengubah latar menjadi hitam pada
+        // window setelah Adzan; tidak mengubah isi countdown.
         const displayCountdownTitle =
-          WEB_APP_STATE.panel.mode === 'AUTO' &&
-          (
-            String(activeState.title || '').trim().toUpperCase() === 'ADZAN' ||
-            String(activeState.title || '').trim().toUpperCase() === 'SHOLAT'
-          )
-            ? 'WAKTU SHOLAT'
-            : activeState.title;
+          activeState.title;
 
         if (countdownTitle && displayCountdownTitle !== lastCountdownTitle) {
           countdownTitle.innerText = displayCountdownTitle;
