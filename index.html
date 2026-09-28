@@ -8291,10 +8291,20 @@
           Number(liveForYouTube.minute) * 60 +
           Number(liveForYouTube.second);
 
-        updateYouTubeAudioStop(
-          liveForYouTubeSeconds,
-          dateKey
-        );
+        // YouTube AUTO hanya pemeriksaan startup.
+        // Jika kontrol YouTube gagal, JANGAN menggagalkan
+        // audio schedule/catch-up yang sudah berhasil dibuat.
+        try {
+          updateYouTubeAudioStop(
+            liveForYouTubeSeconds,
+            dateKey
+          );
+        } catch (youtubeError) {
+          console.error(
+            'YOUTUBE STARTUP CHECK ERROR - AUDIO SCHEDULE TETAP BERJALAN:',
+            youtubeError
+          );
+        }
 
       } catch (error) {
         console.error(
