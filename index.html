@@ -7892,6 +7892,17 @@
           return 5 * 60;
         }
 
+        // BEEP -> ADZAN dan BEEP -> IQOMAH = 1 detik.
+        if (
+          prev === 'beep' &&
+          (next === 'adzan' ||
+           next === 'adzan-subuh' ||
+           next === 'adzan-biasa' ||
+           next === 'iqomah')
+        ) {
+          return 1;
+        }
+
         if (
           ramadan &&
           name === 'MAGHRIB' &&
@@ -8182,8 +8193,8 @@
         //
         // RAMADAN SUBUH:
         //   ADZAN adalah anchor absolut.
-        //   BEEP selalu berakhir tepat 3 detik sebelum ADZAN:
-        //       BEEP -> GAP 3 detik -> ADZAN
+        //   BEEP selalu berakhir tepat 1 detik sebelum ADZAN:
+        //       BEEP -> GAP 1 detik -> ADZAN
         //
         //   Ruang sebelum BEEP dipakai untuk:
         //       DOA-PUASA -> GAP 3 detik -> TARHIM
@@ -8212,10 +8223,10 @@
           if (beepIndex >= 0) {
             const beepItem = items[beepIndex];
 
-            // BEEP selesai tepat 3 detik sebelum ADZAN.
+            // BEEP selesai tepat 1 detik sebelum ADZAN.
             const beepTarget =
               adzanTarget -
-              GAP -
+              1 -
               beepItem.duration;
 
             let cursorSubuh =
@@ -8281,7 +8292,7 @@
                 tarhimItem.event
               );
 
-              // Sisakan GAP 3 detik + BEEP sebelum ADZAN.
+              // Sisakan GAP 1 detik + BEEP sebelum ADZAN.
               const tarhimSlotEnd =
                 beepTarget;
 
@@ -8360,7 +8371,7 @@
               beepItem.status
             );
 
-            // Tepat 3 detik setelah BEEP selesai, ADZAN dimulai.
+            // Tepat 1 detik setelah BEEP selesai, ADZAN dimulai.
             add(
               'ADZAN',
               adzanTarget,
