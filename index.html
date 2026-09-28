@@ -5960,6 +5960,22 @@
     }
 
 
+    function getPrayerTimeSecondsForYouTube(prayerName) {
+
+      const key = String(prayerName || '').trim().toLowerCase();
+      const schedule = WEB_APP_STATE && WEB_APP_STATE.prayer ? WEB_APP_STATE.prayer.schedule : null;
+      const value = schedule ? schedule[key] : null;
+      if (typeof value !== 'string') return null;
+      const parts = value.split(':');
+      if (parts.length < 2) return null;
+      const hour = Number(parts[0]);
+      const minute = Number(parts[1]);
+      const second = parts.length >= 3 ? Number(parts[2]) : 0;
+      if (!Number.isFinite(hour) || !Number.isFinite(minute) || !Number.isFinite(second)) return null;
+      return (hour * 3600) + (minute * 60) + second;
+    }
+
+
     function getYouTubeQiroahHoldWindow(nowSeconds) {
 
       const schedules =
@@ -8347,14 +8363,7 @@
         nowSeconds
       );
 
-      // Video dihentikan 5 menit sebelum event audio pertama.
-      // Jika Qiroah berdurasi 0, event Qiroah tidak ada di schedule
-      // sehingga fungsi otomatis memilih event audio berikutnya.
-      updateYouTubeAudioStop(
-        nowSeconds,
-        nowDate
-      );
-
+      // YouTube AUTO terpisah dari scheduler audio.
       processAudioQueue();
 
     }
@@ -9185,13 +9194,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
       processAudioQueue();
 
-      // YouTube dikontrol setiap detik setelah jadwal audio
-      // dihitung. AUTO: mute 5 menit sebelum Qiroah, tetap mute
-      // selama Qiroah sampai waktu sholat/card benar-benar tiba.
-      updateYouTubeAudioStop(
-        nowSeconds,
-        nowDate
-      );
+      // YouTube AUTO hanya diperiksa saat schedule audio siap.
+      // Tidak ada kontrol YouTube dari countdown/audio scheduler.
 
       // =========================================================
       // STYLE KHUSUS COUNTDOWN
