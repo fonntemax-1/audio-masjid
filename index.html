@@ -2780,20 +2780,32 @@
           const source =
             normalizeAudioUrl(url);
 
-          // HANYA QIROAH dan TARHIM yang boleh replay/loop.
-          // Semua audio lainnya WAJIB selesai natural satu kali:
-          // tidak boleh di-loop, tidak boleh diputus oleh endSec,
-          // dan tidak boleh dimulai ulang oleh fallback scheduler.
+          // Audio protected wajib berjalan UTUH satu kali.
+          // Audio ini tidak boleh dipotong oleh endSec dan tidak boleh
+          // di-replay/loop: ADZAN, DOA, BEEP, dan IQOMAH.
           const normalizedAudioType =
             String(audioType || '').trim().toLowerCase();
 
+          const protectedSequenceAudio =
+            normalizedAudioType === 'adzan-subuh' ||
+            normalizedAudioType === 'adzan-biasa' ||
+            normalizedAudioType === 'adzan' ||
+            normalizedAudioType === 'doa-adzan' ||
+            normalizedAudioType === 'doa-puasa' ||
+            normalizedAudioType === 'doa-buka' ||
+            normalizedAudioType === 'beep' ||
+            normalizedAudioType === 'iqomah';
+
           const canReplay =
-            normalizedAudioType === 'tarhim' ||
-            normalizedAudioType === 'qiroah' ||
-            /^qiroah-\\d+$/.test(normalizedAudioType);
+            !protectedSequenceAudio &&
+            (
+              normalizedAudioType === 'tarhim' ||
+              normalizedAudioType === 'qiroah' ||
+              /^qiroah-\\d+$/.test(normalizedAudioType)
+            );
 
           const mustPlayUntilEnded =
-            !canReplay;
+            protectedSequenceAudio || !canReplay;
 
           if (
             !audio ||
@@ -2961,11 +2973,18 @@
               Number(catchUpNowWita.hour) * 3600 +
               Number(catchUpNowWita.minute) * 60 +
               Number(catchUpNowWita.second);
+            // Audio protected selalu mulai dari 0 agar file berjalan
+            // UTUH. Catch-up tidak boleh memotong bagian awal Adzan/Doa/
+            // Beep/Iqomah hanya karena halaman dibuka terlambat.
             const catchUpElapsed =
-              Number.isFinite(catchUpTarget) &&
-              Number.isFinite(catchUpNowSeconds)
-                ? Math.max(0, catchUpNowSeconds - catchUpTarget)
-                : 0;
+              protectedSequenceAudio
+                ? 0
+                : (
+                    Number.isFinite(catchUpTarget) &&
+                    Number.isFinite(catchUpNowSeconds)
+                      ? Math.max(0, catchUpNowSeconds - catchUpTarget)
+                      : 0
+                  );
 
             // OFF = tetap memainkan event/durasi, tetapi hening.
             // ON  = terdengar normal.
@@ -3535,9 +3554,23 @@
         // Jangan tampilkan sebagai ERROR/TERLEWAT berulang-ulang.
         // Hapus saja dari antrean; triggerAudioEvent() juga akan
         // mencegah event lama dimasukkan kembali.
+        const normalizedQueueAudioType =
+          String(item.audioType || '').trim().toLowerCase();
+
+        const protectedQueueSequence =
+          normalizedQueueAudioType === 'adzan-subuh' ||
+          normalizedQueueAudioType === 'adzan-biasa' ||
+          normalizedQueueAudioType === 'adzan' ||
+          normalizedQueueAudioType === 'doa-adzan' ||
+          normalizedQueueAudioType === 'doa-puasa' ||
+          normalizedQueueAudioType === 'doa-buka' ||
+          normalizedQueueAudioType === 'beep' ||
+          normalizedQueueAudioType === 'iqomah';
+
         if (
           typeof item.endSec === 'number' &&
-          nowSeconds > item.endSec
+          nowSeconds > item.endSec &&
+          !protectedQueueSequence
         ) {
 
           console.log(
@@ -3557,6 +3590,25 @@
           processAudioQueue();
           return;
 
+        }
+
+        // Protected sequence tidak pernah dibuang hanya karena waktu
+        // target/endSec sudah lewat. Jika harus catch-up setelah event
+        // sebelumnya selesai, file tetap dimainkan sampai onended.
+        if (
+          protectedQueueSequence &&
+          typeof item.endSec === 'number' &&
+          nowSeconds > item.endSec
+        ) {
+          console.log(
+            'AUDIO PROTECTED SEQUENCE: tetap diputar utuh meski target waktu lewat:',
+            item.prayerName || '-',
+            item.eventName || item.label || '-',
+            'endSec=',
+            item.endSec,
+            'nowSec=',
+            nowSeconds
+          );
         }
 
         // Event sudah mulai tetapi belum selesai:
@@ -7324,8 +7376,14 @@
       targetSec,
       endSec,
       audioType,
-      status
+      status,
+      options
     ) {
+
+      options = options || {};
+
+      const allowActiveCatchUp =
+        options.allowActiveCatchUp === true;
 
       const key =
         getAudioEventKey(
@@ -7336,8 +7394,13 @@
           endSec
         );
 
+      // CATCH-UP hanya boleh mengabaikan marker localStorage lama.
+      // Marker in-memory tetap menjadi pengaman agar event yang sudah
+      // benar-benar dimainkan pada sesi halaman ini tidak di-replay.
       if (
-        hasAudioEventPlayed(key)
+        allowActiveCatchUp
+          ? WEB_APP_STATE.audio.playedLocks.has(key)
+          : hasAudioEventPlayed(key)
       ) {
         return;
       }
@@ -8575,7 +8638,11 @@
           const alreadyQueued =
             state.queuedLocks.has(key);
 
-          const alreadyPlayed =
+          const alreadyPlayedInMemory =
+            state.playedLocks.has(key);
+
+          const persistentPlayed =
+            !alreadyPlayedInMemory &&
             hasAudioEventPlayed(key);
 
           console.log(
@@ -8590,14 +8657,16 @@
             nowSeconds,
             'alreadyQueued=',
             alreadyQueued,
-            'alreadyPlayed=',
-            alreadyPlayed
+            'playedInMemory=',
+            alreadyPlayedInMemory,
+            'persistentPlayed=',
+            persistentPlayed
           );
 
-          // Jika belum dimainkan/diantrekan, masukkan kembali.
-          // triggerAudioEvent() tetap menjadi pengaman utama agar
-          // tidak terjadi duplicate queue.
-          if (!alreadyQueued && !alreadyPlayed) {
+          // Marker localStorage dari reload sebelumnya tidak boleh
+          // menghalangi event yang SEDANG AKTIF. Tetapi event yang sudah
+          // dimainkan pada sesi halaman ini tetap tidak boleh di-replay.
+          if (!alreadyQueued && !alreadyPlayedInMemory) {
             const url =
               audioConfig[event.audioType] || '';
 
@@ -8610,7 +8679,10 @@
               targetSec,
               endSec,
               event.audioType,
-              event.status
+              event.status,
+              {
+                allowActiveCatchUp: true
+              }
             );
           }
 
