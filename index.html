@@ -14,65 +14,30 @@
     }
   /* =========================================================
      MODE DISPLAY COUNTDOWN - Panels!C2
-     AUTO   : layar hitam saat countdown sholat aktif
-              sampai 15 menit setelah IQOMAH selesai.
-     NORMAL : tampilan display tetap normal.
-     Hanya visual; audio/YouTube/scheduler tidak dihentikan.
+     AUTO : layar hitam saat countdown sholat aktif.
+     OFF  : display normal.
+     Black screen hanya visual; audio/YouTube/scheduler tetap berjalan.
      ========================================================= */
   body.panel-countdown-auto {
     background: #000 !important;
   }
 
-  body.panel-countdown-auto .screen-container {
-    background: #000 !important;
-  }
-
-  /* .center-panel berada di dalam .main-body, bukan langsung di .screen-container. */
-  body.panel-countdown-auto .screen-container > * {
-    visibility: hidden !important;
-  }
-
-  body.panel-countdown-auto .screen-container > .main-body {
-    visibility: visible !important;
+  /* Tutup seluruh display dengan lapisan hitam.
+     Tidak menyembunyikan DOM asli sehingga scheduler/audio tetap aman. */
+  body.panel-countdown-auto::after {
+    content: "";
     position: fixed !important;
     inset: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    min-width: 100vw !important;
-    min-height: 100vh !important;
-    max-width: none !important;
-    max-height: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
     background: #000 !important;
-    z-index: 99998 !important;
+    z-index: 99990 !important;
+    pointer-events: none !important;
   }
 
-  body.panel-countdown-auto .main-body > * {
-    visibility: hidden !important;
-  }
-
-  body.panel-countdown-auto .main-body > .center-panel {
-    visibility: visible !important;
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    min-width: 100vw !important;
-    min-height: 100vh !important;
-    max-width: none !important;
-    max-height: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #000 !important;
-    z-index: 99999 !important;
-  }
-
-  body.panel-countdown-auto .center-panel > * {
-    visibility: hidden !important;
-  }
-
-  body.panel-countdown-auto .center-panel > .clock-overlay {
+  /* Countdown selalu berada DI ATAS lapisan hitam,
+     tanpa bergantung pada posisi .center-panel di DOM. */
+  body.panel-countdown-auto .clock-overlay {
     visibility: visible !important;
     position: fixed !important;
     inset: 0 !important;
@@ -82,10 +47,11 @@
     align-items: center !important;
     justify-content: center !important;
     background: #000 !important;
-    z-index: 100000 !important;
+    z-index: 99999 !important;
+    pointer-events: none !important;
   }
 
-  body.panel-countdown-auto .center-panel .clock-overlay .countdown-box {
+  body.panel-countdown-auto .clock-overlay .countdown-box {
     visibility: visible !important;
     position: relative !important;
     left: auto !important;
@@ -94,10 +60,10 @@
     bottom: auto !important;
     transform: none !important;
     margin: 0 !important;
-    z-index: 100001 !important;
+    z-index: 100000 !important;
   }
 
-  body.panel-countdown-auto .center-panel .clock-overlay .analog-clock {
+  body.panel-countdown-auto .clock-overlay .analog-clock {
     visibility: hidden !important;
   }
 
