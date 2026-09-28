@@ -7944,6 +7944,80 @@
         });
       }
 
+      // =========================================================
+      // BEEP WAJIB 2X UNTUK SETIAP SHOLAT
+      //
+      // 1) BEEP pertama tepat sebelum ADZAN.
+      // 2) BEEP kedua tepat sebelum IQOMAH.
+      //
+      // Berlaku untuk semua sholat, termasuk SUBUH RAMADHAN dan
+      // MAGHRIB RAMADHAN. Jika Sheet hanya memiliki satu BEEP,
+      // BEEP tersebut dipakai sebagai template untuk membuat BEEP
+      // kedua. Jika Sheet memiliki dua atau lebih, hanya dua yang
+      // dipakai dan ditempatkan pada dua posisi anchor di atas.
+      // Status ON/OFF tetap mengikuti konfigurasi BEEP dari Sheet.
+      // Tidak mengubah durasi audio BEEP.
+      // =========================================================
+      const beepItems = items.filter(function(item) {
+        return item.event === 'beep';
+      });
+
+      const iqomahIndexForBeep = items.findIndex(function(item) {
+        return item.event === 'iqomah';
+      });
+
+      if (beepItems.length > 0 && iqomahIndexForBeep >= 0) {
+        const beepTemplate1 = Object.assign({}, beepItems[0]);
+        const beepTemplate2 = Object.assign({}, beepItems[1] || beepItems[0]);
+
+        // Hapus seluruh BEEP dari posisi Sheet agar posisi BEEP
+        // tidak bergantung pada jumlah/baris BEEP di Sheet.
+        const nonBeepItems = items.filter(function(item) {
+          return item.event !== 'beep';
+        });
+
+        const adzanPos = nonBeepItems.findIndex(function(item) {
+          return (
+            item.event === 'adzan-subuh' ||
+            item.event === 'adzan-biasa' ||
+            item.event === 'adzan'
+          );
+        });
+
+        const iqomahPos = nonBeepItems.findIndex(function(item) {
+          return item.event === 'iqomah';
+        });
+
+        if (adzanPos >= 0) {
+          nonBeepItems.splice(adzanPos, 0, beepTemplate1);
+        }
+
+        const iqomahPosAfterFirst = nonBeepItems.findIndex(function(item) {
+          return item.event === 'iqomah';
+        });
+
+        if (iqomahPosAfterFirst >= 0) {
+          nonBeepItems.splice(iqomahPosAfterFirst, 0, beepTemplate2);
+        }
+
+        items.length = 0;
+        nonBeepItems.forEach(function(item) {
+          items.push(item);
+        });
+
+        console.log(
+          'AUDIO BEEP 2X:',
+          sequenceName,
+          '| BEEP #1 sebelum ADZAN | BEEP #2 sebelum IQOMAH'
+        );
+      } else if (iqomahIndexForBeep >= 0) {
+        console.warn(
+          'AUDIO BEEP 2X: BEEP tidak ditemukan di Sheet untuk',
+          sequenceName,
+          '- tidak membuat audio BEEP baru tanpa konfigurasi Sheet.'
+        );
+      }
+
       const adzanIndex = items.findIndex(function(item) {
         return (
           item.event === 'adzan-subuh' ||
