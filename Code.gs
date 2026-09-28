@@ -253,7 +253,7 @@ function getDataFromSheet() {
       'Running_Text',
       'youtube',
       'Adzan',
-      'Panels'
+      'panels'
     ];
 
     // -------------------------------------------------------
@@ -745,6 +745,45 @@ function getDataFromSheet() {
         }
       }
     );
+
+
+    // =====================================================
+    // FINALISASI MODE PANEL DISPLAY
+    // =====================================================
+    // panels!C2 adalah sumber tunggal kontrol layar hitam.
+    // Normalisasi ulang setelah seluruh pembacaan sheet agar
+    // PanelMode tidak pernah hilang/tertindih oleh parser lain.
+    // AUTO = layar hitam saat countdown aktif.
+    // Selain AUTO = OFF.
+    // Tidak menyentuh audio, YouTube, scheduler, atau durasi.
+    // =====================================================
+    try {
+      const panelsFinal = ss.getSheetByName('panels');
+      const panelFinalRaw = panelsFinal
+        ? String(panelsFinal.getRange('C2').getDisplayValue() || '')
+            .trim()
+            .toUpperCase()
+        : '';
+
+      result.PanelMode =
+        panelFinalRaw === 'AUTO'
+          ? 'AUTO'
+          : 'OFF';
+
+      Logger.log(
+        'PANELS FINAL C2 = [' +
+        panelFinalRaw +
+        '] => PanelMode = [' +
+        result.PanelMode +
+        ']'
+      );
+    } catch (panelFinalError) {
+      result.PanelMode = 'OFF';
+      Logger.log(
+        'PANELS FINAL ERROR => OFF: ' +
+        panelFinalError.message
+      );
+    }
 
 
     // =====================================================
