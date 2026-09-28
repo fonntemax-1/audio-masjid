@@ -5762,6 +5762,28 @@
 
       let selected = null;
 
+      // AUTO dimulai 5 menit sebelum AUDIO PERTAMA
+      // pada sequence. Jadi jika sebuah sholat tidak memiliki
+      // Qiroah tetapi memiliki Sirine sebagai audio pertama,
+      // YouTube tetap akan MUTE 5 menit sebelumnya.
+      const allowedAudioEvents = {
+        'qiroah-1': true,
+        'qiroah-2': true,
+        'qiroah-3': true,
+        'qiroah-4': true,
+        'qiroah-5': true,
+        'tarhim': true,
+        'sirine': true,
+        'beep': true,
+        'adzan-subuh': true,
+        'adzan-biasa': true,
+        'doa': true,
+        'doa-adzan': true,
+        'doa-puasa': true,
+        'doa-buka': true,
+        'iqomah': true
+      };
+
       schedules.forEach(function(schedule, prayerName) {
 
         if (
@@ -5771,63 +5793,60 @@
           return;
         }
 
-        const qiroahEvents =
+        const audioEvents =
           schedule.events.filter(function(event) {
 
             const eventName =
-              String(
-                event &&
-                event.eventName
-                  ? event.eventName
-                  : ''
-              )
+              String(event && event.eventName ? event.eventName : '')
                 .trim()
                 .toLowerCase();
 
             return (
-              /^qiroah-[1-5]$/.test(eventName) &&
-              Number.isFinite(
-                Number(event.targetSec)
-              )
+              allowedAudioEvents[eventName] &&
+              Number.isFinite(Number(event.targetSec)) &&
+              Number.isFinite(Number(event.endSec)) &&
+              Number(event.endSec) > Number(event.targetSec)
             );
 
           });
 
-        if (qiroahEvents.length === 0) {
+        if (audioEvents.length === 0) {
           return;
         }
 
-        // Sequence audio tetap berasal dari Sheet.
-        // Untuk YouTube hanya waktu mulai Qiroah yang dipakai.
-        const qiroah =
-          qiroahEvents[0];
+        // Ambil audio paling awal dalam sequence.
+        const firstAudio =
+          audioEvents.reduce(function(first, event) {
+            return (
+              !first ||
+              Number(event.targetSec) < Number(first.targetSec)
+            )
+              ? event
+              : first;
+          }, null);
+
+        if (!firstAudio) {
+          return;
+        }
 
         const targetSec =
-          Number(qiroah.targetSec);
+          Number(firstAudio.targetSec);
 
         const muteStartSec =
           targetSec -
           YOUTUBE_AUTO_STOP_BEFORE_AUDIO;
 
-        if (
-          !Number.isFinite(muteStartSec)
-        ) {
+        if (!Number.isFinite(muteStartSec)) {
           return;
         }
 
-        // Periode hanya sampai waktu mulai Qiroah.
-        // Setelah itu mode AUTO menunggu perpindahan
-        // kartu/waktu sholat untuk unmute.
         if (
           nowSeconds >= muteStartSec &&
           nowSeconds < targetSec
         ) {
 
           const distance =
-            Math.abs(
-              nowSeconds -
-              muteStartSec
-            );
+            Math.abs(nowSeconds - muteStartSec);
 
           if (
             !selected ||
@@ -5836,7 +5855,7 @@
 
             selected = {
               prayerName: prayerName,
-              qiroahEvent: qiroah,
+              qiroahEvent: firstAudio,
               qiroahTargetSec: targetSec,
               muteStartSec: muteStartSec,
               distance: distance
@@ -5879,29 +5898,53 @@
           return;
         }
 
-        const qiroah =
-          schedule.events.find(function(event) {
+        const allowedAudioEvents = {
+          'qiroah-1': true,
+          'qiroah-2': true,
+          'qiroah-3': true,
+          'qiroah-4': true,
+          'qiroah-5': true,
+          'tarhim': true,
+          'sirine': true,
+          'beep': true,
+          'adzan-subuh': true,
+          'adzan-biasa': true,
+          'doa': true,
+          'doa-adzan': true,
+          'doa-puasa': true,
+          'doa-buka': true,
+          'iqomah': true
+        };
 
-            const eventName =
-              String(event && event.eventName ? event.eventName : '')
-                .trim()
-                .toLowerCase();
+        const firstAudio =
+          schedule.events
+            .filter(function(event) {
+              const eventName =
+                String(event && event.eventName ? event.eventName : '')
+                  .trim()
+                  .toLowerCase();
 
-            return (
-              /^qiroah-[1-5]$/.test(eventName) &&
-              Number.isFinite(Number(event.targetSec))
-            );
+              return (
+                allowedAudioEvents[eventName] &&
+                Number.isFinite(Number(event.targetSec))
+              );
+            })
+            .reduce(function(first, event) {
+              return (
+                !first ||
+                Number(event.targetSec) < Number(first.targetSec)
+              )
+                ? event
+                : first;
+            }, null);
 
-          });
-
-        if (!qiroah) return;
+        if (!firstAudio) {
+          return;
+        }
 
         const targetSec =
-          Number(qiroah.targetSec);
+          Number(firstAudio.targetSec);
 
-        // Untuk hold AUTO, jangan bergantung pada waktu sholat
-        // dari elemen DOM. Sumber waktunya harus computedSchedules
-        // agar tetap sinkron dengan scheduler audio.
         if (!Number.isFinite(targetSec)) {
           return;
         }
@@ -5919,8 +5962,6 @@
 
           });
 
-        // Jika ada IQOMAH, gunakan endSec aktual dari scheduler.
-        // Jika belum ada IQOMAH, gunakan waktu sholat sebagai fallback.
         const prayerSec =
           getPrayerTimeSecondsForYouTube(prayerName);
 
@@ -5951,10 +5992,7 @@
         ) {
 
           const distance =
-            Math.abs(
-              nowSeconds -
-              targetSec
-            );
+            Math.abs(nowSeconds - targetSec);
 
           if (
             !selected ||
@@ -5963,7 +6001,7 @@
 
             selected = {
               prayerName: prayerName,
-              qiroahEvent: qiroah,
+              qiroahEvent: firstAudio,
               qiroahTargetSec: targetSec,
               muteStartSec: targetSec,
               prayerSec: prayerSec,
@@ -5982,114 +6020,7 @@
 
     }
 
-    function getPrayerTimeSecondsForYouTube(
-      prayerName
-    ) {
 
-      const element =
-        document.getElementById(
-          'prayer-' +
-          String(prayerName || '').toLowerCase()
-        );
-
-      let rawTime =
-        element &&
-        element.dataset
-          ? element.dataset.rawPrayerTime
-          : '';
-
-      if (!rawTime) {
-
-        const schedule =
-          WEB_APP_STATE &&
-          WEB_APP_STATE.prayer
-            ? WEB_APP_STATE.prayer.schedule
-            : null;
-
-        const key =
-          String(prayerName || '')
-            .toLowerCase();
-
-        rawTime =
-          schedule &&
-          schedule[key]
-            ? schedule[key]
-            : '';
-
-      }
-
-      const parts =
-        String(rawTime || '').split(':');
-
-      if (parts.length < 2) {
-        return null;
-      }
-
-      const h =
-        Number(parts[0]);
-
-      const m =
-        Number(parts[1]);
-
-      if (
-        !Number.isFinite(h) ||
-        !Number.isFinite(m)
-      ) {
-        return null;
-      }
-
-      return (
-        h * 3600 +
-        m * 60
-      );
-
-    }
-
-
-    function setYouTubeAutoMuted(
-      selected,
-      dateKey
-    ) {
-
-      if (!selected) return;
-
-      youtubeAutoMuted =
-        true;
-
-      youtubeAutoMuteKey =
-        String(dateKey || '') +
-        '|' +
-        String(selected.prayerName || '') +
-        '|' +
-        String(selected.qiroahTargetSec);
-
-      youtubeAutoMutePrayer =
-        String(selected.prayerName || '');
-
-      youtubeAutoMuteQiroahTargetSec =
-        selected.qiroahTargetSec;
-
-      muteYouTubeIframe();
-
-      console.log(
-        'YOUTUBE AUTO MUTE 5 MENIT SEBELUM QIROAH:',
-        'date=', dateKey,
-        'prayer=', selected.prayerName,
-        'qiroah=', selected.qiroahEvent.eventName,
-        'qiroahTargetSec=', selected.qiroahTargetSec,
-        'muteStartSec=', selected.muteStartSec
-      );
-
-    }
-
-
-    // =========================================================
-    // YOUTUBE AUTO - AUDIO SEDANG BERLANGSUNG
-    //
-    // Saat halaman baru dibuka di tengah rangkaian audio,
-    // AUTO harus langsung MUTE. Pemeriksaan ini tidak mengubah
-    // scheduler audio; hanya membaca computedSchedules.
-    // =========================================================
     function getYouTubeCurrentAudioEvent(nowSeconds) {
 
       const schedules =
