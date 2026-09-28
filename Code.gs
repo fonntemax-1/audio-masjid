@@ -590,7 +590,7 @@ function getDataFromSheet() {
           const panelMode =
             String(
               sheet
-                .getRange('C1')
+                .getRange('C2')
                 .getDisplayValue() || ''
             )
             .trim()
@@ -602,7 +602,7 @@ function getDataFromSheet() {
               : 'NORMAL';
 
           Logger.log(
-            'PANELS!C1 = [' +
+            'PANELS!C2 = [' +
             panelMode +
             '] => PanelMode = [' +
             result.PanelMode +
