@@ -2837,9 +2837,11 @@
           const source =
             normalizeAudioUrl(url);
 
-          // Audio protected wajib berjalan UTUH satu kali.
-          // Audio ini tidak boleh dipotong oleh endSec dan tidak boleh
-          // di-replay/loop: SIRINE, ADZAN, DOA, BEEP, dan IQOMAH.
+          // QIROAH dan TARHIM boleh diputus/replay mengikuti
+          // batas durasi event pada Spreadsheet.
+          // Semua audio sequence lainnya wajib berjalan UTUH satu kali:
+          // SIRINE, ADZAN, DOA, BEEP, dan IQOMAH.
+          // Catch-up untuk semuanya tetap dimulai dari posisi elapsed.
           const normalizedAudioType =
             String(audioType || '').trim().toLowerCase();
 
@@ -2930,19 +2932,10 @@
               return;
             }
 
-            // Audio lainnya tetap mengikuti mekanisme durasi event.
-            // SEMUA AUDIO: durasi pada Spreadsheet adalah durasi event
-            // yang harus dipenuhi. Jika file audio selesai lebih cepat
-            // daripada endSec, audio diulang dari awal sampai batas event
-            // pada Spreadsheet tercapai.
-            //
-            // Contoh:
-            // Sheet = 537 detik, file = 315 detik
-            // -> file diputar 315 detik, lalu LOOP dari awal,
-            //    kemudian berhenti tepat pada detik ke-537.
-            //
-            // Ini berlaku untuk qiroah, tarhim, sirine, beep, adzan,
-            // doa, iqomah, dan event audio lainnya.
+            // Hanya QIROAH dan TARHIM yang mengikuti mekanisme
+            // replay berdasarkan durasi event Spreadsheet.
+            // Audio sequence lainnya tidak boleh dipotong/replay:
+            // setelah catch-up dimulai, tunggu sampai onended.
             const nowWita = getWitaTime();
             const nowSeconds =
               Number(nowWita.hour) * 3600 +
@@ -3087,8 +3080,20 @@
                   Number.isFinite(mediaDuration) &&
                   mediaDuration > 0
                 ) {
-                  audio.currentTime =
-                    catchUpElapsed % mediaDuration;
+                  // QIROAH/TARHIM boleh replay bila posisi catch-up
+                  // melewati panjang file. Audio sequence lainnya
+                  // TIDAK BOLEH replay. Jika event sequence terlambat
+                  // masuk queue setelah file seharusnya selesai,
+                  // mulai dari 00:00 lalu biarkan selesai penuh.
+                  if (canReplay) {
+                    audio.currentTime =
+                      catchUpElapsed % mediaDuration;
+                  } else if (catchUpElapsed < mediaDuration) {
+                    audio.currentTime =
+                      catchUpElapsed;
+                  } else {
+                    audio.currentTime = 0;
+                  }
                 } else {
                   audio.currentTime = catchUpElapsed;
                 }
@@ -3098,6 +3103,7 @@
                   label,
                   'elapsedSec=', catchUpElapsed,
                   'currentTime=', audio.currentTime,
+                  'replayAllowed=', canReplay,
                   'targetSec=', startAtSeconds
                 );
               } catch (seekError) {
