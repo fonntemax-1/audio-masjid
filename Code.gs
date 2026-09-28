@@ -128,7 +128,7 @@ function getDataFromSheet() {
     result.PanelMode =
       panelModeDirect === 'AUTO'
         ? 'AUTO'
-        : 'NORMAL';
+        : 'OFF';
 
     Logger.log(
       'PANELS DIRECT C2 = [' +
@@ -138,8 +138,8 @@ function getDataFromSheet() {
       ']'
     );
   } else {
-    result.PanelMode = 'NORMAL';
-    Logger.log('PANELS: sheet Panels tidak ditemukan => NORMAL');
+    result.PanelMode = 'OFF';
+    Logger.log('PANELS: sheet Panels tidak ditemukan => OFF');
   }
 
     // =====================================================
@@ -625,7 +625,7 @@ function getDataFromSheet() {
           result.PanelMode =
             panelMode === 'AUTO'
               ? 'AUTO'
-              : 'NORMAL';
+              : 'OFF';
 
           Logger.log(
             'PANELS!C2 = [' +
@@ -879,7 +879,7 @@ function getDataFromSheet() {
       Event: [],
       Youtube: '',
       YoutubeMute: false,
-      PanelMode: 'NORMAL',
+      PanelMode: 'OFF',
       YoutubeMuteBeforeQiroahSeconds: 0,
       YoutubeControlLocked: false,
       AdzanSubuh: '',
