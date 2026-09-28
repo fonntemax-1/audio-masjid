@@ -5762,28 +5762,10 @@
 
       let selected = null;
 
-      // AUTO dimulai 5 menit sebelum AUDIO PERTAMA
-      // pada sequence. Jadi jika sebuah sholat tidak memiliki
-      // Qiroah tetapi memiliki Sirine sebagai audio pertama,
-      // YouTube tetap akan MUTE 5 menit sebelumnya.
-      const allowedAudioEvents = {
-        'qiroah-1': true,
-        'qiroah-2': true,
-        'qiroah-3': true,
-        'qiroah-4': true,
-        'qiroah-5': true,
-        'tarhim': true,
-        'sirine': true,
-        'beep': true,
-        'adzan-subuh': true,
-        'adzan-biasa': true,
-        'doa': true,
-        'doa-adzan': true,
-        'doa-puasa': true,
-        'doa-buka': true,
-        'iqomah': true
-      };
-
+      // AUTO MUTE PRE-WINDOW HARUS MENGIKUTI QIROAH,
+      // bukan audio pertama (Sirine/Tarhim/Beep).
+      // Jadi rentangnya tetap:
+      // 5 menit sebelum Qiroah -> mulai MUTE.
       schedules.forEach(function(schedule, prayerName) {
 
         if (
@@ -5793,7 +5775,7 @@
           return;
         }
 
-        const audioEvents =
+        const qiroahEvents =
           schedule.events.filter(function(event) {
 
             const eventName =
@@ -5802,7 +5784,7 @@
                 .toLowerCase();
 
             return (
-              allowedAudioEvents[eventName] &&
+              /^qiroah-[1-5]$/.test(eventName) &&
               Number.isFinite(Number(event.targetSec)) &&
               Number.isFinite(Number(event.endSec)) &&
               Number(event.endSec) > Number(event.targetSec)
@@ -5810,13 +5792,13 @@
 
           });
 
-        if (audioEvents.length === 0) {
+        if (qiroahEvents.length === 0) {
           return;
         }
 
-        // Ambil audio paling awal dalam sequence.
-        const firstAudio =
-          audioEvents.reduce(function(first, event) {
+        // Ambil Qiroah pertama pada sequence.
+        const qiroah =
+          qiroahEvents.reduce(function(first, event) {
             return (
               !first ||
               Number(event.targetSec) < Number(first.targetSec)
@@ -5825,28 +5807,30 @@
               : first;
           }, null);
 
-        if (!firstAudio) {
+        if (!qiroah) {
           return;
         }
 
-        const targetSec =
-          Number(firstAudio.targetSec);
+        const qiroahTargetSec =
+          Number(qiroah.targetSec);
 
         const muteStartSec =
-          targetSec -
+          qiroahTargetSec -
           YOUTUBE_AUTO_STOP_BEFORE_AUDIO;
 
         if (!Number.isFinite(muteStartSec)) {
           return;
         }
 
+        // Jika halaman dibuka di dalam 5 menit sebelum Qiroah,
+        // langsung masuk window MUTE.
         if (
           nowSeconds >= muteStartSec &&
-          nowSeconds < targetSec
+          nowSeconds < qiroahTargetSec
         ) {
 
           const distance =
-            Math.abs(nowSeconds - muteStartSec);
+            Math.abs(nowSeconds - qiroahTargetSec);
 
           if (
             !selected ||
@@ -5855,8 +5839,8 @@
 
             selected = {
               prayerName: prayerName,
-              qiroahEvent: firstAudio,
-              qiroahTargetSec: targetSec,
+              qiroahEvent: qiroah,
+              qiroahTargetSec: qiroahTargetSec,
               muteStartSec: muteStartSec,
               distance: distance
             };
@@ -5898,54 +5882,47 @@
           return;
         }
 
-        const allowedAudioEvents = {
-          'qiroah-1': true,
-          'qiroah-2': true,
-          'qiroah-3': true,
-          'qiroah-4': true,
-          'qiroah-5': true,
-          'tarhim': true,
-          'sirine': true,
-          'beep': true,
-          'adzan-subuh': true,
-          'adzan-biasa': true,
-          'doa': true,
-          'doa-adzan': true,
-          'doa-puasa': true,
-          'doa-buka': true,
-          'iqomah': true
-        };
+        // Hold window tetap dimulai dari Qiroah,
+        // bukan dari audio pertama.
+        const qiroahEvents =
+          schedule.events.filter(function(event) {
 
-        const firstAudio =
-          schedule.events
-            .filter(function(event) {
-              const eventName =
-                String(event && event.eventName ? event.eventName : '')
-                  .trim()
-                  .toLowerCase();
+            const eventName =
+              String(event && event.eventName ? event.eventName : '')
+                .trim()
+                .toLowerCase();
 
-              return (
-                allowedAudioEvents[eventName] &&
-                Number.isFinite(Number(event.targetSec))
-              );
-            })
-            .reduce(function(first, event) {
-              return (
-                !first ||
-                Number(event.targetSec) < Number(first.targetSec)
-              )
-                ? event
-                : first;
-            }, null);
+            return (
+              /^qiroah-[1-5]$/.test(eventName) &&
+              Number.isFinite(Number(event.targetSec)) &&
+              Number.isFinite(Number(event.endSec)) &&
+              Number(event.endSec) > Number(event.targetSec)
+            );
 
-        if (!firstAudio) {
+          });
+
+        if (qiroahEvents.length === 0) {
           return;
         }
 
-        const targetSec =
-          Number(firstAudio.targetSec);
+        const qiroah =
+          qiroahEvents.reduce(function(first, event) {
+            return (
+              !first ||
+              Number(event.targetSec) < Number(first.targetSec)
+            )
+              ? event
+              : first;
+          }, null);
 
-        if (!Number.isFinite(targetSec)) {
+        if (!qiroah) {
+          return;
+        }
+
+        const qiroahTargetSec =
+          Number(qiroah.targetSec);
+
+        if (!Number.isFinite(qiroahTargetSec)) {
           return;
         }
 
@@ -5970,14 +5947,14 @@
             ? Number(iqomahEvent.endSec)
             : (
                 Number.isFinite(prayerSec) &&
-                prayerSec > targetSec
+                prayerSec > qiroahTargetSec
                   ? prayerSec
                   : null
               );
 
         if (
           !Number.isFinite(iqomahEndSec) ||
-          iqomahEndSec <= targetSec
+          iqomahEndSec <= qiroahTargetSec
         ) {
           return;
         }
@@ -5986,13 +5963,15 @@
           iqomahEndSec +
           YOUTUBE_AUTO_ON_AFTER_IQOMAH;
 
+        // Setelah Qiroah dimulai, MUTE tetap dipertahankan
+        // sampai 30 menit setelah IQOMAH selesai.
         if (
-          nowSeconds >= targetSec &&
+          nowSeconds >= qiroahTargetSec &&
           nowSeconds < muteUntilSec
         ) {
 
           const distance =
-            Math.abs(nowSeconds - targetSec);
+            Math.abs(nowSeconds - qiroahTargetSec);
 
           if (
             !selected ||
@@ -6001,9 +5980,11 @@
 
             selected = {
               prayerName: prayerName,
-              qiroahEvent: firstAudio,
-              qiroahTargetSec: targetSec,
-              muteStartSec: targetSec,
+              qiroahEvent: qiroah,
+              qiroahTargetSec: qiroahTargetSec,
+              muteStartSec:
+                qiroahTargetSec -
+                YOUTUBE_AUTO_STOP_BEFORE_AUDIO,
               prayerSec: prayerSec,
               iqomahEndSec: iqomahEndSec,
               muteUntilSec: muteUntilSec,
