@@ -190,6 +190,17 @@
     font-weight: 700 !important;
   }
 
+  body.panel-countdown-auto .clock-overlay .panel-black-notice {
+    font-family: inherit !important;
+    font-size: clamp(0.9rem, 1.55vw, 1.65rem) !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    white-space: nowrap !important;
+  }
+
   body.panel-countdown-auto .clock-overlay .countdown-title {
     font-size: clamp(1.35rem, 2.35vw, 2.6rem) !important;
     line-height: 1.05 !important;
@@ -1629,11 +1640,13 @@
 
           <!-- Tampilan khusus saat Panel AUTO masuk mode layar hitam -->
           <div class="panel-black-message" aria-hidden="true">
-            <div class="panel-black-line" id="panel-black-title">WAKTU SHOLAT</div>
+            <div class="panel-black-line panel-black-title" id="panel-black-title">WAKTU SHOLAT</div>
             <div class="panel-black-line panel-black-prayer" id="panel-black-prayer">SUBUH</div>
             <div class="panel-black-icon">
               <img src="./image/handphone.png" alt="Handphone">
             </div>
+            <div class="panel-black-line panel-black-notice">DEMI KETENANGAN DAN KEKHUSYUKAN IBADAH SHOLAT KITA</div>
+            <div class="panel-black-line panel-black-notice">MOHON UNTUK MENONAKTIFKAN HANPHONE ATAU SILENT MODE</div>
           </div>
 
           <div class="analog-clock">
@@ -10517,8 +10530,12 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         // MODE PANEL AUTO bersifat DISPLAY-ONLY.
         // Layar hitam dimulai 2 menit sebelum IQOMAH
         // dan kembali normal 15 menit setelah waktu IQOMAH.
-        // Isi layar hitam hanya WAKTU SHOLAT + nama sholat,
-        // handphone, dan jam digital. Audio/YouTube/scheduler tetap.
+        // Isi layar hitam:
+        // WAKTU SHOLAT + nama sholat,
+        // handphone,
+        // dua baris pesan ketenangan,
+        // serta jam digital + WITA.
+        // Audio/YouTube/scheduler tetap.
         if (WEB_APP_STATE.panel.mode === 'AUTO') {
           console.log(
             'PANELS AUTO:',
