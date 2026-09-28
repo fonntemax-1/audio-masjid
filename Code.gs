@@ -109,17 +109,17 @@ function getDataFromSheet() {
 
     // =====================================================
     // KONTROL MODE DISPLAY COUNTDOWN
-    // Sumber: sheet "Panels"!C2
+    // Sumber: sheet "panels"!C2
     // AUTO   = layar hitam saat countdown sholat aktif
     //          sampai 15 menit setelah IQOMAH selesai.
     // NORMAL = tampilan display tetap normal.
     // =====================================================
     // ============================================================
-  // MODE DISPLAY COUNTDOWN - Panels!C2
+  // MODE DISPLAY COUNTDOWN - panels!C2
   // Dibaca langsung, terpisah dari RAMADAN_DISPLAY.
   // AUTO/NORMAL hanya mengatur tampilan layar; audio tidak berubah.
   // ============================================================
-  const panelsSheetDirect = ss.getSheetByName('Panels');
+  const panelsSheetDirect = ss.getSheetByName('panels');
   if (panelsSheetDirect) {
     const panelModeDirect = String(
       panelsSheetDirect.getRange('C2').getDisplayValue() || ''
@@ -139,7 +139,7 @@ function getDataFromSheet() {
     );
   } else {
     result.PanelMode = 'OFF';
-    Logger.log('PANELS: sheet Panels tidak ditemukan => OFF');
+    Logger.log('PANELS: sheet panels tidak ditemukan => OFF');
   }
 
     // =====================================================
@@ -610,7 +610,7 @@ function getDataFromSheet() {
         // =====================================================
 
         if (
-          sheetName === 'Panels'
+          sheetName === 'panels'
         ) {
 
           const panelMode =
