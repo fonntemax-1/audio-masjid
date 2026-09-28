@@ -252,12 +252,18 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    /* Handphone ditempatkan tepat di atas BARIS 1 pesan. */
+    order: 3 !important;
     /* Ukuran gambar handphone diperkecil 30% dari ukuran sebelumnya. */
     width: clamp(255px, 25.48vw, 445px) !important;
     height: clamp(255px, 35.56vh, 445px) !important;
     margin: 1.5vh 0 0.25vh 0 !important;
     flex: 0 0 auto !important;
     background: transparent !important;
+  }
+
+  body.panel-countdown-auto .clock-overlay .panel-black-notice {
+    order: 4 !important;
   }
 
   body.panel-countdown-auto .clock-overlay .panel-black-icon img {
