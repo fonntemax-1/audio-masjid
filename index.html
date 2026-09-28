@@ -9354,27 +9354,23 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
     function setPanelDisplayMode(mode) {
       const normalized =
-        String(mode || 'NORMAL')
+        String(mode || 'OFF')
           .trim()
           .toUpperCase();
 
-      // Panels!C2 tetap menjadi MAIN CONTROL.
-      // AUTO  = black screen saat countdown aktif.
-      // NORMAL = black screen tidak aktif.
-      // Mode ini tidak bergantung pada RAMADAN_DISPLAY.
+      // Panels!C2 adalah MAIN CONTROL.
+      // AUTO = black screen mengikuti countdown sholat.
+      // OFF  = black screen selalu dimatikan.
+      // Tidak bergantung pada RAMADAN_DISPLAY.
       WEB_APP_STATE.panel.mode =
         normalized === 'AUTO'
           ? 'AUTO'
-          : 'NORMAL';
+          : 'OFF';
 
-      // Jangan mematikan black screen di sini.
-      // Scheduler countdown adalah pemegang state ON/OFF.
-      // Ini mencegah refresh data Sheet memutus black screen
-      // ketika countdown sedang aktif.
-      if (
-        WEB_APP_STATE.panel.mode === 'NORMAL' &&
-        !WEB_APP_STATE.panel.countdownBlack
-      ) {
+      // OFF harus langsung mematikan black screen.
+      // AUTO tidak mengubah state countdown yang sedang berjalan.
+      if (WEB_APP_STATE.panel.mode === 'OFF') {
+        WEB_APP_STATE.panel.countdownBlack = false;
         document.body.classList.remove(
           'panel-countdown-auto'
         );
@@ -9383,7 +9379,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
     function setCountdownBlackMode(enabled) {
       // Panels!C2 tetap menjadi MAIN CONTROL.
-      // Hanya AUTO yang boleh mengaktifkan black screen.
+      // AUTO  = black screen saat countdown aktif.
+      // OFF   = tampilan normal.
       // RAMADAN_DISPLAY tidak ikut menentukan layar hitam.
       const shouldBlack =
         WEB_APP_STATE.panel.mode === 'AUTO' &&
