@@ -11248,6 +11248,47 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       1000
     );
 
+    // =========================================================
+    // AUDIO CATCH-UP LIVE MONITOR
+    // =========================================================
+    // FINAL CATCH-UP di akhir pembuatan schedule hanya menangkap
+    // event yang aktif pada saat schedule selesai dibuat.
+    //
+    // Jika schedule sudah selesai SEBELUM audio dimulai, atau proses
+    // pembuatan schedule melewati batas detik event, catch-up final
+    // tidak akan dipanggil lagi. Monitor ini melakukan scan 1x/detik
+    // hanya ketika audio sedang tidak memainkan event.
+    //
+    // Tidak mengubah timeline, durasi, urutan, GAP, ON/OFF, YouTube,
+    // atau audio yang sedang berjalan.
+    setInterval(
+      function() {
+        const audioState = WEB_APP_STATE.audio;
+
+        if (
+          !audioState ||
+          !audioState.scheduleInitialized ||
+          !audioState.initialized ||
+          audioState.processing ||
+          audioState.currentEventKey
+        ) {
+          return;
+        }
+
+        try {
+          queueCurrentAudioCatchUp(
+            WEB_APP_STATE.dateKey || getApiDate()
+          );
+        } catch (catchUpMonitorError) {
+          console.error(
+            'AUDIO CATCH-UP MONITOR ERROR:',
+            catchUpMonitorError
+          );
+        }
+      },
+      1000
+    );
+
     setInterval(
       updateGregorianDate,
       60000
