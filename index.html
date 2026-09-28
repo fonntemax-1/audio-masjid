@@ -2396,6 +2396,17 @@
       nextConfig.doa =
         nextConfig.doa || nextConfig['doa-adzan'] || '';
 
+      // Kompatibilitas Sheet Adzan lama: jika hanya ada satu URL "doa",
+      // semua variasi doa memakai file yang sama. Variasi tetap mengikuti
+      // sequence Sheet (doa-adzan / doa-puasa / doa-buka), tetapi tidak
+      // boleh membuat seluruh scheduler audio dianggap BELUM SIAP.
+      nextConfig['doa-adzan'] =
+        nextConfig['doa-adzan'] || nextConfig.doa || '';
+      nextConfig['doa-puasa'] =
+        nextConfig['doa-puasa'] || nextConfig.doa || '';
+      nextConfig['doa-buka'] =
+        nextConfig['doa-buka'] || nextConfig.doa || '';
+
       audioConfig = nextConfig;
 
       // Normalisasi AudioSchedule dari JSONP/API.
@@ -2511,30 +2522,33 @@
         }).join(', ')
       );
 
+      // Scheduler tidak boleh mati total hanya karena variasi doa
+      // atau salah satu slot qiroah opsional tidak memiliki URL sendiri.
+      // Variasi doa sudah dinormalisasi ke URL "doa" di atas.
       const requiredAudioTypes = [
         'beep',
         'adzan-subuh',
         'adzan-biasa',
         'tarhim',
         'sirine',
-        'doa-adzan',
-        'doa-puasa',
-        'doa-buka',
+        'doa',
         'iqomah'
       ];
 
-      const requiredQiroahTypes = [
+      const hasAnyQiroah = [
         'qiroah-1',
         'qiroah-2',
         'qiroah-3',
         'qiroah-4',
         'qiroah-5'
-      ];
+      ].some(function(type) {
+        return !!normalizeAudioUrl(audioConfig[type] || '');
+      });
 
       const configReady =
-        requiredAudioTypes.concat(requiredQiroahTypes).every(function(type) {
+        requiredAudioTypes.every(function(type) {
           return !!normalizeAudioUrl(audioConfig[type] || '');
-        });
+        }) && hasAnyQiroah;
 
       WEB_APP_STATE.audio.audioConfigReady = configReady;
 
