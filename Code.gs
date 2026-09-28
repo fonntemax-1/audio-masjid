@@ -590,7 +590,7 @@ function getDataFromSheet() {
           const panelMode =
             String(
               sheet
-                .getRange('B2')
+                .getRange('C1')
                 .getDisplayValue() || ''
             )
             .trim()
