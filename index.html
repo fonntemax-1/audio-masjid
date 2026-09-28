@@ -5508,6 +5508,8 @@
         '&controls=0' +
         '&rel=0' +
         '&playsinline=1' +
+        '&enablejsapi=1' +
+        '&origin=' + encodeURIComponent(window.location.origin) +
         '&modestbranding=1'
       );
 
@@ -5584,6 +5586,48 @@
     }
 
 
+    function sendYouTubeCommand(command) {
+
+      const iframe =
+        document.getElementById(
+          'youtube-video'
+        );
+
+      if (
+        !iframe ||
+        !iframe.contentWindow
+      ) {
+        return false;
+      }
+
+      try {
+
+        iframe.contentWindow.postMessage(
+          JSON.stringify({
+            event: 'command',
+            func: command,
+            args: []
+          }),
+          '*'
+        );
+
+        return true;
+
+      } catch (error) {
+
+        console.warn(
+          'YOUTUBE COMMAND GAGAL:',
+          command,
+          error
+        );
+
+        return false;
+
+      }
+
+    }
+
+
     function muteYouTubeIframe() {
 
       const iframe =
@@ -5593,14 +5637,26 @@
 
       if (!iframe) return;
 
+      // MUTE memakai YouTube command sehingga iframe TIDAK reload.
+      // Ini penting agar YouTube tidak restart ketika masuk/keluar
+      // window AUTO dan tidak mengganggu rangkaian display.
+      if (sendYouTubeCommand('mute')) {
+
+        console.log(
+          'YOUTUBE MUTE: command mute dikirim tanpa reload iframe'
+        );
+
+        return;
+
+      }
+
+      // Fallback hanya jika iframe belum tersedia.
       const currentSrc =
         currentYouTubeUrl ||
         iframe.getAttribute('src') ||
         '';
 
       if (!currentSrc) return;
-
-      let mutedSrc = currentSrc;
 
       try {
 
@@ -5612,50 +5668,30 @@
           '1'
         );
 
-        mutedSrc =
+        const mutedSrc =
           parsed.toString();
+
+        if (
+          mutedSrc !==
+          iframe.getAttribute('src')
+        ) {
+
+          currentYouTubeUrl =
+            mutedSrc;
+
+          iframe.src =
+            mutedSrc;
+
+        }
 
       } catch (error) {
 
-        mutedSrc =
-          currentSrc
-            .replace(
-              /([?&])mute=[01]/i,
-              '$1mute=1'
-            );
-
-        if (
-          !/[?&]mute=1(?:&|$)/i.test(
-            mutedSrc
-          )
-        ) {
-          mutedSrc +=
-            (
-              mutedSrc.indexOf('?') >= 0
-                ? '&'
-                : '?'
-            ) +
-            'mute=1';
-        }
+        console.warn(
+          'YOUTUBE MUTE FALLBACK GAGAL:',
+          error
+        );
 
       }
-
-      if (
-        mutedSrc ===
-        iframe.getAttribute('src')
-      ) {
-        return;
-      }
-
-      currentYouTubeUrl =
-        mutedSrc;
-
-      iframe.src =
-        mutedSrc;
-
-      console.log(
-        'YOUTUBE MUTE: src diperbarui ke mute=1'
-      );
 
     }
 
@@ -5669,15 +5705,23 @@
 
       if (!iframe) return;
 
+      // UNMUTE juga memakai command tanpa reload iframe.
+      if (sendYouTubeCommand('unMute')) {
+
+        console.log(
+          'YOUTUBE UNMUTE: command unMute dikirim tanpa reload iframe'
+        );
+
+        return;
+
+      }
+
       const currentSrc =
         currentYouTubeUrl ||
         iframe.getAttribute('src') ||
         '';
 
       if (!currentSrc) return;
-
-      let unmutedSrc =
-        currentSrc;
 
       try {
 
@@ -5689,38 +5733,33 @@
           '0'
         );
 
-        unmutedSrc =
+        const unmutedSrc =
           parsed.toString();
+
+        if (
+          unmutedSrc !==
+          iframe.getAttribute('src')
+        ) {
+
+          currentYouTubeUrl =
+            unmutedSrc;
+
+          iframe.src =
+            unmutedSrc;
+
+        }
 
       } catch (error) {
 
-        unmutedSrc =
-          currentSrc
-            .replace(
-              /([?&])mute=[01]/i,
-              '$1mute=0'
-            );
+        console.warn(
+          'YOUTUBE UNMUTE FALLBACK GAGAL:',
+          error
+        );
 
       }
-
-      if (
-        unmutedSrc ===
-        iframe.getAttribute('src')
-      ) {
-        return;
-      }
-
-      currentYouTubeUrl =
-        unmutedSrc;
-
-      iframe.src =
-        unmutedSrc;
-
-      console.log(
-        'YOUTUBE UNMUTE: src diperbarui ke mute=0'
-      );
 
     }
+
 
     function stopYouTubeIframe() {
 
