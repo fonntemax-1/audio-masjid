@@ -235,6 +235,18 @@
     max-height: 100% !important;
     object-fit: contain !important;
     background: transparent !important;
+
+    /* Satukan area gelap gambar dengan layar hitam.
+       Tidak mengubah ukuran, posisi, audio, YouTube, atau scheduler. */
+    mix-blend-mode: screen !important;
+    isolation: isolate !important;
+  }
+
+  /* Area pembungkus selalu hitam sehingga tepi gambar
+     tidak terlihat sebagai kotak berbeda dari layar. */
+  body.panel-countdown-auto .clock-overlay .panel-black-icon {
+    background: #000 !important;
+    overflow: visible !important;
   }
 
   body.panel-countdown-auto .clock-overlay .panel-black-line {
