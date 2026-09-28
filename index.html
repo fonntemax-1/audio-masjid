@@ -9630,23 +9630,29 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             break;
           }
 
-          // WAKTU BERBUKA / PUASA tetap tampil sampai
-          // 2 menit sebelum Adzan Maghrib.
-          // Countdown ini hanya mengubah TAMPILAN.
-          // Tidak mengubah sirine, jadwal audio, atau waktu Adzan.
+          // WAKTU BERBUKA / PUASA setelah waktu Maghrib
+          // tetap menjadi fase display sebelum countdown Adzan.
+          // Semua waktu audio tetap mengikuti scheduler yang ada.
           const maghribAdzanStartSec =
             Number(adzanStartSec);
 
-          const maghribMenujuSholatSec =
-            maghribAdzanStartSec - (2 * 60);
+          // Countdown "MENUJU ADZAN MAGRIB" hanya mengambil
+          // 2 menit terakhir sebelum Adzan aktual.
+          // Jika jarak Maghrib -> Adzan kurang dari 2 menit,
+          // countdown dimulai tepat saat fase berbuka dimulai.
+          const maghribMenujuAdzanSec =
+            Math.max(
+              Number(pSec),
+              maghribAdzanStartSec - (2 * 60)
+            );
 
           if (
             nowSeconds >= Number(pSec) &&
-            nowSeconds < maghribMenujuSholatSec
+            nowSeconds < maghribMenujuAdzanSec
           ) {
 
             activeState = {
-              title: 'WAKTU BERBUKA',
+              title: 'BERBUKA',
               timer: 'PUASA',
               prayerName: 'MAGHRIB'
             };
@@ -9655,9 +9661,10 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           }
 
           // 2 menit terakhir sebelum Adzan Maghrib:
-          // tampilkan countdown khusus display saja.
+          // DISPLAY SAJA. Tidak mengubah sirine,
+          // audio, gap, ataupun waktu Adzan.
           if (
-            nowSeconds >= maghribMenujuSholatSec &&
+            nowSeconds >= maghribMenujuAdzanSec &&
             nowSeconds < maghribAdzanStartSec
           ) {
 
@@ -9668,7 +9675,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             const s = Math.floor(diff % 60);
 
             activeState = {
-              title: 'MENUJU SHOLAT MAGRIB',
+              title: 'MENUJU ADZAN MAGRIB',
               timer:
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
