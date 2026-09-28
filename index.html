@@ -9751,6 +9751,11 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         }
       );
 
+      // Window layar hitam Panel AUTO.
+      // Mulai setelah Adzan selesai (fase MENUJU IQOMAH)
+      // dan berakhir 15 menit setelah IQOMAH selesai.
+      let panelBlackWindow = false;
+
       // =======================================================
       // AUDIO PROCESSING
       // =======================================================
@@ -9903,6 +9908,18 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 // Ini hanya mengatur countdown/display; sistem audio tidak berubah.
         const afterIqomahSec =
           iqomahEndSec + (15 * 60);
+
+        // Panel AUTO mulai hitam tepat setelah Adzan selesai,
+        // saat countdown masuk fase MENUJU IQOMAH.
+        // Tetap hitam selama IQOMAH dan SHOLAT sampai
+        // 15 menit setelah IQOMAH selesai.
+        if (
+          p.hasIqomah &&
+          nowSeconds >= adzanEndSec &&
+          nowSeconds < afterIqomahSec
+        ) {
+          panelBlackWindow = true;
+        }
 
         // -------------------------------------------------------
         // RAMADAN KHUSUS SUBUH
@@ -10421,38 +10438,12 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
         // MODE PANEL AUTO bersifat DISPLAY-ONLY.
         // Layar hitam DIMULAI saat fase MENUJU IQOMAH,
-        // yaitu setelah Adzan selesai dan sebelum waktu IQOMAH.
+        // yaitu setelah Adzan selesai.
         // Layar tetap hitam selama IQOMAH dan SHOLAT,
         // lalu kembali NORMAL tepat 15 menit setelah IQOMAH selesai.
         //
+        // Sumber waktu berasal dari scheduler yang sudah ada.
         // Audio, YouTube, scheduler dan urutan audio TIDAK disentuh.
-        //
-        // Gunakan waktu scheduler, bukan teks countdown, sebagai
-        // sumber kebenaran agar batas hitam tetap presisi.
-        let panelBlackWindow = false;
-
-        for (let bi = 0; bi < prayerList.length; bi++) {
-          const bp = prayerList[bi];
-
-          if (
-            bp.hasIqomah &&
-            Number.isFinite(Number(bp.adzanEndSec)) &&
-            Number.isFinite(Number(bp.iqomahEndSec))
-          ) {
-            const bAdzanEndSec = Number(bp.adzanEndSec);
-            const bIqomahEndSec = Number(bp.iqomahEndSec);
-            const bBlackEndSec = bIqomahEndSec + (15 * 60);
-
-            if (
-              nowSeconds >= bAdzanEndSec &&
-              nowSeconds < bBlackEndSec
-            ) {
-              panelBlackWindow = true;
-              break;
-            }
-          }
-        }
-
         if (WEB_APP_STATE.panel.mode === 'AUTO') {
           console.log(
             'PANELS AUTO:',
@@ -10462,7 +10453,11 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           );
         }
 
-        setCountdownBlackMode(panelBlackWindow);
+        setCountdownBlackMode(
+          WEB_APP_STATE.panel.mode === 'AUTO'
+            ? panelBlackWindow
+            : false
+        );
 
         const displayCountdownTitle =
           WEB_APP_STATE.panel.mode === 'AUTO' &&
@@ -10500,15 +10495,14 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
       } else {
 
-        // Jangan mematikan panel hitam hanya karena activeState
-        // sementara kosong. Window panel ditentukan oleh waktu
-        // MENUJU IQOMAH sampai 15 menit setelah IQOMAH selesai.
-        if (WEB_APP_STATE.panel.mode === 'AUTO') {
-          // panelBlackWindow sudah dihitung di atas.
-          setCountdownBlackMode(panelBlackWindow);
-        } else {
-          setCountdownBlackMode(false);
-        }
+        // activeState dapat kosong tepat setelah fase SHOLAT selesai.
+        // Panel AUTO tetap mengikuti window waktu sampai
+        // 15 menit setelah IQOMAH selesai.
+        setCountdownBlackMode(
+          WEB_APP_STATE.panel.mode === 'AUTO'
+            ? panelBlackWindow
+            : false
+        );
 
         if (
           nextPrayer &&
