@@ -6416,6 +6416,10 @@
         youtubeAutoMuteKey = '';
         youtubeAutoMutePrayer = '';
         youtubeAutoMuteQiroahTargetSec = null;
+
+        // Bila operator berpindah kembali ke AUTO, lakukan satu
+        // startup-style schedule check untuk mode AUTO yang baru.
+        youtubeAutoScheduleEvaluated = mode !== 'AUTO';
       }
 
       // STOP = YouTube benar-benar dihentikan.
