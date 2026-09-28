@@ -63,8 +63,41 @@
     z-index: 100000 !important;
   }
 
-  body.panel-countdown-auto .clock-overlay .analog-clock {
+  body.panel-countdown-auto .clock-overlay .analog-clock,
+  body.panel-countdown-auto .clock-overlay .infaq-panel {
     visibility: hidden !important;
+    display: none !important;
+  }
+
+  /* Saat layar hitam, hanya countdown dan jam digital yang terlihat.
+     Semua frame dekoratif dihilangkan tanpa mengubah DOM/scheduler/audio. */
+  body.panel-countdown-auto .clock-overlay {
+    flex-direction: column !important;
+    gap: 2vh !important;
+  }
+
+  body.panel-countdown-auto .clock-overlay .countdown-box {
+    width: auto !important;
+    min-width: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  body.panel-countdown-auto .clock-overlay .digital-clock-box {
+    width: auto !important;
+    min-width: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  body.panel-countdown-auto .clock-overlay .digital-time {
+    text-shadow: 0 0 0.8vh rgba(255,255,255,0.35) !important;
   }
 
   </style>
