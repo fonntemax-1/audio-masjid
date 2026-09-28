@@ -94,13 +94,18 @@ function getRamadanDisplaySetting() {
 // =========================================================
 // PANEL DISPLAY MODE - API TERPISAH UNTUK GITHUB PAGES
 // =========================================================
-// Hanya membaca panels!C2. Tidak menyentuh audio, YouTube,
-// scheduler, Ramadan, Event, atau data display lainnya.
+// Hanya membaca panels!C2.
+// AUTO = layar hitam saat countdown aktif.
+// OFF  = tampilan normal.
+// TIDAK menyentuh audio, YouTube, scheduler, Ramadan,
+// Event, keuangan, Jumat, khutbah, atau data display lain.
+// =========================================================
 function getPanelDisplayMode() {
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName('panels');
 
   if (!sheet) {
+    Logger.log('PANELS: sheet panels tidak ditemukan => OFF');
     return {
       success: true,
       mode: 'OFF'
