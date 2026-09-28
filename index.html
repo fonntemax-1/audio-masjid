@@ -204,12 +204,34 @@
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 1.6vh !important;
+    gap: 1.1vh !important;
 
     text-align: center !important;
     background: transparent !important;
     border: 0 !important;
     box-shadow: none !important;
+  }
+
+  /* Ikon handphone berada tepat di atas teks baris pertama.
+     Ukuran mengikuti layar agar tidak bertabrakan dengan countdown
+     di atas maupun jam digital di bawah. */
+  body.panel-countdown-auto .clock-overlay .panel-black-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: clamp(42px, 6vw, 88px) !important;
+    height: clamp(42px, 8vh, 88px) !important;
+    margin: 0 0 0.25vh 0 !important;
+    flex: 0 0 auto !important;
+  }
+
+  body.panel-countdown-auto .clock-overlay .panel-black-icon img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
   }
 
   body.panel-countdown-auto .clock-overlay .panel-black-line {
@@ -1570,6 +1592,9 @@
 
           <!-- Pesan khusus saat Panel AUTO masuk mode layar hitam -->
           <div class="panel-black-message" aria-hidden="true">
+            <div class="panel-black-icon">
+              <img src="./image/handphone.png" alt="Handphone">
+            </div>
             <div class="panel-black-line">DEMI KETENANGAN DAN KEKHUSYUKAN IBADAH SHOLAT KITA</div>
             <div class="panel-black-line">MOHON UNTUK MENONAKTIFKAN HANDPHONE ATAU SILENT MODE</div>
           </div>
@@ -10395,51 +10420,49 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       if (activeState) {
 
         // MODE PANEL AUTO bersifat DISPLAY-ONLY.
-        // MENUJU WAKTU SHOLAT tetap NORMAL.
-        // Layar hitam mulai TEPAT pada waktu sholat (pSec),
-        // lalu tetap hitam sampai 15 menit setelah IQOMAH selesai.
-        // Jadi pemicunya adalah WINDOW WAKTU SHOLAT,
-        // bukan countdown MENUJU WAKTU SHOLAT.
-        //
-        // Khusus Maghrib Ramadan:
-        // sejak tepat waktu Maghrib (awal fase BERBUKA),
-        // display masuk window sholat dan layar menjadi hitam.
+        // Layar hitam DIMULAI saat fase MENUJU IQOMAH,
+        // yaitu setelah Adzan selesai dan sebelum waktu IQOMAH.
+        // Layar tetap hitam selama IQOMAH dan SHOLAT,
+        // lalu kembali NORMAL tepat 15 menit setelah IQOMAH selesai.
         //
         // Audio, YouTube, scheduler dan urutan audio TIDAK disentuh.
-        const activeTitle =
-          String(activeState.title || '').trim().toUpperCase();
-
-        // BLACK SCREEN MENGIKUTI PERPINDAHAN COUNTDOWN.
-        // Saat waktu sholat tiba, countdown berubah menjadi
-        // "WAKTU SHOLAT" dan pada detik yang sama layar menjadi hitam.
-        // Setelah itu layar tetap hitam melalui:
-        // WAKTU SHOLAT -> MENUJU IQOMAH -> IQOMAH -> SHOLAT
-        // sampai 15 menit setelah IQOMAH selesai.
         //
-        // ADZAN adalah batas waktu sholat dan secara DISPLAY AUTO
-        // ditampilkan sebagai "WAKTU SHOLAT".
-        // "WAKTU IMSAK" pada Ramadan BUKAN waktu sholat,
-        // sehingga tidak boleh memicu layar hitam.
-        const isWaktuSholatDisplay =
-          activeTitle === 'ADZAN' ||
-          activeTitle === 'WAKTU SHOLAT';
+        // Gunakan waktu scheduler, bukan teks countdown, sebagai
+        // sumber kebenaran agar batas hitam tetap presisi.
+        let panelBlackWindow = false;
 
-        const blackPrayerState =
-          isWaktuSholatDisplay ||
-          activeTitle === 'MENUJU IQOMAH' ||
-          activeTitle === 'IQOMAH' ||
-          activeTitle === 'SHOLAT';
+        for (let bi = 0; bi < prayerList.length; bi++) {
+          const bp = prayerList[bi];
+
+          if (
+            bp.hasIqomah &&
+            Number.isFinite(Number(bp.adzanEndSec)) &&
+            Number.isFinite(Number(bp.iqomahEndSec))
+          ) {
+            const bAdzanEndSec = Number(bp.adzanEndSec);
+            const bIqomahEndSec = Number(bp.iqomahEndSec);
+            const bBlackEndSec = bIqomahEndSec + (15 * 60);
+
+            if (
+              nowSeconds >= bAdzanEndSec &&
+              nowSeconds < bBlackEndSec
+            ) {
+              panelBlackWindow = true;
+              break;
+            }
+          }
+        }
 
         if (WEB_APP_STATE.panel.mode === 'AUTO') {
           console.log(
             'PANELS AUTO:',
-            blackPrayerState ? 'LAYAR HITAM' : 'LAYAR NORMAL',
+            panelBlackWindow ? 'LAYAR HITAM' : 'LAYAR NORMAL',
             '| STATE=',
             activeState.title
           );
         }
 
-        setCountdownBlackMode(blackPrayerState);
+        setCountdownBlackMode(panelBlackWindow);
 
         const displayCountdownTitle =
           WEB_APP_STATE.panel.mode === 'AUTO' &&
@@ -10477,7 +10500,15 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
       } else {
 
-        setCountdownBlackMode(false);
+        // Jangan mematikan panel hitam hanya karena activeState
+        // sementara kosong. Window panel ditentukan oleh waktu
+        // MENUJU IQOMAH sampai 15 menit setelah IQOMAH selesai.
+        if (WEB_APP_STATE.panel.mode === 'AUTO') {
+          // panelBlackWindow sudah dihitung di atas.
+          setCountdownBlackMode(panelBlackWindow);
+        } else {
+          setCountdownBlackMode(false);
+        }
 
         if (
           nextPrayer &&
