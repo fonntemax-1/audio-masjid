@@ -6280,27 +6280,24 @@
 
         if (selected) {
 
-          if (
-            youtubeAutoMuteKey !==
-            (
-              String(dateKey) +
-              '|' +
-              String(selected.prayerName || '') +
-              '|' +
-              String(selected.qiroahTargetSec)
-            )
-          ) {
+          const selectedKey =
+            String(dateKey) +
+            '|' +
+            String(selected.prayerName || '') +
+            '|' +
+            String(selected.qiroahTargetSec);
 
-            setYouTubeAutoMuted(
-              selected,
-              dateKey
-            );
+          // Jangan memanggil helper yang tidak ada.
+          // Begitu masuk 5 menit sebelum Qiroah, langsung set state
+          // dan kirim perintah MUTE ke iframe tanpa reload YouTube.
+          youtubeAutoMuted = true;
+          youtubeAutoMuteKey = selectedKey;
+          youtubeAutoMutePrayer =
+            String(selected.prayerName || '');
+          youtubeAutoMuteQiroahTargetSec =
+            Number(selected.qiroahTargetSec);
 
-          } else {
-
-            muteYouTubeIframe();
-
-          }
+          muteYouTubeIframe();
 
           return;
 
