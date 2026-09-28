@@ -114,7 +114,33 @@ function getDataFromSheet() {
     //          sampai 15 menit setelah IQOMAH selesai.
     // NORMAL = tampilan display tetap normal.
     // =====================================================
+    // ============================================================
+  // MODE DISPLAY COUNTDOWN - Panels!C2
+  // Dibaca langsung, terpisah dari RAMADAN_DISPLAY.
+  // AUTO/NORMAL hanya mengatur tampilan layar; audio tidak berubah.
+  // ============================================================
+  const panelsSheetDirect = ss.getSheetByName('Panels');
+  if (panelsSheetDirect) {
+    const panelModeDirect = String(
+      panelsSheetDirect.getRange('C2').getDisplayValue() || ''
+    ).trim().toUpperCase();
+
+    result.PanelMode =
+      panelModeDirect === 'AUTO'
+        ? 'AUTO'
+        : 'NORMAL';
+
+    Logger.log(
+      'PANELS DIRECT C2 = [' +
+      panelModeDirect +
+      '] => PanelMode = [' +
+      result.PanelMode +
+      ']'
+    );
+  } else {
     result.PanelMode = 'NORMAL';
+    Logger.log('PANELS: sheet Panels tidak ditemukan => NORMAL');
+  }
 
     // =====================================================
     // DEFAULT YOUTUBE
