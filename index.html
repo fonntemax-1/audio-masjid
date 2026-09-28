@@ -43,10 +43,10 @@
     inset: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    align-items: center !important;
+    display: grid !important;
+    grid-template-rows: auto 1fr auto !important;
+    align-items: start !important;
+    justify-items: center !important;
     padding: 4vh 0 3vh !important;
     background: #000 !important;
     z-index: 99999 !important;
@@ -76,6 +76,8 @@
   body.panel-countdown-auto .clock-overlay {
     flex-direction: column !important;
     gap: 0 !important;
+    grid-row: 1 !important;
+    align-self: start !important;
   }
 
   body.panel-countdown-auto .clock-overlay .countdown-box {
@@ -104,7 +106,7 @@
   }
 
   body.panel-countdown-auto .clock-overlay .digital-time {
-    font-family: 'Cinzel', serif !important;
+    font-family: Arial, sans-serif !important;
     font-size: clamp(3rem, 5.5vw, 5.5rem) !important;
     font-weight: 900 !important;
     color: #00ffaa !important;
@@ -115,7 +117,7 @@
   }
 
   body.panel-countdown-auto .clock-overlay .tz-text {
-    font-family: 'Cinzel', serif !important;
+    font-family: Arial, sans-serif !important;
     font-size: clamp(1.5rem, 2.75vw, 2.75rem) !important;
     line-height: 1 !important;
     font-weight: 900 !important;
@@ -146,9 +148,7 @@
   body.panel-countdown-auto .clock-overlay *,
   body.panel-countdown-auto .clock-overlay .countdown-title,
   body.panel-countdown-auto .clock-overlay .countdown-timer,
-  body.panel-countdown-auto .clock-overlay .panel-black-line,
-  body.panel-countdown-auto .clock-overlay .digital-time,
-  body.panel-countdown-auto .clock-overlay .tz-text {
+  body.panel-countdown-auto .clock-overlay .panel-black-line {
     font-family: 'Cinzel', serif !important;
     text-shadow: none !important;
   }
@@ -176,10 +176,11 @@
     width: min(92vw, 1250px) !important;
     text-align: center !important;
     color: #ffffff !important;
-    position: fixed !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
+    position: static !important;
+    transform: none !important;
+    grid-row: 2 !important;
+    align-self: center !important;
+    justify-self: center !important;
     margin: 0 !important;
     z-index: 100001 !important;
     white-space: nowrap !important;
@@ -192,6 +193,19 @@
     letter-spacing: 0.025em !important;
     color: #ffffff !important;
     text-shadow: none !important;
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  body.panel-countdown-auto .clock-overlay .digital-clock-box {
+    grid-row: 3 !important;
+    align-self: end !important;
+    justify-self: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.6vh !important;
   }
 
   </style>
