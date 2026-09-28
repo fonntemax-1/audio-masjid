@@ -8282,6 +8282,20 @@
 
         audioState.scheduleInitialized = true;
 
+        // Schedule sudah lengkap. Jalankan queue sekali lagi setelah seluruh
+        // event selesai dibuat. Ini penting karena pembuatan schedule
+        // menggunakan await untuk metadata audio; saat schedule selesai,
+        // event yang sedang aktif harus langsung masuk mekanisme CATCH-UP.
+        // Tidak mengubah target/durasi/urutan/GAP/ON-OFF audio.
+        try {
+          processAudioQueue();
+        } catch (audioQueueError) {
+          console.error(
+            'AUDIO QUEUE AFTER SCHEDULE ERROR - SCHEDULE TETAP TERSIMPAN:',
+            audioQueueError
+          );
+        }
+
         // Schedule sudah lengkap. Cek ulang segera karena pembuatan
         // schedule memakai await dan updatePrayerCountdown() sebelumnya
         // mungkin sudah berjalan sebelum schedule selesai.
