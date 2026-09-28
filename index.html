@@ -3891,6 +3891,31 @@
 
           updateUI(data);
 
+          // PANEL MODE DIBACA ULANG SECARA TERPISAH.
+          // Ini sengaja tidak bergantung pada payload getDataFromSheet(),
+          // sehingga panels!C2 tetap menjadi kontrol utama layar hitam
+          // walaupun payload utama berubah. Tidak menyentuh audio.
+          gasApiCall('getPanelDisplayMode')
+            .then(function(panelData) {
+              if (
+                panelData &&
+                typeof panelData === 'object' &&
+                panelData.mode !== undefined
+              ) {
+                console.log(
+                  'PANELS API TERPISAH:',
+                  panelData.mode
+                );
+                setPanelDisplayMode(panelData.mode);
+              }
+            })
+            .catch(function(panelError) {
+              console.warn(
+                'PANELS API TERPISAH GAGAL:',
+                panelError.message || panelError
+              );
+            });
+
         })
         .catch(function(error) {
           console.error(
