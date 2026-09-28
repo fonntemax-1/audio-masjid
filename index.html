@@ -8091,6 +8091,152 @@
     }
 
 
+
+    // =========================================================
+    // FINAL AUDIO CATCH-UP
+    // =========================================================
+    // Dipanggil SETELAH seluruh computedSchedules selesai dibuat.
+    // Tujuannya mengatasi race condition antara:
+    //   1. async metadata durasi,
+    //   2. triggerAudioEvent(),
+    //   3. processAudioQueue().
+    //
+    // Hanya event yang sedang aktif yang dipastikan masuk queue.
+    // Tidak mengubah timeline audio.
+    function queueCurrentAudioCatchUp(dateKey) {
+
+      const state = WEB_APP_STATE.audio;
+
+      if (!state || !state.scheduleInitialized) {
+        return;
+      }
+
+      const wita = getWitaTime();
+      const nowSeconds =
+        Number(wita.hour) * 3600 +
+        Number(wita.minute) * 60 +
+        Number(wita.second);
+
+      let activeCount = 0;
+
+      if (
+        !state.computedSchedules ||
+        typeof state.computedSchedules.forEach !== 'function'
+      ) {
+        return;
+      }
+
+      state.computedSchedules.forEach(function(schedule, prayerName) {
+
+        if (
+          !schedule ||
+          !Array.isArray(schedule.events)
+        ) {
+          return;
+        }
+
+        schedule.events.forEach(function(event) {
+
+          const targetSec = Number(event.targetSec);
+          const endSec = Number(event.endSec);
+
+          if (
+            !Number.isFinite(targetSec) ||
+            !Number.isFinite(endSec) ||
+            endSec <= targetSec
+          ) {
+            return;
+          }
+
+          if (
+            nowSeconds < targetSec ||
+            nowSeconds > endSec
+          ) {
+            return;
+          }
+
+          activeCount++;
+
+          const eventName =
+            String(event.eventName || '').toUpperCase();
+
+          const key =
+            getAudioEventKey(
+              prayerName,
+              event.eventName,
+              dateKey,
+              targetSec,
+              endSec
+            );
+
+          const alreadyQueued =
+            state.queuedLocks.has(key);
+
+          const alreadyPlayed =
+            hasAudioEventPlayed(key);
+
+          console.log(
+            'AUDIO CATCH-UP CHECK:',
+            prayerName,
+            eventName,
+            'targetSec=',
+            targetSec,
+            'endSec=',
+            endSec,
+            'nowSec=',
+            nowSeconds,
+            'alreadyQueued=',
+            alreadyQueued,
+            'alreadyPlayed=',
+            alreadyPlayed
+          );
+
+          // Jika belum dimainkan/diantrekan, masukkan kembali.
+          // triggerAudioEvent() tetap menjadi pengaman utama agar
+          // tidak terjadi duplicate queue.
+          if (!alreadyQueued && !alreadyPlayed) {
+            const url =
+              audioConfig[event.audioType] || '';
+
+            triggerAudioEvent(
+              prayerName,
+              event.eventName,
+              url,
+              event.label,
+              dateKey,
+              targetSec,
+              endSec,
+              event.audioType,
+              event.status
+            );
+          }
+
+        });
+
+      });
+
+      console.log(
+        'AUDIO CATCH-UP READY:',
+        'date=',
+        dateKey,
+        'nowSec=',
+        nowSeconds,
+        'activeEvents=',
+        activeCount,
+        'queueLength=',
+        state.queue.length,
+        'audioInitialized=',
+        state.initialized
+      );
+
+      // Jika unlock audio sudah berhasil, langsung proses queue.
+      // Jika belum, initAudioPermission() akan memprosesnya setelah unlock.
+      if (state.initialized) {
+        processAudioQueue();
+      }
+
+    }
+
     async function prepareDailyAudioSchedule(
       dateKey,
       nowSeconds
@@ -8282,17 +8428,25 @@
 
         audioState.scheduleInitialized = true;
 
-        // Schedule sudah lengkap. Jalankan queue sekali lagi setelah seluruh
-        // event selesai dibuat. Ini penting karena pembuatan schedule
-        // menggunakan await untuk metadata audio; saat schedule selesai,
-        // event yang sedang aktif harus langsung masuk mekanisme CATCH-UP.
-        // Tidak mengubah target/durasi/urutan/GAP/ON-OFF audio.
+        // =====================================================
+        // FINAL CATCH-UP SETELAH SCHEDULE BENAR-BENAR LENGKAP
+        //
+        // Pembuatan schedule memakai await metadata audio. Karena itu
+        // triggerAudioEvent() yang dipanggil di tengah proses tidak boleh
+        // menjadi satu-satunya pintu catch-up. Setelah SEMUA prayer selesai,
+        // scan ulang event yang sedang aktif pada detik WITA saat ini.
+        //
+        // Ini hanya memasukkan event yang:
+        //   targetSec <= sekarang <= endSec
+        //
+        // Tidak mengubah target, durasi, urutan, GAP, atau status ON/OFF.
+        // =====================================================
         try {
-          processAudioQueue();
-        } catch (audioQueueError) {
+          queueCurrentAudioCatchUp(dateKey);
+        } catch (audioCatchUpError) {
           console.error(
-            'AUDIO QUEUE AFTER SCHEDULE ERROR - SCHEDULE TETAP TERSIMPAN:',
-            audioQueueError
+            'AUDIO FINAL CATCH-UP ERROR - SCHEDULE TETAP TERSIMPAN:',
+            audioCatchUpError
           );
         }
 
@@ -8382,13 +8536,35 @@
         hour * 3600 +
         minute * 60;
 
-      prepareDailyAudioSchedule(
-        nowDate,
-        nowSeconds
-      );
+      // Tunggu sampai schedule async selesai dibangun.
+      // Ini penting agar CATCH-UP tidak dijalankan sebelum seluruh
+      // computedSchedules dan queue Maghrib tersedia.
+      const schedulePromise =
+        prepareDailyAudioSchedule(
+          nowDate,
+          nowSeconds
+        );
+
+      if (
+        schedulePromise &&
+        typeof schedulePromise.then === 'function'
+      ) {
+        schedulePromise
+          .then(function() {
+            queueCurrentAudioCatchUp(nowDate);
+          })
+          .catch(function(error) {
+            console.error(
+              'AUDIO SCHEDULE PROMISE ERROR:',
+              error
+            );
+          });
+      } else {
+        queueCurrentAudioCatchUp(nowDate);
+      }
 
       // YouTube AUTO terpisah dari scheduler audio.
-      processAudioQueue();
+      // Tidak ada kontrol YouTube di sini.
 
     }
 
