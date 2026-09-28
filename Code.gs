@@ -108,6 +108,15 @@ function getDataFromSheet() {
     result.RamadanDisplay = getRamadanDisplaySetting();
 
     // =====================================================
+    // KONTROL MODE DISPLAY COUNTDOWN
+    // Sumber: sheet "Panels"!B2
+    // AUTO   = layar hitam saat countdown sholat aktif
+    //          sampai 15 menit setelah IQOMAH selesai.
+    // NORMAL = tampilan display tetap normal.
+    // =====================================================
+    result.PanelMode = 'NORMAL';
+
+    // =====================================================
     // DEFAULT YOUTUBE
     // =====================================================
 
@@ -217,7 +226,8 @@ function getDataFromSheet() {
       'Event',
       'Running_Text',
       'youtube',
-      'Adzan'
+      'Adzan',
+      'Panels'
     ];
 
     // -------------------------------------------------------
@@ -569,6 +579,41 @@ function getDataFromSheet() {
 
 
         // =====================================================
+        // KHUSUS SHEET PANELS
+        // B2 = MODE DISPLAY: AUTO / NORMAL
+        // =====================================================
+
+        if (
+          sheetName === 'Panels'
+        ) {
+
+          const panelMode =
+            String(
+              sheet
+                .getRange('B2')
+                .getDisplayValue() || ''
+            )
+            .trim()
+            .toUpperCase();
+
+          result.PanelMode =
+            panelMode === 'AUTO'
+              ? 'AUTO'
+              : 'NORMAL';
+
+          Logger.log(
+            'PANELS!B2 = [' +
+            panelMode +
+            '] => PanelMode = [' +
+            result.PanelMode +
+            ']'
+          );
+
+          return;
+        }
+
+
+        // =====================================================
         // KHUSUS SHEET YOUTUBE
         // =====================================================
 
@@ -808,6 +853,7 @@ function getDataFromSheet() {
       Event: [],
       Youtube: '',
       YoutubeMute: false,
+      PanelMode: 'NORMAL',
       YoutubeMuteBeforeQiroahSeconds: 0,
       YoutubeControlLocked: false,
       AdzanSubuh: '',
