@@ -5899,14 +5899,10 @@
         const targetSec =
           Number(qiroah.targetSec);
 
-        const prayerSec =
-          getPrayerTimeSecondsForYouTube(prayerName);
-
-        if (
-          !Number.isFinite(targetSec) ||
-          !Number.isFinite(prayerSec) ||
-          prayerSec <= targetSec
-        ) {
+        // Untuk hold AUTO, jangan bergantung pada waktu sholat
+        // dari elemen DOM. Sumber waktunya harus computedSchedules
+        // agar tetap sinkron dengan scheduler audio.
+        if (!Number.isFinite(targetSec)) {
           return;
         }
 
@@ -5917,15 +5913,33 @@
               String(event && event.eventName ? event.eventName : '')
                 .trim()
                 .toLowerCase() === 'iqomah' &&
+              Number.isFinite(Number(event.targetSec)) &&
               Number.isFinite(Number(event.endSec))
             );
 
           });
 
+        // Jika ada IQOMAH, gunakan endSec aktual dari scheduler.
+        // Jika belum ada IQOMAH, gunakan waktu sholat sebagai fallback.
+        const prayerSec =
+          getPrayerTimeSecondsForYouTube(prayerName);
+
         const iqomahEndSec =
           iqomahEvent
             ? Number(iqomahEvent.endSec)
-            : prayerSec;
+            : (
+                Number.isFinite(prayerSec) &&
+                prayerSec > targetSec
+                  ? prayerSec
+                  : null
+              );
+
+        if (
+          !Number.isFinite(iqomahEndSec) ||
+          iqomahEndSec <= targetSec
+        ) {
+          return;
+        }
 
         const muteUntilSec =
           iqomahEndSec +
