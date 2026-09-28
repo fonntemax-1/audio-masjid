@@ -10082,6 +10082,21 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
       processAudioQueue();
 
+      // YouTube AUTO dievaluasi setiap tick countdown.
+      // Hanya perubahan status MUTE/UNMUTE yang mengirim command
+      // ke iframe; tidak ada reload dan tidak menyentuh audio.
+      try {
+        updateYouTubeAudioStop(
+          nowSeconds,
+          nowDate
+        );
+      } catch (youtubeError) {
+        console.error(
+          'YOUTUBE AUTO TICK ERROR:',
+          youtubeError
+        );
+      }
+
       // YouTube AUTO hanya diperiksa saat schedule audio siap.
       // Tidak ada kontrol YouTube dari countdown/audio scheduler.
 
