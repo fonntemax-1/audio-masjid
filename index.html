@@ -9877,16 +9877,39 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             ? adzanEvent
             : null;
 
+        // =======================================================
+        // ANCHOR DISPLAY ADZAN
+        //
+        // Sholat biasa (termasuk DZUHUR) selalu mulai DISPLAY ADZAN
+        // tepat pada waktu sholat asli (pSec).
+        //
+        // Jangan memakai targetSec dari computed audio schedule
+        // untuk sholat biasa karena schedule audio dapat selesai
+        // dibangun asynchronous / diperbarui ulang.
+        //
+        // Hanya Ramadan MAGHRIB yang memang mempunyai waktu Adzan
+        // berbeda dari pSec karena SIRINE berjalan lebih dahulu.
+        // =======================================================
         const adzanStartSec =
           ramadanMaghribAdzanEvent &&
           Number.isFinite(Number(ramadanMaghribAdzanEvent.targetSec))
             ? Number(ramadanMaghribAdzanEvent.targetSec)
-            : pSec;
+            : Number(pSec);
+
+        // Durasi ADZAN boleh mengikuti schedule audio yang sudah ada,
+        // tetapi batas akhir DISPLAY selalu dihitung dari anchor
+        // DISPLAY ADZAN di atas. Jika metadata audio belum tersedia
+        // atau tidak valid, gunakan fallback 180 detik.
+        const computedAdzanDurationSec =
+          adzanEvent &&
+          Number.isFinite(Number(adzanEvent.targetSec)) &&
+          Number.isFinite(Number(adzanEvent.endSec)) &&
+          Number(adzanEvent.endSec) > Number(adzanEvent.targetSec)
+            ? Number(adzanEvent.endSec) - Number(adzanEvent.targetSec)
+            : 180;
 
         const adzanEndSec =
-          adzanEvent && Number.isFinite(Number(adzanEvent.endSec))
-            ? Number(adzanEvent.endSec)
-            : pSec + 180;
+          adzanStartSec + computedAdzanDurationSec;
 
         const doaEndSec =
           doaEvent && Number.isFinite(Number(doaEvent.endSec))
