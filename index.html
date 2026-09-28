@@ -10214,21 +10214,38 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       if (activeState) {
 
         // MODE PANEL AUTO bersifat DISPLAY-ONLY.
-        // Tidak peduli RAMADAN_DISPLAY TRUE/FALSE.
-        // Selama countdown sholat memiliki activeState:
-        // MENUJU ADZAN -> ADZAN -> MENUJU IQOMAH -> IQOMAH
-        // -> SHOLAT sampai 15 menit setelah IQOMAH,
-        // layar dibuat hitam dan hanya countdown ditampilkan.
+        // MENUJU WAKTU SHOLAT tetap NORMAL.
+        // Layar hitam mulai TEPAT pada waktu sholat (pSec),
+        // lalu tetap hitam sampai 15 menit setelah IQOMAH selesai.
+        // Jadi pemicunya adalah WINDOW WAKTU SHOLAT,
+        // bukan countdown MENUJU WAKTU SHOLAT.
+        //
+        // Khusus Maghrib Ramadan:
+        // sejak tepat waktu Maghrib (awal fase BERBUKA),
+        // display masuk window sholat dan layar menjadi hitam.
+        //
         // Audio, YouTube, scheduler dan urutan audio TIDAK disentuh.
+        const activeTitle =
+          String(activeState.title || '').trim().toUpperCase();
+
+        const blackPrayerState =
+          activeTitle === 'ADZAN' ||
+          activeTitle === 'MENUJU IQOMAH' ||
+          activeTitle === 'IQOMAH' ||
+          activeTitle === 'SHOLAT' ||
+          activeTitle === 'BERBUKA' ||
+          activeTitle === 'MENUJU ADZAN MAGRIB';
+
         if (WEB_APP_STATE.panel.mode === 'AUTO') {
           console.log(
-            'PANELS AUTO: LAYAR HITAM | RAMADAN=',
-            isRamadanDisplay(),
+            'PANELS AUTO:',
+            blackPrayerState ? 'LAYAR HITAM' : 'LAYAR NORMAL',
             '| STATE=',
             activeState.title
           );
         }
-        setCountdownBlackMode(true);
+
+        setCountdownBlackMode(blackPrayerState);
 
         if (countdownTitle && activeState.title !== lastCountdownTitle) {
           countdownTitle.innerText = activeState.title;
