@@ -97,7 +97,64 @@
   }
 
   body.panel-countdown-auto .clock-overlay .digital-time {
-    text-shadow: 0 0 0.8vh rgba(255,255,255,0.35) !important;
+    font-size: clamp(2.2rem, 5vw, 5rem) !important;
+    text-shadow:
+      0 0 0.35vh rgba(255,255,255,0.95),
+      0 0 0.8vh rgba(0,255,170,0.9),
+      0 0 1.8vh rgba(0,255,170,0.75),
+      0 0 3.5vh rgba(0,255,170,0.45) !important;
+    filter: blur(0.01px) !important;
+  }
+
+  body.panel-countdown-auto .clock-overlay .tz-text {
+    font-size: clamp(1rem, 1.8vw, 1.8rem) !important;
+    text-shadow:
+      0 0 0.5vh rgba(255,255,255,0.85),
+      0 0 1.2vh rgba(255,255,255,0.45) !important;
+  }
+
+  /* Pesan layar hitam: menggantikan countdown timer. */
+  .panel-black-message {
+    display: none;
+  }
+
+  body.panel-countdown-auto .clock-overlay .countdown-title,
+  body.panel-countdown-auto .clock-overlay .countdown-timer {
+    display: none !important;
+  }
+
+  body.panel-countdown-auto .clock-overlay .panel-black-message {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 1.2vh !important;
+    width: min(92vw, 1200px) !important;
+    text-align: center !important;
+    color: #ffffff !important;
+  }
+
+  body.panel-countdown-auto .panel-black-title {
+    font-size: clamp(2rem, 4.2vw, 4.5rem) !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.12em !important;
+    color: #f4c542 !important;
+    text-shadow:
+      0 0 0.5vh rgba(255,255,255,0.95),
+      0 0 1.2vh rgba(244,197,66,0.9),
+      0 0 2.5vh rgba(244,197,66,0.55) !important;
+    margin-bottom: 1.2vh !important;
+  }
+
+  body.panel-countdown-auto .panel-black-line {
+    font-size: clamp(1rem, 2vw, 2rem) !important;
+    line-height: 1.35 !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.035em !important;
+    color: #ffffff !important;
+    text-shadow:
+      0 0 0.35vh rgba(255,255,255,0.9),
+      0 0 1vh rgba(255,255,255,0.45) !important;
   }
 
   </style>
@@ -1424,6 +1481,17 @@
           <div class="countdown-box">
             <div class="countdown-title" id="countdown-title">MENUJU SHOLAT</div>
             <div class="countdown-timer" id="countdown">00:00:00</div>
+
+            <!-- Pesan khusus saat Panel AUTO masuk mode layar hitam -->
+            <div class="panel-black-message" aria-hidden="true">
+              <div class="panel-black-title">WAKTU SHOLAT</div>
+              <div class="panel-black-line">
+                DEMI KETENANGAN DAN KEKHUSYUKAN IBADAH SHOLAT KITA
+              </div>
+              <div class="panel-black-line">
+                MOHON UNTUK MENONAKTIFKAN HANPHONE ATAU SILENT MODE
+              </div>
+            </div>
           </div>
 
           <div class="analog-clock">
