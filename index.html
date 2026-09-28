@@ -9630,46 +9630,20 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             break;
           }
 
-          // WAKTU BERBUKA / PUASA tetap tampil sampai
-          // 2 menit sebelum ADZAN MAGHRIB.
-          // Pada 2 menit terakhir, countdown berubah menjadi:
-          // MENUJU SHOLAT MAGRIB
+          // WAKTU BERBUKA / PUASA tetap tampil selama
+          // sirine dan seluruh jeda sebelum Adzan sesuai Sheet.
+          // Adzan baru tampil tepat saat audio Adzan dimulai.
           const maghribAdzanStartSec =
             Number(adzanStartSec);
 
-          const maghribMenujuSholatSec =
-            maghribAdzanStartSec - (2 * 60);
-
           if (
             nowSeconds >= Number(pSec) &&
-            nowSeconds < maghribMenujuSholatSec
+            nowSeconds < maghribAdzanStartSec
           ) {
 
             activeState = {
               title: 'WAKTU BERBUKA',
               timer: 'PUASA',
-              prayerName: 'MAGHRIB'
-            };
-
-            break;
-          }
-
-          if (
-            nowSeconds >= maghribMenujuSholatSec &&
-            nowSeconds < maghribAdzanStartSec
-          ) {
-
-            const diff =
-              maghribAdzanStartSec - nowSeconds;
-
-            const m = Math.floor(diff / 60);
-            const s = Math.floor(diff % 60);
-
-            activeState = {
-              title: 'MENUJU SHOLAT MAGRIB',
-              timer:
-                String(m).padStart(2, '0') + ':' +
-                String(s).padStart(2, '0'),
               prayerName: 'MAGHRIB'
             };
 
