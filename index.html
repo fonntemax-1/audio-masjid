@@ -27,11 +27,32 @@
     background: #000 !important;
   }
 
+  /* .center-panel berada di dalam .main-body, bukan langsung di .screen-container. */
   body.panel-countdown-auto .screen-container > * {
     visibility: hidden !important;
   }
 
-  body.panel-countdown-auto .screen-container > .center-panel {
+  body.panel-countdown-auto .screen-container > .main-body {
+    visibility: visible !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-width: 100vw !important;
+    min-height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #000 !important;
+    z-index: 99998 !important;
+  }
+
+  body.panel-countdown-auto .main-body > * {
+    visibility: hidden !important;
+  }
+
+  body.panel-countdown-auto .main-body > .center-panel {
     visibility: visible !important;
     position: fixed !important;
     inset: 0 !important;
