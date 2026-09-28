@@ -7581,7 +7581,8 @@
       // benar-benar lewat tetap tidak dibuat ulang oleh scheduler baru.
       if (
         typeof endSec === 'number' &&
-        triggerNowSeconds > endSec
+        triggerNowSeconds > endSec &&
+        !triggerProtectedSequence
       ) {
 
         console.log(
