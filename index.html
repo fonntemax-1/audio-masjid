@@ -12,6 +12,74 @@
       font-style: normal;
       font-display: swap;
     }
+  /* =========================================================
+     MODE DISPLAY COUNTDOWN - Panels!B2
+     AUTO   : layar hitam saat countdown sholat aktif
+              sampai 15 menit setelah IQOMAH selesai.
+     NORMAL : tampilan display tetap normal.
+     Hanya visual; audio/YouTube/scheduler tidak dihentikan.
+     ========================================================= */
+  body.panel-countdown-auto {
+    background: #000 !important;
+  }
+
+  body.panel-countdown-auto .screen-container {
+    background: #000 !important;
+  }
+
+  body.panel-countdown-auto .screen-container > * {
+    visibility: hidden !important;
+  }
+
+  body.panel-countdown-auto .screen-container > .center-panel {
+    visibility: visible !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-width: 100vw !important;
+    min-height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #000 !important;
+    z-index: 99999 !important;
+  }
+
+  body.panel-countdown-auto .center-panel > * {
+    visibility: hidden !important;
+  }
+
+  body.panel-countdown-auto .center-panel > .clock-overlay {
+    visibility: visible !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #000 !important;
+    z-index: 100000 !important;
+  }
+
+  body.panel-countdown-auto .center-panel .clock-overlay .countdown-box {
+    visibility: visible !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+    z-index: 100001 !important;
+  }
+
+  body.panel-countdown-auto .center-panel .clock-overlay .analog-clock {
+    visibility: hidden !important;
+  }
+
   </style>
   <link rel="icon" type="image/png" href="favicon.png">
 
@@ -1720,6 +1788,11 @@
         rows: [],
         active: null,
         targetKey: ''
+      },
+
+      panel: {
+        mode: 'NORMAL',
+        countdownBlack: false
       }
 
     };
@@ -3849,6 +3922,20 @@
     function updateUI(data) {
 
       if (!data) return;
+
+      // =======================================================
+      // KONTROL MODE DISPLAY COUNTDOWN DARI Panels!B2
+      // AUTO   = hitam saat countdown sholat aktif
+      // NORMAL = tampilan normal
+      // =======================================================
+      if (
+        Object.prototype.hasOwnProperty.call(
+          data,
+          'PanelMode'
+        )
+      ) {
+        setPanelDisplayMode(data.PanelMode);
+      }
 
       // =======================================================
       // KONTROL DISPLAY RAMADAN DARI SCRIPT PROPERTIES
@@ -9223,6 +9310,42 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
 
     // =========================================================
+    // MODE DISPLAY COUNTDOWN
+    // =========================================================
+
+    function setPanelDisplayMode(mode) {
+      const normalized =
+        String(mode || 'NORMAL')
+          .trim()
+          .toUpperCase();
+
+      WEB_APP_STATE.panel.mode =
+        normalized === 'AUTO'
+          ? 'AUTO'
+          : 'NORMAL';
+
+      if (
+        WEB_APP_STATE.panel.mode !== 'AUTO'
+      ) {
+        setCountdownBlackMode(false);
+      }
+    }
+
+    function setCountdownBlackMode(enabled) {
+      const shouldBlack =
+        WEB_APP_STATE.panel.mode === 'AUTO' &&
+        !!enabled;
+
+      WEB_APP_STATE.panel.countdownBlack =
+        shouldBlack;
+
+      document.body.classList.toggle(
+        'panel-countdown-auto',
+        shouldBlack
+      );
+    }
+
+    // =========================================================
     // COUNTDOWN SHOLAT
     // =========================================================
 
@@ -9325,6 +9448,8 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       if (
         validPrayers.length === 0
       ) {
+
+        setCountdownBlackMode(false);
 
         processAudioQueue();
 
@@ -10047,6 +10172,12 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
       if (activeState) {
 
+        // AUTO: selama ada state countdown sholat aktif
+        // (MENUJU ADZAN, ADZAN, MENUJU IQOMAH, IQOMAH,
+        // dan SHOLAT sampai +15 menit setelah IQOMAH)
+        // seluruh layar menjadi hitam dan hanya countdown tampil.
+        setCountdownBlackMode(true);
+
         if (countdownTitle && activeState.title !== lastCountdownTitle) {
           countdownTitle.innerText = activeState.title;
           updateCountdownTitleStyle(activeState.title);
@@ -10072,10 +10203,14 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           activeState.prayerName
         );
 
-      } else if (
-        nextPrayer &&
-        nextSeconds !== null
-      ) {
+      } else {
+
+        setCountdownBlackMode(false);
+
+        if (
+          nextPrayer &&
+          nextSeconds !== null
+        ) {
 
         let diff =
           nextSeconds -
