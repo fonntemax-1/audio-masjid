@@ -5548,7 +5548,11 @@
     const YOUTUBE_AUTO_ON_AFTER_IQOMAH = 30 * 60;
 
     let youtubeControlMode = 'AUTO';
-    let youtubeAutoMuted = false;
+    // AUTO dimulai dalam keadaan MUTE.
+    // Ini memastikan jika halaman dibuka tepat di dalam window
+    // 5 menit sebelum Qiroah, YouTube tidak sempat mengeluarkan suara
+    // sebelum scheduler sempat mengevaluasi jadwal.
+    let youtubeAutoMuted = true;
     let youtubeAutoMuteKey = '';
     let youtubeAutoMutePrayer = '';
     let youtubeAutoMuteQiroahTargetSec = null;
@@ -5602,13 +5606,14 @@
 
       try {
 
+        // Format command mengikuti API iframe YouTube.
         iframe.contentWindow.postMessage(
           JSON.stringify({
             event: 'command',
             func: command,
-            args: []
+            args: ''
           }),
-          '*'
+          'https://www.youtube.com'
         );
 
         return true;
@@ -5627,6 +5632,58 @@
 
     }
 
+    function syncYouTubeMuteAfterLoad() {
+
+      const iframe =
+        document.getElementById(
+          'youtube-video'
+        );
+
+      if (!iframe) return;
+
+      const shouldMute =
+        youtubeControlMode === 'OFF' ||
+        (
+          youtubeControlMode === 'AUTO' &&
+          youtubeAutoMuted
+        );
+
+      // Player baru sering belum siap menerima postMessage
+      // tepat pada event pemanggilan pertama. Kirim ulang setelah
+      // iframe selesai load, tanpa mengganti src.
+      window.setTimeout(function() {
+
+        sendYouTubeCommand(
+          shouldMute ? 'mute' : 'unMute'
+        );
+
+      }, 250);
+
+    }
+
+    function ensureYouTubeLoadHandler() {
+
+      const iframe =
+        document.getElementById(
+          'youtube-video'
+        );
+
+      if (
+        !iframe ||
+        iframe.dataset.muteHandlerAttached === '1'
+      ) {
+        return;
+      }
+
+      iframe.dataset.muteHandlerAttached = '1';
+
+      iframe.addEventListener(
+        'load',
+        syncYouTubeMuteAfterLoad
+      );
+
+    }
+
 
     function muteYouTubeIframe() {
 
@@ -5636,6 +5693,10 @@
         );
 
       if (!iframe) return;
+
+      youtubeAutoMuted = true;
+
+      ensureYouTubeLoadHandler();
 
       // MUTE memakai YouTube command sehingga iframe TIDAK reload.
       // Ini penting agar YouTube tidak restart ketika masuk/keluar
@@ -5704,6 +5765,10 @@
         );
 
       if (!iframe) return;
+
+      youtubeAutoMuted = false;
+
+      ensureYouTubeLoadHandler();
 
       // UNMUTE juga memakai command tanpa reload iframe.
       if (sendYouTubeCommand('unMute')) {
@@ -6413,6 +6478,8 @@
         );
 
       if (!iframe) return;
+
+      ensureYouTubeLoadHandler();
 
       const previousMode =
         youtubeControlMode;
