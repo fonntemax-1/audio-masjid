@@ -45,7 +45,9 @@
     height: 100vh !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 4vh 0 3vh !important;
     background: #000 !important;
     z-index: 99999 !important;
     pointer-events: none !important;
@@ -73,7 +75,7 @@
      Semua frame dekoratif dihilangkan tanpa mengubah DOM/scheduler/audio. */
   body.panel-countdown-auto .clock-overlay {
     flex-direction: column !important;
-    gap: 2vh !important;
+    gap: 0 !important;
   }
 
   body.panel-countdown-auto .clock-overlay .countdown-box {
@@ -152,13 +154,15 @@
   body.panel-countdown-auto .clock-overlay .countdown-title {
     font-size: clamp(1.5rem, 3vw, 3rem) !important;
     font-weight: 600 !important;
-    color: inherit !important;
+    color: #ffcc00 !important;
+    -webkit-text-fill-color: #ffcc00 !important;
   }
 
   body.panel-countdown-auto .clock-overlay .countdown-timer {
     font-size: clamp(2rem, 4vw, 4rem) !important;
     font-weight: 600 !important;
-    color: inherit !important;
+    color: #ffcc00 !important;
+    -webkit-text-fill-color: #ffcc00 !important;
   }
 
   body.panel-countdown-auto .clock-overlay .panel-black-message {
@@ -10383,10 +10387,16 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
         setCountdownBlackMode(blackPrayerState);
 
-        if (countdownTitle && activeState.title !== lastCountdownTitle) {
-          countdownTitle.innerText = activeState.title;
-          updateCountdownTitleStyle(activeState.title);
-          lastCountdownTitle = activeState.title;
+        const displayCountdownTitle =
+          WEB_APP_STATE.panel.mode === 'AUTO' &&
+          String(activeState.title || '').trim().toUpperCase() === 'SHOLAT'
+            ? 'WAKTU SHOLAT'
+            : activeState.title;
+
+        if (countdownTitle && displayCountdownTitle !== lastCountdownTitle) {
+          countdownTitle.innerText = displayCountdownTitle;
+          updateCountdownTitleStyle(displayCountdownTitle);
+          lastCountdownTitle = displayCountdownTitle;
         }
 
         if (countdown && activeState.timer !== lastCountdownTimer) {
