@@ -9880,19 +9880,24 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         // =======================================================
         // ANCHOR DISPLAY ADZAN
         //
-        // Sholat biasa (termasuk DZUHUR) selalu mulai DISPLAY ADZAN
-        // tepat pada waktu sholat asli (pSec).
+        // DISPLAY countdown selalu menuju WAKTU SHOLAT asli (pSec).
+        // Audio scheduler boleh mempunyai rangkaian Tarhim/Beep
+        // sebelum Adzan, tetapi rangkaian audio tersebut TIDAK
+        // menjadi target countdown display.
         //
-        // Jangan memakai targetSec dari computed audio schedule
-        // untuk sholat biasa karena schedule audio dapat selesai
-        // dibangun asynchronous / diperbarui ulang.
-        //
-        // Hanya Ramadan MAGHRIB yang memang mempunyai waktu Adzan
-        // berbeda dari pSec karena SIRINE berjalan lebih dahulu.
+        // Pengecualian hanya RAMADAN MAGHRIB: pada Ramadan,
+        // Adzan Maghrib memang dimulai setelah rangkaian pembuka
+        // (termasuk sirine), sehingga display Adzan mengikuti
+        // anchor Adzan khusus Maghrib.
         // =======================================================
-        const adzanStartSec =
+        const isRamadanMaghribDisplay =
+          isRamadanDisplay() &&
+          p.name === 'MAGHRIB' &&
           ramadanMaghribAdzanEvent &&
-          Number.isFinite(Number(ramadanMaghribAdzanEvent.targetSec))
+          Number.isFinite(Number(ramadanMaghribAdzanEvent.targetSec));
+
+        const adzanStartSec =
+          isRamadanMaghribDisplay
             ? Number(ramadanMaghribAdzanEvent.targetSec)
             : Number(pSec);
 
@@ -10263,16 +10268,19 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         // NON-RAMADAN / SHOLAT SELAIN SUBUH PADA RAMADAN
         // -------------------------------------------------------
 
-        // Sebelum waktu adzan: countdown berjalan terus.
+        // Sebelum WAKTU SHOLAT: countdown selalu menuju pSec.
+        // Jangan menggunakan anchor audio Adzan di sini.
+        // Dengan demikian Tarhim/Beep yang berjalan lebih dahulu
+        // tidak membuat countdown display berhenti pada waktu audio.
         if (
-          nowSeconds < adzanStartSec
+          nowSeconds < pSec
         ) {
 
           // Jika waktunya sudah lewat secara urutan hari, jangan
           // mengambil sholat yang sudah selesai sebagai kandidat.
           // Perulangan akan mencari sholat berikutnya.
           const diff =
-            adzanStartSec - nowSeconds;
+            pSec - nowSeconds;
 
           const h = Math.floor(diff / 3600);
           const m = Math.floor((diff % 3600) / 60);
@@ -10293,8 +10301,9 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           break;
         }
 
-        // ADZAN mengikuti format contoh_display_adzan.png:
-        // baris atas ADZAN, baris bawah nama sholat aktif.
+        // ADZAN DISPLAY dimulai TEPAT pada WAKTU SHOLAT.
+        // Untuk sholat biasa: pSec.
+        // Ramadan Maghrib: anchor Adzan khusus Maghrib.
         if (
           nowSeconds >= adzanStartSec &&
           nowSeconds < adzanEndSec
