@@ -91,6 +91,43 @@ function getRamadanDisplaySetting() {
 }
 
 
+// =========================================================
+// PANEL DISPLAY MODE - API TERPISAH UNTUK GITHUB PAGES
+// =========================================================
+// Hanya membaca panels!C2. Tidak menyentuh audio, YouTube,
+// scheduler, Ramadan, Event, atau data display lainnya.
+function getPanelDisplayMode() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('panels');
+
+  if (!sheet) {
+    return {
+      success: true,
+      mode: 'OFF'
+    };
+  }
+
+  const raw = String(
+    sheet.getRange('C2').getDisplayValue() || ''
+  ).trim().toUpperCase();
+
+  const mode = raw === 'AUTO' ? 'AUTO' : 'OFF';
+
+  Logger.log(
+    'PANELS API TERPISAH C2 = [' +
+    raw +
+    '] => mode = [' +
+    mode +
+    ']'
+  );
+
+  return {
+    success: true,
+    mode: mode
+  };
+}
+
+
 function getDataFromSheet() {
   try {
     const ss = getSpreadsheet();
