@@ -164,6 +164,26 @@
   /* Semua tulisan mode hitam: Cinzel, tanpa shadow. */
   body.panel-countdown-auto .clock-overlay .countdown-title,
   body.panel-countdown-auto .clock-overlay .countdown-timer,
+  /* Judul WAKTU SHOLAT + nama sholat berada di bagian atas.
+     Ukuran diperbesar dan warna emas agar menjadi fokus utama. */
+  body.panel-countdown-auto .clock-overlay .panel-black-title {
+    font-size: clamp(2.1rem, 4.2vw, 4.4rem) !important;
+    line-height: 1.05 !important;
+    font-weight: 800 !important;
+    color: #f4c542 !important;
+    -webkit-text-fill-color: #f4c542 !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  body.panel-countdown-auto .clock-overlay .panel-black-prayer {
+    font-size: clamp(2.5rem, 5vw, 5.2rem) !important;
+    line-height: 1.02 !important;
+    font-weight: 800 !important;
+    color: #f4c542 !important;
+    -webkit-text-fill-color: #f4c542 !important;
+    letter-spacing: 0.05em !important;
+  }
+
   body.panel-countdown-auto .clock-overlay .panel-black-line {
     display: block !important;
     width: 100% !important;
@@ -227,8 +247,8 @@
     display: flex !important;
     position: fixed !important;
     left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
+    top: 7vh !important;
+    transform: translateX(-50%) !important;
     z-index: 100001 !important;
 
     width: 100vw !important;
@@ -257,8 +277,8 @@
     /* Handphone ditempatkan tepat di atas BARIS 1 pesan. */
     order: 3 !important;
     /* Ukuran gambar handphone diperkecil 30% dari ukuran sebelumnya. */
-    width: clamp(204px, 20.38vw, 356px) !important;
-    height: clamp(204px, 28.45vh, 356px) !important;
+    width: clamp(143px, 14.27vw, 249px) !important;
+    height: clamp(143px, 19.92vh, 249px) !important;
     margin: 1.5vh 0 0.25vh 0 !important;
     flex: 0 0 auto !important;
     background: transparent !important;
