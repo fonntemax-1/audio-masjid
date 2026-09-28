@@ -2444,24 +2444,20 @@
           const source =
             normalizeAudioUrl(url);
 
-          // Audio berikut WAJIB selesai sampai event "ended".
-          // Tidak boleh dipotong oleh endSec/fallback scheduler.
-          const protectedAudioTypes = {
-            'sirine': true,
-            'doa-adzan': true,
-            'doa-puasa': true,
-            'doa-buka': true,
-            'adzan-subuh': true,
-            'adzan-biasa': true,
-            'beep': true,
-            'iqomah': true
-          };
-
+          // HANYA QIROAH dan TARHIM yang boleh replay/loop.
+          // Semua audio lainnya WAJIB selesai natural satu kali:
+          // tidak boleh di-loop, tidak boleh diputus oleh endSec,
+          // dan tidak boleh dimulai ulang oleh fallback scheduler.
           const normalizedAudioType =
             String(audioType || '').trim().toLowerCase();
 
+          const canReplay =
+            normalizedAudioType === 'tarhim' ||
+            normalizedAudioType === 'qiroah' ||
+            /^qiroah-\\d+$/.test(normalizedAudioType);
+
           const mustPlayUntilEnded =
-            !!protectedAudioTypes[normalizedAudioType];
+            !canReplay;
 
           if (
             !audio ||
