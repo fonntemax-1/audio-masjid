@@ -3827,6 +3827,52 @@
               const retry =
                 state.retryCount.get(key) || 0;
 
+              // Audio rangkaian sholat yang wajib utuh TIDAK BOLEH
+              // dibuang setelah 3 kali gagal. Jika terjadi error jaringan,
+              // decoder, atau transient error pada TV, antrean tetap
+              // mempertahankan event dan mencoba lagi sampai berhasil.
+              // Ini mencegah SIRINE/ADZAN/DOA/BEEP/IQOMAH hilang dari
+              // rangkaian hanya karena satu kegagalan play().
+              const retryAudioType =
+                String(item.audioType || '').trim().toLowerCase();
+
+              const retryProtectedSequence =
+                retryAudioType === 'sirine' ||
+                retryAudioType === 'adzan-subuh' ||
+                retryAudioType === 'adzan-biasa' ||
+                retryAudioType === 'adzan' ||
+                retryAudioType === 'doa-adzan' ||
+                retryAudioType === 'doa-puasa' ||
+                retryAudioType === 'doa-buka' ||
+                retryAudioType === 'beep' ||
+                retryAudioType === 'iqomah';
+
+              if (retryProtectedSequence) {
+
+                state.retryCount.set(
+                  key,
+                  retry + 1
+                );
+
+                state.processing = false;
+
+                console.warn(
+                  'AUDIO PROTECTED RETRY:',
+                  item.prayerName || '-',
+                  item.eventName || item.label || '-',
+                  'attempt=',
+                  retry + 1
+                );
+
+                setTimeout(
+                  processAudioQueue,
+                  1000
+                );
+
+                return;
+
+              }
+
               if (retry < 3) {
 
                 state.retryCount.set(
@@ -7477,11 +7523,29 @@
         return;
       }
 
+      // failedLocks hanya dipakai untuk event non-protected.
+      // Rangkaian audio wajib tetap boleh dicoba kembali setelah
+      // kegagalan sementara.
+      const triggerAudioType =
+        String(audioType || '').trim().toLowerCase();
+
+      const triggerProtectedSequence =
+        triggerAudioType === 'sirine' ||
+        triggerAudioType === 'adzan-subuh' ||
+        triggerAudioType === 'adzan-biasa' ||
+        triggerAudioType === 'adzan' ||
+        triggerAudioType === 'doa-adzan' ||
+        triggerAudioType === 'doa-puasa' ||
+        triggerAudioType === 'doa-buka' ||
+        triggerAudioType === 'beep' ||
+        triggerAudioType === 'iqomah';
+
       if (
         WEB_APP_STATE
           .audio
           .failedLocks
-          .has(key)
+          .has(key) &&
+        !triggerProtectedSequence
       ) {
         return;
       }
@@ -7511,6 +7575,10 @@
         Number(triggerWita.minute) * 60 +
         Number(triggerWita.second);
 
+      // Untuk audio protected, trigger yang terlambat masih boleh
+      // masuk bila belum pernah dimainkan pada sesi ini. processAudioQueue()
+      // akan memainkan file sampai selesai natural. Event yang sudah
+      // benar-benar lewat tetap tidak dibuat ulang oleh scheduler baru.
       if (
         typeof endSec === 'number' &&
         triggerNowSeconds > endSec
