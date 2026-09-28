@@ -10228,13 +10228,25 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         const activeTitle =
           String(activeState.title || '').trim().toUpperCase();
 
+        // BLACK SCREEN DIMULAI SAAT DISPLAY SUDAH BERGANTI
+        // KE "WAKTU SHOLAT", lalu:
+        // WAKTU SHOLAT -> MENUJU IQOMAH -> IQOMAH -> SHOLAT
+        // sampai 15 menit setelah IQOMAH selesai.
+        //
+        // ADZAN BUKAN pemicu black screen.
+        // MENUJU WAKTU SHOLAT juga bukan pemicu.
+        //
+        // State "WAKTU SHOLAT" pada display dapat direpresentasikan
+        // sebagai title WAKTU dengan timer nama sholat.
+        const isWaktuSholatDisplay =
+          activeTitle === 'WAKTU' ||
+          activeTitle === 'WAKTU SHOLAT';
+
         const blackPrayerState =
-          activeTitle === 'ADZAN' ||
+          isWaktuSholatDisplay ||
           activeTitle === 'MENUJU IQOMAH' ||
           activeTitle === 'IQOMAH' ||
-          activeTitle === 'SHOLAT' ||
-          activeTitle === 'BERBUKA' ||
-          activeTitle === 'MENUJU ADZAN MAGRIB';
+          activeTitle === 'SHOLAT';
 
         if (WEB_APP_STATE.panel.mode === 'AUTO') {
           console.log(
