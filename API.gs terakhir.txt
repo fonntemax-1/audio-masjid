@@ -34,6 +34,10 @@ function handleGithubApiRequest_(params) {
         result = getDataFromSheet();
         break;
 
+      case 'getPanelDisplayMode':
+        result = getPanelDisplayMode();
+        break;
+
       case 'getEventRunningText':
         result = getEventRunningText();
         break;
