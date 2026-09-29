@@ -4864,17 +4864,71 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         : '';
 
       // =======================================================
-      // RUNNING TEXT KHUSUS - SATU SUMBER WAKTU
-      //
-      // Running Text TIDAK lagi bergantung pada judul countdown.
-      // Ini mencegah Event Sheet terus tampil ketika countdown
-      // sudah masuk fase sholat tetapi judul/state berubah.
-      //
-      // IMSAK    : 3 menit sejak kartu IMSAK tampil.
-      // BERBUKA  : 3 menit sejak waktu Maghrib / WAKTU BERBUKA.
-      // SHOLAT   : tepat mulai ADZAN sampai 15 menit setelah
-      //             waktu mulai IQOMAH.
+      // PRIORITAS UTAMA: STATE COUNTDOWN YANG SEDANG TAMPIL
       // =======================================================
+      // Jangan menunggu computedSchedules untuk menentukan banner
+      // ketika countdown sudah berada pada fase sholat. State ini
+      // adalah sumber yang sama dengan tampilan countdown di TV.
+      const stateTitleUpper = String(state.title || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toUpperCase();
+
+      const prayerStateTitles = [
+        'ADZAN',
+        'MENUJU IQOMAH',
+        'IQOMAH'
+      ];
+
+      const isPrayerState =
+        prayerStateTitles.indexOf(stateTitleUpper) >= 0 ||
+        stateTitleUpper.indexOf('WAKTU SHOLAT') === 0;
+
+      if (isPrayerState) {
+        let statePrayerName =
+          String(state.prayerName || '')
+            .trim()
+            .toUpperCase();
+
+        // SUBUH Ramadan memakai prayerName TERBIT pada beberapa
+        // state visual. Identifikasi melalui timer/state bila perlu.
+        if (statePrayerName === 'TERBIT') {
+          statePrayerName = 'SUBUH';
+        }
+
+        if (
+          statePrayerName === 'DZUHUR' ||
+          statePrayerName === "JUM'AT"
+        ) {
+          statePrayerName = 'DZUHUR';
+        }
+
+        // Untuk WAKTU SHOLAT, timer selalu berisi nama sholat.
+        if (!statePrayerName || statePrayerName === 'TERBIT') {
+          const stateTimerUpper =
+            String(state.timer || '').trim().toUpperCase();
+
+          if (
+            stateTimerUpper === 'SUBUH' ||
+            stateTimerUpper === 'DZUHUR' ||
+            stateTimerUpper === 'ASHAR' ||
+            stateTimerUpper === 'MAGHRIB' ||
+            stateTimerUpper === 'ISYA'
+          ) {
+            statePrayerName = stateTimerUpper;
+          }
+        }
+
+        if (statePrayerName) {
+          const displayName =
+            isFridayWita() && statePrayerName === 'DZUHUR'
+              ? "JUM'AT"
+              : statePrayerName;
+
+          return 'WAKTU SHOLAT ' + displayName + suffix;
+        }
+      }
+
 
       try {
         const now = getWitaTime();
