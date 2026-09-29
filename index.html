@@ -4394,6 +4394,12 @@
 
       if (!data) return;
 
+      // panels!C14 = KOTA header. Dipakai khusus untuk teks countdown.
+      if (Object.prototype.hasOwnProperty.call(data, 'Kota')) {
+        window.__MASJID_HEADER_CITY__ =
+          String(data.Kota || '').trim();
+      }
+
       // =======================================================
       // KONTROL MODE DISPLAY COUNTDOWN DARI Panels!C2
       // AUTO   = hitam saat countdown sholat aktif
@@ -10322,6 +10328,38 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
     // COUNTDOWN SHOLAT
     // =========================================================
 
+    function getCountdownCity_() {
+      // Nama kota untuk heading countdown berasal khusus dari panels!C14
+      // (data header -> field Kota). Tidak memakai panels!C5.
+      try {
+        const city = String(
+          window.__MASJID_HEADER_CITY__ || ''
+        ).trim();
+        return city;
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function formatCountdownPrayerTitle_(prayerName, menuju) {
+      const city = getCountdownCity_();
+      const name = String(prayerName || '').trim().toUpperCase();
+
+      if (!name) {
+        return menuju ? 'MENUJU SHOLAT' : 'SHOLAT';
+      }
+
+      const prefix = menuju ? 'MENUJU SHOLAT ' : 'SHOLAT ';
+      return prefix + name + (city ? ' ' + city + ' DAN SEKITARNYA' : '');
+    }
+
+    function formatCountdownSpecialTitle_(label) {
+      const city = getCountdownCity_();
+      const base = String(label || '').trim().toUpperCase();
+
+      return base + (city ? ' ' + city + ' DAN SEKITARNYA' : '');
+    }
+
     function updatePrayerCountdown() {
 
       readPrayerTimesFromUI();
@@ -10746,7 +10784,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             const s = Math.floor(diff % 60);
 
             activeState = {
-              title: 'MENUJU SHOLAT SUBUH',
+              title: formatCountdownPrayerTitle_('SUBUH', true),
               timer:
                 String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
@@ -10790,7 +10828,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           ) {
 
             activeState = {
-              title: 'WAKTU',
+              title: formatCountdownSpecialTitle_('WAKTU IMSAK'),
               timer: 'IMSAK',
               // Visual kartu IMSAK = data-prayer SUBUH.
               prayerName: 'SUBUH'
@@ -10892,7 +10930,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           ) {
 
             activeState = {
-              title: 'SHOLAT',
+              title: formatCountdownPrayerTitle_('SUBUH', false),
               timer: 'SUBUH',
               prayerName: 'TERBIT'
             };
@@ -10945,7 +10983,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             const s = Math.floor(diff % 60);
 
             activeState = {
-              title: 'MENUJU WAKTU BERBUKA',
+              title: formatCountdownSpecialTitle_('MENUJU WAKTU BERBUKA'),
               timer:
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
@@ -10977,7 +11015,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           ) {
 
             activeState = {
-              title: 'BERBUKA',
+              title: formatCountdownSpecialTitle_('WAKTU BERBUKA'),
               timer: 'PUASA',
               prayerName: 'MAGHRIB'
             };
@@ -11000,7 +11038,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             const s = Math.floor(diff % 60);
 
             activeState = {
-              title: 'MENUJU ADZAN MAGRIB',
+              title: formatCountdownSpecialTitle_('MENUJU ADZAN MAGRIB'),
               timer:
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
@@ -11016,7 +11054,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           ) {
 
             activeState = {
-              title: 'ADZAN',
+              title: formatCountdownSpecialTitle_('ADZAN MAGHRIB'),
               timer: 'MAGHRIB',
               prayerName: 'MAGHRIB'
             };
@@ -11048,9 +11086,10 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
           activeState = {
             title:
-              (isFridayWita() && p.name === 'DZUHUR')
-                ? "MENUJU SHOLAT JUM'AT"
-                : 'MENUJU SHOLAT ' + displayName,
+              formatCountdownPrayerTitle_(
+                (isFridayWita() && p.name === 'DZUHUR') ? "JUM'AT" : displayName,
+                true
+              ),
             timer:
               String(h).padStart(2, '0') + ':' +
               String(m).padStart(2, '0') + ':' +
@@ -11070,7 +11109,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         ) {
 
           activeState = {
-            title: 'ADZAN',
+            title: formatCountdownSpecialTitle_('ADZAN ' + displayName),
             timer: displayName,
             prayerName: p.name
           };
@@ -11147,7 +11186,10 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         ) {
 
           activeState = {
-            title: 'SHOLAT',
+            title: formatCountdownPrayerTitle_(
+              isFridayJumat ? "JUM'AT" : displayName,
+              false
+            ),
             timer:
               isFridayJumat
                 ? "JUM'AT"
@@ -11358,7 +11400,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             const m = Math.floor((diff % 3600) / 60);
             const s = Math.floor(diff % 60);
 
-            nextTitle = 'MENUJU SHOLAT SUBUH';
+            nextTitle = formatCountdownPrayerTitle_('SUBUH', true);
             nextTimer =
               String(h).padStart(2, '0') + ':' +
               String(m).padStart(2, '0') + ':' +
@@ -11379,7 +11421,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
           } else if (nowSeconds < nextImsakEndSec) {
 
-            nextTitle = 'WAKTU';
+            nextTitle = formatCountdownSpecialTitle_('WAKTU IMSAK');
             nextTimer = 'IMSAK';
 
           } else {
