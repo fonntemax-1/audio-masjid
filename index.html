@@ -8294,29 +8294,121 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     }
 
 
+    // Jadwal sholat harus tahan terhadap timeout/cold-start Apps Script.
+    // Request dibuat satu per satu dan akan retry otomatis.
+    let prayerScheduleRequestInFlight = false;
+    let prayerScheduleRetryTimer = null;
+    let prayerScheduleRetryCount = 0;
+
     function fetchPrayerSchedule() {
 
       const apiDate =
         getApiDate();
 
+      const schedule =
+        WEB_APP_STATE.prayer.schedule || {};
+
+      const scheduleReady =
+        ['subuh','terbit','dzuhur','ashar','maghrib','isya']
+          .every(function(key) {
+            return /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(
+              String(schedule[key] || '').trim()
+            );
+          });
+
       if (
-        WEB_APP_STATE
-          .prayer
-          .dateLoaded ===
-        apiDate
+        WEB_APP_STATE.prayer.dateLoaded === apiDate &&
+        scheduleReady
       ) {
-
-        return;
-
+        return Promise.resolve(schedule);
       }
 
-      gasApiCall('getPrayerSchedule', { date: apiDate })
-        .then(updatePrayerSchedule)
+      if (prayerScheduleRequestInFlight) {
+        return Promise.resolve(null);
+      }
+
+      prayerScheduleRequestInFlight = true;
+
+      console.log(
+        'JADWAL SHOLAT: meminta API',
+        apiDate,
+        'percobaan',
+        prayerScheduleRetryCount + 1
+      );
+
+      return gasApiCall(
+        'getPrayerSchedule',
+        { date: apiDate }
+      )
+        .then(function(result) {
+
+          prayerScheduleRequestInFlight = false;
+
+          if (
+            !result ||
+            !result.success ||
+            !result.jadwal
+          ) {
+            throw new Error(
+              'Respons jadwal sholat tidak lengkap.'
+            );
+          }
+
+          updatePrayerSchedule(result);
+
+          prayerScheduleRetryCount = 0;
+
+          // Jangan menunggu interval 1 detik berikutnya.
+          updatePrayerCountdown();
+
+          return result;
+
+        })
         .catch(function(error) {
-          console.error(
-            'Gagal mengambil jadwal sholat:',
-            error
+
+          prayerScheduleRequestInFlight = false;
+
+          console.warn(
+            'JADWAL SHOLAT BELUM TERSEDIA:',
+            error && error.message
+              ? error.message
+              : error
           );
+
+          if (prayerScheduleRetryCount < 5) {
+
+            const retryDelays = [
+              2000,
+              5000,
+              10000,
+              15000,
+              30000
+            ];
+
+            const delay =
+              retryDelays[
+                Math.min(
+                  prayerScheduleRetryCount,
+                  retryDelays.length - 1
+                )
+              ];
+
+            prayerScheduleRetryCount++;
+
+            if (prayerScheduleRetryTimer) {
+              clearTimeout(prayerScheduleRetryTimer);
+            }
+
+            prayerScheduleRetryTimer =
+              setTimeout(function() {
+                prayerScheduleRetryTimer = null;
+                fetchPrayerSchedule();
+              }, delay);
+
+          }
+
+          return null;
+
         });
 
     }
