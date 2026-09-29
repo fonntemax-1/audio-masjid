@@ -4276,23 +4276,35 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
         }
 
-        // Protected sequence tidak pernah dibuang hanya karena waktu
-        // target/endSec sudah lewat. Jika harus catch-up setelah event
-        // sebelumnya selesai, file tetap dimainkan sampai onended.
+        // PROTECTED bukan berarti boleh diputar terlambat.
+        // Jika target + durasi sudah benar-benar lewat, event harus
+        // dibuang agar SIRINE/ADZAN/DOA/BEEP/IQOMAH tidak tiba-tiba
+        // berbunyi setelah IQOMAH atau setelah fase sholat selesai.
+        //
+        // Protected hanya berarti: JIKA event masih berada di dalam
+        // window target..end, audio dimainkan utuh dan tidak dipotong.
         if (
           protectedQueueSequence &&
           typeof item.endSec === 'number' &&
           nowSeconds > item.endSec
         ) {
           console.log(
-            'AUDIO PROTECTED SEQUENCE: tetap diputar utuh meski target waktu lewat:',
+            'AUDIO PROTECTED EVENT EXPIRED - DIHAPUS, TIDAK CATCH-UP TERLAMBAT:',
             item.prayerName || '-',
             item.eventName || item.label || '-',
+            'targetSec=',
+            item.targetSec,
             'endSec=',
             item.endSec,
             'nowSec=',
             nowSeconds
           );
+
+          state.queue.shift();
+          state.queuedLocks.delete(item.eventKey);
+          state.processing = false;
+          processAudioQueue();
+          return;
         }
 
         // Event sudah mulai tetapi belum selesai:
