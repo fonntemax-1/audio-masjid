@@ -9678,7 +9678,9 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           prev === 'doa-buka' &&
           next === 'beep'
         ) {
-          return 3 * 60;
+          // RAMADAN MAGHRIB:
+          // doa-buka -> tunggu 5 menit -> beep.
+          return 5 * 60;
         }
 
         return GAP;
@@ -9888,7 +9890,15 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           items[sirineIndex].status
         );
 
-        // Event setelah SIRINE berjalan maju sesuai Sheet.
+        // Event setelah SIRINE mengikuti sequence Sheet dan GAP tetap.
+        // KHUSUS ADZAN SUBUH:
+        // waktu mulai ADZAN HARUS tepat sama dengan waktu sholat (pSec),
+        // sehingga suara Adzan dan countdown tidak pernah berbeda.
+        //
+        // Jika rangkaian sebelum Adzan selesai lebih cepat, sistem hanya
+        // menunggu dalam keadaan SILENT sampai pSec. Tidak ada audio yang
+        // dipotong atau di-replay. Jika konfigurasi audio ternyata
+        // melewati pSec, audio sebelumnya tetap dibiarkan selesai utuh.
         let cursorAfter = sirineTarget + items[sirineIndex].duration;
 
         for (let i = sirineIndex + 1; i < items.length; i++) {
@@ -9900,16 +9910,55 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             item.event
           );
 
+          let targetSec = cursorAfter;
+
+          const isAdzanItem =
+            i === adzanIndex ||
+            item.event === 'adzan-subuh' ||
+            item.event === 'adzan-biasa' ||
+            item.event === 'adzan';
+
+          if (isAdzanItem) {
+            if (cursorAfter <= Number(pSec)) {
+              targetSec = Number(pSec);
+
+              if (Number(pSec) > cursorAfter) {
+                console.log(
+                  'AUDIO SUBUH RAMADHAN: silent wait sebelum ADZAN agar tepat waktu sholat.',
+                  'readySec=',
+                  cursorAfter,
+                  'adzanSec=',
+                  Number(pSec),
+                  'waitSec=',
+                  Number(pSec) - cursorAfter
+                );
+              }
+            } else {
+              // Jangan pernah memotong audio yang sudah berjalan.
+              // Dalam konfigurasi seperti ini, target dipertahankan
+              // pada timeline aktual agar audio protected tetap utuh.
+              targetSec = cursorAfter;
+
+              console.warn(
+                'AUDIO SUBUH RAMADHAN: rangkaian sebelum ADZAN melewati waktu sholat.',
+                'adzanTarget=',
+                cursorAfter,
+                'waktuSholat=',
+                Number(pSec)
+              );
+            }
+          }
+
           add(
             item.event.toUpperCase(),
-            cursorAfter,
+            targetSec,
             item.duration,
             getLabel(item),
             item.audioType,
             item.status
           );
 
-          cursorAfter += item.duration;
+          cursorAfter = targetSec + item.duration;
         }
 
         const adzanItem = items[adzanIndex];
@@ -9924,8 +9973,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             Math.abs(scheduledAdzan.targetSec - Number(pSec)) > 1
           ) {
             console.log(
-              'AUDIO SUBUH RAMADHAN: ADZAN mengikuti timeline audio,',
-              'waktu kartu=',
+              'AUDIO SUBUH RAMADHAN: ADZAN disinkronkan dengan waktu sholat.',
+              'waktu countdown=',
               pSec,
               'target audio=',
               scheduledAdzan.targetSec
