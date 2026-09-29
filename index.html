@@ -8656,7 +8656,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         Date.now();
 
       console.log(
-        'JADWAL GITHUB CACHE: meminta',
+        'JADWAL GITHUB CACHE MULTI-KOTA: meminta',
         url
       );
 
@@ -8665,19 +8665,18 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       })
         .then(function(response) {
           if (!response.ok) {
-            throw new Error(
-              'HTTP ' + response.status
-            );
+            throw new Error('HTTP ' + response.status);
           }
+
           console.log(
-            'JADWAL GITHUB CACHE: HTTP OK',
+            'JADWAL GITHUB CACHE MULTI-KOTA: HTTP OK',
             response.status,
             response.url
           );
+
           return response.json();
         })
         .then(function(payload) {
-
           const location =
             WEB_APP_STATE.location || {};
 
@@ -8696,35 +8695,67 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
               ''
             ).trim();
 
+          // Format baru:
+          // payload.cities[slug] = jadwal kota untuk tanggal lokal kota tersebut.
+          // Tetap dukung format lama satu-kota agar transisi cache aman.
+          const cityCache =
+            payload &&
+            payload.cities &&
+            targetSlug
+              ? payload.cities[targetSlug]
+              : null;
+
+          const selectedPayload =
+            cityCache ||
+            (
+              payload &&
+              payload.slug &&
+              String(payload.slug).trim().toLowerCase() === targetSlug
+                ? payload
+                : null
+            );
+
           if (
-            !payload ||
-            payload.success !== true ||
-            !payload.jadwal
+            !selectedPayload ||
+            selectedPayload.success !== true ||
+            !selectedPayload.jadwal
           ) {
             console.warn(
-              'JADWAL GITHUB CACHE: payload tidak valid',
-              payload
+              'JADWAL GITHUB CACHE MULTI-KOTA: kota belum tersedia',
+              {
+                targetSlug: targetSlug,
+                targetDate: targetDate,
+                availableCities:
+                  payload &&
+                  payload.cities
+                    ? Object.keys(payload.cities).length
+                    : 0
+              }
             );
             return false;
           }
 
           const cacheDate =
             String(
-              payload.tanggal || ''
+              selectedPayload.tanggal ||
+              ''
             ).trim();
 
           const cacheSlug =
             String(
-              payload.slug || ''
+              selectedPayload.slug ||
+              targetSlug ||
+              ''
             ).trim().toLowerCase();
 
           const cacheTimezone =
             String(
-              payload.timezone || ''
+              selectedPayload.timezone ||
+              ''
             ).trim();
 
           console.log(
-            'JADWAL GITHUB CACHE: perbandingan',
+            'JADWAL GITHUB CACHE MULTI-KOTA: perbandingan',
             {
               cacheDate: cacheDate,
               targetDate: targetDate,
@@ -8735,14 +8766,15 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             }
           );
 
-          // Jangan pernah memakai cache kota/timezone/tanggal lain.
           if (
             cacheDate !== targetDate ||
             (targetSlug && cacheSlug && cacheSlug !== targetSlug) ||
-            (targetTimezone && cacheTimezone && cacheTimezone !== targetTimezone)
+            (targetTimezone &&
+              cacheTimezone &&
+              cacheTimezone !== targetTimezone)
           ) {
             console.warn(
-              'JADWAL GITHUB CACHE: tidak cocok',
+              'JADWAL GITHUB CACHE MULTI-KOTA: tidak cocok',
               {
                 cacheDate: cacheDate,
                 targetDate: targetDate,
@@ -8756,7 +8788,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           }
 
           const j =
-            payload.jadwal;
+            selectedPayload.jadwal;
 
           const keys = [
             'subuh',
@@ -8769,14 +8801,14 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           const valid =
             keys.every(function(key) {
-              return /^([01]?\d|2[0-3]):[0-5]\d$/.test(
+              return /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(
                 String(j[key] || '').trim()
               );
             });
 
           if (!valid) {
             console.warn(
-              'JADWAL GITHUB CACHE: format jadwal tidak valid',
+              'JADWAL GITHUB CACHE MULTI-KOTA: format jadwal tidak valid',
               j
             );
             return false;
@@ -8806,12 +8838,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           updateRamadanPrayerCards();
 
-          // Simpan juga ke localStorage supaya reload berikutnya
-          // tetap bisa tampil walaupun GitHub sedang belum tersedia.
           savePrayerCardCache();
 
           console.log(
-            'JADWAL SHOLAT: memakai CACHE GITHUB, API hanya refresh background:',
+            'JADWAL SHOLAT: memakai CACHE GITHUB MULTI-KOTA:',
+            targetSlug,
             schedule
           );
 
@@ -8819,7 +8850,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         })
         .catch(function(error) {
           console.warn(
-            'JADWAL GITHUB CACHE: belum tersedia:',
+            'JADWAL GITHUB CACHE MULTI-KOTA: belum tersedia:',
             error && error.message
               ? error.message
               : error
@@ -8828,7 +8859,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         });
 
     }
-
 
     function loadPrayerCardCache() {
       const key = getPrayerCardCacheKey();
