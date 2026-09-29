@@ -1916,6 +1916,171 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     border-top-color: #00ffaa !important;
   }
 
+
+  /* =========================================================
+     FINAL DISPLAY THEME LOCK - panels!C18
+     Hanya mengatur warna visual. Tidak menyentuh audio/scheduler.
+     ========================================================= */
+  :root[data-display-theme="hijau"],
+  body[data-display-theme="hijau"] {
+    --theme-border: #00ffaa !important;
+    --theme-accent: #00ffaa !important;
+    --theme-divider: #00ffaa !important;
+    --theme-running: #00ff88 !important;
+  }
+
+  :root[data-display-theme="merah"],
+  body[data-display-theme="merah"] {
+    --theme-border: #ff5a5f !important;
+    --theme-accent: #ff7075 !important;
+    --theme-divider: #ff7075 !important;
+    --theme-running: #ff7b72 !important;
+  }
+
+  :root[data-display-theme="kuning"],
+  body[data-display-theme="kuning"] {
+    --theme-border: #f4c542 !important;
+    --theme-accent: #ffd95a !important;
+    --theme-divider: #f4c542 !important;
+    --theme-running: #ffe27a !important;
+  }
+
+  :root[data-display-theme="hijau"] .screen-container,
+  body[data-display-theme="hijau"] .screen-container,
+  :root[data-display-theme="merah"] .screen-container,
+  body[data-display-theme="merah"] .screen-container,
+  :root[data-display-theme="kuning"] .screen-container,
+  body[data-display-theme="kuning"] .screen-container,
+  :root[data-display-theme="hijau"] .header,
+  body[data-display-theme="hijau"] .header,
+  :root[data-display-theme="merah"] .header,
+  body[data-display-theme="merah"] .header,
+  :root[data-display-theme="kuning"] .header,
+  body[data-display-theme="kuning"] .header,
+  :root[data-display-theme="hijau"] .center-panel,
+  body[data-display-theme="hijau"] .center-panel,
+  :root[data-display-theme="merah"] .center-panel,
+  body[data-display-theme="merah"] .center-panel,
+  :root[data-display-theme="kuning"] .center-panel,
+  body[data-display-theme="kuning"] .center-panel,
+  :root[data-display-theme="hijau"] .prayer-card,
+  body[data-display-theme="hijau"] .prayer-card,
+  :root[data-display-theme="merah"] .prayer-card,
+  body[data-display-theme="merah"] .prayer-card,
+  :root[data-display-theme="kuning"] .prayer-card,
+  body[data-display-theme="kuning"] .prayer-card,
+  :root[data-display-theme="hijau"] .main-clock-panel,
+  body[data-display-theme="hijau"] .main-clock-panel,
+  :root[data-display-theme="merah"] .main-clock-panel,
+  body[data-display-theme="merah"] .main-clock-panel,
+  :root[data-display-theme="kuning"] .main-clock-panel,
+  body[data-display-theme="kuning"] .main-clock-panel,
+  :root[data-display-theme="hijau"] .youtube-panel,
+  body[data-display-theme="hijau"] .youtube-panel,
+  :root[data-display-theme="merah"] .youtube-panel,
+  body[data-display-theme="merah"] .youtube-panel,
+  :root[data-display-theme="kuning"] .youtube-panel,
+  body[data-display-theme="kuning"] .youtube-panel,
+  :root[data-display-theme="hijau"] .finance-panel,
+  body[data-display-theme="hijau"] .finance-panel,
+  :root[data-display-theme="merah"] .finance-panel,
+  body[data-display-theme="merah"] .finance-panel,
+  :root[data-display-theme="kuning"] .finance-panel,
+  body[data-display-theme="kuning"] .finance-panel,
+  :root[data-display-theme="hijau"] .khutbah-panel,
+  body[data-display-theme="hijau"] .khutbah-panel,
+  :root[data-display-theme="merah"] .khutbah-panel,
+  body[data-display-theme="merah"] .khutbah-panel,
+  :root[data-display-theme="kuning"] .khutbah-panel,
+  body[data-display-theme="kuning"] .khutbah-panel {
+    border-color: var(--theme-border) !important;
+  }
+
+  :root[data-display-theme="hijau"] .center-panel .event-banner,
+  body[data-display-theme="hijau"] .center-panel .event-banner,
+  :root[data-display-theme="merah"] .center-panel .event-banner,
+  body[data-display-theme="merah"] .center-panel .event-banner,
+  :root[data-display-theme="kuning"] .center-panel .event-banner,
+  body[data-display-theme="kuning"] .center-panel .event-banner {
+    border-top-color: var(--theme-border) !important;
+  }
+
+  :root[data-display-theme="hijau"] .header-divider,
+  body[data-display-theme="hijau"] .header-divider,
+  :root[data-display-theme="merah"] .header-divider,
+  body[data-display-theme="merah"] .header-divider,
+  :root[data-display-theme="kuning"] .header-divider,
+  body[data-display-theme="kuning"] .header-divider,
+  :root[data-display-theme="hijau"] .header-center .slogan,
+  body[data-display-theme="hijau"] .header-center .slogan,
+  :root[data-display-theme="merah"] .header-center .slogan,
+  body[data-display-theme="merah"] .header-center .slogan,
+  :root[data-display-theme="kuning"] .header-center .slogan,
+  body[data-display-theme="kuning"] .header-center .slogan,
+  :root[data-display-theme="hijau"] .date-box .hijri-text,
+  body[data-display-theme="hijau"] .date-box .hijri-text,
+  :root[data-display-theme="merah"] .date-box .hijri-text,
+  body[data-display-theme="merah"] .date-box .hijri-text,
+  :root[data-display-theme="kuning"] .date-box .hijri-text,
+  body[data-display-theme="kuning"] .date-box .hijri-text {
+    color: var(--theme-accent) !important;
+  }
+
+  :root[data-display-theme="hijau"] .event-running,
+  body[data-display-theme="hijau"] .event-running,
+  :root[data-display-theme="merah"] .event-running,
+  body[data-display-theme="merah"] .event-running,
+  :root[data-display-theme="kuning"] .event-running,
+  body[data-display-theme="kuning"] .event-running {
+    color: var(--theme-running) !important;
+  }
+
+  :root[data-display-theme="hijau"] .keuangan-header-row td,
+  body[data-display-theme="hijau"] .keuangan-header-row td,
+  :root[data-display-theme="merah"] .keuangan-header-row td,
+  body[data-display-theme="merah"] .keuangan-header-row td,
+  :root[data-display-theme="kuning"] .keuangan-header-row td,
+  body[data-display-theme="kuning"] .keuangan-header-row td,
+  :root[data-display-theme="hijau"] .keuangan-subtotal-row td,
+  body[data-display-theme="hijau"] .keuangan-subtotal-row td,
+  :root[data-display-theme="merah"] .keuangan-subtotal-row td,
+  body[data-display-theme="merah"] .keuangan-subtotal-row td,
+  :root[data-display-theme="kuning"] .keuangan-subtotal-row td,
+  body[data-display-theme="kuning"] .keuangan-subtotal-row td,
+  :root[data-display-theme="hijau"] .keuangan-saldo-akhir td,
+  body[data-display-theme="hijau"] .keuangan-saldo-akhir td,
+  :root[data-display-theme="merah"] .keuangan-saldo-akhir td,
+  body[data-display-theme="merah"] .keuangan-saldo-akhir td,
+  :root[data-display-theme="kuning"] .keuangan-saldo-akhir td,
+  body[data-display-theme="kuning"] .keuangan-saldo-akhir td {
+    border-color: var(--theme-border) !important;
+  }
+
+  /* Nilai absolut khusus KUNING sebagai lapisan terakhir. */
+  :root[data-display-theme="kuning"] .screen-container,
+  body[data-display-theme="kuning"] .screen-container,
+  :root[data-display-theme="kuning"] .header,
+  body[data-display-theme="kuning"] .header,
+  :root[data-display-theme="kuning"] .center-panel,
+  body[data-display-theme="kuning"] .center-panel,
+  :root[data-display-theme="kuning"] .prayer-card,
+  body[data-display-theme="kuning"] .prayer-card,
+  :root[data-display-theme="kuning"] .main-clock-panel,
+  body[data-display-theme="kuning"] .main-clock-panel,
+  :root[data-display-theme="kuning"] .youtube-panel,
+  body[data-display-theme="kuning"] .youtube-panel,
+  :root[data-display-theme="kuning"] .finance-panel,
+  body[data-display-theme="kuning"] .finance-panel,
+  :root[data-display-theme="kuning"] .khutbah-panel,
+  body[data-display-theme="kuning"] .khutbah-panel {
+    border-color: #f4c542 !important;
+  }
+
+  :root[data-display-theme="kuning"] .center-panel .event-banner,
+  body[data-display-theme="kuning"] .center-panel .event-banner {
+    border-top-color: #f4c542 !important;
+  }
+
 </style>
 
 </head>
