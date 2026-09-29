@@ -4475,6 +4475,15 @@
           WEB_APP_STATE.location
         );
 
+        const timezoneElement =
+          document.querySelector('.tz-text');
+
+        if (timezoneElement) {
+          timezoneElement.innerText =
+            WEB_APP_STATE.location.zona ||
+            'WITA';
+        }
+
         if (oldTimezone !== newTimezone) {
           startAutoRefresh();
           updateClock();
