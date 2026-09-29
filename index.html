@@ -4821,22 +4821,118 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           ? ' ' + city + ' DAN SEKITARNYA'
           : '';
 
-      // RAMADAN: teks khusus IMSAK.
-      if (
-        title.indexOf('WAKTU IMSAK') === 0
-      ) {
-        return 'WAKTU IMSAK' + suffix;
+      // =======================================================
+      // EVENT KHUSUS IMSAK
+      //
+      // Mulai TEPAT saat kartu IMSAK tampil (10 menit sebelum
+      // Adzan Subuh) dan tetap berjalan selama 5 menit.
+      // Tidak bergantung pada durasi sirine.
+      // =======================================================
+      try {
+        const now = getWitaTime();
+        const nowSeconds =
+          Number(now.hour) * 3600 +
+          Number(now.minute) * 60 +
+          Number(now.second);
+
+        const subuhText =
+          String(
+            WEB_APP_STATE.prayer &&
+            WEB_APP_STATE.prayer.schedule
+              ? WEB_APP_STATE.prayer.schedule.subuh
+              : ''
+          ).trim();
+
+        if (/^([01]?\\d|2[0-3]):[0-5]\\d$/.test(subuhText)) {
+          const subuhParts = subuhText.split(':');
+          const subuhSec =
+            Number(subuhParts[0]) * 3600 +
+            Number(subuhParts[1]) * 60;
+
+          if (isRamadanDisplay()) {
+            const imsakStartSec = subuhSec - (10 * 60);
+            const imsakEndSec = imsakStartSec + (5 * 60);
+
+            if (
+              nowSeconds >= imsakStartSec &&
+              nowSeconds < imsakEndSec
+            ) {
+              return 'WAKTU IMSAK' + suffix;
+            }
+          }
+        }
+
+        // =====================================================
+        // EVENT KHUSUS BERBUKA PUASA
+        //
+        // Mulai TEPAT saat countdown WAKTU BERBUKA/PUASA tampil,
+        // yaitu saat waktu Maghrib masuk, dan berlangsung 3 menit.
+        // Jika Adzan Maghrib sudah dimulai, event WAKTU SHOLAT
+        // mengambil alih.
+        // =====================================================
+        const maghribText =
+          String(
+            WEB_APP_STATE.prayer &&
+            WEB_APP_STATE.prayer.schedule
+              ? WEB_APP_STATE.prayer.schedule.maghrib
+              : ''
+          ).trim();
+
+        if (
+          isRamadanDisplay() &&
+          /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(maghribText)
+        ) {
+          const maghribParts = maghribText.split(':');
+          const maghribSec =
+            Number(maghribParts[0]) * 3600 +
+            Number(maghribParts[1]) * 60;
+
+          // Jangan mengambil alih fase ADZAN yang mungkin sudah dimulai.
+          const computedSchedules =
+            WEB_APP_STATE.audio &&
+            WEB_APP_STATE.audio.computedSchedules instanceof Map
+              ? WEB_APP_STATE.audio.computedSchedules
+              : new Map();
+
+          const maghribComputed =
+            computedSchedules.get('MAGHRIB');
+
+          const maghribAdzanEvent =
+            maghribComputed &&
+            Array.isArray(maghribComputed.events)
+              ? maghribComputed.events.find(function(event) {
+                  return String(event.eventName || '').toUpperCase() === 'ADZAN';
+                })
+              : null;
+
+          const maghribAdzanSec =
+            maghribAdzanEvent &&
+            Number.isFinite(Number(maghribAdzanEvent.targetSec))
+              ? Number(maghribAdzanEvent.targetSec)
+              : Infinity;
+
+          if (
+            nowSeconds >= maghribSec &&
+            nowSeconds < maghribSec + (3 * 60) &&
+            nowSeconds < maghribAdzanSec
+          ) {
+            return 'WAKTU BERBUKA' + suffix;
+          }
+        }
+      } catch (specialEventError) {
+        console.warn(
+          'EVENT KHUSUS IMSAK/BERBUKA ERROR:',
+          specialEventError
+        );
       }
 
-      // RAMADAN: teks khusus BERBUKA.
-      if (
-        title.indexOf('WAKTU BERBUKA') === 0
-      ) {
-        return 'WAKTU BERBUKA' + suffix;
-      }
-
-      // Event khusus hanya dimulai tepat saat waktu sholat masuk.
-      // Fase MENUJU SHOLAT sebelum waktu sholat tidak mengambil alih Event.
+      // =======================================================
+      // EVENT KHUSUS WAKTU SHOLAT
+      //
+      // Mulai TEPAT saat ADZAN dan berakhir +15 menit setelah
+      // IQOMAH selesai. State countdown tetap menjadi sumber
+      // sinkronisasi visual; fungsi ini hanya menentukan teks.
+      // =======================================================
       const isPrayerTimePhase =
         title === 'ADZAN' ||
         title.indexOf('ADZAN ') === 0 ||
@@ -4853,13 +4949,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           .trim()
           .toUpperCase();
 
-      // PENTING: pada mode RAMADAN, kartu SUBUH secara visual
-      // memang memakai data-prayer TERBIT agar struktur kartu tetap.
-      // Tetapi RUNNING TEXT tidak boleh mengikuti nama internal TERBIT.
-      // Setiap state TERBIT yang sudah masuk fase waktu sholat
-      // (ADZAN / MENUJU IQOMAH / IQOMAH / WAKTU SHOLAT) adalah SUBUH.
-      // Normalisasi ini hanya untuk teks Running Text; scheduler/audio
-      // dan nama internal kartu tetap tidak disentuh.
+      // Pada Ramadan, kartu SUBUH secara visual menggunakan
+      // data-prayer TERBIT. Running Text tetap harus SUBUH.
       if (prayerName === 'TERBIT') {
         prayerName = 'SUBUH';
       }
