@@ -4843,22 +4843,14 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           .trim()
           .toUpperCase();
 
-      // Pada Ramadan, kartu SUBUH secara visual memakai
-      // data-prayer TERBIT untuk menjaga struktur kartu.
-      // Namun EVENT BANNER harus tetap menyebut SHOLAT SUBUH.
-      // Jangan ubah state scheduler/kartu; normalisasi hanya untuk teks Event.
-      const stateTimer =
-        String(state.timer || '')
-          .trim()
-          .toUpperCase();
-
-      if (
-        prayerName === 'TERBIT' &&
-        (
-          stateTimer === 'SUBUH' ||
-          title.indexOf('SUBUH') !== -1
-        )
-      ) {
+      // PENTING: pada mode RAMADAN, kartu SUBUH secara visual
+      // memang memakai data-prayer TERBIT agar struktur kartu tetap.
+      // Tetapi RUNNING TEXT tidak boleh mengikuti nama internal TERBIT.
+      // Setiap state TERBIT yang sudah masuk fase waktu sholat
+      // (ADZAN / MENUJU IQOMAH / IQOMAH / WAKTU SHOLAT) adalah SUBUH.
+      // Normalisasi ini hanya untuk teks Running Text; scheduler/audio
+      // dan nama internal kartu tetap tidak disentuh.
+      if (prayerName === 'TERBIT') {
         prayerName = 'SUBUH';
       }
 
