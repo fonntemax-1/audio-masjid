@@ -166,7 +166,8 @@ function getRamadanDisplaySetting() {
 // TIDAK menyentuh audio, YouTube, scheduler, Ramadan,
 // Event, keuangan, Jumat, khutbah, atau data display lain.
 // =========================================================
-// UPDATED: panels!C18 menjadi sumber tema tampilan (HIJAU/MERAH/KUNING).\nfunction getDisplayThemeSetting() {
+// UPDATED: panels!C18 menjadi sumber tema tampilan (HIJAU/MERAH/KUNING).
+function getDisplayThemeSetting() {
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName('panels');
 
