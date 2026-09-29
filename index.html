@@ -12780,6 +12780,13 @@ function setCountdownBlackMode(enabled) {
           .dateLoaded =
           '';
 
+        prayerScheduleRetryCount = 0;
+
+        if (prayerScheduleRetryTimer) {
+          clearTimeout(prayerScheduleRetryTimer);
+          prayerScheduleRetryTimer = null;
+        }
+
         WEB_APP_STATE
           .countdown
           .dateKey =
