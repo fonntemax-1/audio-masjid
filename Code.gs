@@ -215,6 +215,12 @@ function getDataFromSheet() {
 
     result.RamadanDisplay = getRamadanDisplaySetting();
 
+    // Lokasi aktif dari panels!C5:C10 untuk timezone/date di GitHub Pages.
+    // Tidak mengubah scheduler audio.
+    result.Lokasi = getLokasiPanels();
+
+    Logger.log('LOKASI API = ' + JSON.stringify(result.Lokasi));
+
     // =====================================================
     // KONTROL MODE DISPLAY COUNTDOWN
     // Sumber: sheet "panels"!C2
