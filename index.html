@@ -4586,8 +4586,30 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             ? '#ff5a5f'
             : '#00ffaa';
 
+      // Screenshot menunjukkan frame Running Text berwarna hijau
+      // di seluruh sisi. Karena itu semua sisi dikunci ke tema aktif.
+      banner.style.setProperty(
+        'border-color',
+        runningFrameColor,
+        'important'
+      );
       banner.style.setProperty(
         'border-top-color',
+        runningFrameColor,
+        'important'
+      );
+      banner.style.setProperty(
+        'border-right-color',
+        runningFrameColor,
+        'important'
+      );
+      banner.style.setProperty(
+        'border-bottom-color',
+        runningFrameColor,
+        'important'
+      );
+      banner.style.setProperty(
+        'border-left-color',
         runningFrameColor,
         'important'
       );
@@ -11080,8 +11102,30 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
   document.querySelectorAll(
     '.center-panel .event-banner'
   ).forEach(function(el) {
+    // Running Text memiliki frame yang terlihat di keempat sisi.
+    // Kunci seluruh border, bukan hanya border-top.
+    el.style.setProperty(
+      'border-color',
+      frameColor,
+      'important'
+    );
     el.style.setProperty(
       'border-top-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-right-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-bottom-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-left-color',
       frameColor,
       'important'
     );
