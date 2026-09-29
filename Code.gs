@@ -286,6 +286,54 @@ function getDataFromSheet() {
   }
 
     // =====================================================
+    // HEADER MASJID FINAL - panels!B12:C16
+    // Ditetapkan setelah pembacaan data sheet agar tidak
+    // ditimpa oleh sheet Nama_Mesjid atau sumber lama lain.
+    // =====================================================
+    try {
+      const headerSheetFinal = ss.getSheetByName('panels');
+
+      if (headerSheetFinal) {
+        const headerValuesFinal =
+          headerSheetFinal.getRange('B12:C16').getDisplayValues();
+
+        const headerFinal = {};
+
+        headerValuesFinal.forEach(function(row) {
+          const key = String(row[0] || '').trim().toUpperCase();
+          const value = String(row[1] || '').trim();
+
+          if (key) {
+            headerFinal[key] = value;
+          }
+        });
+
+        // Nilai ini adalah sumber FINAL untuk header GitHub Pages.
+        result.Nama = headerFinal.NAMA || '';
+        result.Alamat = headerFinal.ALAMAT || '';
+        result.Kota = headerFinal.KOTA || '';
+        result['No. Telp'] = headerFinal['NO HP'] || '';
+        result.Slogan = headerFinal.SLOGAN || '';
+
+        Logger.log(
+          'PANELS HEADER FINAL = ' +
+          JSON.stringify({
+            Nama: result.Nama,
+            Alamat: result.Alamat,
+            Kota: result.Kota,
+            NoTelp: result['No. Telp'],
+            Slogan: result.Slogan
+          })
+        );
+      }
+    } catch (headerFinalError) {
+      Logger.log(
+        'PANELS HEADER FINAL ERROR: ' +
+        headerFinalError.message
+      );
+    }
+
+    // =====================================================
     // DEFAULT YOUTUBE
     // =====================================================
 
