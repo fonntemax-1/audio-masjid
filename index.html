@@ -10784,7 +10784,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             const s = Math.floor(diff % 60);
 
             activeState = {
-              title: formatCountdownPrayerTitle_('SUBUH', true),
+              title: 'MENUJU SHOLAT SUBUH',
               timer:
                 String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
@@ -10983,7 +10983,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             const s = Math.floor(diff % 60);
 
             activeState = {
-              title: formatCountdownSpecialTitle_('MENUJU WAKTU BERBUKA'),
+              title: 'MENUJU WAKTU BERBUKA',
               timer:
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
@@ -11038,7 +11038,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             const s = Math.floor(diff % 60);
 
             activeState = {
-              title: formatCountdownSpecialTitle_('MENUJU ADZAN MAGRIB'),
+              title: 'MENUJU ADZAN MAGRIB',
               timer:
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
@@ -11054,7 +11054,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           ) {
 
             activeState = {
-              title: formatCountdownSpecialTitle_('ADZAN MAGHRIB'),
+              title: 'ADZAN',
               timer: 'MAGHRIB',
               prayerName: 'MAGHRIB'
             };
@@ -11109,7 +11109,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         ) {
 
           activeState = {
-            title: formatCountdownSpecialTitle_('ADZAN ' + displayName),
+            title: 'ADZAN',
             timer: displayName,
             prayerName: p.name
           };
@@ -11400,7 +11400,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             const m = Math.floor((diff % 3600) / 60);
             const s = Math.floor(diff % 60);
 
-            nextTitle = formatCountdownPrayerTitle_('SUBUH', true);
+            nextTitle = 'MENUJU SHOLAT SUBUH';
             nextTimer =
               String(h).padStart(2, '0') + ':' +
               String(m).padStart(2, '0') + ':' +
