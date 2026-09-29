@@ -5291,6 +5291,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           slug: String(lokasi.slug || '')
         };
 
+        savePanelLocationCache();
+
         const newTimezone =
           getSelectedTimezone();
         const newCity =
@@ -5314,28 +5316,59 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         ) {
           WEB_APP_STATE.prayer.dateLoaded = '';
 
-          // PRIORITAS JADWAL:
-          // 1. cache GitHub yang diperbarui background service setiap
-          //    pergantian hari.
-          // 2. localStorage cache kartu.
-          // 3. API MuslimKita sebagai refresh/fallback background.
-          loadGitHubPrayerCache()
-            .then(function(githubLoaded) {
+          // STARTUP TIDAK MENUNGGU API MUSLIMKITA.
+          // Cache lokal dicoba lebih dahulu karena paling cepat.
+          // Jika belum ada, cache GitHub menjadi sumber berikutnya.
+          // API MuslimKita baru dipanggil setelah kartu sudah
+          // mendapatkan data cache, dan berjalan di belakang layar.
+          const localLoaded = loadPrayerCardCache();
 
-              if (!githubLoaded) {
-                loadPrayerCardCache();
-              }
+          const continuePrayerRefresh = function() {
+            prayerScheduleRetryCount = 0;
 
-              // API tidak menjadi sumber tunggu tampilan.
-              prayerScheduleRetryCount = 0;
+            if (prayerScheduleRetryTimer) {
+              clearTimeout(prayerScheduleRetryTimer);
+              prayerScheduleRetryTimer = null;
+            }
 
-              if (prayerScheduleRetryTimer) {
-                clearTimeout(prayerScheduleRetryTimer);
-                prayerScheduleRetryTimer = null;
-              }
-
+            // Refresh API sengaja tidak ditunggu oleh UI.
+            setTimeout(function() {
               fetchPrayerSchedule();
-            });
+            }, 0);
+          };
+
+          if (localLoaded) {
+            updatePrayerCountdown();
+
+            loadGitHubPrayerCache()
+              .then(function(githubLoaded) {
+                if (githubLoaded) {
+                  updatePrayerCountdown();
+                }
+                continuePrayerRefresh();
+              })
+              .catch(function() {
+                continuePrayerRefresh();
+              });
+          } else {
+            loadGitHubPrayerCache()
+              .then(function(githubLoaded) {
+                if (!githubLoaded) {
+                  loadPrayerCardCache();
+                }
+
+                if (githubLoaded) {
+                  updatePrayerCountdown();
+                }
+
+                continuePrayerRefresh();
+              })
+              .catch(function() {
+                loadPrayerCardCache();
+                updatePrayerCountdown();
+                continuePrayerRefresh();
+              });
+          }
         }
 
         const timezoneElement =
@@ -8858,6 +8891,50 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           return false;
         });
 
+    }
+
+    function savePanelLocationCache() {
+      try {
+        localStorage.setItem(
+          'MASJID_PANEL_LOCATION_CACHE',
+          JSON.stringify(WEB_APP_STATE.location || {})
+        );
+      } catch (e) {}
+    }
+
+    function loadPanelLocationCache() {
+      try {
+        const raw = localStorage.getItem('MASJID_PANEL_LOCATION_CACHE');
+        if (!raw) return false;
+
+        const cached = JSON.parse(raw);
+        if (
+          !cached ||
+          !cached.kota ||
+          !cached.slug ||
+          !cached.timezone
+        ) {
+          return false;
+        }
+
+        WEB_APP_STATE.location = {
+          kota: String(cached.kota || ''),
+          provinsi: String(cached.provinsi || ''),
+          zona: String(cached.zona || 'WITA'),
+          timezone: String(cached.timezone || 'Asia/Makassar'),
+          gmt: String(cached.gmt || 'UTC+8'),
+          slug: String(cached.slug || '')
+        };
+
+        console.log(
+          'LOKASI CACHE STARTUP:',
+          WEB_APP_STATE.location
+        );
+
+        return true;
+      } catch (e) {
+        return false;
+      }
     }
 
     function loadPrayerCardCache() {
@@ -13123,40 +13200,54 @@ function setCountdownBlackMode(enabled) {
 
     installAudioInteractionUnlock();
 
-    // Sinkronisasi pertama dilakukan sebelum jadwal sholat dimuat.
-    // Jika server tidak dapat dihubungi, inisialisasi tetap berjalan
-    // dengan clock perangkat sebagai fallback.
-    syncInternetTime()
-      .finally(function() {
+    // STARTUP: JANGAN menunggu internet/server untuk menampilkan kartu.
+    // Lokasi terakhir + cache kartu dipakai terlebih dahulu.
+    startAutoRefresh();
 
-        startAutoRefresh();
+    updateClock();
+    updateGregorianDate();
+    updateFridayPrayerDisplay();
 
-        updateClock();
-        updateGregorianDate();
-        updateFridayPrayerDisplay();
+    const startupLocationLoaded = loadPanelLocationCache();
 
-        // STARTUP CEPAT:
-        // 1. baca panels!C5:C10 secepat mungkin.
-        // 2. tampilkan cache kartu sholat untuk kota + tanggal perangkat.
-        // 3. API MuslimKita hanya menjadi refresh BACKGROUND.
-        // 4. Hijri/server-time tidak boleh menahan kartu/countdown.
-        fetchSheetData();
-        loadEventRunningText();
+    if (startupLocationLoaded) {
+      const startupLocalLoaded = loadPrayerCardCache();
 
-        // Hijri diperbarui terpisah dan tidak memblokir kartu sholat.
-        updateHijriDate();
+      if (startupLocalLoaded) {
+        updatePrayerCountdown();
+      }
 
-        // Sinkronisasi server hanya informasi tambahan; tanggal/jam utama
-        // tetap berasal dari jam TV/komputer + timezone panels!C8.
-        // Tidak menunggu hasil ini untuk memulai display.
-        syncInternetTime();
+      // GitHub cache menjadi refresh cepat setelah cache lokal.
+      loadGitHubPrayerCache()
+        .then(function(githubLoaded) {
+          if (githubLoaded) {
+            updatePrayerCountdown();
+          }
 
-        setTimeout(
-          initAudioPermission,
-          1000
-        );
+          // API MuslimKita hanya refresh di belakang layar.
+          setTimeout(function() {
+            fetchPrayerSchedule();
+          }, 0);
+        })
+        .catch(function() {
+          setTimeout(function() {
+            fetchPrayerSchedule();
+          }, 0);
+        });
+    }
 
-      });
+    // Apps Script/panels berjalan paralel; tidak menghalangi kartu.
+    fetchSheetData();
+    loadEventRunningText();
+    updateHijriDate();
+
+    // Sinkronisasi internet hanya informasi tambahan.
+    syncInternetTime();
+
+    setTimeout(
+      initAudioPermission,
+      1000
+    );
 
 
     // =========================================================
