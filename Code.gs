@@ -2476,120 +2476,333 @@ function getPrayerSchedule(dateString) {
 
   try {
 
-    const timezone = 'Asia/Makassar';
+    const timezoneDefault = 'Asia/Makassar';
+    const ss = getSpreadsheet();
+    const panels = ss.getSheetByName('panels');
+
+    if (!panels) {
+      return {
+        success: false,
+        error: 'Sheet panels tidak ditemukan.'
+      };
+    }
+
+    // =====================================================
+    // SUMBER LOKASI:
+    // C5 = NAMA KOTA
+    // C6 = PROVINSI
+    // C7 = WIT/WITA/WIB
+    // C8 = TIMEZONE IANA
+    // C9 = GMT
+    // C10 = SLUG API MUSLIMKITA
+    // =====================================================
+    const locationValues = panels
+      .getRange('C5:C10')
+      .getDisplayValues()
+      .map(function(row) {
+        return String(row[0] || '').trim();
+      });
+
+    const kota = locationValues[0] || '';
+    const provinsi = locationValues[1] || '';
+    const zona = locationValues[2] || '';
+    const panelTimezone = locationValues[3] || '';
+    const gmt = locationValues[4] || '';
+    const panelSlug = locationValues[5] || '';
+
+    // C10 adalah slug resmi bila tersedia.
+    // Bila kosong, buat slug dari C5.
+    const kotaSlug = (
+      panelSlug ||
+      kota
+        .toLowerCase()
+        .replace(/[()]/g, '')
+        .replace(/[^a-z0-9\\s-]/g, '')
+        .trim()
+        .replace(/\\s+/g, '-')
+    );
+
+    const timezone =
+      panelTimezone ||
+      timezoneDefault;
+
+    if (!kota) {
+      return {
+        success: false,
+        error: 'panels!C5 (kota) kosong.'
+      };
+    }
+
+    if (!kotaSlug) {
+      return {
+        success: false,
+        error: 'Slug kota untuk API MuslimKita kosong.'
+      };
+    }
 
     if (!dateString) {
-      dateString = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
+      dateString = Utilities.formatDate(
+        new Date(),
+        timezone,
+        'yyyy-MM-dd'
+      );
     }
+
     dateString = String(dateString).trim();
 
     if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateString)) {
-      return { success: false, error: 'Format tanggal harus YYYY-MM-DD.' };
+      return {
+        success: false,
+        error: 'Format tanggal harus YYYY-MM-DD.'
+      };
     }
 
-    // JADWAL SHOLAT: gunakan cache/data tersimpan terlebih dahulu.
-    // API eksternal hanya dipanggil bila data hari ini belum tersedia.
+    // =====================================================
+    // CACHE HARUS TERPISAH PER KOTA + TANGGAL.
+    // Agar pindah panels!C5 tidak mengambil jadwal kota lama.
+    // =====================================================
+    const safeSlug = kotaSlug
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-');
+
+    const cacheKey =
+      'PRAYER_' +
+      safeSlug +
+      '_' +
+      dateString.replace(/-/g, '');
+
+    const propertyKey =
+      'PRAYER_SCHEDULE_' +
+      safeSlug +
+      '_' +
+      dateString;
+
     const cache = CacheService.getScriptCache();
-    const cacheKey = 'PRAYER_SCHEDULE_' + dateString.replace(/-/g, '');
     const properties = PropertiesService.getScriptProperties();
-    const propertyKey = 'PRAYER_SCHEDULE_' + dateString;
 
     const cached = cache.get(cacheKey);
+
     if (cached) {
       try {
         const result = JSON.parse(cached);
-        if (result && result.success && result.jadwal &&
-            isCompletePrayerSchedule_(result.jadwal)) {
+
+        if (
+          result &&
+          result.success === true &&
+          result.jadwal &&
+          isCompletePrayerSchedule_(result.jadwal)
+        ) {
           result.cached = true;
           result.cacheSource = 'CacheService';
           return result;
         }
+
       } catch (e) {}
     }
 
-    const stored = properties.getProperty(propertyKey);
+    const stored =
+      properties.getProperty(propertyKey);
+
     if (stored) {
       try {
         const result = JSON.parse(stored);
-        if (result && result.success && result.jadwal &&
-            isCompletePrayerSchedule_(result.jadwal)) {
-          try { cache.put(cacheKey, JSON.stringify(result), 21600); } catch (e) {}
+
+        if (
+          result &&
+          result.success === true &&
+          result.jadwal &&
+          isCompletePrayerSchedule_(result.jadwal)
+        ) {
+          try {
+            cache.put(
+              cacheKey,
+              JSON.stringify(result),
+              21600
+            );
+          } catch (e) {}
+
           result.cached = true;
           result.cacheSource = 'ScriptProperties';
           return result;
         }
+
       } catch (e) {}
     }
 
-    // Kembali menggunakan endpoint MuslimKita yang sebelumnya digunakan.
+    // =====================================================
+    // API MUSLIMKITA SESUAI panels!C5 / C10
+    // =====================================================
     const apiUrl =
-      'https://www.muslimkita.id/api/jadwal-sholat/v1/balikpapan' +
-      '?tanggal=' + encodeURIComponent(dateString) +
+      'https://www.muslimkita.id/api/jadwal-sholat/v1/' +
+      encodeURIComponent(kotaSlug) +
+      '?tanggal=' +
+      encodeURIComponent(dateString) +
       '&metode=kemenag';
 
-    Logger.log('JADWAL SHOLAT: API request ' + apiUrl);
+    Logger.log(
+      'JADWAL SHOLAT API = kota=[' +
+      kota +
+      '] slug=[' +
+      kotaSlug +
+      '] tanggal=[' +
+      dateString +
+      '] timezone=[' +
+      timezone +
+      '] URL=[' +
+      apiUrl +
+      ']'
+    );
 
-    const response = UrlFetchApp.fetch(apiUrl, {
-      method: 'get',
-      muteHttpExceptions: true,
-      followRedirects: true,
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Google Apps Script)'
-      }
-    });
+    const response =
+      UrlFetchApp.fetch(
+        apiUrl,
+        {
+          method: 'get',
+          muteHttpExceptions: true,
+          followRedirects: true,
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Google Apps Script)'
+          }
+        }
+      );
 
     if (response.getResponseCode() !== 200) {
       return {
         success: false,
-        error: 'HTTP ' + response.getResponseCode() + ' dari API MuslimKita'
+        error:
+          'HTTP ' +
+          response.getResponseCode() +
+          ' dari API MuslimKita untuk ' +
+          kota
       };
     }
 
-    const json = JSON.parse(response.getContentText());
+    const json =
+      JSON.parse(
+        response.getContentText()
+      );
 
-    if (!json || !json.jadwal) {
+    if (
+      !json ||
+      !json.jadwal
+    ) {
       return {
         success: false,
-        error: 'Data jadwal tidak tersedia.'
+        error:
+          'Data jadwal sholat tidak tersedia untuk ' +
+          kota
       };
     }
 
-    const jadwalApi = json.jadwal;
+    const jadwalApi =
+      json.jadwal;
 
     const result = {
       success: true,
-      kota: json.kota || 'Balikpapan',
-      tanggal: dateString,
-      timezone: json.timezone || timezone,
+      kota:
+        json.kota ||
+        kota,
+      provinsi:
+        json.provinsi ||
+        provinsi,
+      slug:
+        json.slug ||
+        kotaSlug,
+      tanggal:
+        json.tanggal ||
+        dateString,
+      timezone:
+        json.timezone ||
+        timezone,
+      zona:
+        zona ||
+        (
+          String(
+            json.timezone ||
+            timezone
+          ).indexOf('Asia/Jakarta') === 0
+            ? 'WIB'
+            : String(
+                json.timezone ||
+                timezone
+              ).indexOf('Asia/Jayapura') === 0
+                ? 'WIT'
+                : 'WITA'
+        ),
+      gmt:
+        gmt || '',
+      source:
+        'MuslimKita / Kemenag',
       cached: false,
-      cacheSource: 'MuslimKita',
+      cacheSource:
+        'MuslimKita',
       jadwal: {
-        imsak: normalizePrayerTime(jadwalApi.imsak),
-        subuh: normalizePrayerTime(jadwalApi.subuh),
-        terbit: normalizePrayerTime(jadwalApi.terbit),
-        dzuhur: normalizePrayerTime(jadwalApi.dzuhur),
-        ashar: normalizePrayerTime(jadwalApi.ashar),
-        maghrib: normalizePrayerTime(jadwalApi.maghrib),
-        isya: normalizePrayerTime(jadwalApi.isya)
+        imsak:
+          normalizePrayerTime(
+            jadwalApi.imsak
+          ),
+        subuh:
+          normalizePrayerTime(
+            jadwalApi.subuh
+          ),
+        terbit:
+          normalizePrayerTime(
+            jadwalApi.terbit
+          ),
+        dzuhur:
+          normalizePrayerTime(
+            jadwalApi.dzuhur
+          ),
+        ashar:
+          normalizePrayerTime(
+            jadwalApi.ashar
+          ),
+        maghrib:
+          normalizePrayerTime(
+            jadwalApi.maghrib
+          ),
+        isya:
+          normalizePrayerTime(
+            jadwalApi.isya
+          )
       }
     };
 
-    if (!isCompletePrayerSchedule_(result.jadwal)) {
+    if (
+      !isCompletePrayerSchedule_(
+        result.jadwal
+      )
+    ) {
       return {
         success: false,
-        error: 'Data jadwal sholat tidak lengkap.'
+        error:
+          'Data jadwal sholat tidak lengkap untuk ' +
+          kota
       };
     }
 
-    const serialized = JSON.stringify(result);
+    const serialized =
+      JSON.stringify(result);
 
-    try { cache.put(cacheKey, serialized, 21600); } catch (e) {}
-    try { properties.setProperty(propertyKey, serialized); } catch (e) {}
+    try {
+      cache.put(
+        cacheKey,
+        serialized,
+        21600
+      );
+    } catch (e) {}
+
+    try {
+      properties.setProperty(
+        propertyKey,
+        serialized
+      );
+    } catch (e) {}
 
     Logger.log(
-      'JADWAL SHOLAT: data API berhasil tanggal=' +
-      dateString + ' jadwal=' + JSON.stringify(result.jadwal)
+      'JADWAL SHOLAT DITERIMA = ' +
+      JSON.stringify(result)
     );
 
     return result;
@@ -2598,16 +2811,25 @@ function getPrayerSchedule(dateString) {
 
     Logger.log(
       'JADWAL SHOLAT ERROR: ' +
-      (error && error.message ? error.message : error)
+      (
+        error &&
+        error.message
+          ? error.message
+          : error
+      )
     );
 
     return {
       success: false,
-      error: error && error.message
-        ? error.message
-        : String(error)
+      error:
+        error &&
+        error.message
+          ? error.message
+          : String(error)
     };
+
   }
+
 }
 
 
