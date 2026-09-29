@@ -9767,8 +9767,42 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           return 0;
         }
 
-        if (prev === 'doa-adzan' && next === 'beep') {
-          return 5 * 60;
+        // GAP FINAL:
+        // - Semua gap normal = 3 detik.
+        // - Setelah BEEP menuju ADZAN/IQOMAH = 1 detik.
+        // - Doa-Adzan -> BEEP = 3 detik.
+        // - Ramadan Subuh: SIRINE -> BEEP = tanpa gap.
+        // - Ramadan Maghrib: SIRINE -> DOA-BUKA = 1 detik,
+        //   DOA-BUKA -> BEEP = tanpa gap,
+        //   BEEP -> ADZAN = 1 detik.
+        if (
+          prev === 'beep' &&
+          (
+            next === 'adzan-subuh' ||
+            next === 'adzan-biasa' ||
+            next === 'adzan' ||
+            next === 'iqomah'
+          )
+        ) {
+          return 1;
+        }
+
+        if (
+          ramadan &&
+          name === 'SUBUH' &&
+          prev === 'sirine' &&
+          next === 'beep'
+        ) {
+          return 0;
+        }
+
+        if (
+          ramadan &&
+          name === 'MAGHRIB' &&
+          prev === 'sirine' &&
+          next === 'doa-buka'
+        ) {
+          return 1;
         }
 
         if (
@@ -9777,9 +9811,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           prev === 'doa-buka' &&
           next === 'beep'
         ) {
-          // RAMADAN MAGHRIB:
-          // doa-buka -> tunggu 5 menit -> beep.
-          return 5 * 60;
+          return 0;
+        }
+
+        if (prev === 'doa-adzan' && next === 'beep') {
+          return 3;
         }
 
         return GAP;
@@ -9940,32 +9976,32 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       // ---------------------------------------------------------
       // SUBUH RAMADHAN:
-      // SIRINE = waktu IMSAK = 10 menit sebelum waktu SUBUH.
-      // Event sebelum sirine dihitung mundur dari IMSAK.
-      // Event setelah sirine berjalan maju dengan GAP aktual.
+      // ANCHOR UTAMA = WAKTU ADZAN SUBUH (pSec).
       //
-      // Ini membuat pergantian display countdown mengikuti timeline
-      // audio, bukan timer/hardcode terpisah.
+      // Sequence:
+      // QIROAH -> TARHIM -> GAP 3s -> SIRINE -> BEEP
+      // -> GAP 1s -> ADZAN-SUBUH -> DOA-ADZAN
+      // -> GAP 3s -> BEEP -> GAP 1s -> IQOMAH.
+      //
+      // Semua event sebelum ADZAN dihitung mundur dari anchor pSec.
+      // Tidak ada BEEP yang dimajukan untuk mengisi waktu kosong.
       // ---------------------------------------------------------
       if (
         ramadan &&
         name === 'SUBUH' &&
         sirineIndex >= 0
       ) {
-        const sirineTarget =
-          Number(pSec) - (10 * 60);
+        let cursor = Number(pSec);
 
-        // Event sebelum SIRINE: mundur dari IMSAK.
-        let cursorBefore = sirineTarget;
-
-        for (let i = sirineIndex - 1; i >= 0; i--) {
+        // Semua event sebelum ADZAN dihitung mundur dari anchor.
+        for (let i = adzanIndex - 1; i >= 0; i--) {
           const item = items[i];
 
-          cursorBefore -= item.duration;
+          cursor -= item.duration;
 
           add(
             item.event.toUpperCase(),
-            cursorBefore,
+            cursor,
             item.duration,
             getLabel(item),
             item.audioType,
@@ -9973,113 +10009,57 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           );
 
           if (i > 0) {
-            cursorBefore -= getSystemGapSeconds(
+            cursor -= getSystemGapSeconds(
               items[i - 1].event,
               item.event
             );
           }
         }
 
+        const adzanItem = items[adzanIndex];
+
         add(
-          'SIRINE',
-          sirineTarget,
-          items[sirineIndex].duration,
-          'Sirine Ramadan - IMSAK',
-          items[sirineIndex].audioType,
-          items[sirineIndex].status
+          'ADZAN',
+          Number(pSec),
+          adzanItem.duration,
+          getLabel(adzanItem),
+          adzanItem.audioType,
+          adzanItem.status
         );
 
-        // Event setelah SIRINE mengikuti sequence Sheet dan GAP tetap.
-        // KHUSUS ADZAN SUBUH:
-        // waktu mulai ADZAN HARUS tepat sama dengan waktu sholat (pSec),
-        // sehingga suara Adzan dan countdown tidak pernah berbeda.
-        //
-        // Jika rangkaian sebelum Adzan selesai lebih cepat, sistem hanya
-        // menunggu dalam keadaan SILENT sampai pSec. Tidak ada audio yang
-        // dipotong atau di-replay. Jika konfigurasi audio ternyata
-        // melewati pSec, audio sebelumnya tetap dibiarkan selesai utuh.
-        let cursorAfter = sirineTarget + items[sirineIndex].duration;
+        cursor =
+          Number(pSec) + adzanItem.duration;
 
-        for (let i = sirineIndex + 1; i < items.length; i++) {
+        // Semua event setelah ADZAN berjalan maju.
+        for (let i = adzanIndex + 1; i < items.length; i++) {
           const item = items[i];
           const previous = items[i - 1];
 
-          cursorAfter += getSystemGapSeconds(
+          cursor += getSystemGapSeconds(
             previous.event,
             item.event
           );
 
-          let targetSec = cursorAfter;
-
-          const isAdzanItem =
-            i === adzanIndex ||
-            item.event === 'adzan-subuh' ||
-            item.event === 'adzan-biasa' ||
-            item.event === 'adzan';
-
-          if (isAdzanItem) {
-            if (cursorAfter <= Number(pSec)) {
-              targetSec = Number(pSec);
-
-              if (Number(pSec) > cursorAfter) {
-                console.log(
-                  'AUDIO SUBUH RAMADHAN: silent wait sebelum ADZAN agar tepat waktu sholat.',
-                  'readySec=',
-                  cursorAfter,
-                  'adzanSec=',
-                  Number(pSec),
-                  'waitSec=',
-                  Number(pSec) - cursorAfter
-                );
-              }
-            } else {
-              // Jangan pernah memotong audio yang sudah berjalan.
-              // Dalam konfigurasi seperti ini, target dipertahankan
-              // pada timeline aktual agar audio protected tetap utuh.
-              targetSec = cursorAfter;
-
-              console.warn(
-                'AUDIO SUBUH RAMADHAN: rangkaian sebelum ADZAN melewati waktu sholat.',
-                'adzanTarget=',
-                cursorAfter,
-                'waktuSholat=',
-                Number(pSec)
-              );
-            }
-          }
-
           add(
             item.event.toUpperCase(),
-            targetSec,
+            cursor,
             item.duration,
             getLabel(item),
             item.audioType,
             item.status
           );
 
-          cursorAfter = targetSec + item.duration;
+          cursor += item.duration;
         }
 
-        const adzanItem = items[adzanIndex];
-        if (adzanIndex >= 0) {
-          const scheduledAdzan =
-            events.find(function(event) {
-              return event.eventName === adzanItem.event.toUpperCase();
-            });
-
-          if (
-            scheduledAdzan &&
-            Math.abs(scheduledAdzan.targetSec - Number(pSec)) > 1
-          ) {
-            console.log(
-              'AUDIO SUBUH RAMADHAN: ADZAN disinkronkan dengan waktu sholat.',
-              'waktu countdown=',
-              pSec,
-              'target audio=',
-              scheduledAdzan.targetSec
-            );
-          }
-        }
+        console.log(
+          'AUDIO SUBUH RAMADHAN: anchor ADZAN =',
+          Number(pSec),
+          'sequence:',
+          items.map(function(item) {
+            return item.event;
+          }).join(' -> ')
+        );
       } else if (
         ramadan &&
         name === 'MAGHRIB' &&
@@ -10087,11 +10067,14 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       ) {
         // -------------------------------------------------------
         // MAGHRIB RAMADHAN:
-        // SIRINE dimulai tepat waktu MAGHRIB/berbuka.
-        // Setelah itu sequence berjalan maju:
-        // sirine -> gap3 -> doa-buka -> gap3 menit -> beep
-        // -> gap3 -> adzan -> gap3 -> doa-adzan -> 5 menit -> beep
-        // -> gap3 -> iqomah
+        // ANCHOR UTAMA = dimulainya SIRINE (waktu Maghrib/berbuka).
+        //
+        // Sequence:
+        // QIROAH -> TARHIM -> GAP 3s -> SIRINE -> GAP 1s
+        // -> DOA-BUKA -> BEEP -> GAP 1s -> ADZAN-BIASA
+        // -> GAP 3s -> DOA-ADZAN -> BEEP -> GAP 1s -> IQOMAH.
+        //
+        // getSystemGapSeconds() menjaga gap persis sesuai aturan di atas.
         // -------------------------------------------------------
         const sirineTarget = Number(pSec);
 
