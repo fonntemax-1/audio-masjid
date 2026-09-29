@@ -1830,6 +1830,25 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     border-top-color: #f4c542 !important;
   }
 
+  /* KUNCI FRAME AREA RUNNING TEXT.
+     Frame yang terlihat mengelilingi running text adalah .center-panel
+     dan bingkai luarnya .screen-container. Keduanya harus KUNING. */
+  :root[data-display-theme="kuning"] .center-panel,
+  body[data-display-theme="kuning"] .center-panel {
+    border: 0.2vh solid #f4c542 !important;
+    border-color: #f4c542 !important;
+  }
+
+  :root[data-display-theme="kuning"] .event-banner {
+    border-top: 0.2vh solid #f4c542 !important;
+    border-top-color: #f4c542 !important;
+  }
+
+  :root[data-display-theme="kuning"] .screen-container,
+  body[data-display-theme="kuning"] .screen-container {
+    border-color: #f4c542 !important;
+  }
+
   .event-running {
     color: var(--theme-running) !important;
   }
