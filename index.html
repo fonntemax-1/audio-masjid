@@ -8415,41 +8415,53 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           .prayer
           .schedule;
 
-      const subuhElement =
-        document.getElementById('prayer-subuh');
+      // JANGAN menjadikan teks kartu sebagai sumber utama countdown.
+      // Saat Ramadan, teks kartu SUBUH/IMSAK sengaja berubah secara visual.
+      // Sumber kebenaran tetap jadwal API yang tersimpan di state.
+      //
+      // Dataset rawPrayerTime dipakai sebagai fallback bila state belum
+      // terisi. Untuk enam waktu sholat, nilai yang sudah ada di state
+      // tidak pernah ditimpa oleh teks visual kartu.
+      const ids = [
+        ['subuh', 'prayer-subuh'],
+        ['terbit', 'prayer-terbit'],
+        ['dzuhur', 'prayer-dzuhur'],
+        ['ashar', 'prayer-ashar'],
+        ['maghrib', 'prayer-maghrib'],
+        ['isya', 'prayer-isya']
+      ];
 
-      const terbitElement =
-        document.getElementById('prayer-terbit');
+      ids.forEach(function(pair) {
+        const key = pair[0];
+        const id = pair[1];
+        const el = document.getElementById(id);
 
-      // Subuh/Terbit harus selalu membaca waktu asli, bukan teks
-      // visual yang mungkin sedang menampilkan IMSAK/SUBUH Ramadan.
-      schedule.subuh =
-        subuhElement?.dataset.rawPrayerTime ||
-        subuhElement?.innerText || '';
+        if (!el) return;
 
-      schedule.terbit =
-        terbitElement?.dataset.rawPrayerTime ||
-        terbitElement?.innerText || '';
+        const raw =
+          String(
+            el.dataset.rawPrayerTime ||
+            ''
+          ).trim();
 
-      schedule.dzuhur =
-        document.getElementById(
-          'prayer-dzuhur'
-        )?.innerText || '';
+        if (raw && raw.includes(':')) {
+          schedule[key] = raw;
+          return;
+        }
 
-      schedule.ashar =
-        document.getElementById(
-          'prayer-ashar'
-        )?.innerText || '';
+        // Fallback hanya jika state belum memiliki waktu valid.
+        const current =
+          String(schedule[key] || '').trim();
 
-      schedule.maghrib =
-        document.getElementById(
-          'prayer-maghrib'
-        )?.innerText || '';
+        if (!current || !current.includes(':')) {
+          const text =
+            String(el.innerText || '').trim();
 
-      schedule.isya =
-        document.getElementById(
-          'prayer-isya'
-        )?.innerText || '';
+          if (text && text.includes(':')) {
+            schedule[key] = text;
+          }
+        }
+      });
 
     }
 
@@ -11514,34 +11526,57 @@ function setCountdownBlackMode(enabled) {
 
       }
 
+      // =======================================================
+      // SATU SUMBER WAKTU UNTUK KARTU + COUNTDOWN
+      //
+      // prayerList dibangun dari WEB_APP_STATE.prayer.schedule,
+      // bukan dari teks visual kartu. Ini mencegah mode Ramadan
+      // (IMSAK/SUBUH) atau perubahan label kartu mengacaukan target
+      // countdown.
+      // =======================================================
       const prayerList =
-        validPrayers.map(
-          function(p) {
+        validPrayers
+          .map(function(p) {
 
             const parts =
-              p.time.split(':');
+              String(p.time).trim().split(':');
 
-            const pSec =
-              Number(parts[0]) * 3600 +
-              Number(parts[1]) * 60;
+            const h = Number(parts[0]);
+            const m = Number(parts[1]);
+
+            if (
+              !Number.isFinite(h) ||
+              !Number.isFinite(m) ||
+              h < 0 ||
+              h > 23 ||
+              m < 0 ||
+              m > 59
+            ) {
+              return null;
+            }
 
             return {
               ...p,
-              seconds: pSec
+              seconds:
+                h * 3600 +
+                m * 60
             };
 
-          }
-        );
+          })
+          .filter(Boolean)
+          .sort(function(a, b) {
+            return a.seconds - b.seconds;
+          });
 
-      prayerList.sort(
-        function(a, b) {
-
-          return (
-            a.seconds -
-            b.seconds
-          );
-
-        }
+      console.log(
+        'COUNTDOWN PRAYER TIMES:',
+        prayerList.map(function(p) {
+          return p.name + '=' + p.time;
+        }).join(' | '),
+        'NOW=',
+        String(wita.hour).padStart(2,'0') + ':' +
+        String(wita.minute).padStart(2,'0') + ':' +
+        String(wita.second).padStart(2,'0')
       );
 
       // Window layar hitam Panel AUTO.
@@ -12234,42 +12269,71 @@ function setCountdownBlackMode(enabled) {
 
       if (!activeState) {
 
+        // Cari SATU target berikutnya dari waktu sholat sebenarnya.
+        // TERBIT hanya kartu, bukan target sholat.
+        const countdownPrayers =
+          prayerList.filter(function(p) {
+            return p.name !== 'TERBIT';
+          });
+
         for (
           let i = 0;
-          i < prayerList.length;
+          i < countdownPrayers.length;
           i++
         ) {
 
+          const candidate =
+            countdownPrayers[i];
+
           if (
-            prayerList[i].name !== 'TERBIT' &&
-            prayerList[i].seconds >
-            nowSeconds
+            candidate.seconds > nowSeconds
           ) {
 
-            nextPrayer =
-              prayerList[i];
-
-            nextSeconds =
-              prayerList[i].seconds;
-
+            nextPrayer = candidate;
+            nextSeconds = candidate.seconds;
             break;
 
           }
 
         }
 
-        if (
-          !nextPrayer &&
-          prayerList.length > 0
-        ) {
+        // Semua sholat hari ini sudah lewat:
+        // target berikutnya adalah SUBUH hari berikutnya.
+        // +86400 membuat diff selalu positif dan mencegah
+        // countdown kembali memilih SUBUH hari ini.
+        if (!nextPrayer) {
 
-          nextPrayer =
-            prayerList[0];
+          const tomorrowSubuh =
+            countdownPrayers.find(function(p) {
+              return p.name === 'SUBUH';
+            });
 
-          nextSeconds =
-            prayerList[0].seconds +
-            86400;
+          if (tomorrowSubuh) {
 
+            nextPrayer = tomorrowSubuh;
+            nextSeconds =
+              tomorrowSubuh.seconds + 86400;
+
+          } else if (countdownPrayers.length > 0) {
+
+            nextPrayer = countdownPrayers[0];
+            nextSeconds =
+              countdownPrayers[0].seconds + 86400;
+
+          }
+
+        }
+
+        if (nextPrayer) {
+          console.log(
+            'COUNTDOWN NEXT PRAYER:',
+            nextPrayer.name,
+            nextPrayer.time,
+            'targetSec=',
+            nextSeconds,
+            'nowSec=',
+            nowSeconds
+          );
         }
 
       }
