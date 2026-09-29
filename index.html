@@ -5068,33 +5068,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           // C18 adalah sumber tema utama. Ini memastikan perubahan
           // HIJAU/MERAH/KUNING tetap diterapkan walaupun payload utama
           // getDataFromSheet() berasal dari deployment/cache lama.
-          gasApiCall('getDisplayThemeSetting')
-            .then(function(themeData) {
-              if (themeData !== undefined && themeData !== null) {
-                const themeValue =
-                  typeof themeData === 'string'
-                    ? themeData
-                    : (
-                        themeData.DisplayTheme !== undefined
-                          ? themeData.DisplayTheme
-                          : themeData.theme
-                      );
-
-                if (themeValue) {
-                  console.log(
-                    'DISPLAY THEME API TERPISAH:',
-                    themeValue
-                  );
-                  applyDisplayTheme(themeValue);
-                }
-              }
-            })
-            .catch(function(themeError) {
-              console.warn(
-                'DISPLAY THEME API TERPISAH GAGAL:',
-                themeError.message || themeError
-              );
-            });
+          refreshDisplayTheme().catch(function() {});
 
           // PANEL MODE DIBACA ULANG SECARA TERPISAH.
           // Ini sengaja tidak bergantung pada payload getDataFromSheet(),
@@ -11089,9 +11063,17 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
   const frameColor = themeColorMap[safeTheme] || themeColorMap.hijau;
 
+  // Kunci border sebagai SHORTHAND + setiap sisi.
+  // Ini memastikan frame Running Text tidak mewarisi border hijau
+  // dari aturan CSS lama. Perubahan hanya visual; audio/scheduler aman.
   document.querySelectorAll(
     '.screen-container, .center-panel'
   ).forEach(function(el) {
+    el.style.setProperty(
+      'border',
+      '0.2vh solid ' + frameColor,
+      'important'
+    );
     el.style.setProperty(
       'border-color',
       frameColor,
@@ -11102,8 +11084,11 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
   document.querySelectorAll(
     '.center-panel .event-banner'
   ).forEach(function(el) {
-    // Running Text memiliki frame yang terlihat di keempat sisi.
-    // Kunci seluruh border, bukan hanya border-top.
+    el.style.setProperty(
+      'border',
+      '0.2vh solid ' + frameColor,
+      'important'
+    );
     el.style.setProperty(
       'border-color',
       frameColor,
@@ -11137,6 +11122,41 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
     'FRAME COLOR =',
     frameColor
   );
+}
+
+
+function refreshDisplayTheme() {
+  return gasApiCall('getDisplayThemeSetting')
+    .then(function(themeData) {
+      const themeValue =
+        typeof themeData === 'string'
+          ? themeData
+          : (
+              themeData &&
+              themeData.DisplayTheme !== undefined
+                ? themeData.DisplayTheme
+                : themeData && themeData.theme
+            );
+
+      if (!themeValue) {
+        throw new Error('Nilai panels!C18 tidak diterima dari API.');
+      }
+
+      applyDisplayTheme(themeValue);
+      console.log(
+        'DISPLAY THEME C18 TERKONFIRMASI:',
+        String(themeValue).trim().toUpperCase()
+      );
+
+      return themeValue;
+    })
+    .catch(function(error) {
+      console.warn(
+        'DISPLAY THEME C18 BELUM TERBACA:',
+        error && error.message ? error.message : error
+      );
+      throw error;
+    });
 }
 
 
@@ -12732,6 +12752,15 @@ function setCountdownBlackMode(enabled) {
     setInterval(
       fetchSheetData,
       30000
+    );
+
+    // Tema panels!C18 diperiksa terpisah agar perubahan HIJAU/MERAH/KUNING
+    // tidak menunggu reload halaman. Hanya visual, tidak menyentuh audio.
+    setInterval(
+      function() {
+        refreshDisplayTheme().catch(function() {});
+      },
+      10000
     );
 
     setInterval(
