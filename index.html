@@ -1783,22 +1783,50 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     border-color: var(--theme-border) !important;
   }
 
-  .event-banner {
+  /* FRAME RUNNING TEXT + GARIS RUNNING TEXT
+     harus mengikuti tema aktif, termasuk KUNING. */
+  .center-panel,
+  body .center-panel {
+    border: 0.2vh solid var(--theme-border) !important;
+    border-color: var(--theme-border) !important;
+  }
+
+  .event-banner,
+  body .event-banner {
     border-top: 0.2vh solid var(--theme-border) !important;
+    border-right: 0 !important;
     border-bottom: 0 !important;
+    border-left: 0 !important;
     background: var(--theme-panel) !important;
   }
 
-  /* Pengunci khusus garis Running Text agar tidak mewarisi hijau lama. */
-  :root[data-display-theme="hijau"] .event-banner {
+  :root[data-display-theme="hijau"] .center-panel,
+  body[data-display-theme="hijau"] .center-panel {
+    border-color: #00ffaa !important;
+  }
+
+  :root[data-display-theme="merah"] .center-panel,
+  body[data-display-theme="merah"] .center-panel {
+    border-color: #ff5a5f !important;
+  }
+
+  :root[data-display-theme="kuning"] .center-panel,
+  body[data-display-theme="kuning"] .center-panel {
+    border-color: #f4c542 !important;
+  }
+
+  :root[data-display-theme="hijau"] .event-banner,
+  body[data-display-theme="hijau"] .event-banner {
     border-top-color: #00ffaa !important;
   }
 
-  :root[data-display-theme="merah"] .event-banner {
+  :root[data-display-theme="merah"] .event-banner,
+  body[data-display-theme="merah"] .event-banner {
     border-top-color: #ff5a5f !important;
   }
 
-  :root[data-display-theme="kuning"] .event-banner {
+  :root[data-display-theme="kuning"] .event-banner,
+  body[data-display-theme="kuning"] .event-banner {
     border-top-color: #f4c542 !important;
   }
 
