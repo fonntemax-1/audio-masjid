@@ -479,7 +479,6 @@ function getDataFromSheet() {
       "Jum'at",
       'Event',
       'Running_Text',
-      'youtube',
       'Adzan',
       'panels'
     ];
@@ -863,27 +862,6 @@ function getDataFromSheet() {
             ']'
           );
 
-          return;
-        }
-
-
-        // =====================================================
-        // KHUSUS SHEET YOUTUBE
-        // =====================================================
-
-        if (
-          sheetName === 'youtube'
-        ) {
-
-          processYoutubeSheet(
-            data,
-            result
-          );
-
-          // Youtube!B1 = LINK YOUTUBE
-    // Youtube!C1 = STATUS AUTO / ON / OFF.
-    // AUTO: mute 5 menit sebelum Qiroah, unmute 30 menit
-    // setelah IQOMAH selesai.
           return;
         }
 
