@@ -5228,18 +5228,22 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         element.classList.add(
           'event-prayer-override'
         );
+        const liveOverrideChanged =
+          element.innerText !== liveOverride;
 
-        if (
-          element.innerText !==
-          liveOverride
-        ) {
+        if (liveOverrideChanged) {
           element.innerText =
             liveOverride;
         }
 
-        requestAnimationFrame(function() {
-          startEventRunning();
-        });
+        // Jangan mengulang animasi dari posisi awal setiap polling
+        // Event Sheet. Jika banner yang sama masih berjalan, biarkan
+        // requestAnimationFrame yang sedang aktif terus melanjutkan.
+        if (liveOverrideChanged || !eventRunningAnimation) {
+          requestAnimationFrame(function() {
+            startEventRunning();
+          });
+        }
 
         console.log(
           'EVENT BANNER KHUSUS DIKUNCI:',
@@ -5289,13 +5293,22 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             currentElement.classList.add(
               'event-prayer-override'
             );
+            const currentOverrideChanged =
+              currentElement.innerText !== currentOverride;
 
-            currentElement.innerText =
-              currentOverride;
+            if (currentOverrideChanged) {
+              currentElement.innerText =
+                currentOverride;
+            }
 
-            requestAnimationFrame(function() {
-              startEventRunning();
-            });
+            // Request Event Sheet dapat selesai saat banner khusus
+            // sudah lama berjalan. Jangan reset posisi teks jika
+            // isinya masih sama.
+            if (currentOverrideChanged || !eventRunningAnimation) {
+              requestAnimationFrame(function() {
+                startEventRunning();
+              });
+            }
 
             console.log(
               'EVENT BANNER KHUSUS MENANG ATAS EVENT SHEET:',
