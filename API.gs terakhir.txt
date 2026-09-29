@@ -30,6 +30,10 @@ function handleGithubApiRequest_(params) {
 
   try {
     switch (action) {
+      case 'getServerTime':
+        result = getServerTime();
+        break;
+
       case 'getDataFromSheet':
         result = getDataFromSheet();
         break;
