@@ -1300,6 +1300,20 @@
       transform: translate3d(100%, 0, 0);
     }
 
+    /* =========================================================
+       CONTINUOUS RUNNING TEXT
+       Dua salinan teks selalu bergerak dalam satu rangkaian.
+       Saat salinan pertama keluar dari kiri, salinan kedua
+       sudah berada di kanan sehingga banner tidak pernah kosong.
+       Hanya visual running text; tidak menyentuh audio/scheduler.
+       ========================================================= */
+    .event-running::after {
+      content: attr(data-marquee-text);
+      display: inline-block;
+      margin-left: 80px;
+      white-space: nowrap;
+    }
+
     .event-running.event-prayer-override {
       color: #00ff88;
     }
@@ -4717,8 +4731,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             ? '#ff5a5f'
             : '#00ffaa';
 
-      // Screenshot menunjukkan frame Running Text berwarna hijau
-      // di seluruh sisi. Karena itu semua sisi dikunci ke tema aktif.
       banner.style.setProperty(
         'border-color',
         runningFrameColor,
@@ -4760,9 +4772,33 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       const bannerWidth =
         banner.clientWidth;
 
+      // Ukur SATU teks sebelum salinan kedua ditambahkan.
+      // Salinan kedua dibuat melalui ::after dan selalu mengikuti
+      // teks utama dengan jarak tetap.
+      element.removeAttribute(
+        'data-marquee-text'
+      );
+
       const textWidth =
         element.scrollWidth;
 
+      const marqueeGap =
+        80;
+
+      const marqueeCycleWidth =
+        Math.max(
+          1,
+          textWidth + marqueeGap
+        );
+
+      element.setAttribute(
+        'data-marquee-text',
+        element.innerText || ''
+      );
+
+      // Mulai dari sisi kanan seperti sebelumnya.
+      // Setelah itu loop dilakukan per SATU panjang siklus,
+      // bukan menunggu seluruh elemen kosong.
       eventRunningPosition =
         bannerWidth;
 
@@ -4804,13 +4840,18 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           eventRunningPosition +
           'px, 0, 0)';
 
+        // CONTINUOUS:
+        // Begitu satu salinan selesai melewati kiri,
+        // salinan berikutnya sudah terlihat di kanan.
+        // Geser kembali tepat satu cycle sehingga posisi
+        // relatif antar-salinan tetap sama dan tidak ada layar kosong.
         if (
           eventRunningPosition <=
-          -textWidth
+          -marqueeCycleWidth
         ) {
 
-          eventRunningPosition =
-            bannerWidth + 50;
+          eventRunningPosition +=
+            marqueeCycleWidth;
 
           element.style.transform =
             'translate3d(' +
@@ -4832,7 +4873,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         );
 
     }
-
 
     function getEventPrayerCity_() {
 
