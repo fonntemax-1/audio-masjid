@@ -387,6 +387,111 @@
       font-family: 'Roboto', sans-serif;
     }
 
+    /* =========================================================
+       TEMA DISPLAY - panels!C18
+       HIJAU = default, MERAH/KUNING = palet global.
+       Tema hanya mengubah warna visual; audio/scheduler tetap utuh.
+       ========================================================= */
+    :root,
+    :root[data-display-theme="hijau"] {
+      --theme-bg: #01130c;
+      --theme-bg-deep: #011910;
+      --theme-panel: #032116;
+      --theme-panel-2: #023320;
+      --theme-border: #00ffaa;
+      --theme-accent: #00ffaa;
+      --theme-highlight: #ffcc00;
+      --theme-active-bg: #211800;
+      --theme-running: #00ff88;
+      --theme-text: #ffffff;
+      --theme-divider: #00ffaa;
+    }
+
+    :root[data-display-theme="merah"] {
+      --theme-bg: #180607;
+      --theme-bg-deep: #22090b;
+      --theme-panel: #321014;
+      --theme-panel-2: #4a1418;
+      --theme-border: #ff5a5f;
+      --theme-accent: #ff7075;
+      --theme-highlight: #ffd166;
+      --theme-active-bg: #3b1710;
+      --theme-running: #ff7b72;
+      --theme-text: #fff7f5;
+      --theme-divider: #ff7075;
+    }
+
+    :root[data-display-theme="kuning"] {
+      --theme-bg: #171204;
+      --theme-bg-deep: #211a06;
+      --theme-panel: #342a0b;
+      --theme-panel-2: #51400e;
+      --theme-border: #f4c542;
+      --theme-accent: #ffd95a;
+      --theme-highlight: #fff0a6;
+      --theme-active-bg: #4a3708;
+      --theme-running: #ffe27a;
+      --theme-text: #fffdf0;
+      --theme-divider: #f4c542;
+    }
+
+    body,
+    .screen-container {
+      background-color: var(--theme-bg) !important;
+      color: var(--theme-text);
+    }
+
+    .screen-container {
+      background: var(--theme-bg-deep) !important;
+      border-color: var(--theme-border) !important;
+    }
+
+    .header {
+      border-color: var(--theme-border) !important;
+      background: radial-gradient(circle, var(--theme-panel-2) 0%, var(--theme-bg) 100%) !important;
+    }
+
+    .header-center .slogan,
+    .date-box .hijri-text {
+      color: var(--theme-accent) !important;
+    }
+
+    .header-divider {
+      background: var(--theme-divider) !important;
+    }
+
+    .prayer-card {
+      background: var(--theme-panel) !important;
+      border-color: var(--theme-border) !important;
+    }
+
+    .prayer-card.active-prayer {
+      border-color: var(--theme-highlight) !important;
+      background: var(--theme-active-bg) !important;
+    }
+
+    .event-running.event-prayer-override {
+      color: var(--theme-running) !important;
+    }
+
+    .finance-panel,
+    .infaq-panel,
+    .youtube-panel,
+    .khutbah-panel {
+      border-color: var(--theme-border) !important;
+    }
+
+    .finance-panel .panel-title,
+    .khutbah-panel .panel-title {
+      color: var(--theme-highlight) !important;
+    }
+
+    .main-clock-panel,
+    .countdown-box,
+    .digital-clock-box {
+      border-color: var(--theme-border) !important;
+    }
+
     body {
       background-color: #01130c;
       color: #ffffff;
@@ -2145,7 +2250,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         targetKey: ''
       },
 
-      location: {
+      displayTheme: 'hijau',
+  location: {
         kota: '',
         provinsi: '',
         zona: 'WITA',
@@ -4597,6 +4703,9 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     // =========================================================
 
     function updateUI(data) {
+    if (data && data.DisplayTheme) {
+      applyDisplayTheme(data.DisplayTheme);
+    }
 
       if (!data) return;
 
@@ -10512,7 +10621,37 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       }
     }
 
-    function setCountdownBlackMode(enabled) {
+    function applyDisplayTheme(theme) {
+  const normalized =
+    String(theme || 'HIJAU').trim().toUpperCase();
+
+  const safeTheme =
+    normalized === 'MERAH'
+      ? 'merah'
+      : normalized === 'KUNING'
+        ? 'kuning'
+        : 'hijau';
+
+  document.documentElement.setAttribute(
+    'data-display-theme',
+    safeTheme
+  );
+
+  document.body.setAttribute(
+    'data-display-theme',
+    safeTheme
+  );
+
+  WEB_APP_STATE.displayTheme = safeTheme;
+
+  console.log(
+    'DISPLAY THEME =',
+    safeTheme
+  );
+}
+
+
+function setCountdownBlackMode(enabled) {
       // Panels!C2 tetap menjadi MAIN CONTROL.
       // AUTO  = black screen saat countdown aktif.
       // OFF   = tampilan normal.
