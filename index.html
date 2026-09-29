@@ -287,6 +287,18 @@
     font-weight: 800 !important;
   }
 
+  body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    font-family: 'Cinzel', serif !important;
+    font-size: clamp(1.35rem, 2.45vw, 2.55rem) !important;
+    line-height: 1.08 !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    white-space: nowrap !important;
+    order: 2 !important;
+  }
+
   /* Ikon handphone berada tepat di atas teks baris pertama.
      Ukuran mengikuti layar agar tidak bertabrakan dengan countdown
      di atas maupun jam digital di bawah. */
@@ -1698,8 +1710,9 @@
 
           <!-- Tampilan khusus saat Panel AUTO masuk mode layar hitam -->
           <div class="panel-black-message" aria-hidden="true">
-            <div class="panel-black-line panel-black-title" id="panel-black-title">WAKTU SHOLAT</div>
+            <div class="panel-black-line panel-black-title" id="panel-black-title">WAKTU</div>
             <div class="panel-black-line panel-black-prayer" id="panel-black-prayer">SUBUH</div>
+            <div class="panel-black-line panel-black-city" id="panel-black-city">BALIKPAPAN DAN SEKITARNYA</div>
             <div class="panel-black-icon">
               <img src="./image/handphone.png" alt="Handphone" loading="lazy" decoding="async" fetchpriority="low">
             </div>
@@ -11317,18 +11330,40 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         const panelBlackPrayerEl =
           document.getElementById('panel-black-prayer');
 
+        const panelBlackCityEl =
+          document.getElementById('panel-black-city');
+
+        // Format layar hitam:
+        // BARIS 1 = WAKTU
+        // BARIS 2 = nama waktu sholat (IMSAK/SUBUH/DZUHUR/ASHAR/MAGRIB/ISYA)
+        // BARIS 3 = KOTA DAN SEKITARNYA
+        const activeTitleUpper =
+          String(activeState.title || '').toUpperCase();
+
         const panelBlackPrayerName =
-          (
-            isFridayWita() &&
-            activeState.prayerName === 'DZUHUR'
-          )
-            ? "JUM'AT"
-            : String(activeState.prayerName || '')
-                .toUpperCase();
+          activeTitleUpper.indexOf('WAKTU IMSAK') !== -1
+            ? 'IMSAK'
+            : (
+                isFridayWita() &&
+                activeState.prayerName === 'DZUHUR'
+              )
+                ? "JUM'AT"
+                : String(activeState.prayerName || '')
+                    .toUpperCase();
+
+        const panelBlackCityName =
+          String(getCountdownCity_() || '').trim().toUpperCase();
 
         if (panelBlackPrayerEl && panelBlackPrayerName) {
           panelBlackPrayerEl.innerText =
             panelBlackPrayerName;
+        }
+
+        if (panelBlackCityEl) {
+          panelBlackCityEl.innerText =
+            panelBlackCityName
+              ? panelBlackCityName + ' DAN SEKITARNYA'
+              : '';
         }
 
         setCountdownBlackMode(
