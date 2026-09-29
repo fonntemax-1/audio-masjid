@@ -1,0 +1,20 @@
+{
+  "success": false,
+  "generatedAt": "",
+  "tanggal": "",
+  "kota": "",
+  "provinsi": "",
+  "slug": "",
+  "zona": "",
+  "timezone": "",
+  "gmt": "",
+  "source": "MuslimKita / Kemenag",
+  "jadwal": {
+    "subuh": "",
+    "terbit": "",
+    "dzuhur": "",
+    "ashar": "",
+    "maghrib": "",
+    "isya": ""
+  }
+}
