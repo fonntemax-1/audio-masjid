@@ -5314,18 +5314,28 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         ) {
           WEB_APP_STATE.prayer.dateLoaded = '';
 
-          // Cache kartu menjadi sumber countdown pertama.
-          // API tetap dipanggil untuk memastikan jadwal terbaru.
-          loadPrayerCardCache();
+          // PRIORITAS JADWAL:
+          // 1. cache GitHub yang diperbarui background service setiap
+          //    pergantian hari.
+          // 2. localStorage cache kartu.
+          // 3. API MuslimKita sebagai refresh/fallback background.
+          loadGitHubPrayerCache()
+            .then(function(githubLoaded) {
 
-          prayerScheduleRetryCount = 0;
+              if (!githubLoaded) {
+                loadPrayerCardCache();
+              }
 
-          if (prayerScheduleRetryTimer) {
-            clearTimeout(prayerScheduleRetryTimer);
-            prayerScheduleRetryTimer = null;
-          }
+              // API tidak menjadi sumber tunggu tampilan.
+              prayerScheduleRetryCount = 0;
 
-          fetchPrayerSchedule();
+              if (prayerScheduleRetryTimer) {
+                clearTimeout(prayerScheduleRetryTimer);
+                prayerScheduleRetryTimer = null;
+              }
+
+              fetchPrayerSchedule();
+            });
         }
 
         const timezoneElement =
@@ -8634,6 +8644,157 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       } catch (e) {
         console.warn('JADWAL KARTU CACHE GAGAL DISIMPAN:', e);
       }
+    }
+
+
+    function loadGitHubPrayerCache() {
+
+      const url =
+        './data/prayer-cache.json?ts=' +
+        Date.now();
+
+      return fetch(url, {
+        cache: 'no-store'
+      })
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error(
+              'HTTP ' + response.status
+            );
+          }
+          return response.json();
+        })
+        .then(function(payload) {
+
+          const location =
+            WEB_APP_STATE.location || {};
+
+          const targetDate =
+            getApiDate();
+
+          const targetSlug =
+            String(
+              location.slug ||
+              ''
+            ).trim().toLowerCase();
+
+          const targetTimezone =
+            String(
+              location.timezone ||
+              ''
+            ).trim();
+
+          if (
+            !payload ||
+            payload.success !== true ||
+            !payload.jadwal
+          ) {
+            return false;
+          }
+
+          const cacheDate =
+            String(
+              payload.tanggal || ''
+            ).trim();
+
+          const cacheSlug =
+            String(
+              payload.slug || ''
+            ).trim().toLowerCase();
+
+          const cacheTimezone =
+            String(
+              payload.timezone || ''
+            ).trim();
+
+          // Jangan pernah memakai cache kota/timezone/tanggal lain.
+          if (
+            cacheDate !== targetDate ||
+            (targetSlug && cacheSlug && cacheSlug !== targetSlug) ||
+            (targetTimezone && cacheTimezone && cacheTimezone !== targetTimezone)
+          ) {
+            console.warn(
+              'JADWAL GITHUB CACHE: tidak cocok',
+              {
+                cacheDate: cacheDate,
+                targetDate: targetDate,
+                cacheSlug: cacheSlug,
+                targetSlug: targetSlug,
+                cacheTimezone: cacheTimezone,
+                targetTimezone: targetTimezone
+              }
+            );
+            return false;
+          }
+
+          const j =
+            payload.jadwal;
+
+          const keys = [
+            'subuh',
+            'terbit',
+            'dzuhur',
+            'ashar',
+            'maghrib',
+            'isya'
+          ];
+
+          const valid =
+            keys.every(function(key) {
+              return /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(
+                String(j[key] || '').trim()
+              );
+            });
+
+          if (!valid) {
+            return false;
+          }
+
+          const schedule = {
+            subuh: String(j.subuh).trim(),
+            terbit: String(j.terbit).trim(),
+            dzuhur: String(j.dzuhur).trim(),
+            ashar: String(j.ashar).trim(),
+            maghrib: String(j.maghrib).trim(),
+            isya: String(j.isya).trim()
+          };
+
+          WEB_APP_STATE.prayer.schedule =
+            schedule;
+
+          WEB_APP_STATE.prayer.dateLoaded =
+            cacheDate;
+
+          keys.forEach(function(key) {
+            setPrayerTime(
+              'prayer-' + key,
+              schedule[key]
+            );
+          });
+
+          updateRamadanPrayerCards();
+
+          // Simpan juga ke localStorage supaya reload berikutnya
+          // tetap bisa tampil walaupun GitHub sedang belum tersedia.
+          savePrayerCardCache();
+
+          console.log(
+            'JADWAL SHOLAT: memakai CACHE GITHUB, API hanya refresh background:',
+            schedule
+          );
+
+          return true;
+        })
+        .catch(function(error) {
+          console.warn(
+            'JADWAL GITHUB CACHE: belum tersedia:',
+            error && error.message
+              ? error.message
+              : error
+          );
+          return false;
+        });
+
     }
 
 
