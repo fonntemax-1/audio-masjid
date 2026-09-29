@@ -6136,14 +6136,10 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
     function getSynchronizedNow() {
 
-      return new Date(
-        Date.now() +
-        (
-          internetTimeSynced
-            ? internetTimeOffsetMs
-            : 0
-        )
-      );
+      // SUMBER WAKTU UTAMA = JAM PERANGKAT (TV/komputer).
+      // Timezone hanya menentukan bagaimana tanggal/jam perangkat
+      // dibaca untuk WIT/WITA/WIB. Tidak menunggu server internet.
+      return new Date(Date.now());
 
     }
 
@@ -13222,16 +13218,23 @@ function setCountdownBlackMode(enabled) {
 
         updateClock();
         updateGregorianDate();
-        updateHijriDate();
         updateFridayPrayerDisplay();
 
-        // Urutan startup:
-        // 1. baca panels!C5:C10
-        // 2. sesuaikan timezone jam
-        // 3. baru baca API jadwal sholat kota tersebut
-        // 4. countdown memakai jadwal yang sudah diterima
+        // STARTUP CEPAT:
+        // 1. baca panels!C5:C10 secepat mungkin.
+        // 2. tampilkan cache kartu sholat untuk kota + tanggal perangkat.
+        // 3. API MuslimKita hanya menjadi refresh BACKGROUND.
+        // 4. Hijri/server-time tidak boleh menahan kartu/countdown.
         fetchSheetData();
         loadEventRunningText();
+
+        // Hijri diperbarui terpisah dan tidak memblokir kartu sholat.
+        updateHijriDate();
+
+        // Sinkronisasi server hanya informasi tambahan; tanggal/jam utama
+        // tetap berasal dari jam TV/komputer + timezone panels!C8.
+        // Tidak menunggu hasil ini untuk memulai display.
+        syncInternetTime();
 
         setTimeout(
           initAudioPermission,
