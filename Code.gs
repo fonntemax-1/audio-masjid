@@ -2550,10 +2550,32 @@ function getPrayerSchedule(dateString) {
 
     dateString = String(dateString).trim();
 
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateString)) {
+    // Validasi tanggal tanpa regex \d agar aman terhadap escaping
+    // Apps Script/versi deployment yang berbeda.
+    const dateMatch = dateString.match(/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/);
+
+    if (!dateMatch) {
       return {
         success: false,
         error: 'Format tanggal harus YYYY-MM-DD.'
+      };
+    }
+
+    const dateCheck = new Date(
+      Number(dateMatch[1]),
+      Number(dateMatch[2]) - 1,
+      Number(dateMatch[3])
+    );
+
+    if (
+      isNaN(dateCheck.getTime()) ||
+      dateCheck.getFullYear() !== Number(dateMatch[1]) ||
+      dateCheck.getMonth() !== Number(dateMatch[2]) - 1 ||
+      dateCheck.getDate() !== Number(dateMatch[3])
+    ) {
+      return {
+        success: false,
+        error: 'Tanggal tidak valid: ' + dateString
       };
     }
 
