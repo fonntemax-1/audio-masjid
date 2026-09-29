@@ -1034,21 +1034,10 @@ function getDataFromSheet() {
     // DEBUG HASIL AKHIR
     // =====================================================
 
-    Logger.log(
-      '=== GET DATA SHEET SELESAI ==='
-    );
-
-    Logger.log(
-      'Data result: ' +
-      JSON.stringify(
-        result
-      )
-    );
-
     // =====================================================
     // HEADER MASJID FINAL - panels!B12:C16
-    // Ditetapkan setelah pembacaan data sheet agar tidak
-    // ditimpa oleh sheet Nama_Mesjid atau sumber lama lain.
+    // WAJIB dilakukan sebelum logging dan return result.
+    // panels!B12:C16 adalah sumber tunggal header web.
     // =====================================================
     try {
       const headerSheetFinal = ss.getSheetByName('panels');
@@ -1068,7 +1057,6 @@ function getDataFromSheet() {
           }
         });
 
-        // Nilai ini adalah sumber FINAL untuk header GitHub Pages.
         result.Nama = headerFinal.NAMA || '';
         result.Alamat = headerFinal.ALAMAT || '';
         result.Kota = headerFinal.KOTA || '';
@@ -1092,6 +1080,24 @@ function getDataFromSheet() {
         headerFinalError.message
       );
     }
+
+    // =====================================================
+    // DEBUG HASIL AKHIR
+    // =====================================================
+    Logger.log(
+      '=== GET DATA SHEET SELESAI ==='
+    );
+
+    Logger.log(
+      'Data result FINAL: ' +
+      JSON.stringify({
+        Nama: result.Nama,
+        Alamat: result.Alamat,
+        Kota: result.Kota,
+        'No. Telp': result['No. Telp'],
+        Slogan: result.Slogan
+      })
+    );
 
     return result;
 
