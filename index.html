@@ -5243,6 +5243,202 @@
 
 
     // =========================================================
+    // SINKRONISASI WAKTU INTERNET / SERVER
+    // =========================================================
+    // Sumber waktu referensi berasal dari Google Apps Script server.
+    // Browser/TV hanya dipakai untuk menghitung selisih (offset).
+    //
+    // PENTING:
+    // - Tidak menyentuh audio, YouTube, atau scheduler.
+    // - Sinkronisasi pertama dilakukan sebelum jadwal sholat dimuat.
+    // - Sinkronisasi berkala hanya menerapkan koreksi saat tidak ada
+    //   audio event yang sedang berjalan.
+    // - Jika koneksi gagal, sistem tetap memakai clock perangkat.
+    // =========================================================
+
+    let internetTimeOffsetMs = 0;
+    let internetTimeSynced = false;
+    let internetTimeLastSyncMs = 0;
+    let internetTimePendingOffsetMs = null;
+
+    const INTERNET_TIME_SYNC_INTERVAL_MS =
+      6 * 60 * 60 * 1000;
+
+    function getSynchronizedNow() {
+
+      return new Date(
+        Date.now() +
+        (
+          internetTimeSynced
+            ? internetTimeOffsetMs
+            : 0
+        )
+      );
+
+    }
+
+    function applyInternetTimeOffset_(offsetMs) {
+
+      if (!Number.isFinite(offsetMs)) {
+        return false;
+      }
+
+      internetTimeOffsetMs =
+        Math.round(offsetMs);
+
+      internetTimeSynced = true;
+      internetTimeLastSyncMs =
+        Date.now();
+
+      return true;
+
+    }
+
+    function isAudioEventActiveForTimeSync_() {
+
+      const audioState =
+        WEB_APP_STATE &&
+        WEB_APP_STATE.audio;
+
+      return !!(
+        audioState &&
+        audioState.currentEventKey
+      );
+
+    }
+
+    function syncInternetTime() {
+
+      return gasApiCall('getServerTime')
+        .then(function(result) {
+
+          if (
+            !result ||
+            result.success !== true
+          ) {
+            throw new Error(
+              'Respons waktu server tidak valid.'
+            );
+          }
+
+          const serverEpochMs =
+            Number(result.epochMs);
+
+          if (
+            !Number.isFinite(serverEpochMs) ||
+            serverEpochMs <= 0
+          ) {
+            throw new Error(
+              'epochMs dari server tidak valid.'
+            );
+          }
+
+          const clientEpochMs =
+            Date.now();
+
+          const offsetMs =
+            serverEpochMs -
+            clientEpochMs;
+
+          // Sinkronisasi pertama boleh mengoreksi penuh.
+          // Sinkronisasi berikutnya ditahan selama audio aktif agar
+          // tidak menggeser titik waktu scheduler di tengah rangkaian.
+          if (
+            !internetTimeSynced ||
+            !isAudioEventActiveForTimeSync_()
+          ) {
+
+            applyInternetTimeOffset_(
+              offsetMs
+            );
+
+            internetTimePendingOffsetMs =
+              null;
+
+          } else {
+
+            internetTimePendingOffsetMs =
+              offsetMs;
+
+          }
+
+          console.log(
+            'WAKTU INTERNET SYNC:',
+            {
+              server: result.iso || '',
+              offsetMs: Math.round(offsetMs),
+              offsetSeconds:
+                Math.round(offsetMs / 1000),
+              applied:
+                internetTimePendingOffsetMs === null,
+              source:
+                result.source ||
+                'Google Apps Script server'
+            }
+          );
+
+          return {
+            success: true,
+            offsetMs:
+              internetTimeOffsetMs,
+            pending:
+              internetTimePendingOffsetMs !== null
+          };
+
+        })
+        .catch(function(error) {
+
+          console.warn(
+            'WAKTU INTERNET SYNC GAGAL - memakai clock perangkat:',
+            error && error.message
+              ? error.message
+              : error
+          );
+
+          return {
+            success: false,
+            fallback: true
+          };
+
+        });
+
+    }
+
+    function applyPendingInternetTimeSync_() {
+
+      if (
+        internetTimePendingOffsetMs === null
+      ) {
+        return;
+      }
+
+      if (
+        isAudioEventActiveForTimeSync_()
+      ) {
+        return;
+      }
+
+      const pending =
+        internetTimePendingOffsetMs;
+
+      internetTimePendingOffsetMs =
+        null;
+
+      applyInternetTimeOffset_(
+        pending
+      );
+
+      console.log(
+        'WAKTU INTERNET SYNC: koreksi tertunda diterapkan',
+        {
+          offsetSeconds:
+            Math.round(pending / 1000)
+        }
+      );
+
+    }
+
+    // =========================================================
     // WAKTU BERDASARKAN LOKASI YANG DIPILIH DI PANELS!C5
     // =========================================================
 
@@ -5275,7 +5471,7 @@
             second: '2-digit',
             hourCycle: 'h23'
           }
-        ).formatToParts(new Date());
+        ).formatToParts(getSynchronizedNow());
 
       const result = {};
 
@@ -11528,21 +11724,30 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
     );
 
     installAudioInteractionUnlock();
-    startAutoRefresh();
 
-    updateClock();
-    updateGregorianDate();
-    updateHijriDate();
-    updateFridayPrayerDisplay();
+    // Sinkronisasi pertama dilakukan sebelum jadwal sholat dimuat.
+    // Jika server tidak dapat dihubungi, inisialisasi tetap berjalan
+    // dengan clock perangkat sebagai fallback.
+    syncInternetTime()
+      .finally(function() {
 
-    fetchSheetData();
-    fetchPrayerSchedule();
-    loadEventRunningText();
+        startAutoRefresh();
 
-    setTimeout(
-      initAudioPermission,
-      1000
-    );
+        updateClock();
+        updateGregorianDate();
+        updateHijriDate();
+        updateFridayPrayerDisplay();
+
+        fetchSheetData();
+        fetchPrayerSchedule();
+        loadEventRunningText();
+
+        setTimeout(
+          initAudioPermission,
+          1000
+        );
+
+      });
 
 
     // =========================================================
@@ -11637,6 +11842,25 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
       },
       30 * 60 * 1000
+    );
+
+    // Sinkronisasi waktu internet setiap 6 jam.
+    // Tidak melakukan reload dan tidak menyentuh audio.
+    setInterval(
+      function() {
+        syncInternetTime();
+        applyPendingInternetTimeSync_();
+      },
+      INTERNET_TIME_SYNC_INTERVAL_MS
+    );
+
+    // Jika koreksi waktu tertahan karena audio aktif,
+    // cek kembali setelah rangkaian audio selesai.
+    setInterval(
+      function() {
+        applyPendingInternetTimeSync_();
+      },
+      1000
     );
 
   </script>
