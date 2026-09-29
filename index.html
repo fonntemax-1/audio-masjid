@@ -542,12 +542,19 @@
   gap: 0.32vw;
   white-space: nowrap;
 
-  /* No. HP harus menggunakan model font yang sama persis
-     dengan alamat pada .header-center .sub. */
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  line-height: inherit;
+  /* No. HP harus benar-benar mengikuti font ALAMAT,
+     bukan hanya mengandalkan inherit dari elemen induk. */
+  font-family: 'Cinzel', serif !important;
+  font-size: clamp(0.72rem, 1.2vh, 1.2rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+}
+
+.header-center .sub .wa-contact > span {
+  font-family: 'Cinzel', serif !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
 }
 
     /* Logo WhatsApp model kotak */
