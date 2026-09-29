@@ -1195,6 +1195,10 @@
       transform: translate3d(100%, 0, 0);
     }
 
+    .event-running.event-prayer-override {
+      color: #00ff88;
+    }
+
     .right-sidebar {
       display: flex;
       flex-direction: column;
@@ -2052,7 +2056,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     let currentLogoUrl = '';
     let currentLogoCacheKey = '';
 
-    const EVENT_SPEED = 8;
+    const EVENT_SPEED = 10;
 
     let eventRunningAnimation = null;
     let eventRunningPosition = 0;
@@ -4306,6 +4310,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       if (nextOverride) {
 
         previousEventText = '';
+        element.classList.add('event-prayer-override');
         element.innerText =
           nextOverride;
 
@@ -4321,6 +4326,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       } else {
 
         previousEventText = '';
+        element.classList.remove('event-prayer-override');
         loadEventRunningText();
 
       }
