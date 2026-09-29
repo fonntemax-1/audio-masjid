@@ -4858,27 +4858,24 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       if (!state) return '';
 
-      const title =
-        String(state.title || '')
-          .replace(/\s+/g, ' ')
-          .trim()
-          .toUpperCase();
-
-      const city =
-        getEventPrayerCity_();
-
-      const suffix =
-        city
-          ? ' ' + city + ' DAN SEKITARNYA'
-          : '';
+      const city = getEventPrayerCity_();
+      const suffix = city
+        ? ' ' + city + ' DAN SEKITARNYA'
+        : '';
 
       // =======================================================
-      // EVENT KHUSUS IMSAK
+      // RUNNING TEXT KHUSUS - SATU SUMBER WAKTU
       //
-      // Mulai TEPAT saat kartu IMSAK tampil (10 menit sebelum
-      // Adzan Subuh) dan tetap berjalan selama 5 menit.
-      // Tidak bergantung pada durasi sirine.
+      // Running Text TIDAK lagi bergantung pada judul countdown.
+      // Ini mencegah Event Sheet terus tampil ketika countdown
+      // sudah masuk fase sholat tetapi judul/state berubah.
+      //
+      // IMSAK    : 3 menit sejak kartu IMSAK tampil.
+      // BERBUKA  : 3 menit sejak waktu Maghrib / WAKTU BERBUKA.
+      // SHOLAT   : tepat mulai ADZAN sampai 15 menit setelah
+      //             waktu mulai IQOMAH.
       // =======================================================
+
       try {
         const now = getWitaTime();
         const nowSeconds =
@@ -4886,193 +4883,144 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           Number(now.minute) * 60 +
           Number(now.second);
 
-        const subuhText =
-          String(
-            WEB_APP_STATE.prayer &&
-            WEB_APP_STATE.prayer.schedule
-              ? WEB_APP_STATE.prayer.schedule.subuh
-              : ''
-          ).trim();
+        const schedule = WEB_APP_STATE.prayer &&
+          WEB_APP_STATE.prayer.schedule
+          ? WEB_APP_STATE.prayer.schedule
+          : {};
 
-        if (/^([01]?\\d|2[0-3]):[0-5]\\d$/.test(subuhText)) {
-          const subuhParts = subuhText.split(':');
-          const subuhSec =
-            Number(subuhParts[0]) * 3600 +
-            Number(subuhParts[1]) * 60;
-
-          if (isRamadanDisplay()) {
-            const imsakStartSec = subuhSec - (10 * 60);
-            const imsakEndSec = imsakStartSec + (3 * 60);
-
-            if (
-              nowSeconds >= imsakStartSec &&
-              nowSeconds < imsakEndSec
-            ) {
-              return 'WAKTU IMSAK' + suffix;
-            }
-          }
+        function parsePrayerSec_(value) {
+          const text = String(value || '').trim();
+          const match = text.match(/^([01]?\\d|2[0-3]):([0-5]\\d)$/);
+          if (!match) return null;
+          return Number(match[1]) * 3600 + Number(match[2]) * 60;
         }
 
-        // =====================================================
-        // EVENT KHUSUS BERBUKA PUASA
-        //
-        // Mulai TEPAT saat countdown WAKTU BERBUKA/PUASA tampil,
-        // yaitu saat waktu Maghrib masuk, dan berlangsung 3 menit.
-        // Jika Adzan Maghrib sudah dimulai, event WAKTU SHOLAT
-        // mengambil alih.
-        // =====================================================
-        const maghribText =
-          String(
-            WEB_APP_STATE.prayer &&
-            WEB_APP_STATE.prayer.schedule
-              ? WEB_APP_STATE.prayer.schedule.maghrib
-              : ''
-          ).trim();
-
-        if (
-          isRamadanDisplay() &&
-          /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(maghribText)
-        ) {
-          const maghribParts = maghribText.split(':');
-          const maghribSec =
-            Number(maghribParts[0]) * 3600 +
-            Number(maghribParts[1]) * 60;
-
-          // Jangan mengambil alih fase ADZAN yang mungkin sudah dimulai.
-          const computedSchedules =
+        function getComputedEvents_(prayerName) {
+          const schedules =
             WEB_APP_STATE.audio &&
             WEB_APP_STATE.audio.computedSchedules instanceof Map
               ? WEB_APP_STATE.audio.computedSchedules
               : new Map();
 
-          const maghribComputed =
-            computedSchedules.get('MAGHRIB');
+          const computed = schedules.get(prayerName);
+          return computed && Array.isArray(computed.events)
+            ? computed.events
+            : [];
+        }
 
-          const maghribAdzanEvent =
-            maghribComputed &&
-            Array.isArray(maghribComputed.events)
-              ? maghribComputed.events.find(function(event) {
-                  return String(event.eventName || '').toUpperCase() === 'ADZAN';
-                })
+        function findEvent_(events, eventName) {
+          return events.find(function(event) {
+            return String(event.eventName || '').trim().toUpperCase() === eventName;
+          }) || null;
+        }
+
+        // -------------------------------------------------------
+        // IMSAK - Ramadan saja, 3 menit
+        // -------------------------------------------------------
+        const subuhSec = parsePrayerSec_(schedule.subuh);
+
+        if (isRamadanDisplay() && subuhSec !== null) {
+          const imsakStartSec = subuhSec - (10 * 60);
+          const imsakEndSec = imsakStartSec + (3 * 60);
+
+          if (
+            nowSeconds >= imsakStartSec &&
+            nowSeconds < imsakEndSec
+          ) {
+            return 'WAKTU IMSAK' + suffix;
+          }
+        }
+
+        // -------------------------------------------------------
+        // BERBUKA - Ramadan saja, 3 menit
+        // -------------------------------------------------------
+        const maghribSec = parsePrayerSec_(schedule.maghrib);
+
+        if (isRamadanDisplay() && maghribSec !== null) {
+          const maghribEvents = getComputedEvents_('MAGHRIB');
+          const maghribAdzan = findEvent_(maghribEvents, 'ADZAN');
+
+          const adzanSec =
+            maghribAdzan &&
+            Number.isFinite(Number(maghribAdzan.targetSec))
+              ? Number(maghribAdzan.targetSec)
               : null;
-
-          const maghribAdzanSec =
-            maghribAdzanEvent &&
-            Number.isFinite(Number(maghribAdzanEvent.targetSec))
-              ? Number(maghribAdzanEvent.targetSec)
-              : Infinity;
 
           if (
             nowSeconds >= maghribSec &&
             nowSeconds < maghribSec + (3 * 60) &&
-            nowSeconds < maghribAdzanSec
+            (adzanSec === null || nowSeconds < adzanSec)
           ) {
             return 'WAKTU BERBUKA' + suffix;
           }
         }
-      } catch (specialEventError) {
-        console.warn(
-          'EVENT KHUSUS IMSAK/BERBUKA ERROR:',
-          specialEventError
-        );
-      }
 
-      // =======================================================
-      // EVENT KHUSUS WAKTU SHOLAT
-      //
-      // Mulai TEPAT saat ADZAN dan berakhir +15 menit setelah
-      // IQOMAH selesai. State countdown tetap menjadi sumber
-      // sinkronisasi visual; fungsi ini hanya menentukan teks.
-      // =======================================================
-      const isPrayerTimePhase =
-        title === 'ADZAN' ||
-        title.indexOf('ADZAN ') === 0 ||
-        title.indexOf('MENUJU IQOMAH') === 0 ||
-        title === 'IQOMAH' ||
-        title.indexOf('SHOLAT ') === 0;
+        // -------------------------------------------------------
+        // WAKTU SHOLAT - semua sholat
+        // Tepat ADZAN -> +15 menit setelah IQOMAH START.
+        // Tidak tergantung state.title.
+        // -------------------------------------------------------
+        const prayers = [
+          ['SUBUH', schedule.subuh],
+          ['DZUHUR', schedule.dzuhur],
+          ['ASHAR', schedule.ashar],
+          ['MAGHRIB', schedule.maghrib],
+          ['ISYA', schedule.isya]
+        ];
 
-      if (!isPrayerTimePhase) {
-        return '';
-      }
+        for (let i = 0; i < prayers.length; i++) {
+          const prayerName = prayers[i][0];
+          const prayerSec = parsePrayerSec_(prayers[i][1]);
 
-      let prayerName =
-        String(state.prayerName || '')
-          .trim()
-          .toUpperCase();
+          if (prayerSec === null) continue;
 
-      // Pada Ramadan, kartu SUBUH secara visual menggunakan
-      // data-prayer TERBIT. Running Text tetap harus SUBUH.
-      if (prayerName === 'TERBIT') {
-        prayerName = 'SUBUH';
-      }
+          const events = getComputedEvents_(prayerName);
+          const adzanEvent = findEvent_(events, 'ADZAN');
+          const iqomahEvent = findEvent_(events, 'IQOMAH');
 
-      if (
-        isFridayWita() &&
-        prayerName === 'DZUHUR'
-      ) {
-        prayerName = "JUM'AT";
-      }
+          // Normal sholat: ADZAN = waktu sholat.
+          // Ramadan Maghrib: ADZAN dapat dimulai setelah sirine.
+          const adzanStartSec =
+            adzanEvent &&
+            Number.isFinite(Number(adzanEvent.targetSec))
+              ? Number(adzanEvent.targetSec)
+              : prayerSec;
 
-      if (!prayerName) {
-        return '';
-      }
+          const iqomahStartSec =
+            iqomahEvent &&
+            Number.isFinite(Number(iqomahEvent.targetSec))
+              ? Number(iqomahEvent.targetSec)
+              : null;
 
-      // Running text WAKTU SHOLAT berhenti tepat 15 menit
-      // setelah waktu mulai IQOMAH, bukan 15 menit setelah
-      // audio IQOMAH selesai.
-      try {
-        const computedSchedules =
-          WEB_APP_STATE.audio &&
-          WEB_APP_STATE.audio.computedSchedules instanceof Map
-            ? WEB_APP_STATE.audio.computedSchedules
-            : new Map();
-
-        const schedulePrayerName =
-          prayerName === "JUM'AT" ? 'DZUHUR' : prayerName;
-
-        const computedPrayer =
-          computedSchedules.get(schedulePrayerName);
-
-        const iqomahEvent =
-          computedPrayer &&
-          Array.isArray(computedPrayer.events)
-            ? computedPrayer.events.find(function(event) {
-                return String(event.eventName || '').trim().toUpperCase() === 'IQOMAH';
-              })
-            : null;
-
-        if (
-          iqomahEvent &&
-          Number.isFinite(Number(iqomahEvent.targetSec))
-        ) {
-          const now = getWitaTime();
-          const nowSeconds =
-            Number(now.hour) * 3600 +
-            Number(now.minute) * 60 +
-            Number(now.second);
+          if (iqomahStartSec === null) continue;
 
           const runningTextEndSec =
-            Number(iqomahEvent.targetSec) + (15 * 60);
+            iqomahStartSec + (15 * 60);
 
-          if (nowSeconds >= runningTextEndSec) {
-            return '';
+          if (
+            nowSeconds >= adzanStartSec &&
+            nowSeconds < runningTextEndSec
+          ) {
+            const displayName =
+              isFridayWita() && prayerName === 'DZUHUR'
+                ? "JUM'AT"
+                : prayerName;
+
+            return 'WAKTU SHOLAT ' + displayName + suffix;
           }
         }
-      } catch (runningTextTimingError) {
+
+      } catch (runningTextError) {
         console.warn(
-          'EVENT WAKTU SHOLAT: gagal membaca batas +15 menit IQOMAH:',
-          runningTextTimingError
+          'EVENT RUNNING TEXT TIMING ERROR:',
+          runningTextError
         );
       }
 
-      return (
-        'WAKTU SHOLAT ' +
-        prayerName +
-        suffix
-      );
-
+      // Tidak ada fase khusus aktif -> kosongkan override.
+      // Dengan demikian teks Event Sheet boleh kembali tampil.
+      return '';
     }
-
 
     function updatePrayerEventBanner_(state) {
 
