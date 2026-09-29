@@ -11343,13 +11343,15 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         const panelBlackPrayerName =
           activeTitleUpper.indexOf('WAKTU IMSAK') !== -1
             ? 'IMSAK'
-            : (
-                isFridayWita() &&
-                activeState.prayerName === 'DZUHUR'
-              )
-                ? "JUM'AT"
-                : String(activeState.prayerName || '')
-                    .toUpperCase();
+            : activeTitleUpper.indexOf('WAKTU BERBUKA') !== -1
+              ? 'BERBUKA'
+              : (
+                  isFridayWita() &&
+                  activeState.prayerName === 'DZUHUR'
+                )
+                  ? "JUM'AT"
+                  : String(activeState.prayerName || '')
+                      .toUpperCase();
 
         const panelBlackCityName =
           String(getCountdownCity_() || '').trim().toUpperCase();
