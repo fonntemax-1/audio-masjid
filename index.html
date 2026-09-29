@@ -12504,9 +12504,23 @@ function setCountdownBlackMode(enabled) {
             nowSeconds < imsakEndSec
           ) {
 
+            const imsakRemaining =
+              Math.max(0, imsakEndSec - nowSeconds);
+
+            const imsakMinutes =
+              Math.floor(imsakRemaining / 60);
+            const imsakSeconds =
+              Math.floor(imsakRemaining % 60);
+
             activeState = {
-              title: formatCountdownSpecialTitle_('WAKTU IMSAK'),
-              timer: 'IMSAK',
+              // KHUSUS IMSAK: jangan pernah membuat tampilan
+              // "WAKTU IMSAK / IMSAK". Judul tetap hanya
+              // "WAKTU IMSAK", sedangkan angka countdown berada
+              // di elemen timer.
+              title: 'WAKTU IMSAK',
+              timer:
+                String(imsakMinutes).padStart(2, '0') + ':' +
+                String(imsakSeconds).padStart(2, '0'),
               // Visual kartu IMSAK = data-prayer SUBUH.
               prayerName: 'SUBUH'
             };
