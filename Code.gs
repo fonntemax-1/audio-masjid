@@ -261,6 +261,53 @@ function getPanelDisplayMode() {
 }
 
 
+function getYoutubeControl() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('panels');
+
+    if (!sheet) {
+      return {
+        success: true,
+        Youtube: '',
+        YoutubeStatus: 'AUTO'
+      };
+    }
+
+    const url = String(
+      sheet.getRange('C20').getDisplayValue() || ''
+    ).trim();
+
+    const rawStatus = String(
+      sheet.getRange('G20').getDisplayValue() || ''
+    ).trim().toUpperCase();
+
+    const status =
+      ['ON', 'OFF', 'AUTO', 'STOP'].indexOf(rawStatus) >= 0
+        ? rawStatus
+        : 'AUTO';
+
+    return {
+      success: true,
+      Youtube: url,
+      YoutubeStatus: status
+    };
+
+  } catch (error) {
+    Logger.log(
+      'YOUTUBE CONTROL CEPAT ERROR: ' + error.message
+    );
+
+    return {
+      success: false,
+      error: error.message,
+      Youtube: '',
+      YoutubeStatus: 'AUTO'
+    };
+  }
+}
+
+
 function getDataFromSheet() {
   try {
     const ss = getSpreadsheet();
