@@ -5496,7 +5496,7 @@
               getSelectedTimezone(),
             weekday: 'short'
           }
-        ).formatToParts(new Date());
+        ).formatToParts(getSynchronizedNow());
 
       const weekdayPart =
         parts.find(function(part) {
@@ -11570,7 +11570,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       function scheduleNextDayReload() {
 
         const now =
-          new Date();
+          getSynchronizedNow();
 
         const timezone =
           getSelectedTimezone();
