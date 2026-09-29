@@ -52,6 +52,57 @@ function getServerTime() {
 }
 
 
+function getLokasiPanels() {
+
+  try {
+
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('panels');
+
+    if (!sheet) {
+      return {
+        success: false,
+        error: 'Sheet panels tidak ditemukan.',
+        kota: '', provinsi: '', zona: '', timezone: '', gmt: '', slug: ''
+      };
+    }
+
+    const values = sheet.getRange('C5:C10').getDisplayValues().map(function(row) {
+      return String(row[0] || '').trim();
+    });
+
+    const lokasi = {
+      kota: values[0] || '',
+      provinsi: values[1] || '',
+      zona: values[2] || '',
+      timezone: values[3] || '',
+      gmt: values[4] || '',
+      slug: values[5] || ''
+    };
+
+    Logger.log('LOKASI PANELS = ' + JSON.stringify(lokasi));
+
+    return {
+      success: true,
+      kota: lokasi.kota,
+      provinsi: lokasi.provinsi,
+      zona: lokasi.zona,
+      timezone: lokasi.timezone,
+      gmt: lokasi.gmt,
+      slug: lokasi.slug
+    };
+
+  } catch (error) {
+    Logger.log('LOKASI PANELS ERROR: ' + error.message);
+    return {
+      success: false,
+      error: error.message,
+      kota: '', provinsi: '', zona: '', timezone: '', gmt: '', slug: ''
+    };
+  }
+}
+
+
 function getSpreadsheet() {
   const spreadsheetId =
     PropertiesService
