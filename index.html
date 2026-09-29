@@ -4856,8 +4856,9 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
     function getEventPrayerOverrideText_(state) {
 
-      if (!state) return '';
-
+      // State countdown boleh kosong sesaat saat pergantian fase.
+      // Banner khusus tetap harus ditentukan dari waktu aktual/schedule,
+      // agar Event Sheet tidak dapat mengambil alih sebelum batas waktunya.
       const city = getEventPrayerCity_();
       const suffix = city
         ? ' ' + city + ' DAN SEKITARNYA'
