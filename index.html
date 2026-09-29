@@ -8651,8 +8651,14 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     function loadGitHubPrayerCache() {
 
       const url =
-        './data/prayer-cache.json?ts=' +
+        window.location.origin +
+        '/audio-masjid/data/prayer-cache.json?ts=' +
         Date.now();
+
+      console.log(
+        'JADWAL GITHUB CACHE: meminta',
+        url
+      );
 
       return fetch(url, {
         cache: 'no-store'
@@ -8663,6 +8669,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
               'HTTP ' + response.status
             );
           }
+          console.log(
+            'JADWAL GITHUB CACHE: HTTP OK',
+            response.status,
+            response.url
+          );
           return response.json();
         })
         .then(function(payload) {
@@ -8690,6 +8701,10 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             payload.success !== true ||
             !payload.jadwal
           ) {
+            console.warn(
+              'JADWAL GITHUB CACHE: payload tidak valid',
+              payload
+            );
             return false;
           }
 
@@ -8707,6 +8722,18 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             String(
               payload.timezone || ''
             ).trim();
+
+          console.log(
+            'JADWAL GITHUB CACHE: perbandingan',
+            {
+              cacheDate: cacheDate,
+              targetDate: targetDate,
+              cacheSlug: cacheSlug,
+              targetSlug: targetSlug,
+              cacheTimezone: cacheTimezone,
+              targetTimezone: targetTimezone
+            }
+          );
 
           // Jangan pernah memakai cache kota/timezone/tanggal lain.
           if (
@@ -8748,6 +8775,10 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             });
 
           if (!valid) {
+            console.warn(
+              'JADWAL GITHUB CACHE: format jadwal tidak valid',
+              j
+            );
             return false;
           }
 
