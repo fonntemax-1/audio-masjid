@@ -4856,6 +4856,38 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           updateUI(data);
 
+          // TEMA DISPLAY DIBACA ULANG SECARA TERPISAH.
+          // C18 adalah sumber tema utama. Ini memastikan perubahan
+          // HIJAU/MERAH/KUNING tetap diterapkan walaupun payload utama
+          // getDataFromSheet() berasal dari deployment/cache lama.
+          gasApiCall('getDisplayThemeSetting')
+            .then(function(themeData) {
+              if (themeData !== undefined && themeData !== null) {
+                const themeValue =
+                  typeof themeData === 'string'
+                    ? themeData
+                    : (
+                        themeData.DisplayTheme !== undefined
+                          ? themeData.DisplayTheme
+                          : themeData.theme
+                      );
+
+                if (themeValue) {
+                  console.log(
+                    'DISPLAY THEME API TERPISAH:',
+                    themeValue
+                  );
+                  applyDisplayTheme(themeValue);
+                }
+              }
+            })
+            .catch(function(themeError) {
+              console.warn(
+                'DISPLAY THEME API TERPISAH GAGAL:',
+                themeError.message || themeError
+              );
+            });
+
           // PANEL MODE DIBACA ULANG SECARA TERPISAH.
           // Ini sengaja tidak bergantung pada payload getDataFromSheet(),
           // sehingga panels!C2 tetap menjadi kontrol utama layar hitam
