@@ -9759,22 +9759,36 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         const prev = String(previousEvent || '').toLowerCase();
         const next = String(nextEvent || '').toLowerCase();
 
-        // TARHIM -> TARHIM = replay langsung tanpa GAP.
-        if (
-          prev === 'tarhim' &&
-          next === 'tarhim'
-        ) {
-          return 0;
-        }
+        // =====================================================
+        // GAP AUDIO FINAL
+        // =====================================================
+        // Default semua perpindahan audio = 3 DETIK.
+        //
+        // KHUSUS SUBUH RAMADAN:
+        // QIROAH -> TARHIM          = 3 detik
+        // TARHIM -> SIRINE          = 3 detik
+        // SIRINE -> TARHIM          = 3 detik
+        // TARHIM -> BEEP            = 3 detik
+        // BEEP -> ADZAN-SUBUH       = 1 detik
+        // ADZAN-SUBUH -> DOA-ADZAN  = 1 detik
+        // DOA-ADZAN -> BEEP         = 3 MENIT
+        // BEEP -> IQOMAH            = 1 detik
+        //
+        // KHUSUS MAGHRIB RAMADAN:
+        // QIROAH -> TARHIM          = 3 detik
+        // TARHIM -> SIRINE          = 3 detik
+        // SIRINE -> DOA-BUKA        = 1 detik
+        // DOA-BUKA -> BEEP          = 3 MENIT
+        // BEEP -> ADZAN-BIASA       = 1 detik
+        // ADZAN-BIASA -> DOA-ADZAN  = 3 detik
+        // DOA-ADZAN -> BEEP         = 3 MENIT
+        // BEEP -> IQOMAH            = 1 detik
+        //
+        // BEEP tidak pernah dimajukan untuk mengisi waktu.
+        // Qiroah/Tarhim yang digunakan untuk fill/loop time.
+        // =====================================================
 
-        // GAP FINAL:
-        // - Semua gap normal = 3 detik.
-        // - Setelah BEEP menuju ADZAN/IQOMAH = 1 detik.
-        // - Doa-Adzan -> BEEP = 3 detik.
-        // - Ramadan Subuh: SIRINE -> BEEP = tanpa gap.
-        // - Ramadan Maghrib: SIRINE -> DOA-BUKA = 1 detik,
-        //   DOA-BUKA -> BEEP = tanpa gap,
-        //   BEEP -> ADZAN = 1 detik.
+        // BEEP -> ADZAN / IQOMAH = 1 detik.
         if (
           prev === 'beep' &&
           (
@@ -9787,15 +9801,41 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           return 1;
         }
 
+        // ADZAN -> DOA-ADZAN pada Subuh Ramadan = 1 detik.
         if (
           ramadan &&
           name === 'SUBUH' &&
-          prev === 'sirine' &&
-          next === 'beep'
+          (
+            prev === 'adzan-subuh' ||
+            prev === 'adzan-biasa' ||
+            prev === 'adzan'
+          ) &&
+          (
+            next === 'doa-adzan' ||
+            next === 'doa'
+          )
         ) {
-          return 0;
+          return 1;
         }
 
+        // DOA-ADZAN -> BEEP pada Ramadan = 3 MENIT.
+        if (
+          ramadan &&
+          (
+            name === 'SUBUH' ||
+            name === 'MAGHRIB'
+          ) &&
+          (
+            prev === 'doa-adzan' ||
+            prev === 'doa'
+          ) &&
+          next === 'beep'
+        ) {
+          return 3 * 60;
+        }
+
+        // MAGHRIB RAMADAN:
+        // SIRINE -> DOA-BUKA = 1 detik.
         if (
           ramadan &&
           name === 'MAGHRIB' &&
@@ -9805,19 +9845,18 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           return 1;
         }
 
+        // MAGHRIB RAMADAN:
+        // DOA-BUKA -> BEEP = 3 MENIT.
         if (
           ramadan &&
           name === 'MAGHRIB' &&
           prev === 'doa-buka' &&
           next === 'beep'
         ) {
-          return 0;
+          return 3 * 60;
         }
 
-        if (prev === 'doa-adzan' && next === 'beep') {
-          return 3;
-        }
-
+        // Semua perpindahan lain tetap 3 detik.
         return GAP;
       }
 
@@ -9979,11 +10018,13 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       // ANCHOR UTAMA = WAKTU ADZAN SUBUH (pSec).
       //
       // Sequence:
-      // QIROAH -> TARHIM -> GAP 3s -> SIRINE -> BEEP
-      // -> GAP 1s -> ADZAN-SUBUH -> DOA-ADZAN
-      // -> GAP 3s -> BEEP -> GAP 1s -> IQOMAH.
+      // QIROAH -> GAP 3s -> TARHIM -> GAP 3s -> SIRINE
+      // -> GAP 3s -> TARHIM -> GAP 3s -> BEEP
+      // -> GAP 1s -> ADZAN-SUBUH -> GAP 1s -> DOA-ADZAN
+      // -> GAP 3 MENIT -> BEEP -> GAP 1s -> IQOMAH.
       //
-      // Semua event sebelum ADZAN dihitung mundur dari anchor pSec.
+      // Anchor utama = waktu ADZAN SUBUH (pSec).
+      // Semua event sebelum ADZAN dihitung mundur dari anchor.
       // Tidak ada BEEP yang dimajukan untuk mengisi waktu kosong.
       // ---------------------------------------------------------
       if (
@@ -10070,10 +10111,12 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         // ANCHOR UTAMA = dimulainya SIRINE (waktu Maghrib/berbuka).
         //
         // Sequence:
-        // QIROAH -> TARHIM -> GAP 3s -> SIRINE -> GAP 1s
-        // -> DOA-BUKA -> BEEP -> GAP 1s -> ADZAN-BIASA
-        // -> GAP 3s -> DOA-ADZAN -> BEEP -> GAP 1s -> IQOMAH.
+        // QIROAH -> GAP 3s -> TARHIM -> GAP 3s -> SIRINE
+        // -> GAP 1s -> DOA-BUKA -> GAP 3 MENIT -> BEEP
+        // -> GAP 1s -> ADZAN-BIASA -> GAP 3s -> DOA-ADZAN
+        // -> GAP 3 MENIT -> BEEP -> GAP 1s -> IQOMAH.
         //
+        // Anchor utama = dimulainya SIRINE (pSec).
         // getSystemGapSeconds() menjaga gap persis sesuai aturan di atas.
         // -------------------------------------------------------
         const sirineTarget = Number(pSec);
