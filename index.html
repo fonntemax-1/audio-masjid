@@ -4649,9 +4649,13 @@
 
         if (element) {
 
+          const nama =
+            String(data.Nama || '').trim();
+
           element.innerText =
-            'MASJID ' +
-            data.Nama;
+            nama
+              ? 'MASJID ' + nama
+              : 'MASJID AL SOBIRIN';
 
         }
 
@@ -4671,10 +4675,21 @@
         data.No_Telp ||
         '';
 
+      // Header diambil dari panels!B12:C16 melalui Code.gs:
+      // NAMA, ALAMAT, KOTA, NO HP, SLOGAN.
+      // Kota ditampilkan bersama alamat dan nomor HP.
       let infoAlamat = [];
 
       if (data.Alamat) {
-        infoAlamat.push(data.Alamat);
+        infoAlamat.push(
+          String(data.Alamat)
+        );
+      }
+
+      if (data.Kota) {
+        infoAlamat.push(
+          String(data.Kota)
+        );
       }
 
       if (nomorTelp) {
