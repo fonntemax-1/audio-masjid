@@ -10552,8 +10552,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       }
 
       return (
-        (menuju ? 'MENUJU SHOLAT ' : 'SHOLAT ') +
-        name
+        menuju ? 'MENUJU SHOLAT ' + name : 'WAKTU'
       );
     }
 
@@ -11393,13 +11392,15 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         ) {
 
           activeState = {
-            title: formatCountdownPrayerTitle_(
-              isFridayJumat ? "JUM'AT" : displayName,
-              false
-            ),
+            title: isFridayJumat
+              ? 'WAKTU SHOLAT'
+              : formatCountdownPrayerTitle_(
+                  displayName,
+                  false
+                ),
             timer:
               isFridayJumat
-                ? "JUM'AT"
+                ? 'ASHAR'
                 : displayName,
             prayerName: p.name
           };
