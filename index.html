@@ -5186,18 +5186,126 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
     function loadEventRunningText() {
 
+      const element =
+        document.getElementById(
+          'event-running'
+        );
+
+      if (!element) return;
+
+      // =======================================================
+      // PENGUNCI UTAMA
+      // =======================================================
+      // Polling Event Sheet tidak boleh pernah menimpa banner
+      // ketika countdown sedang berada pada fase khusus.
+      //
+      // Sebelumnya pengecekan hanya memakai variable
+      // eventPrayerOverrideText. Saat pergantian detik variable itu
+      // dapat sempat kosong sebelum updatePrayerEventBanner_ berikutnya,
+      // sehingga Event Sheet masuk dan banner WAKTU SHOLAT hilang.
+      //
+      // Sekarang setiap kali loadEventRunningText() dipanggil,
+      // kondisi countdown WITA dihitung ulang langsung.
+      const activeCountdownState =
+        WEB_APP_STATE &&
+        WEB_APP_STATE.countdown
+          ? WEB_APP_STATE.countdown.active
+          : null;
+
+      const liveOverride =
+        getEventPrayerOverrideText_(
+          activeCountdownState
+        );
+
+      if (liveOverride) {
+
+        eventPrayerOverrideText =
+          liveOverride;
+
+        previousEventText = '';
+
+        element.classList.add(
+          'event-prayer-override'
+        );
+
+        if (
+          element.innerText !==
+          liveOverride
+        ) {
+          element.innerText =
+            liveOverride;
+        }
+
+        requestAnimationFrame(function() {
+          startEventRunning();
+        });
+
+        console.log(
+          'EVENT BANNER KHUSUS DIKUNCI:',
+          liveOverride
+        );
+
+        return;
+      }
+
+      // Jika variable lama masih berisi override, jangan biarkan
+      // polling Event Sheet menimpanya.
+      if (eventPrayerOverrideText) {
+        return;
+      }
+
       gasApiCall('getEventRunningText')
         .then(function(text) {
 
-          const element =
+          const currentElement =
             document.getElementById(
               'event-running'
             );
 
-          if (!element) return;
+          if (!currentElement) return;
 
-          // Jika sedang berada pada fase khusus, hasil polling
-          // Spreadsheet Event tidak boleh menimpa teks khusus.
+          // PENTING: selama request Event Sheet berlangsung,
+          // countdown bisa berpindah fase. Hitung ulang kondisi
+          // sebelum memasukkan teks dari Spreadsheet.
+          const currentState =
+            WEB_APP_STATE &&
+            WEB_APP_STATE.countdown
+              ? WEB_APP_STATE.countdown.active
+              : null;
+
+          const currentOverride =
+            getEventPrayerOverrideText_(
+              currentState
+            );
+
+          if (currentOverride) {
+
+            eventPrayerOverrideText =
+              currentOverride;
+
+            previousEventText = '';
+
+            currentElement.classList.add(
+              'event-prayer-override'
+            );
+
+            currentElement.innerText =
+              currentOverride;
+
+            requestAnimationFrame(function() {
+              startEventRunning();
+            });
+
+            console.log(
+              'EVENT BANNER KHUSUS MENANG ATAS EVENT SHEET:',
+              currentOverride
+            );
+
+            return;
+          }
+
+          // Jika updatePrayerEventBanner_ sudah menetapkan override
+          // pada saat request masih berjalan, jangan timpa.
           if (eventPrayerOverrideText) {
             return;
           }
@@ -5206,12 +5314,20 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           if (newText === previousEventText) return;
 
-          previousEventText = newText;
-          element.innerText = newText;
+          previousEventText =
+            newText;
+
+          currentElement.classList.remove(
+            'event-prayer-override'
+          );
+
+          currentElement.innerText =
+            newText;
 
           requestAnimationFrame(function() {
             startEventRunning();
           });
+
         })
         .catch(function(error) {
           console.error(
