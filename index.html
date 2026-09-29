@@ -137,7 +137,15 @@
     display: none;
   }
 
-  body.panel-countdown-auto .clock-overlay .countdown-title,
+  /* Pada mode hitam, judul countdown lama seperti
+     "WAKTU IMSAK BALIKPAPAN DAN SEKITARNYA" disembunyikan.
+     Judul waktu ditampilkan khusus dalam 3 baris panel hitam:
+     WAKTU / IMSAK (atau nama sholat) / KOTA DAN SEKITARNYA.
+     Angka countdown tetap ditampilkan. */
+  body.panel-countdown-auto .clock-overlay .countdown-title {
+    display: none !important;
+  }
+
   body.panel-countdown-auto .clock-overlay .countdown-timer {
     display: block !important;
   }
