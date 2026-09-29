@@ -5274,6 +5274,10 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
         const oldTimezone =
           getSelectedTimezone();
+        const oldCity =
+          String(WEB_APP_STATE.location.kota || '').trim();
+        const oldSlug =
+          String(WEB_APP_STATE.location.slug || '').trim();
 
         WEB_APP_STATE.location = {
           kota: String(lokasi.kota || ''),
@@ -5289,11 +5293,35 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
         const newTimezone =
           getSelectedTimezone();
+        const newCity =
+          String(WEB_APP_STATE.location.kota || '').trim();
+        const newSlug =
+          String(WEB_APP_STATE.location.slug || '').trim();
 
         console.log(
           'LOKASI TIMEZONE DITERIMA:',
           WEB_APP_STATE.location
         );
+
+        // Setelah panels!C5/C10 diterima, jadwal sholat HARUS
+        // diminta ulang untuk kota tersebut. Jangan meminta jadwal
+        // sebelum lokasi selesai dibaca karena tanggal/timezone dapat berbeda.
+        if (
+          oldCity !== newCity ||
+          oldSlug !== newSlug ||
+          oldTimezone !== newTimezone ||
+          WEB_APP_STATE.prayer.dateLoaded !== getApiDate()
+        ) {
+          WEB_APP_STATE.prayer.dateLoaded = '';
+          prayerScheduleRetryCount = 0;
+
+          if (prayerScheduleRetryTimer) {
+            clearTimeout(prayerScheduleRetryTimer);
+            prayerScheduleRetryTimer = null;
+          }
+
+          fetchPrayerSchedule();
+        }
 
         const timezoneElement =
           document.querySelector('.tz-text');
@@ -12840,11 +12868,12 @@ function setCountdownBlackMode(enabled) {
           .active =
           null;
 
-        fetchPrayerSchedule();
+        // Refresh panels!C5:C10 terlebih dahulu. updateUI() akan
+        // meminta jadwal sholat untuk kota/timezone yang benar.
+        fetchSheetData();
 
         // Refresh Event/Logo/QRIS segera saat hari berganti,
         // tanpa menunggu interval polling 30 detik berikutnya.
-        fetchSheetData();
         loadEventRunningText();
 
         updateGregorianDate();
@@ -13061,8 +13090,12 @@ function setCountdownBlackMode(enabled) {
         updateHijriDate();
         updateFridayPrayerDisplay();
 
+        // Urutan startup:
+        // 1. baca panels!C5:C10
+        // 2. sesuaikan timezone jam
+        // 3. baru baca API jadwal sholat kota tersebut
+        // 4. countdown memakai jadwal yang sudah diterima
         fetchSheetData();
-        fetchPrayerSchedule();
         loadEventRunningText();
 
         setTimeout(
