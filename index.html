@@ -8331,34 +8331,34 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       const j =
         result.jadwal;
 
-      setPrayerTime(
-        'prayer-subuh',
-        j.subuh
-      );
+      // =====================================================
+      // SIMPAN JADWAL API KE STATE TERLEBIH DAHULU.
+      // Countdown dan kartu harus memakai sumber waktu yang sama.
+      // Sebelumnya setPrayerTime() hanya mengisi DOM/dataset,
+      // sementara WEB_APP_STATE.prayer.schedule tetap kosong.
+      // Akibatnya countdown membaca 00:00 untuk semua waktu.
+      // =====================================================
+      const normalizedSchedule = {
+        subuh: String(j.subuh || '').trim(),
+        terbit: String(j.terbit || '').trim(),
+        dzuhur: String(j.dzuhur || '').trim(),
+        ashar: String(j.ashar || '').trim(),
+        maghrib: String(j.maghrib || '').trim(),
+        isya: String(j.isya || '').trim()
+      };
 
-      setPrayerTime(
-        'prayer-terbit',
-        j.terbit
-      );
+      WEB_APP_STATE.prayer.schedule = normalizedSchedule;
 
-      setPrayerTime(
-        'prayer-dzuhur',
-        j.dzuhur
-      );
+      setPrayerTime('prayer-subuh', normalizedSchedule.subuh);
+      setPrayerTime('prayer-terbit', normalizedSchedule.terbit);
+      setPrayerTime('prayer-dzuhur', normalizedSchedule.dzuhur);
+      setPrayerTime('prayer-ashar', normalizedSchedule.ashar);
+      setPrayerTime('prayer-maghrib', normalizedSchedule.maghrib);
+      setPrayerTime('prayer-isya', normalizedSchedule.isya);
 
-      setPrayerTime(
-        'prayer-ashar',
-        j.ashar
-      );
-
-      setPrayerTime(
-        'prayer-maghrib',
-        j.maghrib
-      );
-
-      setPrayerTime(
-        'prayer-isya',
-        j.isya
+      console.log(
+        'JADWAL SHOLAT STATE DITERIMA:',
+        JSON.stringify(normalizedSchedule)
       );
 
       WEB_APP_STATE
