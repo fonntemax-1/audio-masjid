@@ -10258,6 +10258,72 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           cursorAfterSirine += item.duration;
         }
 
+        // =====================================================
+        // FILL TARHIM SEBELUM BEEP PERTAMA
+        //
+        // Jika masih ada ruang kosong setelah TARHIM terakhir sampai
+        // BEEP pertama, TARHIM boleh REPLAY/LOOP untuk mengisi ruang.
+        // BEEP tetap terkunci 1 detik sebelum ADZAN dan tidak digeser.
+        //
+        // Audio lain (sirine/adzan/doa/beep/iqomah) tidak disentuh.
+        // Setiap replay mempunyai target/end berbeda sehingga lock
+        // event tetap aman dan tidak dianggap replay event yang sama.
+        // =====================================================
+        if (
+          firstBeepItem &&
+          Number.isFinite(firstBeepTarget)
+        ) {
+          const tarhimItem =
+            items
+              .slice(sirineIndex + 1, adzanIndex)
+              .find(function(item) {
+                return item.event === 'tarhim';
+              });
+
+          if (tarhimItem && tarhimItem.duration > 0) {
+            const tarhimGap =
+              getSystemGapSeconds('tarhim', 'tarhim');
+
+            let fillCursor =
+              Number(cursorAfterSirine);
+
+            let tarhimLoopNumber = 1;
+
+            while (
+              fillCursor +
+                tarhimGap +
+                tarhimItem.duration +
+                1 <=
+              firstBeepTarget
+            ) {
+              fillCursor += tarhimGap;
+
+              add(
+                'TARHIM_LOOP_' + tarhimLoopNumber,
+                fillCursor,
+                tarhimItem.duration,
+                'Tarhim Loop - SUBUH',
+                tarhimItem.audioType,
+                tarhimItem.status
+              );
+
+              fillCursor += tarhimItem.duration;
+              tarhimLoopNumber++;
+            }
+
+            if (tarhimLoopNumber > 1) {
+              cursorAfterSirine = fillCursor;
+
+              console.log(
+                'AUDIO SUBUH RAMADHAN: TARHIM REPLAY UNTUK MENGISI WAKTU KOSONG.',
+                'loop=', tarhimLoopNumber - 1,
+                'fillEnd=', fillCursor,
+                'beepTarget=', firstBeepTarget
+              );
+            }
+          }
+        }
+
         if (firstBeepItem && Number.isFinite(firstBeepTarget)) {
           // Pastikan BEEP tidak pernah dimajukan atau dipotong.
           // Jika rangkaian sebelum BEEP memakan seluruh ruang,
