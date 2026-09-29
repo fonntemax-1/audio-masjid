@@ -5338,7 +5338,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           try {
             updateYouTubeAudioStop(
-              getCurrentSeconds(),
+              (Number(getWitaTime().hour) * 3600) + (Number(getWitaTime().minute) * 60) + Number(getWitaTime().second),
               getApiDate()
             );
           } catch (e) {
