@@ -1,0 +1,178 @@
+name: Update Prayer Schedule Cache
+
+on:
+  schedule:
+    # Cek setiap jam. Script hanya bekerja saat pukul 00:05
+    # pada timezone yang dipilih di panels!C8.
+    - cron: '5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-prayer-cache:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Update cache jadwal sholat
+        env:
+          GAS_API_URL: https://script.google.com/macros/s/AKfycbz363_n9sqVZxwHkyDLYQXor4wtgf7IArCNQwNx23e9JMEbv_bKzXFQGkX5hmA3W9z8/exec
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import re
+          import urllib.parse
+          import urllib.request
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+
+          gas = os.environ["GAS_API_URL"]
+
+          def gas_json(action, params=None):
+              params = params or {}
+              callback = "githubPrayerCallback"
+              q = {
+                  "api": "1",
+                  "action": action,
+                  "callback": callback,
+                  "_ts": str(int(datetime.now().timestamp() * 1000)),
+              }
+              q.update({k: str(v) for k, v in params.items()})
+              url = gas + "?" + urllib.parse.urlencode(q)
+              req = urllib.request.Request(
+                  url,
+                  headers={"User-Agent": "GitHub-Actions-Prayer-Cache/1.0"}
+              )
+              with urllib.request.urlopen(req, timeout=45) as response:
+                  raw = response.read().decode("utf-8", "replace")
+
+              m = re.search(
+                  r"^githubPrayerCallback\((.*)\);?\s*$",
+                  raw,
+                  re.S
+              )
+              if not m:
+                  raise RuntimeError("Respons Apps Script bukan JSONP yang valid")
+              outer = json.loads(m.group(1))
+              if not outer.get("success"):
+                  raise RuntimeError(
+                      outer.get("error", "Apps Script API gagal")
+                  )
+              return outer.get("data")
+
+          sheet = gas_json("getDataFromSheet")
+          lokasi = (sheet or {}).get("Lokasi") or {}
+
+          timezone = str(lokasi.get("timezone") or "").strip()
+          zona = str(lokasi.get("zona") or "").strip()
+          kota = str(lokasi.get("kota") or "").strip()
+          slug = str(lokasi.get("slug") or "").strip()
+
+          allowed = {
+              "Asia/Jakarta": "WIB",
+              "Asia/Makassar": "WITA",
+              "Asia/Jayapura": "WIT",
+          }
+
+          if timezone not in allowed:
+              raise RuntimeError(
+                  "Timezone panels!C8 tidak valid: " + timezone
+              )
+
+          now_local = datetime.now(ZoneInfo(timezone))
+
+          # Workflow berjalan setiap jam pada menit 05.
+          # Hanya update ketika sudah memasuki 00:00 pada timezone
+          # yang dipilih di panels!C8.
+          if now_local.hour != 0:
+              print(
+                  "Bukan pergantian hari: local=",
+                  now_local.isoformat(),
+                  "timezone=",
+                  timezone
+              )
+              raise SystemExit(0)
+
+          date_string = now_local.strftime("%Y-%m-%d")
+
+          result = gas_json(
+              "getPrayerSchedule",
+              {"date": date_string}
+          )
+
+          if not result or result.get("success") is not True:
+              raise RuntimeError(
+                  "Jadwal sholat gagal: " + json.dumps(result)
+              )
+
+          jadwal = result.get("jadwal") or {}
+          required = [
+              "subuh",
+              "terbit",
+              "dzuhur",
+              "ashar",
+              "maghrib",
+              "isya",
+          ]
+
+          if not all(re.fullmatch(r"(?:[01]?\d|2[0-3]):[0-5]\d", str(jadwal.get(k, "")).strip()) for k in required):
+              raise RuntimeError(
+                  "Jadwal sholat tidak lengkap: " + json.dumps(jadwal)
+              )
+
+          payload = {
+              "success": True,
+              "generatedAt": datetime.now(ZoneInfo("UTC")).isoformat(),
+              "tanggal": date_string,
+              "kota": kota,
+              "provinsi": str(lokasi.get("provinsi") or "").strip(),
+              "slug": slug,
+              "zona": zona,
+              "timezone": timezone,
+              "gmt": str(lokasi.get("gmt") or "").strip(),
+              "source": "MuslimKita / Kemenag",
+              "jadwal": {k: str(jadwal[k]).strip() for k in required},
+          }
+
+          path = "data/prayer-cache.json"
+          os.makedirs("data", exist_ok=True)
+
+          old = None
+          if os.path.exists(path):
+              try:
+                  with open(path, "r", encoding="utf-8") as f:
+                      old = json.load(f)
+              except Exception:
+                  pass
+
+          if old == payload:
+              print("Cache jadwal sholat tidak berubah.")
+              raise SystemExit(0)
+
+          with open(path, "w", encoding="utf-8") as f:
+              json.dump(payload, f, ensure_ascii=False, indent=2)
+              f.write("\n")
+
+          print("CACHE JADWAL SHOLAT DIPERBARUI:")
+          print(json.dumps(payload, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Commit cache ke GitHub
+        run: |
+          if git diff --quiet -- data/prayer-cache.json; then
+            echo "Tidak ada perubahan cache."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/prayer-cache.json
+          git commit -m "Update prayer schedule cache"
+          git push
