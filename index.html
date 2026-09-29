@@ -11795,6 +11795,11 @@ function setCountdownBlackMode(enabled) {
         }
 
 
+        // JANGAN kosongkan countdown saat cache sedang dimuat.
+        // Tampilan awal harus tetap menuju sholat dan langsung memakai
+        // jadwal terakhir yang tersedia. Cache GitHub/local/API berjalan
+        // di belakang layar dan akan memanggil updatePrayerCountdown()
+        // kembali setelah jadwal tersedia.
         setCountdownBlackMode(false);
 
         processAudioQueue();
@@ -11805,14 +11810,20 @@ function setCountdownBlackMode(enabled) {
         const countdown =
           document.getElementById('countdown');
 
-        if (countdownTitle) {
+        if (
+          countdownTitle &&
+          !String(countdownTitle.innerText || '').trim()
+        ) {
           countdownTitle.innerText =
-            'MEMUAT JADWAL SHOLAT';
+            'MENUJU SHOLAT';
         }
 
-        if (countdown) {
+        if (
+          countdown &&
+          !String(countdown.innerText || '').trim()
+        ) {
           countdown.innerText =
-            '--:--:--';
+            '00:00:00';
         }
 
         WEB_APP_STATE.countdown.active = null;
