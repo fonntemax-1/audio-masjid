@@ -166,6 +166,32 @@ function getRamadanDisplaySetting() {
 // TIDAK menyentuh audio, YouTube, scheduler, Ramadan,
 // Event, keuangan, Jumat, khutbah, atau data display lain.
 // =========================================================
+function getDisplayThemeSetting() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('panels');
+
+  if (!sheet) {
+    Logger.log('THEME: sheet panels tidak ditemukan => HIJAU');
+    return 'HIJAU';
+  }
+
+  const raw = String(
+    sheet.getRange('C18').getDisplayValue() || ''
+  ).trim().toUpperCase();
+
+  const theme =
+    raw === 'MERAH' ? 'MERAH' :
+    raw === 'KUNING' ? 'KUNING' :
+    'HIJAU';
+
+  Logger.log(
+    'PANELS THEME C18 = [' + raw + '] => theme = [' + theme + ']'
+  );
+
+  return theme;
+}
+
+
 function getPanelDisplayMode() {
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName('panels');
@@ -214,6 +240,9 @@ function getDataFromSheet() {
     // =====================================================
 
     result.RamadanDisplay = getRamadanDisplaySetting();
+
+    // Tema tampilan global dari panels!C18. Tidak memengaruhi audio/scheduler.
+    result.DisplayTheme = getDisplayThemeSetting();
 
     // Lokasi aktif dari panels!C5:C10 untuk timezone/date di GitHub Pages.
     // Tidak mengubah scheduler audio.
