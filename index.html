@@ -11682,6 +11682,27 @@ function setCountdownBlackMode(enabled) {
         const pSec =
           p.seconds;
 
+        // =====================================================
+        // PENGAMAN FASE SHOLAT YANG SUDAH SELESAI
+        //
+        // Countdown tidak boleh tetap berada pada SUBUH/DZUHUR
+        // berjam-jam setelah waktunya lewat hanya karena data
+        // computed audio/iqomah belum tersedia atau tidak valid.
+        //
+        // Setelah 30 menit dari waktu sholat asli, fase countdown
+        // sholat tersebut dianggap selesai dan loop wajib mencari
+        // sholat berikutnya. Batas ini lebih panjang dari:
+        // Adzan + jeda iqomah + iqomah + 15 menit display.
+        // Audio scheduler tetap berjalan terpisah dan TIDAK diubah.
+        // =====================================================
+        const MAX_PRAYER_DISPLAY_AGE_SEC = 30 * 60;
+
+        if (
+          nowSeconds >= pSec + MAX_PRAYER_DISPLAY_AGE_SEC
+        ) {
+          continue;
+        }
+
         const displayName =
           isFridayWita() && p.name === 'DZUHUR'
             ? "JUM'AT"
