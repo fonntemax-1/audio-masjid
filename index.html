@@ -2500,7 +2500,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         // atau ketika beberapa JSONP request masuk bersamaan. Jangan
         // menganggap request gagal hanya setelah 7-12 detik.
         const apiTimeoutMs =
-          action === 'getDataFromSheet' ? 25000 : 20000;
+          action === 'getDataFromSheet'
+            ? 25000
+            : action === 'getPrayerSchedule'
+              ? 30000
+              : 20000;
 
         timeoutId = setTimeout(function() {
           if (finished) return;
