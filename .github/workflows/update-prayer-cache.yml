@@ -22,6 +22,7 @@ jobs:
 
       - name: Update cache jadwal sholat
         env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
           GAS_API_URL: https://script.google.com/macros/s/AKfycbz363_n9sqVZxwHkyDLYQXor4wtgf7IArCNQwNx23e9JMEbv_bKzXFQGkX5hmA3W9z8/exec
         run: |
           python3 <<'PY'
@@ -88,10 +89,12 @@ jobs:
 
           now_local = datetime.now(ZoneInfo(timezone))
 
-          # Workflow berjalan setiap jam pada menit 05.
-          # Hanya update ketika sudah memasuki 00:00 pada timezone
-          # yang dipilih di panels!C8.
-          if now_local.hour != 0:
+          # Jadwal otomatis: hanya proses pada jam 00:05 lokal.
+          # workflow_dispatch tetap diproses kapan pun tombol Run workflow ditekan,
+          # agar bisa menguji / mengisi cache secara manual.
+          is_manual = os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
+
+          if not is_manual and now_local.hour != 0:
               print(
                   "Bukan pergantian hari: local=",
                   now_local.isoformat(),
@@ -101,6 +104,21 @@ jobs:
               raise SystemExit(0)
 
           date_string = now_local.strftime("%Y-%m-%d")
+
+          print(
+              "PRAYER CACHE: mode=",
+              "MANUAL" if is_manual else "SCHEDULED",
+              "local=",
+              now_local.isoformat(),
+              "tanggal=",
+              date_string,
+              "kota=",
+              kota,
+              "slug=",
+              slug,
+              "timezone=",
+              timezone
+          )
 
           result = gas_json(
               "getPrayerSchedule",
