@@ -11324,56 +11324,42 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
       if (activeState) {
 
-        // MODE PANEL AUTO bersifat DISPLAY-ONLY.
-        // Layar hitam dimulai 2 menit sebelum IQOMAH
-        // dan kembali normal 15 menit setelah waktu IQOMAH.
-        // Isi layar hitam:
-        // WAKTU SHOLAT + nama sholat,
-        // handphone,
-        // dua baris pesan ketenangan,
-        // serta jam digital + WITA.
-        // Audio/YouTube/scheduler tetap.
-        if (WEB_APP_STATE.panel.mode === 'AUTO') {
-          console.log(
-            'PANELS AUTO:',
-            panelBlackWindow ? 'LAYAR HITAM' : 'LAYAR NORMAL',
-            '| STATE=',
-            activeState.title
-          );
-        }
-
+        // Panel AUTO hanya menampilkan panel hitam pada window yang sudah
+        // dihitung scheduler. Isi panel hitam TIDAK mengambil judul
+        // countdown utama, sehingga tidak pernah menjadi:
+        // "WAKTU IMSAK KOTA DAN SEKITARNYA".
         const panelBlackPrayerEl =
           document.getElementById('panel-black-prayer');
 
         const panelBlackCityEl =
           document.getElementById('panel-black-city');
 
-        // Format layar hitam:
-        // BARIS 1 = WAKTU
-        // BARIS 2 = nama waktu sholat (IMSAK/SUBUH/DZUHUR/ASHAR/MAGRIB/ISYA)
-        // BARIS 3 = KOTA DAN SEKITARNYA
-        const activeTitleUpper =
-          String(activeState.title || '').toUpperCase();
+        const activePrayerName =
+          String(activeState.prayerName || '').trim().toUpperCase();
 
-        const panelBlackPrayerName =
-          activeTitleUpper.indexOf('WAKTU IMSAK') !== -1
-            ? 'IMSAK'
-            : activeTitleUpper.indexOf('WAKTU BERBUKA') !== -1
-              ? 'BERBUKA'
-              : (
-                  isFridayWita() &&
-                  activeState.prayerName === 'DZUHUR'
-                )
-                  ? "JUM'AT"
-                  : String(activeState.prayerName || '')
-                      .toUpperCase();
+        let panelBlackPrayerName = activePrayerName;
+
+        // Khusus Imsak/Berbuka, gunakan jenis waktu dari state.
+        const activeTitleUpper =
+          String(activeState.title || '').replace(/\\s+/g, ' ').trim().toUpperCase();
+
+        if (activeTitleUpper.indexOf('WAKTU IMSAK') !== -1) {
+          panelBlackPrayerName = 'IMSAK';
+        } else if (activeTitleUpper.indexOf('WAKTU BERBUKA') !== -1) {
+          panelBlackPrayerName = 'BERBUKA';
+        } else if (
+          isFridayWita() &&
+          activePrayerName === 'DZUHUR'
+        ) {
+          panelBlackPrayerName = "JUM'AT";
+        }
 
         const panelBlackCityName =
           String(getCountdownCity_() || '').trim().toUpperCase();
 
-        if (panelBlackPrayerEl && panelBlackPrayerName) {
+        if (panelBlackPrayerEl) {
           panelBlackPrayerEl.innerText =
-            panelBlackPrayerName;
+            panelBlackPrayerName || '';
         }
 
         if (panelBlackCityEl) {
@@ -11383,19 +11369,15 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
               : '';
         }
 
+        // Hanya state AUTO yang menentukan apakah panel hitam tampil.
         setCountdownBlackMode(
           WEB_APP_STATE.panel.mode === 'AUTO'
             ? panelBlackWindow
             : false
         );
 
-        // Countdown utama disembunyikan pada mode hitam.
-        // Jangan mengubah state countdown karena audio tetap berjalan.
-        // Jangan mengganti ADZAN menjadi "WAKTU SHOLAT".
-        // Pada detik waktu sholat, countdown harus tetap menunjukkan
-        // status sebenarnya: ADZAN + nama sholat.
-        // Mode Panel AUTO hanya mengubah latar menjadi hitam pada
-        // window setelah Adzan; tidak mengubah isi countdown.
+        // Countdown utama tetap dipelihara untuk state normal/audio.
+        // Saat panel hitam aktif, CSS hanya menampilkan panel-black-message.
         const displayCountdownTitle =
           ensureCountdownCityTitle_(activeState.title);
 
