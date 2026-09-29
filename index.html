@@ -4956,6 +4956,65 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         }
 
         // -------------------------------------------------------
+        // PENGUNCI BANNER BERDASARKAN STATE COUNTDOWN
+        // -------------------------------------------------------
+        // Setelah countdown masuk ADZAN / MENUJU IQOMAH / IQOMAH /
+        // WAKTU SHOLAT, banner WAKTU SHOLAT harus tetap berjalan.
+        // Jangan bergantung hanya pada computedSchedules karena pada
+        // pergantian fase data audio dapat sementara belum tersedia.
+        const stateTitleUpper = String(state.title || '')
+          .replace(/\\s+/g, ' ')
+          .trim()
+          .toUpperCase();
+
+        if (
+          stateTitleUpper === 'ADZAN' ||
+          stateTitleUpper.indexOf('MENUJU IQOMAH') === 0 ||
+          stateTitleUpper === 'IQOMAH' ||
+          stateTitleUpper.indexOf('WAKTU SHOLAT') === 0
+        ) {
+          let statePrayerName = '';
+
+          if (stateTitleUpper.indexOf('SUBUH') !== -1) {
+            statePrayerName = 'SUBUH';
+          } else if (stateTitleUpper.indexOf('DZUHUR') !== -1) {
+            statePrayerName = 'DZUHUR';
+          } else if (stateTitleUpper.indexOf('ASHAR') !== -1) {
+            statePrayerName = 'ASHAR';
+          } else if (stateTitleUpper.indexOf('MAGHRIB') !== -1) {
+            statePrayerName = 'MAGHRIB';
+          } else if (stateTitleUpper.indexOf('ISYA') !== -1) {
+            statePrayerName = 'ISYA';
+          } else if (stateTitleUpper.indexOf("JUM'AT") !== -1) {
+            statePrayerName = 'DZUHUR';
+          }
+
+          // Pada ADZAN/MENUJU IQOMAH/IQOMAH SUBUH, state visual
+          // memang memakai prayerName TERBIT. Judul ADZAN tidak selalu
+          // membawa nama sholat, sehingga gunakan waktu Subuh sebagai
+          // fallback yang aman.
+          if (!statePrayerName && state.prayerName === 'TERBIT') {
+            const subuhStateSec = parsePrayerSec_(schedule.subuh);
+            if (
+              subuhStateSec !== null &&
+              nowSeconds >= subuhStateSec - (30 * 60) &&
+              nowSeconds < subuhStateSec + (30 * 60)
+            ) {
+              statePrayerName = 'SUBUH';
+            }
+          }
+
+          if (statePrayerName) {
+            const displayName =
+              isFridayWita() && statePrayerName === 'DZUHUR'
+                ? "JUM'AT"
+                : statePrayerName;
+
+            return 'WAKTU SHOLAT ' + displayName + suffix;
+          }
+        }
+
+        // -------------------------------------------------------
         // WAKTU SHOLAT - semua sholat
         // Tepat ADZAN -> +15 menit setelah IQOMAH START.
         // Tidak tergantung state.title.
