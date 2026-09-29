@@ -351,31 +351,51 @@ function getDataFromSheet() {
   }
 
     // =====================================================
-    // DEFAULT YOUTUBE
+    // KONFIGURASI YOUTUBE - PANELS
+    // panels!C20 = ALAMAT LINK YOUTUBE
+    // panels!G20 = SELECTOR: ON / OFF / AUTO / STOP
+    //
+    // ON   = YouTube hidup + suara ON
+    // OFF  = YouTube hidup + suara MUTE
+    // AUTO = MUTE 5 menit sebelum Qiroah,
+    //        tetap MUTE sampai 30 menit setelah IQOMAH selesai,
+    //        lalu suara ON kembali
+    // STOP = YouTube dihentikan
     // =====================================================
 
     result.Youtube = '';
-
-    // =====================================================
-    // DEFAULT KONTROL SUARA YOUTUBE
-    // false = UNMUTE
-    // true  = MUTE
-    // =====================================================
-
-    result.YoutubeMute = false;
-
-    // =====================================================
-    // KONFIGURASI KONTROL YOUTUBE
-    // Youtube!B1 = LINK YOUTUBE
-    // Youtube!C1 = STATUS: AUTO / ON / OFF / STOP
-    //
-    // 5 menit sebelum QIROAH = aturan tetap sistem.
-    // Tidak lagi membaca C1 sebagai angka detik.
-    // =====================================================
-
     result.YoutubeStatus = 'AUTO';
+    result.YoutubeMute = false;
     result.YoutubeMuteBeforeQiroahSeconds = 300;
     result.YoutubeControlLocked = false;
+
+    const youtubePanelsSheet = ss.getSheetByName('panels');
+    if (youtubePanelsSheet) {
+      result.Youtube = String(
+        youtubePanelsSheet.getRange('C20').getDisplayValue() || ''
+      ).trim();
+
+      const youtubeSelector = String(
+        youtubePanelsSheet.getRange('G20').getDisplayValue() || ''
+      ).trim().toUpperCase();
+
+      result.YoutubeStatus =
+        ['ON', 'OFF', 'AUTO', 'STOP'].indexOf(youtubeSelector) >= 0
+          ? youtubeSelector
+          : 'AUTO';
+
+      Logger.log(
+        'YOUTUBE PANELS C20/G20 = LINK=[' +
+        result.Youtube +
+        '] SELECTOR=[' +
+        youtubeSelector +
+        '] => STATUS=[' +
+        result.YoutubeStatus +
+        ']'
+      );
+    } else {
+      Logger.log('YOUTUBE: sheet panels tidak ditemukan => AUTO');
+    }
 
     // =====================================================
     // DEFAULT AUDIO ADZAN SUBUH LAMA
