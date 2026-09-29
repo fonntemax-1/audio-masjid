@@ -4571,6 +4571,27 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       if (!element || !banner) return;
 
+      // Pastikan frame Running Text selalu mengikuti panels!C18.
+      // Diterapkan langsung ke DOM agar aturan CSS lama tidak dapat
+      // mengembalikan frame ke hijau. Tidak mengubah animasi/audio.
+      const activeTheme =
+        String(WEB_APP_STATE.displayTheme || 'hijau')
+          .trim()
+          .toLowerCase();
+
+      const runningFrameColor =
+        activeTheme === 'kuning'
+          ? '#f4c542'
+          : activeTheme === 'merah'
+            ? '#ff5a5f'
+            : '#00ffaa';
+
+      banner.style.setProperty(
+        'border-top-color',
+        runningFrameColor,
+        'important'
+      );
+
       if (eventRunningAnimation) {
 
         cancelAnimationFrame(
