@@ -1,13 +1,13 @@
 {
   "success": true,
   "generatedAt": "2026-09-29T15:40:35.886971+00:00",
-  "updatedAt": "2026-09-29T15:40:35.886983+00:00",
+  "updatedAt": "2026-09-29T18:11:48.855Z",
   "cityCount": 177,
   "cities": {
     "balikpapan": {
       "success": true,
-      "generatedAt": "2026-09-29T08:43:51.603644+00:00",
-      "tanggal": "2026-09-29",
+      "generatedAt": "2026-09-29T18:11:48.850Z",
+      "tanggal": "2026-09-30",
       "kota": "Balikpapan",
       "provinsi": "Kalimantan Timur",
       "slug": "balikpapan",
@@ -16,11 +16,11 @@
       "gmt": "UTC+8",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:46",
-        "terbit": "05:56",
+        "subuh": "04:45",
+        "terbit": "05:55",
         "dzuhur": "12:07",
-        "ashar": "15:08",
-        "maghrib": "18:10",
+        "ashar": "15:09",
+        "maghrib": "18:09",
         "isya": "19:18"
       }
     },
