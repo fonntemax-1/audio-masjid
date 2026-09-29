@@ -2496,6 +2496,12 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           ));
         };
 
+        // Apps Script Web App dapat lambat beberapa detik saat cold start
+        // atau ketika beberapa JSONP request masuk bersamaan. Jangan
+        // menganggap request gagal hanya setelah 7-12 detik.
+        const apiTimeoutMs =
+          action === 'getDataFromSheet' ? 25000 : 20000;
+
         timeoutId = setTimeout(function() {
           if (finished) return;
           finished = true;
@@ -2514,7 +2520,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           reject(new Error(
             'Timeout menghubungi Apps Script API.'
           ));
-        }, action === 'getDataFromSheet' ? 12000 : 7000);
+        }, apiTimeoutMs);
 
         script.src =
           GAS_API_URL + '?' + query.toString();
@@ -8277,7 +8283,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
               console.warn('JADWAL SHOLAT: preload besok gagal', e);
               sessionStorage.removeItem(key);
             });
-        }, 3000);
+        }, 15000);
       } catch (e) {
         console.warn('JADWAL SHOLAT: preload setup gagal', e);
       }
