@@ -2084,6 +2084,15 @@
         targetKey: ''
       },
 
+      location: {
+        kota: '',
+        provinsi: '',
+        zona: 'WITA',
+        timezone: 'Asia/Makassar',
+        gmt: 'UTC+8',
+        slug: ''
+      },
+
       panel: {
         mode: 'NORMAL',
         countdownBlack: false
@@ -3975,17 +3984,10 @@
 
     function isFridayWita() {
 
-      const wita =
-        getWitaTime();
-
-      const date =
-        new Date(
-          Number(wita.year),
-          Number(wita.month) - 1,
-          Number(wita.day)
-        );
-
-      return date.getDay() === 5;
+      return (
+        getSelectedTimezoneWeekday() ===
+        'FRI'
+      );
 
     }
 
@@ -4435,6 +4437,53 @@
       // Audio scheduler tetap berjalan dengan konfigurasi Sheet
       // seperti sebelumnya dan tidak diubah.
       // =======================================================
+
+      // =======================================================
+      // LOKASI / TIMEZONE DARI PANELS!C5:C10
+      // =======================================================
+      // Hanya menentukan sumber waktu/date pada tampilan.
+      // Tidak mengubah audio scheduler atau panels!C2.
+      if (
+        data &&
+        data.Lokasi &&
+        typeof data.Lokasi === 'object'
+      ) {
+
+        const lokasi =
+          data.Lokasi;
+
+        const oldTimezone =
+          getSelectedTimezone();
+
+        WEB_APP_STATE.location = {
+          kota: String(lokasi.kota || ''),
+          provinsi: String(lokasi.provinsi || ''),
+          zona: String(lokasi.zona || 'WITA'),
+          timezone: String(
+            lokasi.timezone ||
+            'Asia/Makassar'
+          ),
+          gmt: String(lokasi.gmt || 'UTC+8'),
+          slug: String(lokasi.slug || '')
+        };
+
+        const newTimezone =
+          getSelectedTimezone();
+
+        console.log(
+          'LOKASI TIMEZONE DITERIMA:',
+          WEB_APP_STATE.location
+        );
+
+        if (oldTimezone !== newTimezone) {
+          startAutoRefresh();
+          updateClock();
+          updateGregorianDate();
+          updateHijriDate();
+          updateFridayPrayerDisplay();
+        }
+
+      }
 
       if (
         Object.prototype.hasOwnProperty.call(
@@ -5185,20 +5234,30 @@
 
 
     // =========================================================
-    // WITA
+    // WAKTU BERDASARKAN LOKASI YANG DIPILIH DI PANELS!C5
     // =========================================================
 
-    function getWitaTime() {
+    function getSelectedTimezone() {
 
-      const now =
-        new Date();
+      const timezone =
+        WEB_APP_STATE &&
+        WEB_APP_STATE.location &&
+        WEB_APP_STATE.location.timezone;
+
+      return timezone || 'Asia/Makassar';
+
+    }
+
+
+    // Nama fungsi dipertahankan agar kode lama tetap kompatibel.
+    function getWitaTime() {
 
       const parts =
         new Intl.DateTimeFormat(
           'en-GB',
           {
             timeZone:
-              'Asia/Makassar',
+              getSelectedTimezone(),
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
@@ -5207,31 +5266,41 @@
             second: '2-digit',
             hourCycle: 'h23'
           }
-        ).formatToParts(
-          now
-        );
+        ).formatToParts(new Date());
 
       const result = {};
 
-      parts.forEach(
-        function(part) {
-
-          if (
-            part.type !==
-            'literal'
-          ) {
-
-            result[
-              part.type
-            ] =
-              part.value;
-
-          }
-
+      parts.forEach(function(part) {
+        if (part.type !== 'literal') {
+          result[part.type] = part.value;
         }
-      );
+      });
 
       return result;
+
+    }
+
+
+    function getSelectedTimezoneWeekday() {
+
+      const parts =
+        new Intl.DateTimeFormat(
+          'en-GB',
+          {
+            timeZone:
+              getSelectedTimezone(),
+            weekday: 'short'
+          }
+        ).formatToParts(new Date());
+
+      const weekdayPart =
+        parts.find(function(part) {
+          return part.type === 'weekday';
+        });
+
+      return weekdayPart
+        ? weekdayPart.value.toUpperCase()
+        : '';
 
     }
 
@@ -5261,13 +5330,6 @@
       const wita =
         getWitaTime();
 
-      const date =
-        new Date(
-          Number(wita.year),
-          Number(wita.month) - 1,
-          Number(wita.day)
-        );
-
       const dayNames = [
         'MINGGU',
         'SENIN',
@@ -5277,6 +5339,27 @@
         'JUMAT',
         'SABTU'
       ];
+
+      const weekdayIndexMap = {
+        SUN: 0,
+        MON: 1,
+        TUE: 2,
+        WED: 3,
+        THU: 4,
+        FRI: 5,
+        SAT: 6
+      };
+
+      const weekdayCode =
+        getSelectedTimezoneWeekday();
+
+      const weekdayIndex =
+        Object.prototype.hasOwnProperty.call(
+          weekdayIndexMap,
+          weekdayCode
+        )
+          ? weekdayIndexMap[weekdayCode]
+          : -1;
 
       const monthNames = [
         'Januari',
@@ -5316,7 +5399,11 @@
 
       if (dayElement) {
         dayElement.innerText =
-          dayNames[date.getDay()];
+          dayNames[
+            weekdayIndex >= 0
+              ? weekdayIndex
+              : 0
+          ];
       }
 
       if (dateElement) {
@@ -11280,24 +11367,89 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         const now =
           new Date();
 
-        // Waktu sekarang dalam WITA (UTC+8).
-        const witaNowMs =
-          now.getTime() +
-          (8 * 60 * 60 * 1000);
+        const timezone =
+          getSelectedTimezone();
 
-        const witaNow =
-          new Date(witaNowMs);
+        const localParts =
+          new Intl.DateTimeFormat(
+            'en-GB',
+            {
+              timeZone: timezone,
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hourCycle: 'h23'
+            }
+          ).formatToParts(now);
+
+        const local = {};
+
+        localParts.forEach(function(part) {
+          if (part.type !== 'literal') {
+            local[part.type] = part.value;
+          }
+        });
+
+        const getTimezoneOffsetMs =
+          function(instant) {
+
+            const parts =
+              new Intl.DateTimeFormat(
+                'en-GB',
+                {
+                  timeZone: timezone,
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hourCycle: 'h23'
+                }
+              ).formatToParts(instant);
+
+            const p = {};
+
+            parts.forEach(function(part) {
+              if (part.type !== 'literal') {
+                p[part.type] = part.value;
+              }
+            });
+
+            const asUtc =
+              Date.UTC(
+                Number(p.year),
+                Number(p.month) - 1,
+                Number(p.day),
+                Number(p.hour),
+                Number(p.minute),
+                Number(p.second)
+              );
+
+            return asUtc - instant.getTime();
+
+          };
+
+        const localDateAtMidnight =
+          new Date(
+            Date.UTC(
+              Number(local.year),
+              Number(local.month) - 1,
+              Number(local.day) + 1,
+              0,
+              0,
+              5
+            )
+          );
 
         const nextMidnightUtcMs =
-          Date.UTC(
-            witaNow.getUTCFullYear(),
-            witaNow.getUTCMonth(),
-            witaNow.getUTCDate() + 1,
-            0,
-            0,
-            5
-          ) -
-          (8 * 60 * 60 * 1000);
+          localDateAtMidnight.getTime() -
+          getTimezoneOffsetMs(
+            localDateAtMidnight
+          );
 
         const delay =
           Math.max(
@@ -11325,7 +11477,9 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
                 currentDate;
 
               console.log(
-                '=== AUTO REFRESH PERGANTIAN HARI WITA: ' +
+                '=== AUTO REFRESH PERGANTIAN HARI ' +
+                getSelectedTimezone() +
+                ': ' +
                 currentDate +
                 ' ==='
               );
