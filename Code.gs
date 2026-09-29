@@ -2472,63 +2472,170 @@ function processKeyValue(
 // JADWAL SHOLAT MUSLIMKITA - BALIKPAPAN
 // =========================================================
 
-function getPrayerSchedule(
-  dateString
-) {
+function getPrayerSchedule(dateString) {
+  // ============================================================
+  // JADWAL SHOLAT HARIAN - API INDONESIA / KEMENAG
+  // Output sengaja dibuat stabil untuk index.html:
+  // {
+  //   success: true,
+  //   tanggal: "YYYY-MM-DD",
+  //   timezone: "Asia/Makassar",
+  //   jadwal: {
+  //     imsak, subuh, terbit, dzuhur, ashar, maghrib, isya
+  //   }
+  // }
+  //
+  // TIDAK menyentuh audio, scheduler audio, YouTube, Ramadan,
+  // Event, keuangan, atau sistem display lainnya.
+  // ============================================================
 
   try {
-
     const timezone = 'Asia/Makassar';
 
     if (!dateString) {
       dateString = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
     }
+
     dateString = String(dateString).trim();
 
     if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateString)) {
-      return { success: false, error: 'Format tanggal harus YYYY-MM-DD.' };
+      return {
+        success: false,
+        error: 'Format tanggal harus YYYY-MM-DD.'
+      };
     }
 
-    // CACHE JADWAL SHOLAT: CacheService -> ScriptProperties -> MuslimKita.
-    // Request tanggal yang sama tidak perlu menunggu API eksternal lagi.
+    // ------------------------------------------------------------
+    // KODE KABUPATEN/KOTA AKTIF
+    // Default Balikpapan = 6471.
+    // Jika nanti panels/Spreadsheet sudah memiliki regency ID,
+    // Script Property PRAYER_REGENCY_ID dapat langsung dipakai.
+    // ------------------------------------------------------------
+    const scriptProps = PropertiesService.getScriptProperties();
+
+    const regencyId =
+      String(
+        scriptProps.getProperty('PRAYER_REGENCY_ID') || '6471'
+      ).trim();
+
+    if (!/^\\d+$/.test(regencyId)) {
+      return {
+        success: false,
+        error: 'PRAYER_REGENCY_ID tidak valid: ' + regencyId
+      };
+    }
+
+    // ------------------------------------------------------------
+    // CACHE HARIAN
+    // ------------------------------------------------------------
     const cache = CacheService.getScriptCache();
-    const cacheKey = 'PRAYER_SCHEDULE_' + dateString.replace(/-/g, '');
-    const properties = PropertiesService.getScriptProperties();
-    const propertyKey = 'PRAYER_SCHEDULE_' + dateString;
+    const cacheKey =
+      'PRAYER_SCHEDULE_KEMENAG_' +
+      regencyId + '_' +
+      dateString.replace(/-/g, '');
+
+    const propertyKey =
+      'PRAYER_SCHEDULE_KEMENAG_' +
+      regencyId + '_' +
+      dateString;
 
     const cached = cache.get(cacheKey);
+
     if (cached) {
       try {
-        const result = JSON.parse(cached);
-        if (result && result.success && result.jadwal) {
-          result.cached = true;
-          result.cacheSource = 'CacheService';
-          Logger.log('JADWAL SHOLAT: CACHE HIT ' + dateString);
-          return result;
+        const cachedResult = JSON.parse(cached);
+
+        if (
+          cachedResult &&
+          cachedResult.success === true &&
+          cachedResult.jadwal &&
+          isCompletePrayerSchedule_(cachedResult.jadwal)
+        ) {
+          cachedResult.cached = true;
+          cachedResult.cacheSource = 'CacheService';
+          Logger.log(
+            'JADWAL SHOLAT: CACHE HIT ' +
+            dateString +
+            ' => ' +
+            JSON.stringify(cachedResult.jadwal)
+          );
+          return cachedResult;
         }
-      } catch (e) {}
+      } catch (cacheError) {
+        Logger.log(
+          'JADWAL SHOLAT CACHE INVALID: ' +
+          cacheError.message
+        );
+      }
     }
 
-    const stored = properties.getProperty(propertyKey);
+    const stored = scriptProps.getProperty(propertyKey);
+
     if (stored) {
       try {
-        const result = JSON.parse(stored);
-        if (result && result.success && result.jadwal) {
-          try { cache.put(cacheKey, JSON.stringify(result), 21600); } catch (e) {}
-          result.cached = true;
-          result.cacheSource = 'ScriptProperties';
-          Logger.log('JADWAL SHOLAT: PROPERTY CACHE HIT ' + dateString);
-          return result;
+        const storedResult = JSON.parse(stored);
+
+        if (
+          storedResult &&
+          storedResult.success === true &&
+          storedResult.jadwal &&
+          isCompletePrayerSchedule_(storedResult.jadwal)
+        ) {
+          try {
+            cache.put(
+              cacheKey,
+              JSON.stringify(storedResult),
+              21600
+            );
+          } catch (cacheWriteError) {}
+
+          storedResult.cached = true;
+          storedResult.cacheSource = 'ScriptProperties';
+
+          Logger.log(
+            'JADWAL SHOLAT: PROPERTY CACHE HIT ' +
+            dateString +
+            ' => ' +
+            JSON.stringify(storedResult.jadwal)
+          );
+
+          return storedResult;
         }
-      } catch (e) {}
+      } catch (propertyError) {
+        Logger.log(
+          'JADWAL SHOLAT PROPERTY CACHE INVALID: ' +
+          propertyError.message
+        );
+      }
+    }
+
+    // ------------------------------------------------------------
+    // API INDONESIA - DATA KEMENAG
+    // ------------------------------------------------------------
+    const apiKey =
+      String(
+        scriptProps.getProperty('API_INDONESIA_KEY') || ''
+      ).trim();
+
+    if (!apiKey) {
+      return {
+        success: false,
+        error:
+          'Script Property API_INDONESIA_KEY belum diisi.'
+      };
     }
 
     const apiUrl =
-      'https://www.muslimkita.id/api/jadwal-sholat/v1/balikpapan' +
-      '?tanggal=' + encodeURIComponent(dateString) +
-      '&metode=kemenag';
+      'https://use.apiindonesia.id/api/v1/sholat' +
+      '?kabupaten_id=' +
+      encodeURIComponent(regencyId) +
+      '&tanggal=' +
+      encodeURIComponent(dateString);
 
-    Logger.log('JADWAL SHOLAT: API request ' + apiUrl);
+    Logger.log(
+      'JADWAL SHOLAT: API KEMENAG request ' +
+      apiUrl
+    );
 
     const response = UrlFetchApp.fetch(apiUrl, {
       method: 'get',
@@ -2536,63 +2643,216 @@ function getPrayerSchedule(
       followRedirects: true,
       headers: {
         'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Google Apps Script)'
+        'x-api-key': apiKey
       }
     });
 
-    if (response.getResponseCode() !== 200) {
-      Logger.log('JADWAL SHOLAT: HTTP ' + response.getResponseCode() +
-        ' body=' + response.getContentText().slice(0, 500));
+    const httpCode = response.getResponseCode();
+    const body = response.getContentText();
+
+    Logger.log(
+      'JADWAL SHOLAT: API KEMENAG HTTP ' +
+      httpCode
+    );
+
+    if (httpCode < 200 || httpCode >= 300) {
+      Logger.log(
+        'JADWAL SHOLAT: API KEMENAG ERROR BODY=' +
+        body.slice(0, 1000)
+      );
+
       return {
         success: false,
-        error: 'HTTP ' + response.getResponseCode() + ' dari API MuslimKita'
+        error:
+          'API Indonesia HTTP ' +
+          httpCode +
+          ': ' +
+          body.slice(0, 300)
       };
     }
 
-    const json = JSON.parse(response.getContentText());
-    if (!json || !json.jadwal) {
-      Logger.log('JADWAL SHOLAT: response tidak memiliki object jadwal: ' +
-        response.getContentText().slice(0, 1000));
-      return { success: false, error: 'Data jadwal tidak tersedia.' };
+    let json;
+
+    try {
+      json = JSON.parse(body);
+    } catch (parseError) {
+      Logger.log(
+        'JADWAL SHOLAT: JSON API KEMENAG tidak valid: ' +
+        parseError.message
+      );
+
+      return {
+        success: false,
+        error: 'Respons API jadwal sholat bukan JSON valid.'
+      };
     }
 
-    const jadwalApi = json.jadwal;
+    // API Indonesia mengembalikan:
+    // { data: { date, imsyak, shubuh, terbit, dzuhur, ashr, maghrib, isya } }
+    const apiData =
+      json &&
+      json.data &&
+      typeof json.data === 'object'
+        ? json.data
+        : null;
+
+    if (!apiData) {
+      Logger.log(
+        'JADWAL SHOLAT: field data tidak ditemukan: ' +
+        body.slice(0, 1000)
+      );
+
+      return {
+        success: false,
+        error: 'Respons API tidak memiliki field data.'
+      };
+    }
+
+    const jadwal = {
+      imsak: normalizePrayerTime(apiData.imsyak),
+      subuh: normalizePrayerTime(apiData.shubuh),
+      terbit: normalizePrayerTime(apiData.terbit),
+      dzuhur: normalizePrayerTime(apiData.dzuhur),
+      ashar: normalizePrayerTime(apiData.ashr),
+      maghrib: normalizePrayerTime(apiData.maghrib),
+      isya: normalizePrayerTime(apiData.isya)
+    };
+
+    if (!isCompletePrayerSchedule_(jadwal)) {
+      Logger.log(
+        'JADWAL SHOLAT: data waktu tidak lengkap: ' +
+        JSON.stringify(jadwal)
+      );
+
+      return {
+        success: false,
+        error:
+          'Data waktu sholat dari API tidak lengkap: ' +
+          JSON.stringify(jadwal)
+      };
+    }
+
+    // Pastikan tanggal yang diterima benar-benar tanggal yang diminta.
+    const apiDate =
+      String(
+        apiData.date ||
+        dateString
+      ).trim();
+
+    if (apiDate !== dateString) {
+      Logger.log(
+        'JADWAL SHOLAT: tanggal API berbeda. request=' +
+        dateString +
+        ' response=' +
+        apiDate
+      );
+
+      return {
+        success: false,
+        error:
+          'API mengembalikan tanggal ' +
+          apiDate +
+          ', bukan ' +
+          dateString
+      };
+    }
+
     const result = {
       success: true,
-      kota: json.kota || 'Balikpapan',
+      kota: String(
+        apiData.regency_name ||
+        'Balikpapan'
+      ).trim(),
       tanggal: dateString,
-      timezone: json.timezone || timezone,
+      timezone: timezone,
+      regencyId: regencyId,
+      source: 'API Indonesia / Kemenag',
       cached: false,
-      cacheSource: 'MuslimKita',
-      jadwal: {
-        imsak: normalizePrayerTime(jadwalApi.imsak),
-        subuh: normalizePrayerTime(jadwalApi.subuh),
-        terbit: normalizePrayerTime(jadwalApi.terbit),
-        dzuhur: normalizePrayerTime(jadwalApi.dzuhur),
-        ashar: normalizePrayerTime(jadwalApi.ashar),
-        maghrib: normalizePrayerTime(jadwalApi.maghrib),
-        isya: normalizePrayerTime(jadwalApi.isya)
-      }
+      cacheSource: 'API Indonesia',
+      jadwal: jadwal
     };
 
     const serialized = JSON.stringify(result);
-    try { cache.put(cacheKey, serialized, 21600); } catch (e) {}
-    try { properties.setProperty(propertyKey, serialized); } catch (e) {
-      Logger.log('JADWAL SHOLAT: ScriptProperties write gagal: ' + e);
+
+    try {
+      cache.put(
+        cacheKey,
+        serialized,
+        21600
+      );
+    } catch (cacheWriteError) {
+      Logger.log(
+        'JADWAL SHOLAT: cache write gagal: ' +
+        cacheWriteError.message
+      );
     }
 
-    Logger.log('JADWAL SHOLAT: data API berhasil dan disimpan cache tanggal=' +
-      dateString + ' jadwal=' + JSON.stringify(result.jadwal));
+    try {
+      scriptProps.setProperty(
+        propertyKey,
+        serialized
+      );
+    } catch (propertyWriteError) {
+      Logger.log(
+        'JADWAL SHOLAT: ScriptProperties write gagal: ' +
+        propertyWriteError.message
+      );
+    }
+
+    Logger.log(
+      'JADWAL SHOLAT: ACTUAL TIME HARI INI = ' +
+      dateString +
+      ' | ' +
+      JSON.stringify(jadwal)
+    );
 
     return result;
 
   } catch (error) {
-    Logger.log('JADWAL SHOLAT ERROR: ' + (error && error.message ? error.message : error));
+    Logger.log(
+      'JADWAL SHOLAT ERROR: ' +
+      (error && error.stack
+        ? error.stack
+        : String(error))
+    );
+
     return {
       success: false,
-      error: error && error.message ? error.message : String(error)
+      error:
+        error && error.message
+          ? error.message
+          : String(error)
     };
   }
+}
+
+
+// ============================================================
+// VALIDASI JADWAL SHOLAT LENGKAP
+// ============================================================
+function isCompletePrayerSchedule_(jadwal) {
+  if (!jadwal || typeof jadwal !== 'object') {
+    return false;
+  }
+
+  const fields = [
+    'subuh',
+    'terbit',
+    'dzuhur',
+    'ashar',
+    'maghrib',
+    'isya'
+  ];
+
+  for (let i = 0; i < fields.length; i++) {
+    const value = String(jadwal[fields[i]] || '').trim();
+
+    if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(value)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 
