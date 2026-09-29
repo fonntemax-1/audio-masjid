@@ -10360,6 +10360,25 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       return base + (city ? ' ' + city + ' DAN SEKITARNYA' : '');
     }
 
+    // Pastikan judul event khusus selalu memakai nama kota dari panels!C14.
+    // Ini hanya mengubah teks heading countdown; tidak menyentuh audio,
+    // scheduler, YouTube, kartu sholat, atau waktu sholat.
+    function ensureCountdownCityTitle_(title) {
+      const city = getCountdownCity_();
+      const base = String(title || '').trim().toUpperCase();
+
+      if (!city) return base;
+
+      if (
+        base === 'WAKTU IMSAK' ||
+        base === 'WAKTU BERBUKA'
+      ) {
+        return base + ' ' + city.toUpperCase() + ' DAN SEKITARNYA';
+      }
+
+      return base;
+    }
+
     function updatePrayerCountdown() {
 
       readPrayerTimesFromUI();
@@ -11319,7 +11338,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         // Mode Panel AUTO hanya mengubah latar menjadi hitam pada
         // window setelah Adzan; tidak mengubah isi countdown.
         const displayCountdownTitle =
-          activeState.title;
+          ensureCountdownCityTitle_(activeState.title);
 
         if (countdownTitle && displayCountdownTitle !== lastCountdownTitle) {
           countdownTitle.innerText = displayCountdownTitle;
@@ -11473,6 +11492,9 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
             String(seconds).padStart(2, '0');
 
         }
+
+        nextTitle =
+          ensureCountdownCityTitle_(nextTitle);
 
         if (countdownTitle && nextTitle !== lastCountdownTitle) {
           countdownTitle.innerText = nextTitle;
