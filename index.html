@@ -11081,6 +11081,41 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
     );
   });
 
+  // FRAME FOOTER adalah frame hijau yang terlihat di bagian paling bawah.
+  // panels!C18 mengontrol frame ini secara langsung.
+  document.querySelectorAll('.footer').forEach(function(el) {
+    el.style.setProperty(
+      'border',
+      '0.2vh solid ' + frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-top-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-right-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-bottom-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-left-color',
+      frameColor,
+      'important'
+    );
+  });
+
   document.querySelectorAll(
     '.center-panel .event-banner'
   ).forEach(function(el) {
