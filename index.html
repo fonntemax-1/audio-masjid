@@ -8344,17 +8344,38 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           prayerScheduleRequestInFlight = false;
 
+          // Toleransi terhadap dua bentuk respons JSONP:
+          // 1) {success:true, jadwal:{...}}
+          // 2) {success:true, data:{success:true, jadwal:{...}}}
+          // Ini penting bila deployment Apps Script masih memakai
+          // wrapper API versi sebelumnya.
+          let prayerResult = result;
+
           if (
-            !result ||
-            !result.success ||
-            !result.jadwal
+            prayerResult &&
+            prayerResult.data &&
+            typeof prayerResult.data === 'object'
+          ) {
+            prayerResult = prayerResult.data;
+          }
+
+          console.log(
+            'JADWAL SHOLAT API RAW:',
+            prayerResult
+          );
+
+          if (
+            !prayerResult ||
+            prayerResult.success !== true ||
+            !prayerResult.jadwal
           ) {
             throw new Error(
-              'Respons jadwal sholat tidak lengkap.'
+              'Respons jadwal sholat tidak lengkap: ' +
+              JSON.stringify(prayerResult || result)
             );
           }
 
-          updatePrayerSchedule(result);
+          updatePrayerSchedule(prayerResult);
 
           prayerScheduleRetryCount = 0;
 
@@ -8418,11 +8439,28 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       result
     ) {
 
+      // Terima baik hasil langsung maupun hasil yang masih
+      // terbungkus {data:{...}} dari deployment API lama.
+      if (
+        result &&
+        result.data &&
+        typeof result.data === 'object' &&
+        !result.jadwal
+      ) {
+        result = result.data;
+      }
+
       if (
         !result ||
-        !result.success ||
+        result.success !== true ||
         !result.jadwal
-      ) return;
+      ) {
+        console.warn(
+          'UPDATE JADWAL SHOLAT: respons tidak valid',
+          result
+        );
+        return;
+      }
 
       const j =
         result.jadwal;
