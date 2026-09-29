@@ -8351,7 +8351,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       const scheduleReady =
         ['subuh','terbit','dzuhur','ashar','maghrib','isya']
           .every(function(key) {
-            return /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(
+            return /^([01]?\d|2[0-3]):[0-5]\d$/.test(
               String(schedule[key] || '').trim()
             );
           });
@@ -8630,7 +8630,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       const valid =
         ['subuh','terbit','dzuhur','ashar','maghrib','isya']
           .every(function(k) {
-            return /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(cached.jadwal[k]);
+            return /^([01]?\d|2[0-3]):[0-5]\d$/.test(cached.jadwal[k]);
           });
 
       if (!valid) return;
@@ -8742,7 +8742,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           const valid =
             keys.every(function(key) {
-              return /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(
+              return /^([01]?\d|2[0-3]):[0-5]\d$/.test(
                 String(j[key] || '').trim()
               );
             });
@@ -8814,7 +8814,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           !j ||
           !['subuh','terbit','dzuhur','ashar','maghrib','isya']
             .every(function(k) {
-              return /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(
+              return /^([01]?\d|2[0-3]):[0-5]\d$/.test(
                 String(j[k] || '').trim()
               );
             })
@@ -11943,7 +11943,7 @@ function setCountdownBlackMode(enabled) {
 
             // 00:00 adalah placeholder HTML, bukan jadwal sholat.
             // Jangan pernah memilih SUBUH 00:00 sebagai target.
-            return /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(value) &&
+            return /^([01]?\d|2[0-3]):[0-5]\d$/.test(value) &&
               value !== '00:00';
 
           }
