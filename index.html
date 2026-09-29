@@ -3103,6 +3103,48 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       if (configReady) {
         WEB_APP_STATE.audio.audioConfigWaitLogged = false;
+
+        // AUDIO STARTUP GUARD:
+        // setAudioConfig() melakukan pekerjaan async (fallback realtime).
+        // Jangan biarkan unlock/scheduler menunggu tick berikutnya secara
+        // kebetulan. Begitu konfigurasi lengkap, pastikan audio permission
+        // dan scheduler dipicu kembali. Tidak mengubah urutan, durasi,
+        // target waktu, atau status event audio.
+        window.setTimeout(function() {
+          try {
+            if (!WEB_APP_STATE.audio.initialized) {
+              initAudioPermission();
+            }
+
+            if (
+              WEB_APP_STATE.prayer &&
+              WEB_APP_STATE.prayer.dateLoaded
+            ) {
+              const nowWita = getWitaTime();
+              const nowSeconds =
+                Number(nowWita.hour) * 3600 +
+                Number(nowWita.minute) * 60 +
+                Number(nowWita.second);
+
+              if (Number.isFinite(nowSeconds)) {
+                prepareDailyAudioSchedule(
+                  getApiDate(),
+                  nowSeconds
+                ).catch(function(error) {
+                  console.warn(
+                    'AUDIO STARTUP SCHEDULE RETRY GAGAL:',
+                    error
+                  );
+                });
+              }
+            }
+          } catch (startupAudioError) {
+            console.warn(
+              'AUDIO STARTUP GUARD GAGAL:',
+              startupAudioError
+            );
+          }
+        }, 0);
       }
 
       const configSignature =
@@ -3310,6 +3352,20 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
                 );
 
                 showAudioBlockedButton();
+
+                // TV/browser dapat menolak autoplay sesaat ketika
+                // halaman baru selesai reload. Coba lagi otomatis
+                // tanpa memulai ulang halaman dan tanpa memotong
+                // scheduler audio. Jika browser tetap memblokir,
+                // retry berikutnya juga aman karena initAudioPermission()
+                // memakai guard "initialized/unlocking".
+                if (!audioPermissionRetryTimer) {
+                  audioPermissionRetryTimer =
+                    setTimeout(function() {
+                      audioPermissionRetryTimer = null;
+                      initAudioPermission();
+                    }, 3000);
+                }
 
               }
             );
