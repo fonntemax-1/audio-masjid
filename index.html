@@ -5313,6 +5313,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           WEB_APP_STATE.prayer.dateLoaded !== getApiDate()
         ) {
           WEB_APP_STATE.prayer.dateLoaded = '';
+
+          // Cache kartu menjadi sumber countdown pertama.
+          // API tetap dipanggil untuk memastikan jadwal terbaru.
+          loadPrayerCardCache();
+
           prayerScheduleRetryCount = 0;
 
           if (prayerScheduleRetryTimer) {
@@ -8511,6 +8516,12 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       WEB_APP_STATE.prayer.schedule = normalizedSchedule;
 
+      // CACHE JADWAL KARTU:
+      // Countdown membaca cache kartu terlebih dahulu. API hanya bertugas
+      // memperbarui cache di belakang layar. Dengan demikian pergantian
+      // halaman/reload tidak perlu menunggu API untuk mulai menghitung.
+      savePrayerCardCache();
+
       setPrayerTime('prayer-subuh', normalizedSchedule.subuh);
       setPrayerTime('prayer-terbit', normalizedSchedule.terbit);
       setPrayerTime('prayer-dzuhur', normalizedSchedule.dzuhur);
@@ -8567,6 +8578,124 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       }
 
+    }
+
+
+    function getPrayerCardCacheKey() {
+      const city =
+        String(
+          WEB_APP_STATE.location.slug ||
+          WEB_APP_STATE.location.kota ||
+          ''
+        ).trim().toLowerCase();
+
+      const date =
+        WEB_APP_STATE.prayer.dateLoaded ||
+        getApiDate();
+
+      if (!city || !date) return '';
+
+      return 'PRAYER_CARD_CACHE_' + city + '_' + date;
+    }
+
+
+    function savePrayerCardCache() {
+      const key = getPrayerCardCacheKey();
+      if (!key) return;
+
+      const schedule = WEB_APP_STATE.prayer.schedule || {};
+      const cached = {
+        kota: String(WEB_APP_STATE.location.kota || ''),
+        timezone: String(getSelectedTimezone() || ''),
+        tanggal: String(
+          WEB_APP_STATE.prayer.dateLoaded || getApiDate()
+        ),
+        jadwal: {
+          subuh: String(schedule.subuh || '').trim(),
+          terbit: String(schedule.terbit || '').trim(),
+          dzuhur: String(schedule.dzuhur || '').trim(),
+          ashar: String(schedule.ashar || '').trim(),
+          maghrib: String(schedule.maghrib || '').trim(),
+          isya: String(schedule.isya || '').trim()
+        }
+      };
+
+      const valid =
+        ['subuh','terbit','dzuhur','ashar','maghrib','isya']
+          .every(function(k) {
+            return /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(cached.jadwal[k]);
+          });
+
+      if (!valid) return;
+
+      try {
+        localStorage.setItem(key, JSON.stringify(cached));
+        console.log(
+          'JADWAL KARTU CACHE DISIMPAN:',
+          key,
+          cached.jadwal
+        );
+      } catch (e) {
+        console.warn('JADWAL KARTU CACHE GAGAL DISIMPAN:', e);
+      }
+    }
+
+
+    function loadPrayerCardCache() {
+      const key = getPrayerCardCacheKey();
+      if (!key) return false;
+
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return false;
+
+        const cached = JSON.parse(raw);
+        const j = cached && cached.jadwal;
+
+        if (
+          !j ||
+          !['subuh','terbit','dzuhur','ashar','maghrib','isya']
+            .every(function(k) {
+              return /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(
+                String(j[k] || '').trim()
+              );
+            })
+        ) {
+          return false;
+        }
+
+        const schedule = {
+          subuh: String(j.subuh).trim(),
+          terbit: String(j.terbit).trim(),
+          dzuhur: String(j.dzuhur).trim(),
+          ashar: String(j.ashar).trim(),
+          maghrib: String(j.maghrib).trim(),
+          isya: String(j.isya).trim()
+        };
+
+        WEB_APP_STATE.prayer.schedule = schedule;
+        WEB_APP_STATE.prayer.dateLoaded =
+          String(cached.tanggal || getApiDate());
+
+        setPrayerTime('prayer-subuh', schedule.subuh);
+        setPrayerTime('prayer-terbit', schedule.terbit);
+        setPrayerTime('prayer-dzuhur', schedule.dzuhur);
+        setPrayerTime('prayer-ashar', schedule.ashar);
+        setPrayerTime('prayer-maghrib', schedule.maghrib);
+        setPrayerTime('prayer-isya', schedule.isya);
+
+        updateRamadanPrayerCards();
+
+        console.log(
+          'JADWAL COUNTDOWN: memakai CACHE KARTU, API refresh di belakang layar:',
+          schedule
+        );
+
+        return true;
+      } catch (e) {
+        console.warn('JADWAL KARTU CACHE GAGAL DIBACA:', e);
+        return false;
+      }
     }
 
 
@@ -11666,8 +11795,14 @@ function setCountdownBlackMode(enabled) {
         validPrayers.length === 0
       ) {
 
+        // Kesempatan terakhir sebelum menampilkan MEMUAT:
+        // ambil jadwal dari cache kartu lokal.
+        if (loadPrayerCardCache()) {
+          return updatePrayerCountdown();
+        }
+
         console.warn(
-          'COUNTDOWN: jadwal sholat belum tersedia; menunggu API, bukan memakai SUBUH 00:00.'
+          'COUNTDOWN: cache kartu belum tersedia; menunggu API.'
         );
 
         fetchPrayerSchedule();
