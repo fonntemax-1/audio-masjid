@@ -2058,6 +2058,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     let eventRunningPosition = 0;
     let eventRunningLastTime = null;
     let previousEventText = '';
+    let eventPrayerOverrideText = '';
 
 
     // =========================================================
@@ -4190,6 +4191,143 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     }
 
 
+    function getEventPrayerCity_() {
+
+      try {
+        const city =
+          String(
+            window.__MASJID_HEADER_CITY__ ||
+            (WEB_APP_STATE.location &&
+              WEB_APP_STATE.location.kota) ||
+            ''
+          ).trim();
+
+        return city.toUpperCase();
+
+      } catch (e) {
+        return '';
+      }
+
+    }
+
+
+    function getEventPrayerOverrideText_(state) {
+
+      if (!state) return '';
+
+      const title =
+        String(state.title || '')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .toUpperCase();
+
+      const city =
+        getEventPrayerCity_();
+
+      const suffix =
+        city
+          ? ' ' + city + ' DAN SEKITARNYA'
+          : '';
+
+      // RAMADAN: teks khusus IMSAK.
+      if (
+        title.indexOf('WAKTU IMSAK') === 0
+      ) {
+        return 'WAKTU IMSAK' + suffix;
+      }
+
+      // RAMADAN: teks khusus BERBUKA.
+      if (
+        title.indexOf('WAKTU BERBUKA') === 0
+      ) {
+        return 'WAKTU BERBUKA' + suffix;
+      }
+
+      // Event khusus hanya dimulai tepat saat waktu sholat masuk.
+      // Fase MENUJU SHOLAT sebelum waktu sholat tidak mengambil alih Event.
+      const isPrayerTimePhase =
+        title === 'ADZAN' ||
+        title.indexOf('ADZAN ') === 0 ||
+        title.indexOf('MENUJU IQOMAH') === 0 ||
+        title === 'IQOMAH' ||
+        title.indexOf('SHOLAT ') === 0;
+
+      if (!isPrayerTimePhase) {
+        return '';
+      }
+
+      let prayerName =
+        String(state.prayerName || '')
+          .trim()
+          .toUpperCase();
+
+      if (
+        isFridayWita() &&
+        prayerName === 'DZUHUR'
+      ) {
+        prayerName = "JUM'AT";
+      }
+
+      if (!prayerName) {
+        return '';
+      }
+
+      return (
+        'WAKTU SHOLAT ' +
+        prayerName +
+        suffix
+      );
+
+    }
+
+
+    function updatePrayerEventBanner_(state) {
+
+      const element =
+        document.getElementById(
+          'event-running'
+        );
+
+      if (!element) return;
+
+      const nextOverride =
+        getEventPrayerOverrideText_(state);
+
+      if (
+        nextOverride ===
+        eventPrayerOverrideText
+      ) {
+        return;
+      }
+
+      eventPrayerOverrideText =
+        nextOverride;
+
+      if (nextOverride) {
+
+        previousEventText = '';
+        element.innerText =
+          nextOverride;
+
+        requestAnimationFrame(function() {
+          startEventRunning();
+        });
+
+        console.log(
+          'EVENT BANNER KHUSUS:',
+          nextOverride
+        );
+
+      } else {
+
+        previousEventText = '';
+        loadEventRunningText();
+
+      }
+
+    }
+
+
     function loadEventRunningText() {
 
       gasApiCall('getEventRunningText')
@@ -4201,6 +4339,12 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             );
 
           if (!element) return;
+
+          // Jika sedang berada pada fase khusus, hasil polling
+          // Spreadsheet Event tidak boleh menimpa teks khusus.
+          if (eventPrayerOverrideText) {
+            return;
+          }
 
           const newText = text || '';
 
@@ -11333,6 +11477,13 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
       if (activeState) {
 
+        // Event running text mengikuti fase countdown:
+        // - IMSAK/BERBUKA memakai teks khusus sampai fase display berakhir.
+        // - ADZAN/MENUJU IQOMAH/IQOMAH/+15 menit memakai
+        //   "WAKTU SHOLAT <NAMA> <KOTA> DAN SEKITARNYA".
+        // - MENUJU SHOLAT sebelum waktunya tetap memakai Event Sheet.
+        updatePrayerEventBanner_(activeState);
+
         // Panel AUTO hanya menampilkan panel hitam pada window yang sudah
         // dihitung scheduler. Isi panel hitam TIDAK mengambil judul
         // countdown utama, sehingga tidak pernah menjadi:
@@ -11529,6 +11680,14 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
         nextTitle =
           ensureCountdownCityTitle_(nextTitle);
+
+        // Pada cabang tanpa activeState, WAKTU IMSAK tetap dapat
+        // menjadi Event khusus karena state IMSAK berada pada
+        // perhitungan nextTitle. Fase MENUJU SHOLAT tidak mengambil alih.
+        updatePrayerEventBanner_({
+          title: nextTitle,
+          prayerName: nextPrayer.name
+        });
 
         if (countdownTitle && nextTitle !== lastCountdownTitle) {
           countdownTitle.innerText = nextTitle;
