@@ -10385,54 +10385,42 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
     // =========================================================
 
     function getCountdownCity_() {
-      // Nama kota untuk heading countdown berasal khusus dari panels!C14
-      // (data header -> field Kota). Tidak memakai panels!C5.
+      // Dipertahankan untuk kebutuhan panel/header lain.
       try {
-        const city = String(
+        return String(
           window.__MASJID_HEADER_CITY__ || ''
         ).trim();
-        return city;
       } catch (e) {
         return '';
       }
     }
 
+    // Judul countdown kembali ke format asli:
+    // MENUJU SHOLAT ASHAR
+    // SHOLAT ASHAR
+    // tanpa tambahan nama kota.
     function formatCountdownPrayerTitle_(prayerName, menuju) {
-      const city = getCountdownCity_();
-      const name = String(prayerName || '').trim().toUpperCase();
+      const name =
+        String(prayerName || '').trim().toUpperCase();
 
       if (!name) {
         return menuju ? 'MENUJU SHOLAT' : 'SHOLAT';
       }
 
-      const prefix = menuju ? 'MENUJU SHOLAT ' : 'SHOLAT ';
-      return prefix + name + (city ? ' ' + city + ' DAN SEKITARNYA' : '');
+      return (
+        (menuju ? 'MENUJU SHOLAT ' : 'SHOLAT ') +
+        name
+      );
     }
 
+    // Judul khusus countdown juga kembali tanpa nama kota.
     function formatCountdownSpecialTitle_(label) {
-      const city = getCountdownCity_();
-      const base = String(label || '').trim().toUpperCase();
-
-      return base + (city ? ' ' + city + ' DAN SEKITARNYA' : '');
+      return String(label || '').trim().toUpperCase();
     }
 
-    // Pastikan judul event khusus selalu memakai nama kota dari panels!C14.
-    // Ini hanya mengubah teks heading countdown; tidak menyentuh audio,
-    // scheduler, YouTube, kartu sholat, atau waktu sholat.
+    // Tidak lagi menambahkan kota pada judul countdown.
     function ensureCountdownCityTitle_(title) {
-      const city = getCountdownCity_();
-      const base = String(title || '').trim().toUpperCase();
-
-      if (!city) return base;
-
-      if (
-        base === 'WAKTU IMSAK' ||
-        base === 'WAKTU BERBUKA'
-      ) {
-        return base + ' ' + city.toUpperCase() + ' DAN SEKITARNYA';
-      }
-
-      return base;
+      return String(title || '').trim().toUpperCase();
     }
 
     function updatePrayerCountdown() {
