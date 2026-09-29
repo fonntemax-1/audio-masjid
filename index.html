@@ -10838,9 +10838,42 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
   WEB_APP_STATE.displayTheme = safeTheme;
 
+  // KUNCI LANGSUNG pada elemen DOM yang membentuk frame area Running Text.
+  // Inline style dipakai sebagai lapisan terakhir agar aturan CSS lama,
+  // cache selector, atau specificity lain tidak dapat mengembalikan hijau.
+  const themeColorMap = {
+    hijau: '#00ffaa',
+    merah: '#ff5a5f',
+    kuning: '#f4c542'
+  };
+
+  const frameColor = themeColorMap[safeTheme] || themeColorMap.hijau;
+
+  document.querySelectorAll(
+    '.screen-container, .center-panel'
+  ).forEach(function(el) {
+    el.style.setProperty(
+      'border-color',
+      frameColor,
+      'important'
+    );
+  });
+
+  document.querySelectorAll(
+    '.center-panel .event-banner'
+  ).forEach(function(el) {
+    el.style.setProperty(
+      'border-top-color',
+      frameColor,
+      'important'
+    );
+  });
+
   console.log(
     'DISPLAY THEME =',
-    safeTheme
+    safeTheme,
+    'FRAME COLOR =',
+    frameColor
   );
 }
 
