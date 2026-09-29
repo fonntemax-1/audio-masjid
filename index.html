@@ -9668,6 +9668,14 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         const prev = String(previousEvent || '').toLowerCase();
         const next = String(nextEvent || '').toLowerCase();
 
+        // TARHIM -> TARHIM = replay langsung tanpa GAP.
+        if (
+          prev === 'tarhim' &&
+          next === 'tarhim'
+        ) {
+          return 0;
+        }
+
         if (prev === 'doa-adzan' && next === 'beep') {
           return 5 * 60;
         }
