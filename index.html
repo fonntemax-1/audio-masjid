@@ -5301,6 +5301,72 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
 
     // =========================================================
+    // YOUTUBE CONTROL CEPAT - panels!G20
+    // Polling khusus selector setiap 1 detik.
+    // Tidak memanggil getDataFromSheet sehingga tidak membebani
+    // scheduler/audio/data display utama.
+    // =========================================================
+    let youtubeControlFastRequestInFlight = false;
+    let youtubeControlFastLastSignature = '';
+
+    function pollYouTubeControlFast_() {
+      if (youtubeControlFastRequestInFlight) return;
+
+      youtubeControlFastRequestInFlight = true;
+
+      gasApiCall('getYoutubeControl')
+        .then(function(control) {
+          if (!control || typeof control !== 'object') return;
+
+          const url = String(control.Youtube || '').trim();
+          const status = normalizeYouTubeControlMode(
+            control.YoutubeStatus || 'AUTO'
+          );
+          const signature = url + '|' + status;
+
+          if (signature === youtubeControlFastLastSignature) return;
+
+          youtubeControlFastLastSignature = signature;
+
+          console.log(
+            'YOUTUBE CONTROL CEPAT: C20/G20 berubah =>',
+            status
+          );
+
+          // Hanya kontrol YouTube. Tidak menyentuh audio scheduler.
+          setYouTubeVideo(url, status);
+
+          try {
+            updateYouTubeAudioStop(
+              getCurrentSeconds(),
+              getApiDate()
+            );
+          } catch (e) {
+            console.warn('YOUTUBE CONTROL CEPAT: update audio stop gagal', e);
+          }
+        })
+        .catch(function(error) {
+          console.warn(
+            'YOUTUBE CONTROL CEPAT GAGAL:',
+            error && error.message ? error.message : error
+          );
+        })
+        .finally(function() {
+          youtubeControlFastRequestInFlight = false;
+        });
+    }
+
+    function startFastYouTubeControlPolling_() {
+      pollYouTubeControlFast_();
+
+      setInterval(
+        pollYouTubeControlFast_,
+        1000
+      );
+    }
+
+
+    // =========================================================
     // UPDATE UI
     // =========================================================
 
@@ -13658,6 +13724,8 @@ function setCountdownBlackMode(enabled) {
       fetchSheetData,
       30000
     );
+
+    // Selector panels!G20 harus merespons maksimal sekitar 1-2 detik.\n    // Polling khusus ini tidak mengubah polling data utama 30 detik.\n    startFastYouTubeControlPolling_();
 
     // Tema panels!C18 diperiksa terpisah agar perubahan HIJAU/MERAH/KUNING
     // tidak menunggu reload halaman. Hanya visual, tidak menyentuh audio.
