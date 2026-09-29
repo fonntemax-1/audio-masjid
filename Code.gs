@@ -2478,148 +2478,119 @@ function getPrayerSchedule(
 
   try {
 
-    const timezone =
-      'Asia/Makassar';
+    const timezone = 'Asia/Makassar';
 
     if (!dateString) {
+      dateString = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
+    }
+    dateString = String(dateString).trim();
 
-      dateString =
-        Utilities.formatDate(
-          new Date(),
-          timezone,
-          'yyyy-MM-dd'
-        );
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateString)) {
+      return { success: false, error: 'Format tanggal harus YYYY-MM-DD.' };
+    }
+
+    // CACHE JADWAL SHOLAT: CacheService -> ScriptProperties -> MuslimKita.
+    // Request tanggal yang sama tidak perlu menunggu API eksternal lagi.
+    const cache = CacheService.getScriptCache();
+    const cacheKey = 'PRAYER_SCHEDULE_' + dateString.replace(/-/g, '');
+    const properties = PropertiesService.getScriptProperties();
+    const propertyKey = 'PRAYER_SCHEDULE_' + dateString;
+
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      try {
+        const result = JSON.parse(cached);
+        if (result && result.success && result.jadwal) {
+          result.cached = true;
+          result.cacheSource = 'CacheService';
+          Logger.log('JADWAL SHOLAT: CACHE HIT ' + dateString);
+          return result;
+        }
+      } catch (e) {}
+    }
+
+    const stored = properties.getProperty(propertyKey);
+    if (stored) {
+      try {
+        const result = JSON.parse(stored);
+        if (result && result.success && result.jadwal) {
+          try { cache.put(cacheKey, JSON.stringify(result), 21600); } catch (e) {}
+          result.cached = true;
+          result.cacheSource = 'ScriptProperties';
+          Logger.log('JADWAL SHOLAT: PROPERTY CACHE HIT ' + dateString);
+          return result;
+        }
+      } catch (e) {}
     }
 
     const apiUrl =
       'https://www.muslimkita.id/api/jadwal-sholat/v1/balikpapan' +
-      '?tanggal=' +
-      encodeURIComponent(
-        dateString
-      ) +
+      '?tanggal=' + encodeURIComponent(dateString) +
       '&metode=kemenag';
 
-    Logger.log(
-      'JADWAL SHOLAT: request ' +
-      apiUrl
-    );
+    Logger.log('JADWAL SHOLAT: API request ' + apiUrl);
 
-    let response =
-      UrlFetchApp.fetch(
-        apiUrl,
-        {
-          method: 'get',
-          muteHttpExceptions: true,
-          followRedirects: true,
-          headers: {
-            'Accept':
-              'application/json',
-            'User-Agent':
-              'Mozilla/5.0 (Google Apps Script)'
-          }
-        }
-      );
+    const response = UrlFetchApp.fetch(apiUrl, {
+      method: 'get',
+      muteHttpExceptions: true,
+      followRedirects: true,
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Google Apps Script)'
+      }
+    });
 
-    if (
-      response.getResponseCode() !== 200
-    ) {
-
-      Logger.log(
-        'JADWAL SHOLAT: HTTP ' +
-        response.getResponseCode() +
-        ' body=' +
-        response.getContentText().slice(0, 500)
-      );
-
+    if (response.getResponseCode() !== 200) {
+      Logger.log('JADWAL SHOLAT: HTTP ' + response.getResponseCode() +
+        ' body=' + response.getContentText().slice(0, 500));
       return {
         success: false,
-        error:
-          'HTTP ' +
-          response.getResponseCode() +
-          ' dari API MuslimKita'
+        error: 'HTTP ' + response.getResponseCode() + ' dari API MuslimKita'
       };
     }
 
-    let json =
-      JSON.parse(
-        response.getContentText()
-      );
-
-    if (
-      !json ||
-      !json.jadwal
-    ) {
-
-      Logger.log(
-        'JADWAL SHOLAT: response tidak memiliki object jadwal: ' +
-        response.getContentText().slice(0, 1000)
-      );
-
-      return {
-        success: false,
-        error:
-          'Data jadwal tidak tersedia.'
-      };
+    const json = JSON.parse(response.getContentText());
+    if (!json || !json.jadwal) {
+      Logger.log('JADWAL SHOLAT: response tidak memiliki object jadwal: ' +
+        response.getContentText().slice(0, 1000));
+      return { success: false, error: 'Data jadwal tidak tersedia.' };
     }
 
-    const jadwalApi =
-      json.jadwal;
-
-    Logger.log(
-      'JADWAL SHOLAT: data berhasil diterima tanggal=' +
-      dateString +
-      ' jadwal=' +
-      JSON.stringify(jadwalApi)
-    );
-
-    return {
+    const jadwalApi = json.jadwal;
+    const result = {
       success: true,
-      kota:
-        json.kota ||
-        'Balikpapan',
-      tanggal:
-        dateString,
-      timezone:
-        json.timezone ||
-        timezone,
+      kota: json.kota || 'Balikpapan',
+      tanggal: dateString,
+      timezone: json.timezone || timezone,
+      cached: false,
+      cacheSource: 'MuslimKita',
       jadwal: {
-        imsak:
-          normalizePrayerTime(
-            jadwalApi.imsak
-          ),
-        subuh:
-          normalizePrayerTime(
-            jadwalApi.subuh
-          ),
-        terbit:
-          normalizePrayerTime(
-            jadwalApi.terbit
-          ),
-        dzuhur:
-          normalizePrayerTime(
-            jadwalApi.dzuhur
-          ),
-        ashar:
-          normalizePrayerTime(
-            jadwalApi.ashar
-          ),
-        maghrib:
-          normalizePrayerTime(
-            jadwalApi.maghrib
-          ),
-        isya:
-          normalizePrayerTime(
-            jadwalApi.isya
-          )
+        imsak: normalizePrayerTime(jadwalApi.imsak),
+        subuh: normalizePrayerTime(jadwalApi.subuh),
+        terbit: normalizePrayerTime(jadwalApi.terbit),
+        dzuhur: normalizePrayerTime(jadwalApi.dzuhur),
+        ashar: normalizePrayerTime(jadwalApi.ashar),
+        maghrib: normalizePrayerTime(jadwalApi.maghrib),
+        isya: normalizePrayerTime(jadwalApi.isya)
       }
     };
 
-  } catch (error) {
+    const serialized = JSON.stringify(result);
+    try { cache.put(cacheKey, serialized, 21600); } catch (e) {}
+    try { properties.setProperty(propertyKey, serialized); } catch (e) {
+      Logger.log('JADWAL SHOLAT: ScriptProperties write gagal: ' + e);
+    }
 
+    Logger.log('JADWAL SHOLAT: data API berhasil dan disimpan cache tanggal=' +
+      dateString + ' jadwal=' + JSON.stringify(result.jadwal));
+
+    return result;
+
+  } catch (error) {
+    Logger.log('JADWAL SHOLAT ERROR: ' + (error && error.message ? error.message : error));
     return {
       success: false,
-      error:
-        error.message
+      error: error && error.message ? error.message : String(error)
     };
   }
 }
