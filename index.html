@@ -4714,7 +4714,9 @@
         if (element) {
 
           element.innerHTML =
-            infoAlamat.join(' <span class="info-separator">-</span> ');
+            infoAlamat.length === 3
+              ? infoAlamat[0] + ' <span class="info-separator">-</span> ' + infoAlamat[1] + ' <span class="info-separator">|</span> ' + infoAlamat[2]
+              : infoAlamat.join(' <span class="info-separator">|</span> ');
 
         }
 
