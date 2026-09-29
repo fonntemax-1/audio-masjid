@@ -4882,6 +4882,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       const isPrayerState =
         prayerStateTitles.indexOf(stateTitleUpper) >= 0 ||
+        stateTitleUpper === 'WAKTU' ||
         stateTitleUpper.indexOf('WAKTU SHOLAT') === 0;
 
       if (isPrayerState) {
