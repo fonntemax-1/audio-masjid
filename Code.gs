@@ -222,6 +222,35 @@ function getDataFromSheet() {
     Logger.log('LOKASI API = ' + JSON.stringify(result.Lokasi));
 
     // =====================================================
+    // HEADER MASJID - panels!B12:C16
+    // =====================================================
+    const headerSheet = ss.getSheetByName('panels');
+    if (headerSheet) {
+      const headerValues = headerSheet.getRange('B12:C16').getDisplayValues();
+      const headerData = {};
+
+      headerValues.forEach(function(row) {
+        const key = String(row[0] || '').trim().toUpperCase();
+        const value = String(row[1] || '').trim();
+        if (key) headerData[key] = value;
+      });
+
+      result.Nama = headerData.NAMA || '';
+      result.Alamat = headerData.ALAMAT || '';
+      result.Kota = headerData.KOTA || '';
+      result['No. Telp'] = headerData['NO HP'] || '';
+      result.Slogan = headerData.SLOGAN || '';
+
+      Logger.log('PANELS HEADER B12:C16 = ' + JSON.stringify({
+        Nama: result.Nama,
+        Alamat: result.Alamat,
+        Kota: result.Kota,
+        NoTelp: result['No. Telp'],
+        Slogan: result.Slogan
+      }));
+    }
+
+    // =====================================================
     // KONTROL MODE DISPLAY COUNTDOWN
     // Sumber: sheet "panels"!C2
     // AUTO   = layar hitam saat countdown sholat aktif
