@@ -261,6 +261,46 @@ function getPanelDisplayMode() {
 }
 
 
+function getPanelIqomahBlackMode() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('panels');
+
+    if (!sheet) {
+      return { success: true, mode: 'NORMAL' };
+    }
+
+    const raw = String(
+      sheet.getRange('C22').getDisplayValue() || ''
+    ).trim().toUpperCase();
+
+    const mode = raw === 'AUTO' ? 'AUTO' : 'NORMAL';
+
+    Logger.log(
+      'PANELS API C22 IQOMAH BLACK = [' +
+      raw + '] => mode = [' + mode + ']'
+    );
+
+    return {
+      success: true,
+      mode: mode
+    };
+
+  } catch (error) {
+    Logger.log(
+      'PANELS C22 IQOMAH BLACK ERROR: ' +
+      error.message
+    );
+
+    return {
+      success: false,
+      error: error.message,
+      mode: 'NORMAL'
+    };
+  }
+}
+
+
 function getYoutubeControl() {
   try {
     const ss = getSpreadsheet();
