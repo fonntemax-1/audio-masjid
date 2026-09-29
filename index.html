@@ -10032,17 +10032,39 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         name === 'SUBUH' &&
         sirineIndex >= 0
       ) {
-        let cursor = Number(pSec);
+        // ---------------------------------------------------------
+        // SUBUH RAMADHAN:
+        // ANCHOR UTAMA = SIRINE IMSAK.
+        //
+        // Sirine dimulai tepat 10 menit sebelum waktu ADZAN SUBUH.
+        // Waktu ADZAN SUBUH (pSec) tetap fixed dan tidak boleh bergeser.
+        //
+        // Sequence:
+        // QIROAH -> GAP 3s -> TARHIM -> GAP 3s -> SIRINE
+        // -> GAP 3s -> DOA-PUASA -> GAP 3s -> TARHIM
+        // -> (jika ada ruang) GAP 3s -> BEEP
+        // -> GAP 1s -> ADZAN-SUBUH -> GAP 1s -> DOA-ADZAN
+        // -> GAP 3 MENIT -> BEEP -> GAP 1s -> IQOMAH.
+        //
+        // BEEP pertama DIKUNCI tepat 1 detik sebelum ADZAN SUBUH.
+        // Tarhim tidak dipotong; bila ada ruang, Tarhim boleh mengisi
+        // ruang sebelum BEEP sesuai durasi audio aktual.
+        // ---------------------------------------------------------
 
-        // Semua event sebelum ADZAN dihitung mundur dari anchor.
-        for (let i = adzanIndex - 1; i >= 0; i--) {
+        const sirineTarget =
+          Number(pSec) - (10 * 60);
+
+        // Semua event sebelum SIRINE dihitung mundur dari anchor IMSAK.
+        let cursorBefore = sirineTarget;
+
+        for (let i = sirineIndex - 1; i >= 0; i--) {
           const item = items[i];
 
-          cursor -= item.duration;
+          cursorBefore -= item.duration;
 
           add(
             item.event.toUpperCase(),
-            cursor,
+            cursorBefore,
             item.duration,
             getLabel(item),
             item.audioType,
@@ -10050,13 +10072,106 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           );
 
           if (i > 0) {
-            cursor -= getSystemGapSeconds(
+            cursorBefore -= getSystemGapSeconds(
               items[i - 1].event,
               item.event
             );
           }
         }
 
+        add(
+          'SIRINE',
+          sirineTarget,
+          items[sirineIndex].duration,
+          'Sirine Ramadan - WAKTU IMSAK',
+          items[sirineIndex].audioType,
+          items[sirineIndex].status
+        );
+
+        // Cari BEEP pertama dan jadikan ADZAN SUBUH sebagai fixed target.
+        const firstBeepIndexAfterSirine = items.findIndex(function(item, index) {
+          return (
+            index > sirineIndex &&
+            index < adzanIndex &&
+            item.event === 'beep'
+          );
+        });
+
+        const firstBeepItem =
+          firstBeepIndexAfterSirine >= 0
+            ? items[firstBeepIndexAfterSirine]
+            : null;
+
+        const firstBeepTarget =
+          firstBeepItem
+            ? Number(pSec) - 1 - firstBeepItem.duration
+            : null;
+
+        // Event setelah SIRINE dan sebelum ADZAN dijalankan maju,
+        // tetapi BEEP pertama dilewati dulu karena posisinya dikunci
+        // tepat 1 detik sebelum ADZAN SUBUH.
+        let cursorAfterSirine =
+          sirineTarget + items[sirineIndex].duration;
+
+        for (
+          let i = sirineIndex + 1;
+          i < adzanIndex;
+          i++
+        ) {
+          const item = items[i];
+
+          // BEEP pertama akan dipasang tepat sebelum ADZAN.
+          if (
+            i === firstBeepIndexAfterSirine &&
+            item.event === 'beep'
+          ) {
+            continue;
+          }
+
+          cursorAfterSirine += getSystemGapSeconds(
+            items[i - 1].event,
+            item.event
+          );
+
+          add(
+            item.event.toUpperCase(),
+            cursorAfterSirine,
+            item.duration,
+            getLabel(item),
+            item.audioType,
+            item.status
+          );
+
+          cursorAfterSirine += item.duration;
+        }
+
+        if (firstBeepItem && Number.isFinite(firstBeepTarget)) {
+          // Pastikan BEEP tidak pernah dimajukan atau dipotong.
+          // Jika rangkaian sebelum BEEP memakan seluruh ruang,
+          // tampilkan warning agar kondisi Sheet/durasi dapat diperiksa.
+          if (
+            cursorAfterSirine >
+            firstBeepTarget
+          ) {
+            console.warn(
+              'AUDIO SUBUH RAMADHAN: ruang sebelum BEEP pertama tidak cukup.',
+              'cursor=', cursorAfterSirine,
+              'beepTarget=', firstBeepTarget,
+              'adzan=', Number(pSec)
+            );
+          }
+
+          add(
+            'BEEP',
+            firstBeepTarget,
+            firstBeepItem.duration,
+            getLabel(firstBeepItem),
+            firstBeepItem.audioType,
+            firstBeepItem.status
+          );
+        }
+
+        // ADZAN SUBUH selalu tepat pada waktu sholat dari jadwal.
         const adzanItem = items[adzanIndex];
 
         add(
@@ -10068,34 +10183,42 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           adzanItem.status
         );
 
-        cursor =
+        let cursorAfterAdzan =
           Number(pSec) + adzanItem.duration;
 
-        // Semua event setelah ADZAN berjalan maju.
-        for (let i = adzanIndex + 1; i < items.length; i++) {
+        // Semua event setelah ADZAN berjalan maju sesuai gap final.
+        for (
+          let i = adzanIndex + 1;
+          i < items.length;
+          i++
+        ) {
           const item = items[i];
           const previous = items[i - 1];
 
-          cursor += getSystemGapSeconds(
+          cursorAfterAdzan += getSystemGapSeconds(
             previous.event,
             item.event
           );
 
           add(
             item.event.toUpperCase(),
-            cursor,
+            cursorAfterAdzan,
             item.duration,
             getLabel(item),
             item.audioType,
             item.status
           );
 
-          cursor += item.duration;
+          cursorAfterAdzan += item.duration;
         }
 
         console.log(
-          'AUDIO SUBUH RAMADHAN: anchor ADZAN =',
+          'AUDIO SUBUH RAMADHAN: anchor SIRINE IMSAK =',
+          sirineTarget,
+          'ADZAN fixed =',
           Number(pSec),
+          'BEEP pertama =',
+          firstBeepTarget,
           'sequence:',
           items.map(function(item) {
             return item.event;
