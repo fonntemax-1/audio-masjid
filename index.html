@@ -4276,6 +4276,45 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
         }
 
+        // HARD GUARD SIRINE: setelah target IQOMAH tercapai,
+        // SIRINE tidak boleh diputar/catch-up lagi.
+        if (normalizedQueueAudioType === 'sirine') {
+          const scheduleForPrayer =
+            WEB_APP_STATE.audio.computedSchedules instanceof Map
+              ? WEB_APP_STATE.audio.computedSchedules.get(item.prayerName)
+              : null;
+
+          const iqomahEvent =
+            scheduleForPrayer && Array.isArray(scheduleForPrayer.events)
+              ? scheduleForPrayer.events.find(function(event) {
+                  return String(event.eventName || '').trim().toUpperCase() === 'IQOMAH';
+                })
+              : null;
+
+          const iqomahTargetSec =
+            iqomahEvent ? Number(iqomahEvent.targetSec) : NaN;
+
+          if (
+            Number.isFinite(iqomahTargetSec) &&
+            nowSeconds >= iqomahTargetSec
+          ) {
+            console.log(
+              'AUDIO SIRINE DIBLOK SETELAH IQOMAH:',
+              item.prayerName || '-',
+              'iqomahTargetSec=',
+              iqomahTargetSec,
+              'nowSec=',
+              nowSeconds
+            );
+
+            state.queue.shift();
+            state.queuedLocks.delete(item.eventKey);
+            state.processing = false;
+            processAudioQueue();
+            return;
+          }
+        }
+
         // PROTECTED bukan berarti boleh diputar terlambat.
         // Jika target + durasi sudah benar-benar lewat, event harus
         // dibuang agar SIRINE/ADZAN/DOA/BEEP/IQOMAH tidak tiba-tiba
