@@ -12703,29 +12703,54 @@ function setCountdownBlackMode(enabled) {
 
     installAudioInteractionUnlock();
 
-    // Sinkronisasi pertama dilakukan sebelum jadwal sholat dimuat.
-    // Jika server tidak dapat dihubungi, inisialisasi tetap berjalan
-    // dengan clock perangkat sebagai fallback.
-    syncInternetTime()
-      .finally(function() {
+    // =========================================================
+    // INITIAL LOAD - JANGAN BLOKIR TAMPILAN MENUNGGU SERVER TIME
+    // =========================================================
+    // Tampilan, Spreadsheet, jadwal sholat, dan audio mulai segera.
+    // Sinkronisasi waktu server berjalan di background sehingga
+    // Apps Script yang lambat tidak menahan first render.
+    //
+    // Jika sync waktu berhasil, offset diterapkan untuk perhitungan
+    // berikutnya. Jika gagal, clock perangkat tetap digunakan.
+    // Tidak mengubah timeline/audio/scheduler.
+    startAutoRefresh();
 
-        startAutoRefresh();
+    updateClock();
+    updateGregorianDate();
+    updateFridayPrayerDisplay();
 
-        updateClock();
-        updateGregorianDate();
-        updateHijriDate();
-        updateFridayPrayerDisplay();
+    // Hijri tetap dipanggil segera; fungsi ini sendiri asynchronous.
+    updateHijriDate();
 
-        fetchSheetData();
-        fetchPrayerSchedule();
-        loadEventRunningText();
+    fetchSheetData();
+    fetchPrayerSchedule();
+    loadEventRunningText();
 
-        setTimeout(
-          initAudioPermission,
-          1000
-        );
+    setTimeout(
+      initAudioPermission,
+      1000
+    );
 
-      });
+    // Sinkronisasi waktu hanya sebagai background task.
+    // Jadwal utama tidak menunggu request ini selesai.
+    setTimeout(
+      function() {
+        syncInternetTime()
+          .then(function() {
+            updateClock();
+            updateGregorianDate();
+            updateFridayPrayerDisplay();
+            updatePrayerCountdown();
+          })
+          .catch(function(error) {
+            console.warn(
+              'WAKTU INTERNET BACKGROUND SYNC GAGAL:',
+              error && error.message ? error.message : error
+            );
+          });
+      },
+      0
+    );
 
 
     // =========================================================
