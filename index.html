@@ -4902,7 +4902,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           if (isRamadanDisplay()) {
             const imsakStartSec = subuhSec - (10 * 60);
-            const imsakEndSec = imsakStartSec + (5 * 60);
+            const imsakEndSec = imsakStartSec + (3 * 60);
 
             if (
               nowSeconds >= imsakStartSec &&
@@ -5015,6 +5015,54 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       if (!prayerName) {
         return '';
+      }
+
+      // Running text WAKTU SHOLAT berhenti tepat 15 menit
+      // setelah waktu mulai IQOMAH, bukan 15 menit setelah
+      // audio IQOMAH selesai.
+      try {
+        const computedSchedules =
+          WEB_APP_STATE.audio &&
+          WEB_APP_STATE.audio.computedSchedules instanceof Map
+            ? WEB_APP_STATE.audio.computedSchedules
+            : new Map();
+
+        const schedulePrayerName =
+          prayerName === "JUM'AT" ? 'DZUHUR' : prayerName;
+
+        const computedPrayer =
+          computedSchedules.get(schedulePrayerName);
+
+        const iqomahEvent =
+          computedPrayer &&
+          Array.isArray(computedPrayer.events)
+            ? computedPrayer.events.find(function(event) {
+                return String(event.eventName || '').trim().toUpperCase() === 'IQOMAH';
+              })
+            : null;
+
+        if (
+          iqomahEvent &&
+          Number.isFinite(Number(iqomahEvent.targetSec))
+        ) {
+          const now = getWitaTime();
+          const nowSeconds =
+            Number(now.hour) * 3600 +
+            Number(now.minute) * 60 +
+            Number(now.second);
+
+          const runningTextEndSec =
+            Number(iqomahEvent.targetSec) + (15 * 60);
+
+          if (nowSeconds >= runningTextEndSec) {
+            return '';
+          }
+        }
+      } catch (runningTextTimingError) {
+        console.warn(
+          'EVENT WAKTU SHOLAT: gagal membaca batas +15 menit IQOMAH:',
+          runningTextTimingError
+        );
       }
 
       return (
