@@ -42,6 +42,13 @@ function handleGithubApiRequest_(params) {
         result = getPanelDisplayMode();
         break;
 
+      // Tema display dari panels!C18.
+      // Dipisahkan dari getDataFromSheet() agar perubahan
+      // HIJAU/MERAH/KUNING dapat dibaca langsung oleh GitHub Pages.
+      case 'getDisplayThemeSetting':
+        result = getDisplayThemeSetting();
+        break;
+
       case 'getEventRunningText':
         result = getEventRunningText();
         break;
