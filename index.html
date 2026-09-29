@@ -1593,7 +1593,41 @@
       font-weight: bold;
     }
   </style>
-<style id="black-mode-final-fix">body.panel-countdown-auto .clock-overlay .countdown-title,body.panel-countdown-auto .countdown-title{display:none!important;visibility:hidden!important}body.panel-countdown-auto .clock-overlay .panel-black-message{display:flex!important;visibility:visible!important;opacity:1!important;z-index:100001!important}body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-title,body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-prayer,body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{display:block!important;visibility:visible!important}</style></head>
+<style id="black-mode-final-fix">body.panel-countdown-auto .clock-overlay .countdown-title,body.panel-countdown-auto .countdown-title{display:none!important;visibility:hidden!important}body.panel-countdown-auto .clock-overlay .panel-black-message{display:flex!important;visibility:visible!important;opacity:1!important;z-index:100001!important}body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-title,body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-prayer,body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{display:block!important;visibility:visible!important}</style><style id="black-mode-three-lines-final">
+/* FINAL: panel hitam wajib 3 baris vertikal */
+body.panel-countdown-auto .clock-overlay .panel-black-message{
+  display:flex!important;
+  flex-direction:column!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:1.0vh!important;
+  white-space:normal!important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-line{
+  display:block!important;
+  flex:0 0 auto!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  float:none!important;
+  position:relative!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-title{
+  order:1!important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-prayer{
+  order:2!important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
+  order:3!important;
+}
+</style>
+</head>
 
 <body>
   <div class="screen-container">
