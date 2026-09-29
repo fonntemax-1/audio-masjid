@@ -1784,8 +1784,22 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
   }
 
   .event-banner {
-    border-top-color: var(--theme-border) !important;
+    border-top: 0.2vh solid var(--theme-border) !important;
+    border-bottom: 0 !important;
     background: var(--theme-panel) !important;
+  }
+
+  /* Pengunci khusus garis Running Text agar tidak mewarisi hijau lama. */
+  :root[data-display-theme="hijau"] .event-banner {
+    border-top-color: #00ffaa !important;
+  }
+
+  :root[data-display-theme="merah"] .event-banner {
+    border-top-color: #ff5a5f !important;
+  }
+
+  :root[data-display-theme="kuning"] .event-banner {
+    border-top-color: #f4c542 !important;
   }
 
   .event-running {
