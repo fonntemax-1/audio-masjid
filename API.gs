@@ -1,0 +1,154 @@
+// ============================================================
+// DIGITAL SIGNAGE MASJID AL MUJAHIDIN
+// API.GS - BRIDGE GITHUB PAGES
+// ============================================================
+//
+// JSONP bridge untuk GitHub Pages.
+// TIDAK mengubah sistem AUDIO.
+// TIDAK mengubah jadwal sholat.
+// TIDAK mengubah Ramadan.
+// TIDAK mengubah keuangan / Jumat / khutbah.
+//
+// ============================================================
+
+function handleGithubApiRequest_(params) {
+  params = params || {};
+  var action = String(params.action || '').trim();
+  var callback = String(params.callback || '').trim();
+
+  if (!callback) {
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false,
+        error: 'Callback JSONP kosong.'
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  if (!/^[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*$/.test(callback)) {
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false,
+        error: 'Callback JSONP tidak valid.'
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  try {
+    var result;
+
+    switch (action) {
+      case 'getDataFromSheet':
+        result = getDataFromSheet();
+        break;
+
+      case 'getPanelDisplayMode':
+        result = getPanelDisplayMode();
+        break;
+
+      case 'getDisplayThemeSetting':
+        result = getDisplayThemeSetting();
+        break;
+
+      case 'getServerTime':
+        result = getServerTime();
+        break;
+
+      case 'getEventRunningText':
+        result = getEventRunningText();
+        break;
+
+      case 'getHijriDateFromApi':
+        result = getHijriDateFromApi(String(params.date || ''));
+        break;
+
+      case 'getPrayerSchedule':
+        result = getPrayerSchedule(String(params.date || ''));
+        break;
+
+      case 'getRealtimeAudioConfig':
+        result = getRealtimeAudioConfig();
+        break;
+
+      case 'setYoutubeStatusOff':
+        result = setYoutubeStatusOff();
+        break;
+
+      case 'getYoutubeStatus':
+        result = getYoutubeStatus();
+        break;
+
+      case 'lockYoutubeControl':
+        result = lockYoutubeControl();
+        break;
+
+      case 'unlockYoutubeControl':
+        result = unlockYoutubeControl();
+        break;
+
+      case 'getYoutubeControlProtectionState':
+        result = getYoutubeControlProtectionState();
+        break;
+
+      case 'ping':
+        result = {
+          status: 'OK',
+          message: 'Apps Script API aktif',
+          timezone: Session.getScriptTimeZone()
+        };
+        break;
+
+      default:
+        throw new Error('API action tidak dikenal: ' + action);
+    }
+
+    if (action === 'getDataFromSheet') {
+      Logger.log('API BRIDGE: getDataFromSheet berhasil.');
+      Logger.log('API BRIDGE: HAS Event = ' + (
+        result &&
+        typeof result === 'object' &&
+        Object.prototype.hasOwnProperty.call(result, 'Event')
+      ));
+      Logger.log('API BRIDGE: Event = ' + JSON.stringify(
+        result && result.Event ? result.Event : null
+      ));
+    }
+
+    return createJsonpResponse_(callback, {
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    Logger.log('API BRIDGE ERROR: ' + (
+      error && error.stack ? error.stack : String(error)
+    ));
+
+    return createJsonpResponse_(callback, {
+      success: false,
+      error: error && error.message ? error.message : String(error)
+    });
+  }
+}
+
+function createJsonpResponse_(callback, payload) {
+  var json = JSON.stringify(payload, function(key, value) {
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    return value;
+  });
+
+  var output = String(callback) + '(' + json + ');';
+
+  return ContentService
+    .createTextOutput(output)
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+function sanitizeJsonpCallback_(callback) {
+  if (callback === null || callback === undefined) return '';
+  var value = String(callback).trim();
+  if (!value) return '';
+  if (!/^[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*$/.test(value)) return '';
+  return value;
+}
