@@ -120,10 +120,57 @@ jobs:
               timezone
           )
 
-          result = gas_json(
-              "getPrayerSchedule",
-              {"date": date_string}
-          )
+          # Ambil jadwal melalui Apps Script terlebih dahulu.
+          # Jika deployment Apps Script masih memakai validasi tanggal lama,
+          # fallback langsung ke endpoint MuslimKita agar cache tetap terisi.
+          try:
+              result = gas_json(
+                  "getPrayerSchedule",
+                  {"date": date_string}
+              )
+          except Exception as gas_error:
+              print("APPS SCRIPT getPrayerSchedule gagal:", str(gas_error))
+              print("FALLBACK: mengambil jadwal langsung dari MuslimKita...")
+
+              if not slug:
+                  raise RuntimeError(
+                      "Slug kota kosong; fallback MuslimKita tidak dapat dijalankan."
+                  )
+
+              muslimkita_url = (
+                  "https://www.muslimkita.id/api/jadwal-sholat/v1/" +
+                  urllib.parse.quote(slug, safe="") +
+                  "?tanggal=" +
+                  urllib.parse.quote(date_string, safe="") +
+                  "&metode=kemenag"
+              )
+
+              req = urllib.request.Request(
+                  muslimkita_url,
+                  headers={
+                      "User-Agent": "GitHub-Actions-Prayer-Cache/1.0",
+                      "Accept": "application/json",
+                  }
+              )
+
+              with urllib.request.urlopen(req, timeout=45) as response:
+                  raw_muslimkita = response.read().decode("utf-8", "replace")
+
+              muslimkita = json.loads(raw_muslimkita)
+              jadwal_fallback = muslimkita.get("jadwal") or {}
+
+              result = {
+                  "success": True,
+                  "kota": muslimkita.get("kota") or kota,
+                  "provinsi": muslimkita.get("provinsi") or str(lokasi.get("provinsi") or "").strip(),
+                  "slug": muslimkita.get("slug") or slug,
+                  "tanggal": muslimkita.get("tanggal") or date_string,
+                  "timezone": timezone,
+                  "zona": zona,
+                  "gmt": str(lokasi.get("gmt") or "").strip(),
+                  "source": "MuslimKita / Kemenag (GitHub fallback)",
+                  "jadwal": jadwal_fallback,
+              }
 
           if not result or result.get("success") is not True:
               raise RuntimeError(
