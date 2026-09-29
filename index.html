@@ -2659,7 +2659,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       panel: {
         mode: 'NORMAL',
-        countdownBlack: false
+        countdownBlack: false,
+        iqomahMode: 'NORMAL'
       }
 
     };
@@ -5680,6 +5681,62 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       setInterval(
         pollYouTubeControlFast_,
+        1000
+      );
+    }
+
+
+    // =========================================================
+    // IQOMAH BLACK SCREEN CONTROL - panels!C22
+    // Polling 1 detik agar perubahan selector cepat diterapkan.
+    // Hanya mengatur tampilan hitam, tidak menyentuh audio.
+    // =========================================================
+    let iqomahBlackRequestInFlight = false;
+    let iqomahBlackLastMode = '';
+
+    function pollIqomahBlackModeFast_() {
+      if (iqomahBlackRequestInFlight) return;
+
+      iqomahBlackRequestInFlight = true;
+
+      gasApiCall('getPanelIqomahBlackMode')
+        .then(function(result) {
+          if (!result || typeof result !== 'object') return;
+
+          const mode =
+            String(result.mode || 'NORMAL')
+              .trim()
+              .toUpperCase();
+
+          if (mode === iqomahBlackLastMode) return;
+
+          iqomahBlackLastMode = mode;
+
+          console.log(
+            'PANELS C22 BERUBAH => IQOMAH BLACK =',
+            mode
+          );
+
+          setPanelIqomahBlackMode(mode);
+        })
+        .catch(function(error) {
+          console.warn(
+            'PANELS C22 GAGAL:',
+            error && error.message
+              ? error.message
+              : error
+          );
+        })
+        .finally(function() {
+          iqomahBlackRequestInFlight = false;
+        });
+    }
+
+    function startFastIqomahBlackModePolling_() {
+      pollIqomahBlackModeFast_();
+
+      setInterval(
+        pollIqomahBlackModeFast_,
         1000
       );
     }
@@ -12165,6 +12222,24 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       }
     }
 
+    function setPanelIqomahBlackMode(mode) {
+      const normalized =
+        String(mode || 'NORMAL')
+          .trim()
+          .toUpperCase();
+
+      WEB_APP_STATE.panel.iqomahMode =
+        normalized === 'AUTO'
+          ? 'AUTO'
+          : 'NORMAL';
+
+      console.log(
+        'PANELS C22 IQOMAH BLACK MODE =',
+        WEB_APP_STATE.panel.iqomahMode
+      );
+    }
+
+
     function applyDisplayTheme(theme) {
   const normalized =
     String(theme || 'HIJAU').trim().toUpperCase();
@@ -12880,6 +12955,7 @@ function setCountdownBlackMode(enabled) {
           iqomahTimeSec + (15 * 60);
 
         if (
+          WEB_APP_STATE.panel.iqomahMode === 'AUTO' &&
           p.hasIqomah &&
           nowSeconds >= panelBlackStartSec &&
           nowSeconds < panelBlackEndSec
@@ -13493,9 +13569,7 @@ function setCountdownBlackMode(enabled) {
         }
 
         setCountdownBlackMode(
-          WEB_APP_STATE.panel.mode === 'AUTO'
-            ? panelBlackWindow
-            : false
+          panelBlackWindow
         );
 
         // Countdown utama tetap dipelihara untuk state normal/audio.
@@ -13534,9 +13608,7 @@ function setCountdownBlackMode(enabled) {
         // Panel AUTO tetap mengikuti window waktu sampai
         // 15 menit setelah IQOMAH selesai.
         setCountdownBlackMode(
-          WEB_APP_STATE.panel.mode === 'AUTO'
-            ? panelBlackWindow
-            : false
+          panelBlackWindow
         );
 
         if (
@@ -14111,6 +14183,7 @@ function setCountdownBlackMode(enabled) {
     );
 
     // Selector panels!G20 harus merespons maksimal sekitar 1-2 detik.\n    // Polling khusus ini tidak mengubah polling data utama 30 detik.\n    startFastYouTubeControlPolling_();
+      startFastIqomahBlackModePolling_();
 
     // Tema panels!C18 diperiksa terpisah agar perubahan HIJAU/MERAH/KUNING
     // tidak menunggu reload halaman. Hanya visual, tidak menyentuh audio.
