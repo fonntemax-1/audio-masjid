@@ -1724,6 +1724,92 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
   order:3!important;
 }
 </style>
+<style id="display-theme-hardcoded-color-fix">
+  /* =========================================================
+     FINAL THEME OVERRIDE
+     Mengikat seluruh garis/frame yang sebelumnya masih memakai
+     warna hijau hard-coded agar mengikuti panels!C18.
+     Tidak menyentuh audio, scheduler, countdown, atau YouTube.
+     ========================================================= */
+  body {
+    background-color: var(--theme-bg) !important;
+  }
+
+  .screen-container {
+    background: var(--theme-bg-deep) !important;
+    border-color: var(--theme-border) !important;
+  }
+
+  .header {
+    border-color: var(--theme-border) !important;
+    background: radial-gradient(
+      circle,
+      var(--theme-panel-2) 0%,
+      var(--theme-bg) 100%
+    ) !important;
+  }
+
+  .header-divider {
+    background: var(--theme-divider) !important;
+  }
+
+  .header-center .slogan,
+  .date-box .hijri-text {
+    color: var(--theme-accent) !important;
+  }
+
+  .prayer-card {
+    background: var(--theme-panel) !important;
+    border-color: var(--theme-border) !important;
+  }
+
+  .center-panel {
+    border-color: var(--theme-border) !important;
+  }
+
+  .countdown-box,
+  .digital-clock-box {
+    background: var(--theme-panel) !important;
+    border-color: var(--theme-border) !important;
+  }
+
+  .digital-time {
+    color: var(--theme-accent) !important;
+  }
+
+  .infaq-panel,
+  .panel-box {
+    background: var(--theme-panel) !important;
+    border-color: var(--theme-border) !important;
+  }
+
+  .event-banner {
+    border-top-color: var(--theme-border) !important;
+  }
+
+  .keuangan-header-row td {
+    border-bottom-color: var(--theme-border) !important;
+  }
+
+  .keuangan-subtotal-row td {
+    border-top-color: var(--theme-border) !important;
+    border-bottom-color: var(--theme-border) !important;
+    color: var(--theme-accent) !important;
+  }
+
+  .keuangan-saldo-akhir td {
+    border-top-color: var(--theme-border) !important;
+  }
+
+  /* Garis/frame tambahan yang mungkin berasal dari komponen lama. */
+  .main-clock-panel,
+  .youtube-panel,
+  .finance-panel,
+  .khutbah-panel {
+    border-color: var(--theme-border) !important;
+  }
+</style>
+
 </head>
 
 <body>
