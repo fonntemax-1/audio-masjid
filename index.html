@@ -1675,13 +1675,27 @@
     }
 
     .footer {
-      background: #01140c;
-      border: 0.2vh solid #00ffaa;
+      background: var(--theme-panel) !important;
+      border: 0.2vh solid var(--theme-border) !important;
       border-radius: 0.8vh;
       display: flex;
       align-items: center;
       padding: 0 1vw;
       overflow: hidden;
+    }
+
+    /* FRAME FOOTER - mengikuti panels!C18.
+       Hanya visual; tidak menyentuh audio/scheduler/YouTube. */
+    :root[data-display-theme="hijau"] .footer {
+      border-color: #00ffaa !important;
+    }
+
+    :root[data-display-theme="merah"] .footer {
+      border-color: #ff5a5f !important;
+    }
+
+    :root[data-display-theme="kuning"] .footer {
+      border-color: #f4c542 !important;
     }
 
     marquee {
