@@ -37,6 +37,21 @@ function doGet(e) {
 // KONFIGURASI
 // =========================================================
 
+function getServerTime() {
+
+  const now = new Date();
+
+  const epochMs = now.getTime();
+
+  return {
+    success: true,
+    epochMs: epochMs,
+    iso: now.toISOString(),
+    source: 'Google Apps Script server'
+  };
+}
+
+
 function getSpreadsheet() {
   const spreadsheetId =
     PropertiesService
