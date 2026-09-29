@@ -13,6 +13,15 @@ function doGet(e) {
   // API GitHub Pages ditangani oleh API.gs.
   const params = e && e.parameter ? e.parameter : {};
 
+  // =====================================================
+  // THEME DISPLAY - panels!C18
+  // Ditangani langsung di Code.gs agar tidak bergantung pada
+  // router API.gs terpisah. Tidak menyentuh audio/scheduler.
+  // =====================================================
+  if (String(params.action || '').trim() === 'getDisplayThemeSetting') {
+    return createDisplayThemeJsonpResponse_(params.callback, getDisplayThemeSetting());
+  }
+
   if (String(params.api || '') === '1' || params.action) {
     return handleGithubApiRequest_(params);
   }
@@ -30,6 +39,32 @@ function doGet(e) {
   return ContentService
     .createTextOutput('Digital Signage API - GitHub Pages')
     .setMimeType(ContentService.MimeType.TEXT);
+}
+
+
+// =========================================================
+// JSONP KHUSUS THEME DISPLAY
+// =========================================================
+// Dipakai oleh index.html untuk membaca panels!C18 secara langsung.
+// Callback divalidasi agar tetap aman. Tidak mengubah fungsi API lain.
+// =========================================================
+function createDisplayThemeJsonpResponse_(callback, theme) {
+  const cb = String(callback || '').trim();
+
+  if (!/^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$/.test(cb)) {
+    return ContentService
+      .createTextOutput('Invalid JSONP callback.')
+      .setMimeType(ContentService.MimeType.TEXT);
+  }
+
+  return ContentService
+    .createTextOutput(
+      cb + '(' + JSON.stringify({
+        success: true,
+        data: theme
+      }) + ');'
+    )
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
 
 
