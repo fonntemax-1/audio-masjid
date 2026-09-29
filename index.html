@@ -833,7 +833,7 @@
 
     .center-panel {
       position: relative;
-      border: 0.2vh solid #00ffaa;
+      border: 0.2vh solid var(--theme-border) !important;
       border-radius: 0.8vh;
       overflow: hidden;
       background: #000;
@@ -1282,8 +1282,8 @@
     .event-banner {
       position: relative;
       z-index: 2;
-      background: rgba(25, 10, 0, 0.75);
-      border-top: 0.2vh solid #ff9900;
+      background: var(--theme-panel) !important;
+      border-top: 0.2vh solid var(--theme-border) !important;
       padding: 0.8vh 0;
       text-align: left;
       overflow: hidden;
@@ -1878,6 +1878,44 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
   .khutbah-panel {
     border-color: var(--theme-border) !important;
   }
+  /* FINAL LOCK: FRAME AREA RUNNING TEXT HARUS MENGIKUTI TEMA.
+     Tidak ada lagi fallback hijau untuk frame .center-panel/event-banner.
+     Selector ini sengaja sangat spesifik dan diletakkan paling akhir. */
+  :root[data-display-theme="kuning"] .screen-container .main-body .center-panel,
+  body[data-display-theme="kuning"] .screen-container .main-body .center-panel {
+    border: 0.2vh solid #f4c542 !important;
+    border-top-color: #f4c542 !important;
+    border-right-color: #f4c542 !important;
+    border-bottom-color: #f4c542 !important;
+    border-left-color: #f4c542 !important;
+  }
+
+  :root[data-display-theme="kuning"] .screen-container .main-body .center-panel .event-banner,
+  body[data-display-theme="kuning"] .screen-container .main-body .center-panel .event-banner {
+    border-top: 0.2vh solid #f4c542 !important;
+    border-top-color: #f4c542 !important;
+  }
+
+  :root[data-display-theme="merah"] .screen-container .main-body .center-panel,
+  body[data-display-theme="merah"] .screen-container .main-body .center-panel {
+    border-color: #ff5a5f !important;
+  }
+
+  :root[data-display-theme="merah"] .screen-container .main-body .center-panel .event-banner,
+  body[data-display-theme="merah"] .screen-container .main-body .center-panel .event-banner {
+    border-top-color: #ff5a5f !important;
+  }
+
+  :root[data-display-theme="hijau"] .screen-container .main-body .center-panel,
+  body[data-display-theme="hijau"] .screen-container .main-body .center-panel {
+    border-color: #00ffaa !important;
+  }
+
+  :root[data-display-theme="hijau"] .screen-container .main-body .center-panel .event-banner,
+  body[data-display-theme="hijau"] .screen-container .main-body .center-panel .event-banner {
+    border-top-color: #00ffaa !important;
+  }
+
 </style>
 
 </head>
