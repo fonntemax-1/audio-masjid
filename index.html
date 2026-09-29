@@ -8338,6 +8338,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     let prayerScheduleRequestInFlight = false;
     let prayerScheduleRetryTimer = null;
     let prayerScheduleRetryCount = 0;
+    let prayerGitHubCacheRequestInFlight = false;
 
     function fetchPrayerSchedule() {
 
@@ -11952,17 +11953,56 @@ function setCountdownBlackMode(enabled) {
         validPrayers.length === 0
       ) {
 
-        // Kesempatan terakhir sebelum menampilkan MEMUAT:
-        // ambil jadwal dari cache kartu lokal.
-        if (loadPrayerCardCache()) {
-          return updatePrayerCountdown();
+        // PRIORITAS TERAKHIR SEBELUM API:
+        // 1. GitHub prayer-cache.json (background service)
+        // 2. localStorage cache kartu
+        // 3. Apps Script / MuslimKita sebagai refresh background
+        //
+        // Ini juga menangani kondisi ketika cache GitHub sudah tersedia
+        // tetapi proses updateUI belum sempat memanggil loader.
+        if (!prayerGitHubCacheRequestInFlight) {
+          prayerGitHubCacheRequestInFlight = true;
+
+          loadGitHubPrayerCache()
+            .then(function(githubLoaded) {
+              prayerGitHubCacheRequestInFlight = false;
+
+              if (githubLoaded) {
+                console.log(
+                  'COUNTDOWN: memakai jadwal dari GitHub cache tanpa menunggu API.'
+                );
+                return updatePrayerCountdown();
+              }
+
+              if (loadPrayerCardCache()) {
+                console.log(
+                  'COUNTDOWN: memakai jadwal dari localStorage cache.'
+                );
+                return updatePrayerCountdown();
+              }
+
+              console.warn(
+                'COUNTDOWN: cache GitHub/local belum tersedia; refresh API di background.'
+              );
+
+              fetchPrayerSchedule();
+            })
+            .catch(function(error) {
+              prayerGitHubCacheRequestInFlight = false;
+
+              console.warn(
+                'COUNTDOWN: gagal membaca cache GitHub:',
+                error && error.message ? error.message : error
+              );
+
+              if (loadPrayerCardCache()) {
+                return updatePrayerCountdown();
+              }
+
+              fetchPrayerSchedule();
+            });
         }
 
-        console.warn(
-          'COUNTDOWN: cache kartu belum tersedia; menunggu API.'
-        );
-
-        fetchPrayerSchedule();
 
         setCountdownBlackMode(false);
 
