@@ -63,7 +63,15 @@ function handleGithubApiRequest_(params) {
         break;
 
       case 'getPrayerSchedule':
+        // Selalu kembalikan kontrak stabil yang dibaca index.html:
+        // { success, tanggal, timezone, jadwal:{subuh,terbit,dzuhur,ashar,maghrib,isya} }
         result = getPrayerSchedule(String(params.date || ''));
+        if (!result || typeof result !== 'object') {
+          result = {
+            success: false,
+            error: 'getPrayerSchedule tidak mengembalikan object.'
+          };
+        }
         break;
 
       case 'getRealtimeAudioConfig':
