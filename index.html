@@ -13444,9 +13444,10 @@ function setCountdownBlackMode(enabled) {
         // jadwal terakhir yang tersedia. Cache GitHub/local/API berjalan
         // di belakang layar dan akan memanggil updatePrayerCountdown()
         // kembali setelah jadwal tersedia.
-        setCountdownBlackMode(false);
-        document.body.classList.remove('panel-sleep-mode');
-
+        // Jangan mematikan mode hitam C22 hanya karena jadwal
+        // sedang kosong sementara saat refresh/cache/API berjalan.
+        // Status layar dipertahankan sampai jadwal baru benar-benar tersedia.
+        // Ini mencegah layar bolak-balik HITAM -> NORMAL -> HITAM.
         processAudioQueue();
 
         const countdownTitle =
