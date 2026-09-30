@@ -10134,13 +10134,21 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         return Promise.resolve(WEB_APP_STATE.audio.durationCache.get(type));
       }
 
+      // Jika metadata untuk tipe audio yang sama sedang dimuat oleh
+      // schedule sholat lain, ikut menunggu Promise yang sama.
+      // Ini menjaga urutan/timeline tetap sequential per schedule,
+      // tetapi mencegah request metadata yang sama dibuat berulang.
+      if (WEB_APP_STATE.audio.durationPromises.has(type)) {
+        return WEB_APP_STATE.audio.durationPromises.get(type);
+      }
+
       const url = normalizeAudioUrl(audioConfig[type] || '');
       if (!url) {
         console.warn('AUDIO DURASI: URL tidak ditemukan untuk ID:', type);
         return Promise.resolve(0);
       }
 
-      return new Promise(function(resolve) {
+      const durationPromise = new Promise(function(resolve) {
         const probe = new Audio();
         let done = false;
 
@@ -10210,6 +10218,16 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           finishSafe(0, true);
         }
       });
+
+      WEB_APP_STATE.audio.durationPromises.set(type, durationPromise);
+
+      durationPromise.then(function() {
+        WEB_APP_STATE.audio.durationPromises.delete(type);
+      }).catch(function() {
+        WEB_APP_STATE.audio.durationPromises.delete(type);
+      });
+
+      return durationPromise;
     }
 
     async function getAudioDuration(audioType) {
