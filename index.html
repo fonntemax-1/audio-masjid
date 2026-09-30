@@ -46,8 +46,13 @@
     pointer-events: none !important;
   }
 
+  /* SLEEP hanya menutup tampilan dengan overlay hitam.
+     Jangan menyembunyikan iframe YouTube/elemen audio karena browser
+     dapat menganggap media tidak lagi terlihat lalu melakukan pause.
+     Scheduler tetap berjalan dan YouTube tetap PLAY; yang diubah hanya
+     mute melalui updateYouTubeAudioStop(). */
   body.panel-sleep-mode > * {
-    visibility: hidden !important;
+    visibility: visible !important;
   }
 
   body.panel-countdown-auto {
