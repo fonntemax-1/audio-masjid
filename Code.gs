@@ -267,7 +267,7 @@ function getPanelIqomahBlackMode() {
     const sheet = ss.getSheetByName('panels');
 
     if (!sheet) {
-      return { success: true, mode: 'NORMAL' };
+      return { success: true, mode: 'OFF' };
     }
 
     const raw = String(
