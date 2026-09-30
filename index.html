@@ -13779,11 +13779,36 @@ function setCountdownBlackMode(enabled) {
             ? Number(iqomahEvent.endSec)
             : iqomahTimeSec + 180;
 
+        // KHUSUS RAMADAN MAGHRIB:
+        // Jika metadata IQOMAH dari scheduler berada sebelum ADZAN
+        // selesai, countdown display tidak boleh langsung melompat
+        // ke sholat berikutnya (ISYA). Audio scheduler TIDAK diubah.
+        // Display harus selalu mengikuti urutan:
+        // ADZAN -> MENUJU IQOMAH -> IQOMAH -> +15 menit.
+        const displayIqomahTimeSec =
+          (
+            isRamadanMaghribDisplay &&
+            p.hasIqomah
+          )
+            ? Math.max(iqomahTimeSec, adzanEndSec)
+            : iqomahTimeSec;
+
+        const displayIqomahEndSec =
+          (
+            isRamadanMaghribDisplay &&
+            p.hasIqomah
+          )
+            ? Math.max(
+                iqomahEndSec,
+                displayIqomahTimeSec + 180
+              )
+            : iqomahEndSec;
+
         // Durasi tampilan SHOLAT setelah IQOMAH:
 // semua waktu sholat = 15 menit.
 // Ini hanya mengatur countdown/display; sistem audio tidak berubah.
         const afterIqomahSec =
-          iqomahEndSec + (15 * 60);
+          displayIqomahEndSec + (15 * 60);
 
         // Panel AUTO mulai hitam tepat saat fase ADZAN dimulai.
         // Dengan demikian ADZAN selalu termasuk mode hitam, bukan hanya
@@ -13972,7 +13997,7 @@ function setCountdownBlackMode(enabled) {
           ) {
 
             const diff =
-              iqomahTimeSec - nowSeconds;
+              displayIqomahTimeSec - nowSeconds;
 
             const m = Math.floor(diff / 60);
             const s = Math.floor(diff % 60);
@@ -14199,7 +14224,7 @@ function setCountdownBlackMode(enabled) {
         if (
           p.hasIqomah &&
           nowSeconds >= menujuIqomahStartSec &&
-          nowSeconds < iqomahTimeSec
+          nowSeconds < displayIqomahTimeSec
         ) {
 
           const diff =
@@ -14222,8 +14247,8 @@ function setCountdownBlackMode(enabled) {
         // IQOMAH: satu baris seperti ketentuan display saat ini.
         if (
           p.hasIqomah &&
-          nowSeconds >= iqomahTimeSec &&
-          nowSeconds < iqomahEndSec
+          nowSeconds >= displayIqomahTimeSec &&
+          nowSeconds < displayIqomahEndSec
         ) {
 
           activeState = {
