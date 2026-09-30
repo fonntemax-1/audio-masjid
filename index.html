@@ -404,7 +404,8 @@
 
   </style>
   <link rel="icon" type="image/png" href="favicon.png">
-  <!-- handphone.png hanya dibutuhkan saat mode hitam; jangan blokir initial load. -->
+  <!-- Preload ikon mode hitam agar tidak terlambat saat C22 AUTO aktif. -->
+  <link rel="preload" as="image" href="./image/handphone.png" fetchpriority="high">
 
   <!-- MOMENT -->
   <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script>
@@ -2279,7 +2280,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             <div class="panel-black-line panel-black-title" id="panel-black-title">WAKTU SHOLAT</div>
             <div class="panel-black-line panel-black-prayer" id="panel-black-prayer">SUBUH</div>
             <div class="panel-black-icon">
-              <img src="./image/handphone.png" alt="Handphone" loading="lazy" decoding="async" fetchpriority="low">
+              <img src="./image/handphone.png" alt="Handphone" loading="eager" decoding="async" fetchpriority="high">
             </div>
             <div class="panel-black-line panel-black-notice">DEMI KETENANGAN DAN KEKHUSYUKAN IBADAH SHOLAT KITA</div>
             <div class="panel-black-line panel-black-notice">MOHON UNTUK MENONAKTIFKAN HANDPHONE ATAU SILENT MODE</div>
