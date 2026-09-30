@@ -11190,9 +11190,13 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           const firstBeepItem =
             items[firstBeepIndexBeforeAdzan];
 
+          // BEEP #1 harus mulai tepat saat countdown
+          // MENUJU MAGHRIB menunjukkan 00:00:04.
+          // Setelah 4 detik BEEP, tepat di 00:00:00,
+          // ADZAN MAGHRIB dimulai. Target BEEP dan ADZAN
+          // memakai anchor yang sama agar tidak bergeser.
           const fixedFirstBeepTarget =
-            fixedMaghribAdzanTarget -
-            4;
+            fixedMaghribAdzanTarget - 4;
 
           add(
             'BEEP',
@@ -11204,6 +11208,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           );
         }
 
+        // ADZAN MAGHRIB dimulai tepat saat countdown
+        // MENUJU MAGHRIB mencapai 00:00:00.
         add(
           'ADZAN',
           fixedMaghribAdzanTarget,
