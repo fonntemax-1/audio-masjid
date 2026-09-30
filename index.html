@@ -4959,9 +4959,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       // banner Event WAJIB menggunakan teks yang sama.
       // Jangan biarkan teks lama dari Event Sheet seperti
       // "BUKA PUASA MAGRIB" mengambil alih tampilan.
+      // MENUJU WAKTU BERBUKA = fase countdown sebelum waktu berbuka.
+      // Banner TIDAK boleh berubah menjadi "WAKTU BERBUKA PUASA"
+      // sebelum countdown selesai dan fase WAKTU BERBUKA dimulai.
       if (
-        stateTitleUpper.indexOf('MENUJU WAKTU BERBUKA') === 0 ||
-        stateTitleUpper.indexOf('WAKTU BERBUKA PUASA') === 0 ||
+        stateTitleUpper.indexOf('WAKTU BERBUKA') === 0 ||
         stateTitleUpper === 'BUKA PUASA'
       ) {
         return 'WAKTU BERBUKA PUASA' + suffix;
@@ -5085,19 +5087,15 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         const maghribSec = parsePrayerSec_(schedule.maghrib);
 
         if (isRamadanDisplay() && maghribSec !== null) {
-          const maghribEvents = getComputedEvents_('MAGHRIB');
-          const maghribAdzan = findEvent_(maghribEvents, 'ADZAN');
-
-          const adzanSec =
-            maghribAdzan &&
-            Number.isFinite(Number(maghribAdzan.targetSec))
-              ? Number(maghribAdzan.targetSec)
-              : null;
+          // Banner berbuka dikunci ke fase display yang sama dengan
+          // countdown utama: hanya setelah waktu Maghrib tiba.
+          // Fase sebelum Maghrib ("MENUJU WAKTU BERBUKA") tidak
+          // boleh menampilkan banner berbuka.
+          const maghribOpenEndSec = maghribSec + (3 * 60);
 
           if (
             nowSeconds >= maghribSec &&
-            nowSeconds < maghribSec + (3 * 60) &&
-            (adzanSec === null || nowSeconds < adzanSec)
+            nowSeconds < maghribOpenEndSec
           ) {
             return 'WAKTU BERBUKA PUASA' + suffix;
           }
