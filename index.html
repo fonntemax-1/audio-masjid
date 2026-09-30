@@ -13556,12 +13556,14 @@ function setCountdownBlackMode(enabled) {
             const diff =
               Number(pSec) - nowSeconds;
 
-            const m = Math.floor(diff / 60);
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
             const s = Math.floor(diff % 60);
 
             activeState = {
               title: 'MENUJU WAKTU BERBUKA',
               timer:
+                String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
               prayerName: 'MAGHRIB'
@@ -13575,9 +13577,9 @@ function setCountdownBlackMode(enabled) {
           //
           //   1. BUKA PUASA
           //      dimulai tepat pada pSec / awal sirine
-          //   2. MENUJU ADZAN MAGRIB
-          //      dimulai setelah sirine selesai dan berakhir tepat
-          //      ketika audio ADZAN dimulai.
+          //   2. MENUJU SHOLAT MAGRIB
+          //      dimulai setelah fase WAKTU BERBUKA selesai dan
+          //      berlangsung tepat 1 menit sebelum ADZAN MAGHRIB.
           //
           // Penting: ini DISPLAY SAJA. Scheduler/audio tidak disentuh.
           // Gunakan akhir SIRINE sebagai batas yang pasti agar fase
@@ -13593,7 +13595,7 @@ function setCountdownBlackMode(enabled) {
             Number(pSec) + (3 * 60);
 
           const maghribAdzanStartSec =
-            sirineEndForDisplay + (2 * 60);
+            sirineEndForDisplay + (1 * 60);
 
           // FASE 1: WAKTU BERBUKA selama tepat 3 menit.
           if (
@@ -13612,7 +13614,7 @@ function setCountdownBlackMode(enabled) {
             break;
           }
 
-          // FASE 2: MENUJU SHOLAT MAGRIB selama tepat 2 menit.
+          // FASE 2: MENUJU SHOLAT MAGRIB selama tepat 1 menit.
           if (
             nowSeconds >= sirineEndForDisplay &&
             nowSeconds < maghribAdzanStartSec
