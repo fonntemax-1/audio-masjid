@@ -2442,7 +2442,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     </div>
   </div>
 
-  <audio id="adzan-audio" preload="auto" playsinline></audio>
+  <audio id="adzan-audio" preload="metadata" playsinline></audio>
 
   <script>
 
@@ -3379,7 +3379,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           );
         }
         audio.src = normalizeAudioUrl(testUrl);
-        audio.preload = 'auto';
+        audio.preload = 'metadata';
         audio.load();
 
         const promise =
@@ -3744,7 +3744,10 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
               );
             }
             audio.src = source;
-            audio.preload = 'auto';
+            // Jangan paksa preload=auto pada setiap event audio.
+            // TCL/Chrome TV dapat tersendat saat browser mulai mengambil
+            // file qiroah/tarhim yang panjang. Browser tetap akan memuat
+            // audio saat play(); metadata hanya dipakai untuk catch-up.
 
             // CATCH-UP GLOBAL:
             // targetSec = posisi 0 dari event.
@@ -3863,9 +3866,9 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
               });
             };
 
-            audio.load();
-
             if (catchUpElapsed > 0) {
+              // Catch-up memang membutuhkan metadata sebelum seek.
+              audio.load();
               await waitForMetadata();
               applyCatchUpPosition();
             }
