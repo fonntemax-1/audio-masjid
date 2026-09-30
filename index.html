@@ -10423,61 +10423,49 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       const items = [];
 
-      // Metadata durasi audio boleh dimuat PARALEL.
-      // Sebelumnya setiap row menunggu getAudioDuration() selesai
-      // sebelum row berikutnya dimulai. Dengan qiroah/tarhim yang
-      // membutuhkan fetch metadata, hal ini dapat menunda schedule
-      // Maghrib walaupun waktu sholat sudah dekat.
-      //
-      // Urutan Sheet TIDAK berubah: Promise.all hanya mempercepat
-      // pengambilan metadata, kemudian hasil tetap dikembalikan
-      // mengikuti urutan sheetSequence.
-      const resolvedItems = await Promise.all(
-        sheetSequence.map(async function(raw) {
-          const event =
-            String(raw && raw.event || '')
-              .trim()
-              .toLowerCase();
+      // Metadata durasi audio dimuat BERURUTAN sesuai urutan Sheet.
+      // Jangan menjalankan banyak pemuatan metadata audio sekaligus.
+      // Pada TV/browser, Promise.all() dapat membuat subsystem media
+      // dan main thread sibuk sehingga seluruh display terlihat stag.
+      // Urutan audio, status ON/OFF, dan timeline tetap sama.
+      for (const raw of sheetSequence) {
+        const event =
+          String(raw && raw.event || '')
+            .trim()
+            .toLowerCase();
 
-          if (!event || event === 'gap') {
-            return null;
-          }
-
-          const audioType =
-            mapSheetEventToAudioType(event,name);
-
-          if (!audioType) {
-            return null;
-          }
-
-          const duration =
-            await getAudioDuration(audioType);
-
-          if (!(duration > 0)) {
-            console.warn(
-              'AUDIO SCHEDULE: durasi audio tidak tersedia:',
-              audioType
-            );
-            return null;
-          }
-
-          return {
-            event: event,
-            duration: duration,
-            status:
-              String(raw.status || 'ON').toUpperCase() === 'OFF'
-                ? 'OFF'
-                : 'ON',
-            audioType: audioType
-          };
-        })
-      );
-
-      resolvedItems.forEach(function(item) {
-        if (item) {
-          items.push(item);
+        if (!event || event === 'gap') {
+          continue;
         }
-      });
+
+        const audioType =
+          mapSheetEventToAudioType(event,name);
+
+        if (!audioType) {
+          continue;
+        }
+
+        const duration =
+          await getAudioDuration(audioType);
+
+        if (!(duration > 0)) {
+          console.warn(
+            'AUDIO SCHEDULE: durasi audio tidak tersedia:',
+            audioType
+          );
+          continue;
+        }
+
+        items.push({
+          event: event,
+          duration: duration,
+          status:
+            String(raw.status || 'ON').toUpperCase() === 'OFF'
+              ? 'OFF'
+              : 'ON',
+          audioType: audioType
+        });
+      }
 
       if (!items.length) {
         return {
