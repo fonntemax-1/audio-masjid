@@ -12969,6 +12969,11 @@ function refreshDisplayTheme() {
     .finally(function() {
       displayThemeRequestInFlight = null;
     });
+
+  // Kembalikan Promise agar pemanggil dapat menangani hasil refresh.
+  // Tanpa return ini, refreshDisplayTheme() menghasilkan undefined
+  // dan pemanggilan .catch() memicu TypeError.
+  return displayThemeRequestInFlight;
 }
 
 
