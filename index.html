@@ -11511,10 +11511,12 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       }
 
       audioCatchUpWatchdogDate = dateKey;
-      audioCatchUpWatchdogUntil = nowMs + (20 * 1000);
+      audioCatchUpWatchdogUntil = nowMs + 3500;
 
-      function runCatchUpScan() {
-
+      // Catch-up sudah dilakukan oleh scheduler utama. Watchdog hanya
+      // memberi SATU kesempatan retry setelah audio permission/metadata
+      // siap. Hindari scan seluruh schedule setiap detik di TV.
+      audioCatchUpWatchdogTimer = setTimeout(function() {
         audioCatchUpWatchdogTimer = null;
 
         if (
@@ -11525,11 +11527,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         }
 
         const liveState = WEB_APP_STATE.audio;
-
-        if (
-          !liveState ||
-          !liveState.scheduleInitialized
-        ) {
+        if (!liveState || !liveState.scheduleInitialized) {
           return;
         }
 
@@ -11542,29 +11540,9 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           );
         }
 
-        const now = Date.now();
-
-        if (now < audioCatchUpWatchdogUntil) {
-
-          audioCatchUpWatchdogTimer =
-            setTimeout(
-              runCatchUpScan,
-              1000
-            );
-
-        } else {
-
-          audioCatchUpWatchdogDate = '';
-          audioCatchUpWatchdogUntil = 0;
-
-        }
-
-      }
-
-      // Scan pertama segera, kemudian ulang setiap 1 detik selama
-      // maksimal 20 detik. Tidak ada replay karena queuedLocks dan
-      // playedLocks tetap menjadi pengaman.
-      runCatchUpScan();
+        audioCatchUpWatchdogDate = '';
+        audioCatchUpWatchdogUntil = 0;
+      }, 3000);
 
     }
 
