@@ -7033,21 +7033,36 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     // Nama fungsi dipertahankan agar kode lama tetap kompatibel.
     function getWitaTime() {
 
+      // Formatter Intl cukup mahal jika dibuat ulang setiap detik.
+      // Cache berdasarkan timezone agar countdown hanya melakukan
+      // formatToParts() tanpa membuat object formatter baru.
+      const timezone = getSelectedTimezone();
+
+      if (
+        !getWitaTime._formatter ||
+        getWitaTime._timezone !== timezone
+      ) {
+        getWitaTime._formatter =
+          new Intl.DateTimeFormat(
+            'en-GB',
+            {
+              timeZone: timezone,
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hourCycle: 'h23'
+            }
+          );
+
+        getWitaTime._timezone = timezone;
+      }
+
       const parts =
-        new Intl.DateTimeFormat(
-          'en-GB',
-          {
-            timeZone:
-              getSelectedTimezone(),
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hourCycle: 'h23'
-          }
-        ).formatToParts(getSynchronizedNow());
+        getWitaTime._formatter
+          .formatToParts(getSynchronizedNow());
 
       const result = {};
 
@@ -7064,15 +7079,27 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
     function getSelectedTimezoneWeekday() {
 
+      const timezone = getSelectedTimezone();
+
+      if (
+        !getSelectedTimezoneWeekday._formatter ||
+        getSelectedTimezoneWeekday._timezone !== timezone
+      ) {
+        getSelectedTimezoneWeekday._formatter =
+          new Intl.DateTimeFormat(
+            'en-GB',
+            {
+              timeZone: timezone,
+              weekday: 'short'
+            }
+          );
+
+        getSelectedTimezoneWeekday._timezone = timezone;
+      }
+
       const parts =
-        new Intl.DateTimeFormat(
-          'en-GB',
-          {
-            timeZone:
-              getSelectedTimezone(),
-            weekday: 'short'
-          }
-        ).formatToParts(getSynchronizedNow());
+        getSelectedTimezoneWeekday._formatter
+          .formatToParts(getSynchronizedNow());
 
       const weekdayPart =
         parts.find(function(part) {
@@ -13282,16 +13309,8 @@ function setCountdownBlackMode(enabled) {
             return a.seconds - b.seconds;
           });
 
-      console.log(
-        'COUNTDOWN PRAYER TIMES:',
-        prayerList.map(function(p) {
-          return p.name + '=' + p.time;
-        }).join(' | '),
-        'NOW=',
-        String(wita.hour).padStart(2,'0') + ':' +
-        String(wita.minute).padStart(2,'0') + ':' +
-        String(wita.second).padStart(2,'0')
-      );
+      // Jangan console.log setiap detik. Console DevTools pada TV/Chrome
+      // dapat menjadi bottleneck utama dan membuat animasi terlihat putus-putus.
 
       // Window layar hitam Panel AUTO.
       // Mulai setelah Adzan selesai (fase MENUJU IQOMAH)
