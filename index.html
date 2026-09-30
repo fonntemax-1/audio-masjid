@@ -5633,10 +5633,13 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         return;
       }
 
-      // Jika variable lama masih berisi override, jangan biarkan
-      // polling Event Sheet menimpanya.
+      // Jika waktu override sudah berakhir, variable lama wajib
+      // dibersihkan agar Event Sheet dapat kembali tampil.
+      // Jangan mempertahankan lock banner khusus setelah +15 menit IQOMAH.
       if (eventPrayerOverrideText) {
-        return;
+        eventPrayerOverrideText = '';
+        element.classList.remove('event-prayer-override');
+        previousEventText = '';
       }
 
       eventRunningTextRequestInFlight = true;
