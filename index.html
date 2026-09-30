@@ -5082,8 +5082,22 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         }
 
         function findEvent_(events, eventName) {
+          const wanted =
+            String(eventName || '').trim().toUpperCase();
+
           return events.find(function(event) {
-            return String(event.eventName || '').trim().toUpperCase() === eventName;
+            const actual =
+              String(event.eventName || '').trim().toUpperCase();
+
+            if (wanted === 'ADZAN') {
+              return (
+                actual === 'ADZAN' ||
+                actual === 'ADZAN-BIASA' ||
+                actual === 'ADZAN-SUBUH'
+              );
+            }
+
+            return actual === wanted;
           }) || null;
         }
 
@@ -5105,26 +5119,23 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         }
 
         // -------------------------------------------------------
-        // BERBUKA - Ramadan: SIRINE + DOA-BUKA + REST 3 menit.
+        // BERBUKA - Ramadan: mulai waktu Maghrib sampai ADZAN MAGHRIB.
         // -------------------------------------------------------
         const maghribSec = parsePrayerSec_(schedule.maghrib);
 
         if (isRamadanDisplay() && maghribSec !== null) {
           const maghribEvents = getComputedEvents_('MAGHRIB');
-          const doaBukaEvent = findEvent_(maghribEvents, 'DOA-BUKA');
+          const maghribAdzanEvent = findEvent_(maghribEvents, 'ADZAN');
 
-          const doaBukaEndSec =
-            doaBukaEvent &&
-            Number.isFinite(Number(doaBukaEvent.endSec))
-              ? Number(doaBukaEvent.endSec)
+          const maghribAdzanStartSec =
+            maghribAdzanEvent &&
+            Number.isFinite(Number(maghribAdzanEvent.targetSec))
+              ? Number(maghribAdzanEvent.targetSec)
               : maghribSec;
-
-          const maghribOpenEndSec =
-            doaBukaEndSec + (3 * 60);
 
           if (
             nowSeconds >= maghribSec &&
-            nowSeconds < maghribOpenEndSec
+            nowSeconds < maghribAdzanStartSec
           ) {
             return 'WAKTU BERBUKA PUASA' + suffix;
           }
@@ -5144,6 +5155,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
         if (
           stateTitleUpper === 'ADZAN' ||
+          stateTitleUpper.indexOf('ADZAN ') === 0 ||
           stateTitleUpper.indexOf('MENUJU IQOMAH') === 0 ||
           stateTitleUpper === 'IQOMAH' ||
           stateTitleUpper.indexOf('WAKTU SHOLAT') === 0
