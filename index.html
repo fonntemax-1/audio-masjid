@@ -5086,7 +5086,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             nowSeconds < maghribSec + (3 * 60) &&
             (adzanSec === null || nowSeconds < adzanSec)
           ) {
-            return 'WAKTU BERBUKA' + suffix;
+            return 'WAKTU BERBUKA PUASA' + suffix;
           }
         }
 
@@ -13485,7 +13485,7 @@ function setCountdownBlackMode(enabled) {
           ) {
 
             activeState = {
-              title: formatCountdownSpecialTitle_('BUKA PUASA'),
+              title: formatCountdownSpecialTitle_('WAKTU BERBUKA PUASA'),
               timer: 'MAGHRIB',
               prayerName: 'MAGHRIB'
             };
