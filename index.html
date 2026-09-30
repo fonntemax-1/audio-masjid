@@ -5756,9 +5756,14 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     function startFastYouTubeControlPolling_() {
       pollYouTubeControlFast_();
 
+      // Jangan polling Apps Script setiap 1 detik.
+      // Request JSONP berulang ke GAS dapat membuat TV/browser
+      // tersendat karena callback + network + server cold-start
+      // berjalan terus-menerus. 3 detik tetap cukup responsif
+      // untuk perubahan kontrol YouTube.
       setInterval(
         pollYouTubeControlFast_,
-        1000
+        3000
       );
     }
 
@@ -5821,9 +5826,13 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     function startFastIqomahBlackModePolling_() {
       pollIqomahBlackModeFast_();
 
+      // C22 bukan data real-time per detik. Polling 1 detik
+      // membuat request JSONP GAS terus-menerus dan berpotensi
+      // membebani main thread/network TV. 10 detik cukup untuk
+      // perubahan AUTO/OFF/SLEEP tanpa mengganggu scheduler.
       setInterval(
         pollIqomahBlackModeFast_,
-        1000
+        10000
       );
     }
 
