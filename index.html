@@ -12715,15 +12715,15 @@ function setCountdownBlackMode(enabled) {
 
     function normalizeVisibleRamadanMaghribText_(value) {
       const text = String(value || '');
-      return text
-        .replace(/WAKTU\\s+BERBUKA\\s+MAGHRIB/gi, 'WAKTU BERBUKA PUASA')
-        .replace(/WAKTU\\s+BERBUKA\\s+MAGRIB/gi, 'WAKTU BERBUKA PUASA')
-        .replace(/WAKTU\\s+BUKA\\s+MAGHRIB/gi, 'WAKTU BERBUKA PUASA')
-        .replace(/WAKTU\\s+BUKA\\s+MAGRIB/gi, 'WAKTU BERBUKA PUASA')
-        .replace(/BUKA\\s+PUASA\\s+MAGHRIB/gi, 'WAKTU BERBUKA PUASA')
-        .replace(/BUKA\\s+PUASA\\s+MAGRIB/gi, 'WAKTU BERBUKA PUASA');
-    }
 
+      // Semua variasi lama/typo Ramadan Maghrib dinormalisasi ke
+      // SATU teks resmi: WAKTU BERBUKA PUASA.
+      return text
+        .replace(/WAKTU\s+BERBUKA\s+PUASA\s+(?:MAGHRIB|MAGRIB)/gi, 'WAKTU BERBUKA PUASA')
+        .replace(/WAKTU\s+BERBUKA\s+(?:MAGHRIB|MAGRIB)/gi, 'WAKTU BERBUKA PUASA')
+        .replace(/WAKTU\s+BUKA\s+(?:MAGHRIB|MAGRIB)/gi, 'WAKTU BERBUKA PUASA')
+        .replace(/BUKA\s+PUASA\s+(?:MAGHRIB|MAGRIB)/gi, 'WAKTU BERBUKA PUASA');
+    }
     // PENGUNCI TAMPILAN TERAKHIR:
     // Jika ada sumber lama/cached/API yang masih menulis
     // "WAKTU BERBUKA MAGHRIB/MAGRIB" langsung ke DOM,
@@ -12740,8 +12740,13 @@ function setCountdownBlackMode(enabled) {
 
       const eventEl = document.getElementById('event-running');
       const countdownEl = document.getElementById('countdown-title');
+      const blackTitleEl = document.getElementById('panel-black-title');
+      const blackPrayerEl = document.getElementById('panel-black-prayer');
+
       guard(eventEl);
       guard(countdownEl);
+      guard(blackTitleEl);
+      guard(blackPrayerEl);
 
       if (window.__RAMADAN_MAGHRIB_TEXT_GUARD__) return;
       window.__RAMADAN_MAGHRIB_TEXT_GUARD__ = true;
@@ -12757,14 +12762,24 @@ function setCountdownBlackMode(enabled) {
           if (
             target.id === 'event-running' ||
             target.id === 'countdown-title' ||
+            target.id === 'panel-black-title' ||
+            target.id === 'panel-black-prayer' ||
             (target.closest &&
               (target.closest('#event-running') ||
-               target.closest('#countdown-title')))
+               target.closest('#countdown-title') ||
+               target.closest('#panel-black-title') ||
+               target.closest('#panel-black-prayer')))
           ) {
             guard(
-              target.id === 'event-running' || target.id === 'countdown-title'
+              target.id === 'event-running' ||
+              target.id === 'countdown-title' ||
+              target.id === 'panel-black-title' ||
+              target.id === 'panel-black-prayer'
                 ? target
-                : target.closest('#event-running') || target.closest('#countdown-title')
+                : target.closest('#event-running') ||
+                  target.closest('#countdown-title') ||
+                  target.closest('#panel-black-title') ||
+                  target.closest('#panel-black-prayer')
             );
           }
         });
