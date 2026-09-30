@@ -2569,16 +2569,12 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           if (finished) return;
           finished = true;
 
-          // Jangan hapus callback saat timeout. Apps Script JSONP
-          // kadang datang terlambat; callback tetap dibiarkan hidup
-          // agar respons terlambat tidak menjadi ReferenceError.
-          if (script.parentNode) {
-            script.parentNode.removeChild(script);
-          }
-
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
+          // Timeout harus melakukan cleanup penuh. Callback JSONP
+          // yang dibiarkan di window akan mempertahankan closure Promise
+          // dan referensi request lebih lama dari yang diperlukan.
+          // Respons Apps Script yang datang setelah timeout diabaikan
+          // karena callback sudah dihapus dan request dianggap selesai.
+          cleanup();
 
           reject(new Error(
             'Timeout menghubungi Apps Script API.'
