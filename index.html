@@ -8338,15 +8338,14 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     //   - YouTube PLAY tetapi MUTE terus.
     //
     // AUTO:
-    //   - MUTE mulai 5 menit sebelum Qiroah.
-    //   - Tetap MUTE selama Qiroah sampai IQOMAH selesai.
-    //   - Tetap MUTE 30 menit setelah IQOMAH selesai.
-    //   - Setelah 30 menit tersebut, YouTube PLAY + UNMUTE otomatis.
+    //   - YouTube tetap PLAY tetapi SELALU MUTE.
+    //   - AUTO tidak pernah UNMUTE otomatis.
+    //   - Hanya ON yang mengaktifkan suara YouTube.
     //
     // STOP:
     //   - YouTube benar-benar STOP / iframe dilepas.
     //
-    // 5 menit = 300 detik. AUTO kembali ON 30 menit setelah IQOMAH selesai.
+    // AUTO selalu MUTE. ON adalah satu-satunya mode yang UNMUTE.
     // =========================================================
 
     const YOUTUBE_AUTO_STOP_BEFORE_AUDIO = 5 * 60;
@@ -9078,11 +9077,27 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       }
 
       // =======================================================
-      // MODE AUTO / SLEEP OVERRIDE
+      // MODE AUTO = SELALU MUTE
       //
-      // Jika C22=SLEEP dan layar sedang sleep, SLEEP menjadi prioritas
-      // mute sementara untuk YouTube. G20 tetap tersimpan dan setelah
-      // wake kontrol kembali sepenuhnya ke G20.
+      // AUTO sekarang berarti YouTube tetap PLAY tetapi SELALU MUTE.
+      // AUTO tidak lagi melakukan UNMUTE berdasarkan jadwal Qiroah/IQOMAH.
+      // Hanya mode ON yang boleh mengirim UNMUTE.
+      //
+      // Ini sengaja dibuat sebelum logika SLEEP/jadwal agar tidak ada
+      // evaluasi waktu yang dapat membuka suara kembali.
+      // =======================================================
+      if (mode === 'AUTO') {
+        if (!youtubeAutoMuted) {
+          youtubeAutoMuted = true;
+          muteYouTubeIframe();
+        } else {
+          youtubeAutoMuted = true;
+        }
+        return;
+      }
+
+      // =======================================================
+      // MODE SLEEP OVERRIDE
       // =======================================================
       if (
         document.body.classList.contains('panel-sleep-mode')
