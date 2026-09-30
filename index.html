@@ -13623,12 +13623,20 @@ function setCountdownBlackMode(enabled) {
           const m = Math.floor((diff % 3600) / 60);
           const s = Math.floor(diff % 60);
 
+          // RAMADAN MAGHRIB: sebelum waktu berbuka,
+          // countdown harus menuju WAKTU BERBUKA, bukan menuju sholat.
+          // Fase ini berakhir tepat saat pSec (waktu Maghrib/sirine).
+          const isRamadanMaghrib =
+            isRamadanDisplay() &&
+            p.name === 'MAGHRIB';
+
           activeState = {
-            title:
-              formatCountdownPrayerTitle_(
-                (isFridayWita() && p.name === 'DZUHUR') ? "JUM'AT" : displayName,
-                true
-              ),
+            title: isRamadanMaghrib
+              ? 'MENUJU WAKTU BERBUKA'
+              : formatCountdownPrayerTitle_(
+                  (isFridayWita() && p.name === 'DZUHUR') ? "JUM'AT" : displayName,
+                  true
+                ),
             timer:
               String(h).padStart(2, '0') + ':' +
               String(m).padStart(2, '0') + ':' +
