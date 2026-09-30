@@ -13608,8 +13608,10 @@ function setCountdownBlackMode(enabled) {
           ) {
 
             activeState = {
-              title: formatCountdownSpecialTitle_('WAKTU BERBUKA PUASA'),
-              timer: 'MAGHRIB',
+              // Fase berbuka: jangan tampilkan "MAGHRIB" di bawah
+              // judul karena penggunaannya adalah label waktu berbuka.
+              title: 'WAKTU BERBUKA PUASA',
+              timer: 'BUKA PUASA',
               prayerName: 'MAGHRIB'
             };
 
