@@ -12683,13 +12683,37 @@ function setCountdownBlackMode(enabled) {
     }
 
     // Judul khusus countdown juga kembali tanpa nama kota.
+    // Normalisasi keras untuk fase Ramadan Maghrib:
+    // semua variasi lama seperti "WAKTU BERBUKA MAGRIB",
+    // "WAKTU BUKA MAGRIB", atau "BUKA PUASA MAGRIB"
+    // wajib ditampilkan sebagai "WAKTU BERBUKA PUASA".
+    function normalizeCountdownDisplayTitle_(value) {
+      const title = String(value || '')
+        .replace(/\\s+/g, ' ')
+        .trim()
+        .toUpperCase();
+
+      if (
+        title === 'WAKTU BERBUKA MAGRIB' ||
+        title === 'WAKTU BUKA MAGRIB' ||
+        title === 'WAKTU BERBUKA MAGHRIB' ||
+        title === 'WAKTU BUKA MAGHRIB' ||
+        title === 'BUKA PUASA MAGRIB' ||
+        title === 'BUKA PUASA MAGHRIB'
+      ) {
+        return 'WAKTU BERBUKA PUASA';
+      }
+
+      return title;
+    }
+
     function formatCountdownSpecialTitle_(label) {
-      return String(label || '').trim().toUpperCase();
+      return normalizeCountdownDisplayTitle_(label);
     }
 
     // Tidak lagi menambahkan kota pada judul countdown.
     function ensureCountdownCityTitle_(title) {
-      return String(title || '').trim().toUpperCase();
+      return normalizeCountdownDisplayTitle_(title);
     }
 
     function updatePrayerCountdown() {
