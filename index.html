@@ -2463,6 +2463,62 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
   body[data-display-theme="hijau"] .infaq-panel {
     background: rgba(3, 33, 22, 0.90) !important;
   }
+  /* =========================================================
+     ANALOG CLOCK — TEMA HIJAU
+     Bezel hijau tua doff dengan kilau metalik halus.
+     Jarum jam & menit mengikuti warna hijau tema.
+     ========================================================= */
+  :root[data-display-theme="hijau"] .analog-clock,
+  body[data-display-theme="hijau"] .analog-clock {
+    border-color: #174d38 !important;
+    box-shadow:
+      0 1.1vh 2.8vh rgba(0,0,0,0.88),
+      0 0.25vh 0.5vh rgba(0,255,170,0.18),
+      inset 0 0 0 0.24vh #3a8063,
+      inset 0 0 0 0.55vh #0b3526,
+      inset 0 0 0 0.82vh #245e47,
+      inset 0 0 1.5vh rgba(0,20,13,0.72) !important;
+  }
+
+  :root[data-display-theme="hijau"] .analog-clock::before,
+  body[data-display-theme="hijau"] .analog-clock::before {
+    background:
+      conic-gradient(
+        from 215deg,
+        rgba(190,255,225,0.42),
+        rgba(190,255,225,0.04) 14%,
+        rgba(0,35,22,0.42) 31%,
+        rgba(95,190,145,0.48) 48%,
+        rgba(0,45,28,0.34) 65%,
+        rgba(210,255,235,0.30) 82%,
+        rgba(0,35,22,0.36)
+      ) !important;
+  }
+
+  :root[data-display-theme="hijau"] .analog-clock .hour,
+  body[data-display-theme="hijau"] .analog-clock .hour {
+    background:
+      linear-gradient(90deg,
+        #09291d 0%,
+        #17633f 30%,
+        #35a56d 50%,
+        #237a50 68%,
+        #071e15 100%) !important;
+    filter: drop-shadow(0.12vh 0.22vh 0.22vh rgba(0,25,15,0.78));
+  }
+
+  :root[data-display-theme="hijau"] .analog-clock .minute,
+  body[data-display-theme="hijau"] .analog-clock .minute {
+    background:
+      linear-gradient(90deg,
+        #071f16 0%,
+        #12613d 32%,
+        #32a86d 50%,
+        #1d774b 68%,
+        #061a11 100%) !important;
+    filter: drop-shadow(0.12vh 0.22vh 0.22vh rgba(0,25,15,0.78));
+  }
+
 </style>
 
 </head>
