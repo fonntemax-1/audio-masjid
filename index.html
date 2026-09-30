@@ -1230,8 +1230,8 @@
     }
 
     /* =========================================================
-       JAM ANALOG REALISTIS
-       Visual saja — mekanisme waktu/scheduler tidak diubah.
+       JAM ANALOG EMAS REALISTIS / ELEGAN
+       Tampilan saja — tidak mengubah scheduler, audio atau YouTube.
        ========================================================= */
     .analog-clock {
       width: 14vw;
@@ -1245,36 +1245,60 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #111;
-      border: 0.38vh solid var(--theme-border);
+
+      /* Dial ivory hangat seperti jam premium. */
+      background:
+        radial-gradient(circle at 36% 28%,
+          rgba(255,255,255,0.98) 0 7%,
+          rgba(255,255,255,0.18) 8% 17%,
+          transparent 18%),
+        radial-gradient(circle at 50% 50%,
+          #fffdf2 0%,
+          #f4ecd4 48%,
+          #d9c48b 78%,
+          #9a7125 100%);
       box-shadow:
-        inset 0 0 0 0.25vh rgba(255,255,255,0.10),
-        inset 0 0 1.2vh rgba(0,0,0,0.95),
-        0 0.25vh 0.8vh rgba(0,0,0,0.65);
+        inset 0 0 0 0.82vh #f3d477,
+        inset 0 0 1.5vh rgba(80,48,8,0.55);
       overflow: hidden;
       isolation: isolate;
     }
 
+    /* Kilau logam halus pada bezel. */
     .analog-clock::before {
       content: "";
       position: absolute;
-      inset: 1.15vh;
+      inset: 0.45vh;
       border-radius: 50%;
-      border: 0.14vh solid rgba(255,255,255,0.16);
-      box-shadow: inset 0 0 0 0.08vh rgba(0,0,0,0.8);
       pointer-events: none;
       z-index: 0;
+      background:
+        conic-gradient(
+          from 215deg,
+          rgba(255,255,255,0.62),
+          rgba(255,255,255,0.04) 14%,
+          rgba(120,78,15,0.28) 31%,
+          rgba(255,239,170,0.72) 48%,
+          rgba(135,89,18,0.20) 65%,
+          rgba(255,255,255,0.48) 82%,
+          rgba(120,78,15,0.22)
+        );
+      -webkit-mask: radial-gradient(circle, transparent 0 91%, #000 92% 100%);
+      mask: radial-gradient(circle, transparent 0 91%, #000 92% 100%);
     }
 
+    /* Cincin bagian dalam dial. */
     .analog-clock::after {
       content: "";
       position: absolute;
-      inset: 1.9vh;
+      inset: 1.65vh;
       border-radius: 50%;
-      border: 0.10vh solid var(--theme-border);
-      opacity: 0.42;
       pointer-events: none;
       z-index: 0;
+      border: 0.18vh solid rgba(141,101,30,0.72);
+      box-shadow:
+        inset 0 0 0 0.10vh rgba(255,255,255,0.72),
+        inset 0 0 1.1vh rgba(105,73,16,0.25);
     }
 
     .clock-face-svg {
@@ -1285,13 +1309,14 @@
       pointer-events: none;
     }
 
+    /* Semua marker mengikuti "warna emas dial. */
     .clock-face-svg g {
-      stroke: var(--theme-accent) !important;
+      stroke: #9a7125;
     }
 
     .clock-face-svg g[stroke-width="1.5"] {
-      stroke: rgba(255,255,255,0.48) !important;
-      opacity: 0.9;
+      stroke: #b28a3c;
+      opacity: 0.72;
     }
 
     .analog-clock .hand {
@@ -1300,49 +1325,79 @@
       left: 50%;
       transform-origin: bottom center;
       border-radius: 999px;
-      filter: drop-shadow(0.08vh 0.16vh 0.16vh rgba(0,0,0,0.75));
+      filter:
+        drop-shadow(0.12vh 0.22vh 0.22vh rgba(45,28,5,0.72));
     }
 
+    /* Jarum jam emas, lebih pendek dan tebal. */
     .analog-clock .hour {
-      width: 0.58vw;
-      height: 22%;
+      width: 0.62vw;
+      height: 21%;
       min-width: 3px;
-      background: linear-gradient(90deg, #777, #f5f5f5 45%, #aaa);
-      clip-path: polygon(20% 100%, 80% 100%, 68% 15%, 50% 0, 32% 15%);
+      background:
+        linear-gradient(90deg,
+          #8a611b 0%,
+          #f7dc82 35%,
+          #fff1aa 50%,
+          #c09235 68%,
+          #704b13 100%);
+      clip-path: polygon(24% 100%, 76% 100%, 68% 18%, 50% 0%, 32% 18%);
       z-index: 2;
     }
 
+    /* Jarum menit emas lebih panjang dan ramping. */
     .analog-clock .minute {
-      width: 0.38vw;
-      height: 31%;
+      width: 0.43vw;
+      height: 32%;
       min-width: 2.5px;
-      background: linear-gradient(90deg, #777, #fff 45%, #aaa);
-      clip-path: polygon(22% 100%, 78% 100%, 65% 11%, 50% 0, 35% 11%);
+      background:
+        linear-gradient(90deg,
+          #805714 0%,
+          #e8c55d 34%,
+          #fff2b0 50%,
+          #b78328 69%,
+          #704a12 100%);
+      clip-path: polygon(25% 100%, 75% 100%, 67% 13%, 50% 0%, 33% 13%);
       z-index: 3;
     }
 
+    /* Jarum detik tetap merah sebagai aksen jam klasik. */
     .analog-clock .second {
-      width: 0.12vw;
-      height: 37%;
+      width: 0.15vw;
+      height: 38%;
       min-width: 1.2px;
-      background: var(--theme-accent) !important;
+      background:
+        linear-gradient(180deg,
+          #6e0000 0%,
+          #e30000 35%,
+          #ff4b4b 50%,
+          #8c0000 100%);
+      border-radius: 999px;
       z-index: 4;
-      filter: drop-shadow(0.05vh 0.10vh 0.12vh rgba(0,0,0,0.8));
+      filter: drop-shadow(0.1vh 0.18vh 0.2vh rgba(0,0,0,0.7));
     }
 
+    /* Hub tengah emas berlapis. */
     .analog-clock .center-dot {
-      width: 1.25vh;
-      height: 1.25vh;
+      width: 1.45vh;
+      height: 1.45vh;
       min-width: 7px;
       min-height: 7px;
-      background: var(--theme-accent) !important;
-      border: 0.18vh solid #fff;
+      background:
+        radial-gradient(circle at 35% 30%,
+          #fff2ad 0 12%,
+          #e0b84e 25%,
+          #a06f1c 63%,
+          #5d3c0c 100%);
+      border: 0.22vh solid #fff0a5;
       border-radius: 50%;
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      box-shadow: 0 0.12vh 0.25vh rgba(0,0,0,0.75);
+      box-shadow:
+        0 0.18vh 0.35vh rgba(0,0,0,0.65),
+        inset 0 0 0 0.12vh rgba(255,255,255,0.55);
       z-index: 5;
     }
 
