@@ -2054,6 +2054,18 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     border-color: var(--theme-border) !important;
   }
 
+  /* KUNING: blok countdown, jam digital, dan Infaq & Shadaqah
+     dibuat transparan 50% agar latar belakang tetap terlihat,
+     mengikuti tampilan transparan tema hijau. */
+  :root[data-display-theme="kuning"] .countdown-box,
+  body[data-display-theme="kuning"] .countdown-box,
+  :root[data-display-theme="kuning"] .digital-clock-box,
+  body[data-display-theme="kuning"] .digital-clock-box,
+  :root[data-display-theme="kuning"] .infaq-panel,
+  body[data-display-theme="kuning"] .infaq-panel {
+    background: rgba(52, 42, 11, 0.50) !important;
+  }
+
   /* FRAME RUNNING TEXT + GARIS RUNNING TEXT
      harus mengikuti tema aktif, termasuk KUNING. */
   .center-panel,
