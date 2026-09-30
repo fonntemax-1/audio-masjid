@@ -13791,24 +13791,35 @@ function setCountdownBlackMode(enabled) {
         // ke sholat berikutnya (ISYA). Audio scheduler TIDAK diubah.
         // Display harus selalu mengikuti urutan:
         // ADZAN -> MENUJU IQOMAH -> IQOMAH -> +15 menit.
-        const displayIqomahTimeSec =
-          (
-            isRamadanMaghribDisplay &&
-            p.hasIqomah
-          )
-            ? Math.max(iqomahTimeSec, adzanEndSec)
-            : iqomahTimeSec;
+        // ANCHOR IQOMAH DISPLAY FINAL
+        //
+        // IQOMAH tidak boleh pernah berada sebelum ADZAN selesai.
+        // Jika metadata scheduler belum lengkap/tidak konsisten,
+        // gunakan akhir DOA-ADZAN sebagai batas awal, lalu fallback
+        // ke akhir ADZAN. Ini berlaku untuk SEMUA SHOLAT, bukan hanya
+        // Ramadan Maghrib.
+        //
+        // Tujuannya mencegah transisi seperti:
+        // ADZAN ASHAR -> langsung MENUJU WAKTU BERBUKA.
+        const minimumIqomahTimeSec =
+          Math.max(
+            adzanEndSec,
+            doaEndSec
+          );
 
+        const displayIqomahTimeSec =
+          Math.max(
+            Number(iqomahTimeSec),
+            minimumIqomahTimeSec
+          );
+
+        // IQOMAH minimal berlangsung sesuai durasi fallback 180 detik.
+        // Untuk metadata valid, endSec tetap dipertahankan.
         const displayIqomahEndSec =
-          (
-            isRamadanMaghribDisplay &&
-            p.hasIqomah
-          )
-            ? Math.max(
-                iqomahEndSec,
-                displayIqomahTimeSec + 180
-              )
-            : iqomahEndSec;
+          Math.max(
+            Number(iqomahEndSec),
+            displayIqomahTimeSec + 180
+          );
 
         // Durasi tampilan SHOLAT setelah IQOMAH:
 // semua waktu sholat = 15 menit.
