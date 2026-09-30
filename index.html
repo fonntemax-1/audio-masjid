@@ -7676,6 +7676,39 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
     function updateEventCountdown() {
 
+      // PERFORMANCE GUARD:
+      // Fungsi ini dipanggil setiap detik melalui updateClock().
+      // Jangan menghitung ulang konfigurasi Moment/DOM bila tanggal dan
+      // data Event belum berubah. Pada TV TCL, pekerjaan berulang ini
+      // dapat menumpuk dengan scheduler lain dan membuat tampilan utama
+      // tersendat, sementara running text tetap berjalan.
+      const nowWitaForEvent = getWitaTime();
+      const eventDateKey =
+        String(nowWitaForEvent.year) + '-' +
+        String(nowWitaForEvent.month).padStart(2, '0') + '-' +
+        String(nowWitaForEvent.day).padStart(2, '0');
+
+      const eventRowsSignature =
+        Array.isArray(WEB_APP_STATE.event.rows)
+          ? WEB_APP_STATE.event.rows.map(function(row) {
+              return [
+                row && row.row,
+                row && row.event,
+                row && row.days,
+                row && row.status
+              ].join('|');
+            }).join(';;')
+          : '';
+
+      const eventCacheKey =
+        eventDateKey + '||' + eventRowsSignature;
+
+      if (updateEventCountdown._lastConfigKey !== eventCacheKey) {
+        updateEventCountdown._lastConfigKey = eventCacheKey;
+        updateEventCountdown._cachedConfigs =
+          getEventCountdownConfigs();
+      }
+
       const display =
         document.getElementById(
           'event-countdown-display'
@@ -7706,11 +7739,13 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       }
 
       const configs =
-        getEventCountdownConfigs();
+        Array.isArray(updateEventCountdown._cachedConfigs)
+          ? updateEventCountdown._cachedConfigs
+          : [];
 
       // Tanggal acuan countdown wajib WITA.
       const today =
-        moment(getApiDate(), 'YYYY-MM-DD').startOf('day');
+        moment(eventDateKey, 'YYYY-MM-DD').startOf('day');
 
       const activeConfigs =
         configs
@@ -7822,21 +7857,28 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         return;
       }
 
-      number.innerText =
-        String(active.diffDays);
+      const nextNumber = String(active.diffDays);
+      const nextLine1 = String(text.line1 || '');
+      const nextLine2 = String(text.line2 || '');
 
-      line1.innerText =
-        text.line1;
+      // Hindari layout/paint bila teks sebenarnya tidak berubah.
+      if (number.innerText !== nextNumber) {
+        number.innerText = nextNumber;
+      }
+      if (line1.innerText !== nextLine1) {
+        line1.innerText = nextLine1;
+      }
+      if (line2.innerText !== nextLine2) {
+        line2.innerText = nextLine2;
+      }
 
-      line2.innerText =
-        text.line2;
+      if (!display.classList.contains('active')) {
+        display.classList.add('active');
+      }
 
-      display.classList.add('active');
-
-      display.setAttribute(
-        'aria-hidden',
-        'false'
-      );
+      if (display.getAttribute('aria-hidden') !== 'false') {
+        display.setAttribute('aria-hidden', 'false');
+      }
 
       WEB_APP_STATE.event.active = {
         row: active.row,
