@@ -790,6 +790,41 @@
   display: block;
 }
 
+    /* HIJAU: teks yang sebelumnya kuning/emas mengikuti warna tema.
+       Teks putih tetap putih. Hanya visual tema HIJAU yang diubah. */
+    :root[data-display-theme="hijau"] .header-center h1,
+    :root[data-display-theme="hijau"] .prayer-time,
+    :root[data-display-theme="hijau"] .event-countdown-number,
+    :root[data-display-theme="hijau"] .event-countdown-line1,
+    :root[data-display-theme="hijau"] .countdown-timer,
+    :root[data-display-theme="hijau"] .infaq-panel .panel-title,
+    :root[data-display-theme="hijau"] .event-running,
+    :root[data-display-theme="hijau"] .right-sidebar .panel-box:first-child .panel-title,
+    :root[data-display-theme="hijau"] .right-sidebar .panel-box:last-child .panel-title,
+    :root[data-display-theme="hijau"] .keuangan-header-row td,
+    :root[data-display-theme="hijau"] .keuangan-saldo-akhir td,
+    :root[data-display-theme="hijau"] .khotbah-role {
+      color: var(--theme-accent) !important;
+      -webkit-text-fill-color: var(--theme-accent) !important;
+    }
+
+    :root[data-display-theme="hijau"] .header-center .latin-name {
+      background: linear-gradient(
+        110deg,
+        var(--theme-accent) 0%,
+        var(--theme-accent) 38%,
+        #d9fff1 48%,
+        #ffffff 50%,
+        #d9fff1 52%,
+        var(--theme-accent) 62%,
+        var(--theme-accent) 100%
+      );
+      background-size: 250% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
     /* =========================================================
        HEADER - FORMAT MENGIKUTI CONTOH DISPLAY
        Data nama, alamat, nomor HP dan slogan tetap dari Spreadsheet.
