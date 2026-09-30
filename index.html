@@ -8023,83 +8023,99 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       const today =
         moment(eventDateKey, 'YYYY-MM-DD').startOf('day');
 
-      const activeConfigs =
-        configs
-          .map(function(config) {
+      // Countdown event tidak perlu dihitung ulang setiap detik.
+      // Target/hari hanya berubah saat tanggal atau konfigurasi berubah;
+      // pilihan kartu hanya berubah setiap 5 menit.
+      const witaNow = getWitaTime();
+      const witaEpochMs =
+        Date.UTC(
+          Number(witaNow.year),
+          Number(witaNow.month) - 1,
+          Number(witaNow.day),
+          Number(witaNow.hour),
+          Number(witaNow.minute),
+          Number(witaNow.second)
+        );
 
-            const diffDays =
-              Math.max(
-                0,
-                Math.ceil(
-                  (
-                    config.target.valueOf() -
-                    today.valueOf()
-                  ) /
-                  86400000
-                )
+      const rotationSlot =
+        Math.floor(
+          witaEpochMs /
+          (5 * 60 * 1000)
+        );
+
+      const activeCacheKey =
+        eventCacheKey + '||' + rotationSlot;
+
+      let active;
+
+      if (
+        updateEventCountdown._activeCacheKey === activeCacheKey
+      ) {
+        active =
+          updateEventCountdown._activeCachedValue || null;
+      } else {
+        const activeConfigs =
+          configs
+            .map(function(config) {
+
+              const diffDays =
+                Math.max(
+                  0,
+                  Math.ceil(
+                    (
+                      config.target.valueOf() -
+                      today.valueOf()
+                    ) /
+                    86400000
+                  )
+                );
+
+              return Object.assign(
+                {},
+                config,
+                {
+                  diffDays: diffDays
+                }
               );
+            })
+            .filter(function(config) {
 
-            return Object.assign(
-              {},
-              config,
-              {
-                diffDays: diffDays
+              const key =
+                normalizeEventCountdownName_(config.event);
+
+              // Lailatul Qadr hanya aktif H-10 s.d. H-1.
+              // Pada H-0 (1 Syawal) langsung berhenti.
+              if (
+                key === 'countdown malam lailatul qadr' ||
+                key === 'countdown lailatul qadr'
+              ) {
+                return (
+                  config.diffDays >= 1 &&
+                  config.diffDays <= 10
+                );
               }
-            );
-          })
-          .filter(function(config) {
 
-            const key =
-              normalizeEventCountdownName_(config.event);
-
-            // Lailatul Qadr hanya aktif H-10 s.d. H-1.
-            // Pada H-0 (1 Syawal) langsung berhenti.
-            if (
-              key === 'countdown malam lailatul qadr' ||
-              key === 'countdown lailatul qadr'
-            ) {
               return (
-                config.diffDays >= 1 &&
-                config.diffDays <= 10
+                config.diffDays > 0 &&
+                config.diffDays <= config.days
               );
-            }
 
-            return (
-              config.diffDays > 0 &&
-              config.diffDays <= config.days
-            );
-
-          })
-          .sort(function(a, b) {
-            return a.row - b.row;
-          });
-
-      // Jika beberapa event AUTO aktif bersamaan,
-      // kartu berganti setiap 5 menit.
-      let active = null;
-
-      if (activeConfigs.length > 0) {
-        const witaNow = getWitaTime();
-        const witaEpochMs =
-          Date.UTC(
-            Number(witaNow.year),
-            Number(witaNow.month) - 1,
-            Number(witaNow.day),
-            Number(witaNow.hour),
-            Number(witaNow.minute),
-            Number(witaNow.second)
-          );
-
-        const rotationSlot =
-          Math.floor(
-            witaEpochMs /
-            (5 * 60 * 1000)
-          );
+            })
+            .sort(function(a, b) {
+              return a.row - b.row;
+            });
 
         active =
-          activeConfigs[
-            rotationSlot % activeConfigs.length
-          ];
+          activeConfigs.length > 0
+            ? activeConfigs[
+                rotationSlot % activeConfigs.length
+              ]
+            : null;
+
+        updateEventCountdown._activeCacheKey =
+          activeCacheKey;
+        updateEventCountdown._activeCachedValue =
+          active;
       }
 
       if (!active) {
@@ -8168,10 +8184,28 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           active.targetHijriYear
       };
 
-      console.log(
-        'EVENT COUNTDOWN TAMPIL:',
-        WEB_APP_STATE.event.active
-      );
+      // Jangan spam console setiap detik. Logging hanya saat
+      // event/angka/slot aktif benar-benar berubah.
+      const activeLogKey =
+        [
+          WEB_APP_STATE.event.active.row,
+          WEB_APP_STATE.event.active.event,
+          WEB_APP_STATE.event.active.days,
+          WEB_APP_STATE.event.active.limit,
+          WEB_APP_STATE.event.active.targetGregorian
+        ].join('|');
+
+      if (
+        updateEventCountdown._lastLoggedActiveKey !== activeLogKey
+      ) {
+        updateEventCountdown._lastLoggedActiveKey =
+          activeLogKey;
+
+        console.log(
+          'EVENT COUNTDOWN TAMPIL:',
+          WEB_APP_STATE.event.active
+        );
+      }
     }
 
 
