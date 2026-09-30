@@ -11172,7 +11172,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       const state = WEB_APP_STATE.audio;
 
-      if (!state || !state.scheduleInitialized) {
+      if (
+        !state ||
+        !state.computedSchedules ||
+        typeof state.computedSchedules.forEach !== 'function'
+      ) {
         return;
       }
 
@@ -11544,6 +11548,21 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             result
           );
 
+          // CATCH-UP PER SHOLAT:
+          // Jangan menunggu seluruh 5 sholat selesai dibuat.
+          // Begitu schedule sholat yang relevan selesai, langsung cek
+          // event yang sedang berlangsung. Ini penting bila halaman
+          // dibuka/reload ketika waktu sholat sudah berjalan.
+          try {
+            queueCurrentAudioCatchUp(dateKey);
+          } catch (audioPrayerCatchUpError) {
+            console.warn(
+              'AUDIO CATCH-UP PER SHOLAT ERROR:',
+              prayer.name,
+              audioPrayerCatchUpError
+            );
+          }
+
           result.events.forEach(function(event) {
 
             if (event.targetSec < 0) return;
@@ -11594,6 +11613,17 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         }
 
         audioState.scheduleInitialized = true;
+
+        // Pastikan watchdog juga aktif walaupun seluruh schedule
+        // selesai tanpa ada event yang tertinggal.
+        try {
+          startAudioCatchUpWatchdog(dateKey);
+        } catch (audioWatchdogError) {
+          console.warn(
+            'AUDIO CATCH-UP WATCHDOG START ERROR:',
+            audioWatchdogError
+          );
+        }
 
         // =====================================================
         // FINAL CATCH-UP SETELAH SCHEDULE BENAR-BENAR LENGKAP
