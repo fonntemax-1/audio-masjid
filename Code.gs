@@ -22,6 +22,19 @@ function doGet(e) {
     return createDisplayThemeJsonpResponse_(params.callback, getDisplayThemeSetting());
   }
 
+  // =====================================================
+  // PANEL C22 - FALLBACK ROUTE LANGSUNG DI CODE.GS
+  // =====================================================
+  // API.gs juga memiliki action ini. Route langsung di doGet
+  // memastikan deployment yang masih memakai router Code.gs lama
+  // tetap dapat membaca panels!C22 tanpa mengganggu audio/scheduler.
+  if (String(params.action || '').trim() === 'getPanelIqomahBlackMode') {
+    return createPanelIqomahBlackModeJsonpResponse_(
+      params.callback,
+      getPanelIqomahBlackMode()
+    );
+  }
+
   if (String(params.api || '') === '1' || params.action) {
     return handleGithubApiRequest_(params);
   }
@@ -258,6 +271,26 @@ function getPanelDisplayMode() {
     success: true,
     mode: mode
   };
+}
+
+
+function createPanelIqomahBlackModeJsonpResponse_(callback, data) {
+  const cb = String(callback || '').trim();
+
+  if (!/^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$/.test(cb)) {
+    return ContentService
+      .createTextOutput('Invalid JSONP callback.')
+      .setMimeType(ContentService.MimeType.TEXT);
+  }
+
+  return ContentService
+    .createTextOutput(
+      cb + '(' + JSON.stringify({
+        success: true,
+        data: data
+      }) + ');'
+    )
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
 
 
