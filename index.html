@@ -13449,38 +13449,39 @@ function setCountdownBlackMode(enabled) {
             break;
           }
 
-          // Setelah waktu Maghrib masuk, tampilkan dua fase secara
-          // berurutan:
-          //   1. BUKA PUASA
-          //   2. MENUJU ADZAN MAGRIB
+          // Setelah hitung mundur MENUJU WAKTU BERBUKA selesai,
+          // Ramadan Maghrib WAJIB melewati dua fase display:
           //
-          // Batas fase dihitung dari waktu Adzan AKTUAL, bukan
-          // mengubah jadwal/audio apa pun. Normalnya fase kedua
-          // dimulai 2 menit sebelum Adzan. Jika jarak Maghrib ->
-          // Adzan kurang dari 2 menit, gunakan titik tengah agar
-          // KEDUA fase tetap selalu terlihat dan tidak saling
-          // meniadakan.
-          const maghribAdzanStartSec =
+          //   1. BUKA PUASA
+          //      dimulai tepat pada pSec / awal sirine
+          //   2. MENUJU ADZAN MAGRIB
+          //      dimulai setelah sirine selesai dan berakhir tepat
+          //      ketika audio ADZAN dimulai.
+          //
+          // Penting: ini DISPLAY SAJA. Scheduler/audio tidak disentuh.
+          // Gunakan akhir SIRINE sebagai batas yang pasti agar fase
+          // BUKA PUASA tidak langsung jatuh ke ADZAN.
+          const maghribAdzanStartSecRaw =
             Number(adzanStartSec);
 
-          const maghribGapSec =
-            Math.max(
-              1,
-              maghribAdzanStartSec - Number(pSec)
-            );
+          const sirineEndForDisplay =
+            Number.isFinite(Number(maghribSirineEndSec)) &&
+            Number(maghribSirineEndSec) > Number(pSec)
+              ? Number(maghribSirineEndSec)
+              : Number(pSec) + 1;
 
-          const preferredMenujuSec =
-            maghribAdzanStartSec - (2 * 60);
+          // Jika metadata ADZAN belum memberi target setelah Maghrib,
+          // fallback display ke akhir sirine. Ini tidak mengubah audio.
+          const maghribAdzanStartSec =
+            Number.isFinite(maghribAdzanStartSecRaw) &&
+            maghribAdzanStartSecRaw > sirineEndForDisplay
+              ? maghribAdzanStartSecRaw
+              : sirineEndForDisplay;
 
-          const maghribMenujuAdzanSec =
-            preferredMenujuSec > Number(pSec)
-              ? preferredMenujuSec
-              : Number(pSec) + (maghribGapSec / 2);
-
-          // FASE 1: BUKA PUASA
+          // FASE 1: BUKA PUASA selama sirine.
           if (
             nowSeconds >= Number(pSec) &&
-            nowSeconds < maghribMenujuAdzanSec
+            nowSeconds < sirineEndForDisplay
           ) {
 
             activeState = {
@@ -13492,11 +13493,9 @@ function setCountdownBlackMode(enabled) {
             break;
           }
 
-          // FASE 2: MENUJU ADZAN MAGRIB
-          // DISPLAY SAJA. Tidak mengubah sirine,
-          // audio, gap, ataupun waktu Adzan.
+          // FASE 2: MENUJU ADZAN MAGRIB setelah sirine selesai.
           if (
-            nowSeconds >= maghribMenujuAdzanSec &&
+            nowSeconds >= sirineEndForDisplay &&
             nowSeconds < maghribAdzanStartSec
           ) {
 
