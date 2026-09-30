@@ -8350,7 +8350,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     // =========================================================
 
     const YOUTUBE_AUTO_STOP_BEFORE_AUDIO = 5 * 60;
-    const YOUTUBE_AUTO_ON_AFTER_IQOMAH = 30 * 60;
+    const YOUTUBE_AUTO_ON_AFTER_IQOMAH = 15 * 60;
 
     let youtubeControlMode = 'AUTO';
     // AUTO dimulai dalam keadaan MUTE.
@@ -8889,7 +8889,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           YOUTUBE_AUTO_ON_AFTER_IQOMAH;
 
         // Setelah Qiroah dimulai, MUTE tetap dipertahankan
-        // sampai 30 menit setelah IQOMAH selesai.
+        // sampai 15 menit setelah IQOMAH selesai.
         if (
           nowSeconds >= qiroahTargetSec &&
           nowSeconds < muteUntilSec
@@ -9110,7 +9110,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       // startup. Aturannya:
       //
       //   1. 5 menit sebelum Qiroah -> MUTE
-      //   2. Mulai Qiroah sampai 30 menit setelah IQOMAH selesai
+      //   2. Mulai Qiroah sampai 15 menit setelah IQOMAH selesai
       //      -> tetap MUTE
       //   3. Setelah window tersebut berakhir -> UNMUTE
       //
@@ -9217,7 +9217,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         unmuteYouTubeIframe();
 
         console.log(
-          'YOUTUBE AUTO: UNMUTE - window Qiroah sampai 30 menit setelah Iqomah sudah selesai.'
+          'YOUTUBE AUTO: UNMUTE - window Qiroah sampai 15 menit setelah Iqomah sudah selesai.'
         );
       }
 
