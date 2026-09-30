@@ -11076,27 +11076,130 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           items[sirineIndex].status
         );
 
-        let cursorAfter = sirineTarget + items[sirineIndex].duration;
+        // =====================================================
+        // SINKRONISASI AUDIO MAGHRIB RAMADAN DENGAN DISPLAY
+        //
+        // Display sudah ditetapkan:
+        //   WAKTU BERBUKA  = pSec sampai +2 menit
+        //   MENUJU MAGHRIB = +2 sampai +3 menit
+        //   ADZAN          = tepat +3 menit
+        //
+        // Karena itu BEEP pertama harus tepat 1 detik sebelum
+        // ADZAN, dan ADZAN-BIASA harus mulai tepat +3 menit.
+        // Jangan biarkan GAP DOA-BUKA -> BEEP 3 menit menggeser
+        // ADZAN jauh setelah display.
+        // =====================================================
+        const firstBeepIndexBeforeAdzan = items.findIndex(function(item, index) {
+          return (
+            index > sirineIndex &&
+            index < adzanIndex &&
+            item.event === 'beep'
+          );
+        });
 
-        for (let i = sirineIndex + 1; i < items.length; i++) {
+        let cursorAfterSirine =
+          sirineTarget + items[sirineIndex].duration;
+
+        // Event setelah SIRINE dan sebelum BEEP pertama berjalan
+        // normal. BEEP pertama sendiri dikunci ke -1 detik dari
+        // waktu ADZAN display.
+        for (
+          let i = sirineIndex + 1;
+          i < adzanIndex;
+          i++
+        ) {
           const item = items[i];
+
+          if (
+            i === firstBeepIndexBeforeAdzan &&
+            item.event === 'beep'
+          ) {
+            continue;
+          }
+
           const previous = items[i - 1];
 
-          cursorAfter += getSystemGapSeconds(
+          cursorAfterSirine += getSystemGapSeconds(
             previous.event,
             item.event
           );
 
           add(
             item.event.toUpperCase(),
-            cursorAfter,
+            cursorAfterSirine,
             item.duration,
             getLabel(item),
             item.audioType,
             item.status
           );
 
-          cursorAfter += item.duration;
+          cursorAfterSirine += item.duration;
+        }
+
+        const adzanItem = items[adzanIndex];
+
+        // ADZAN MAGHRIB = tepat 3 menit setelah waktu berbuka.
+        const fixedMaghribAdzanTarget =
+          Number(pSec) + (3 * 60);
+
+        // BEEP pertama = tepat 1 detik sebelum ADZAN.
+        if (
+          firstBeepIndexBeforeAdzan >= 0
+        ) {
+          const firstBeepItem =
+            items[firstBeepIndexBeforeAdzan];
+
+          const fixedFirstBeepTarget =
+            fixedMaghribAdzanTarget -
+            1 -
+            firstBeepItem.duration;
+
+          add(
+            'BEEP',
+            fixedFirstBeepTarget,
+            firstBeepItem.duration,
+            getLabel(firstBeepItem),
+            firstBeepItem.audioType,
+            firstBeepItem.status
+          );
+        }
+
+        add(
+          'ADZAN',
+          fixedMaghribAdzanTarget,
+          adzanItem.duration,
+          getLabel(adzanItem),
+          adzanItem.audioType,
+          adzanItem.status
+        );
+
+        // Semua event setelah ADZAN tetap mengikuti GAP normal.
+        let cursorAfterAdzan =
+          fixedMaghribAdzanTarget + adzanItem.duration;
+
+        for (
+          let i = adzanIndex + 1;
+          i < items.length;
+          i++
+        ) {
+          const item = items[i];
+          const previous = items[i - 1];
+
+          cursorAfterAdzan += getSystemGapSeconds(
+            previous.event,
+            item.event
+          );
+
+          add(
+            item.event.toUpperCase(),
+            cursorAfterAdzan,
+            item.duration,
+            getLabel(item),
+            item.audioType,
+            item.status
+          );
+
+          cursorAfterAdzan += item.duration;
         }
       } else {
         // -------------------------------------------------------
