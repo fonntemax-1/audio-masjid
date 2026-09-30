@@ -13444,37 +13444,50 @@ function setCountdownBlackMode(enabled) {
             break;
           }
 
-          // WAKTU BERBUKA / PUASA setelah waktu Maghrib
-          // tetap menjadi fase display sebelum countdown Adzan.
-          // Semua waktu audio tetap mengikuti scheduler yang ada.
+          // Setelah waktu Maghrib masuk, tampilkan dua fase secara
+          // berurutan:
+          //   1. BUKA PUASA
+          //   2. MENUJU ADZAN MAGRIB
+          //
+          // Batas fase dihitung dari waktu Adzan AKTUAL, bukan
+          // mengubah jadwal/audio apa pun. Normalnya fase kedua
+          // dimulai 2 menit sebelum Adzan. Jika jarak Maghrib ->
+          // Adzan kurang dari 2 menit, gunakan titik tengah agar
+          // KEDUA fase tetap selalu terlihat dan tidak saling
+          // meniadakan.
           const maghribAdzanStartSec =
             Number(adzanStartSec);
 
-          // Countdown "MENUJU ADZAN MAGRIB" hanya mengambil
-          // 2 menit terakhir sebelum Adzan aktual.
-          // Jika jarak Maghrib -> Adzan kurang dari 2 menit,
-          // countdown dimulai tepat saat fase berbuka dimulai.
-          const maghribMenujuAdzanSec =
+          const maghribGapSec =
             Math.max(
-              Number(pSec),
-              maghribAdzanStartSec - (2 * 60)
+              1,
+              maghribAdzanStartSec - Number(pSec)
             );
 
+          const preferredMenujuSec =
+            maghribAdzanStartSec - (2 * 60);
+
+          const maghribMenujuAdzanSec =
+            preferredMenujuSec > Number(pSec)
+              ? preferredMenujuSec
+              : Number(pSec) + (maghribGapSec / 2);
+
+          // FASE 1: BUKA PUASA
           if (
             nowSeconds >= Number(pSec) &&
             nowSeconds < maghribMenujuAdzanSec
           ) {
 
             activeState = {
-              title: formatCountdownSpecialTitle_('WAKTU BERBUKA'),
-              timer: 'PUASA',
+              title: formatCountdownSpecialTitle_('BUKA PUASA'),
+              timer: 'MAGHRIB',
               prayerName: 'MAGHRIB'
             };
 
             break;
           }
 
-          // 2 menit terakhir sebelum Adzan Maghrib:
+          // FASE 2: MENUJU ADZAN MAGRIB
           // DISPLAY SAJA. Tidak mengubah sirine,
           // audio, gap, ataupun waktu Adzan.
           if (
