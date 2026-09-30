@@ -13659,8 +13659,35 @@ function setCountdownBlackMode(enabled) {
         // =====================================================
         const MAX_PRAYER_DISPLAY_AGE_SEC = 30 * 60;
 
+        // KHUSUS RAMADAN:
+        // Setelah fase WAKTU SHOLAT ASHAR (+15 menit setelah IQOMAH)
+        // berakhir, countdown tetap menampilkan MENUJU SHOLAT MAGHRIB
+        // sampai 5 menit sebelum waktu Maghrib.
+        // Karena jarak Ashar -> Maghrib bisa lebih dari 30 menit,
+        // Ashar harus tetap diproses sampai batas khusus tersebut.
+        let keepRamadanAsharUntilMaghrib = false;
+
         if (
-          nowSeconds >= pSec + MAX_PRAYER_DISPLAY_AGE_SEC
+          isRamadanDisplay() &&
+          p.name === 'ASHAR'
+        ) {
+          const maghribPrayerForAshar =
+            prayerList.find(function(prayer) {
+              return prayer.name === 'MAGHRIB';
+            });
+
+          if (maghribPrayerForAshar) {
+            const maghribFiveMinuteStartSec =
+              Number(maghribPrayerForAshar.seconds) - (5 * 60);
+
+            keepRamadanAsharUntilMaghrib =
+              nowSeconds < maghribFiveMinuteStartSec;
+          }
+        }
+
+        if (
+          nowSeconds >= pSec + MAX_PRAYER_DISPLAY_AGE_SEC &&
+          !keepRamadanAsharUntilMaghrib
         ) {
           continue;
         }
@@ -14311,6 +14338,58 @@ function setCountdownBlackMode(enabled) {
           };
 
           break;
+        }
+
+        // KHUSUS RAMADAN - SETELAH WAKTU SHOLAT ASHAR
+        // Setelah WAKTU SHOLAT ASHAR selesai (+15 menit setelah IQOMAH),
+        // jangan kembali menampilkan "MENUJU WAKTU BERBUKA".
+        // Tampilkan MENUJU SHOLAT MAGHRIB sampai 5 menit sebelum Maghrib.
+        // Pada batas 5 menit sebelum Maghrib, loop akan berpindah ke
+        // fase khusus MAGHRIB yang menampilkan MENUJU WAKTU BERBUKA.
+        if (
+          isRamadanDisplay() &&
+          p.name === 'ASHAR' &&
+          nowSeconds >= afterIqomahSec
+        ) {
+          const maghribPrayerAfterAshar =
+            prayerList.find(function(prayer) {
+              return prayer.name === 'MAGHRIB';
+            });
+
+          if (maghribPrayerAfterAshar) {
+            const maghribSecAfterAshar =
+              Number(maghribPrayerAfterAshar.seconds);
+
+            const fiveMinutesBeforeMaghribSec =
+              maghribSecAfterAshar - (5 * 60);
+
+            if (
+              nowSeconds < fiveMinutesBeforeMaghribSec
+            ) {
+              const diff =
+                maghribSecAfterAshar - nowSeconds;
+
+              const h =
+                Math.floor(diff / 3600);
+
+              const m =
+                Math.floor((diff % 3600) / 60);
+
+              const s =
+                Math.floor(diff % 60);
+
+              activeState = {
+                title: 'MENUJU SHOLAT MAGHRIB',
+                timer:
+                  String(h).padStart(2, '0') + ':' +
+                  String(m).padStart(2, '0') + ':' +
+                  String(s).padStart(2, '0'),
+                prayerName: 'MAGHRIB'
+              };
+
+              break;
+            }
+          }
         }
 
         // Setelah IQOMAH selesai, tampilkan
