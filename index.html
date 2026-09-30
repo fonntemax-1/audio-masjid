@@ -18,6 +18,35 @@
      OFF  : display normal.
      Black screen hanya visual; audio/YouTube/scheduler tetap berjalan.
      ========================================================= */
+  body.panel-sleep-mode {
+    background: #000 !important;
+    overflow: hidden !important;
+  }
+
+  body.panel-sleep-mode::before {
+    content: "" !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background: #000 !important;
+    z-index: 2147483646 !important;
+    pointer-events: none !important;
+  }
+
+  body.panel-sleep-mode::after {
+    content: "" !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: #000 !important;
+    z-index: 2147483647 !important;
+    pointer-events: none !important;
+  }
+
+  body.panel-sleep-mode > * {
+    visibility: hidden !important;
+  }
+
   body.panel-countdown-auto {
     background: #000 !important;
   }
@@ -5687,9 +5716,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
 
     // =========================================================
-    // IQOMAH BLACK SCREEN CONTROL - panels!C22
-    // Polling 1 detik agar perubahan selector cepat diterapkan.
-    // Hanya mengatur tampilan hitam, tidak menyentuh audio.
+    // IQOMAH / SLEEP SCREEN CONTROL - panels!C22
+    // AUTO = black window sampai +15 menit setelah IQOMAH.
+    // OFF = normal.
+    // SLEEP = black window, lalu full sleep sampai 5 menit sebelum QIROAH.
+    // Berlaku sama untuk Ramadan dan non-Ramadan.
     // =========================================================
     let iqomahBlackRequestInFlight = false;
     let iqomahBlackLastMode = '';
@@ -5703,10 +5734,17 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         .then(function(result) {
           if (!result || typeof result !== 'object') return;
 
-          const mode =
-            String(result.mode || 'NORMAL')
+          const modeRaw =
+            String(result.mode || 'OFF')
               .trim()
               .toUpperCase();
+
+          const mode =
+            modeRaw === 'AUTO'
+              ? 'AUTO'
+              : modeRaw === 'SLEEP'
+                ? 'SLEEP'
+                : 'OFF';
 
           if (mode === iqomahBlackLastMode) return;
 
@@ -12224,17 +12262,21 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
     function setPanelIqomahBlackMode(mode) {
       const normalized =
-        String(mode || 'NORMAL')
+        String(mode || 'OFF')
           .trim()
           .toUpperCase();
 
       WEB_APP_STATE.panel.iqomahMode =
         normalized === 'AUTO'
           ? 'AUTO'
-          : 'NORMAL';
+          : normalized === 'SLEEP'
+            ? 'SLEEP'
+            : 'OFF';
+
+      document.body.classList.remove('panel-sleep-mode');
 
       console.log(
-        'PANELS C22 IQOMAH BLACK MODE =',
+        'PANELS C22 MODE =',
         WEB_APP_STATE.panel.iqomahMode
       );
     }
@@ -12422,6 +12464,92 @@ function setCountdownBlackMode(enabled) {
         'panel-countdown-auto',
         shouldBlack
       );
+    }
+
+    // =========================================================
+    // SLEEP MODE - NEXT QIROAH WAKE TARGET
+    // =========================================================
+    // Mengikuti qiroah yang benar-benar dibangun oleh scheduler audio.
+    // Karena qiroah dipilih dari Sheet Adzan, mode SLEEP tidak bergantung
+    // pada RAMADAN_DISPLAY dan tidak memakai waktu qiroah hardcode.
+    function getNextQiroahTargetSec_(nowSeconds) {
+      const schedules = WEB_APP_STATE.audio.computedSchedules;
+
+      if (!(schedules instanceof Map)) {
+        return null;
+      }
+
+      let nextTarget = null;
+
+      schedules.forEach(function(schedule) {
+        const events =
+          schedule && Array.isArray(schedule.events)
+            ? schedule.events
+            : [];
+
+        events.forEach(function(event) {
+          const eventName =
+            String(event.eventName || '').trim().toUpperCase();
+
+          const target =
+            Number(event.targetSec);
+
+          if (
+            eventName.indexOf('QIROAH') !== 0 ||
+            !Number.isFinite(target)
+          ) {
+            return;
+          }
+
+          if (
+            target > Number(nowSeconds) &&
+            (nextTarget === null || target < nextTarget)
+          ) {
+            nextTarget = target;
+          }
+        });
+      });
+
+      return nextTarget;
+    }
+
+    function updatePanelSleepMode_(
+      sleepAfterIqomah,
+      nowSeconds
+    ) {
+      let shouldSleep = false;
+
+      if (
+        WEB_APP_STATE.panel.iqomahMode === 'SLEEP' &&
+        sleepAfterIqomah
+      ) {
+        const nextQiroahTarget =
+          getNextQiroahTargetSec_(nowSeconds);
+
+        const wakeSec =
+          nextQiroahTarget === null
+            ? null
+            : nextQiroahTarget - (5 * 60);
+
+        shouldSleep =
+          wakeSec === null ||
+          Number(nowSeconds) < wakeSec;
+
+        console.log(
+          'PANEL SLEEP CHECK:',
+          'now=', nowSeconds,
+          'nextQiroah=', nextQiroahTarget,
+          'wake=', wakeSec,
+          'sleep=', shouldSleep
+        );
+      }
+
+      document.body.classList.toggle(
+        'panel-sleep-mode',
+        shouldSleep
+      );
+
+      return shouldSleep;
     }
 
     // =========================================================
@@ -12636,6 +12764,7 @@ function setCountdownBlackMode(enabled) {
         // di belakang layar dan akan memanggil updatePrayerCountdown()
         // kembali setelah jadwal tersedia.
         setCountdownBlackMode(false);
+        document.body.classList.remove('panel-sleep-mode');
 
         processAudioQueue();
 
@@ -12727,6 +12856,7 @@ function setCountdownBlackMode(enabled) {
 // dan kembali normal 15 menit setelah waktu IQOMAH.
 // DISPLAY-ONLY; audio, YouTube, dan scheduler tetap sama.
       let panelBlackWindow = false;
+      let panelSleepWindow = false;
 
       // =======================================================
       // AUDIO PROCESSING
@@ -12955,12 +13085,23 @@ function setCountdownBlackMode(enabled) {
           iqomahTimeSec + (15 * 60);
 
         if (
-          WEB_APP_STATE.panel.iqomahMode === 'AUTO' &&
+          (
+            WEB_APP_STATE.panel.iqomahMode === 'AUTO' ||
+            WEB_APP_STATE.panel.iqomahMode === 'SLEEP'
+          ) &&
           p.hasIqomah &&
           nowSeconds >= panelBlackStartSec &&
           nowSeconds < panelBlackEndSec
         ) {
           panelBlackWindow = true;
+        }
+
+        if (
+          WEB_APP_STATE.panel.iqomahMode === 'SLEEP' &&
+          p.hasIqomah &&
+          nowSeconds >= panelBlackEndSec
+        ) {
+          panelSleepWindow = true;
         }
 
         // -------------------------------------------------------
@@ -13568,8 +13709,16 @@ function setCountdownBlackMode(enabled) {
           panelBlackPrayerName = "JUM'AT";
         }
 
+        const effectiveSleep =
+          updatePanelSleepMode_(
+            panelSleepWindow,
+            nowSeconds
+          );
+
         setCountdownBlackMode(
-          panelBlackWindow
+          effectiveSleep
+            ? false
+            : panelBlackWindow
         );
 
         // Countdown utama tetap dipelihara untuk state normal/audio.
@@ -13607,8 +13756,16 @@ function setCountdownBlackMode(enabled) {
         // activeState dapat kosong tepat setelah fase SHOLAT selesai.
         // Panel AUTO tetap mengikuti window waktu sampai
         // 15 menit setelah IQOMAH selesai.
+        const effectiveSleep =
+          updatePanelSleepMode_(
+            panelSleepWindow,
+            nowSeconds
+          );
+
         setCountdownBlackMode(
-          panelBlackWindow
+          effectiveSleep
+            ? false
+            : panelBlackWindow
         );
 
         if (
