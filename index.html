@@ -12760,14 +12760,17 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           ? 'AUTO'
           : 'OFF';
 
-      // OFF harus langsung mematikan black screen.
-      // AUTO tidak mengubah state countdown yang sedang berjalan.
-      if (WEB_APP_STATE.panel.mode === 'OFF') {
-        WEB_APP_STATE.panel.countdownBlack = false;
-        document.body.classList.remove(
-          'panel-countdown-auto'
-        );
-      }
+      // C2 tidak boleh mematikan black screen yang dikendalikan C22.
+      // C22 = kontrol utama IQOMAH BLACK. C2 hanya disimpan sebagai
+      // state kompatibilitas dan tidak boleh melakukan repaint/toggle
+      // terhadap class panel-countdown-auto.
+      //
+      // Sebelumnya C2=OFF menghapus class hitam setiap updateUI()
+      // (fetchSheetData berjalan berkala), lalu updatePrayerCountdown()
+      // memasangnya lagi pada tick berikutnya. Akibatnya layar terlihat
+      // bolak-balik NORMAL -> HITAM -> NORMAL.
+      // Status visual hanya boleh diubah oleh setCountdownBlackMode().
+
     }
 
     function setPanelIqomahBlackMode(mode) {
