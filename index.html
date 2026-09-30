@@ -12724,6 +12724,59 @@ function setCountdownBlackMode(enabled) {
         .replace(/BUKA\\s+PUASA\\s+MAGRIB/gi, 'WAKTU BERBUKA PUASA');
     }
 
+    // PENGUNCI TAMPILAN TERAKHIR:
+    // Jika ada sumber lama/cached/API yang masih menulis
+    // "WAKTU BERBUKA MAGHRIB/MAGRIB" langsung ke DOM,
+    // koreksi dilakukan tepat sebelum teks terlihat di TV.
+    function installRamadanMaghribTextGuard_() {
+      const guard = function(node) {
+        if (!node) return;
+        const current = String(node.innerText || node.textContent || '');
+        const fixed = normalizeVisibleRamadanMaghribText_(current);
+        if (fixed !== current) {
+          node.innerText = fixed;
+        }
+      };
+
+      const eventEl = document.getElementById('event-running');
+      const countdownEl = document.getElementById('countdown-title');
+      guard(eventEl);
+      guard(countdownEl);
+
+      if (window.__RAMADAN_MAGHRIB_TEXT_GUARD__) return;
+      window.__RAMADAN_MAGHRIB_TEXT_GUARD__ = true;
+
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.type !== 'childList' && mutation.type !== 'characterData') return;
+          const target = mutation.target && mutation.target.nodeType === 1
+            ? mutation.target
+            : mutation.target && mutation.target.parentElement;
+          if (!target) return;
+
+          if (
+            target.id === 'event-running' ||
+            target.id === 'countdown-title' ||
+            (target.closest &&
+              (target.closest('#event-running') ||
+               target.closest('#countdown-title')))
+          ) {
+            guard(
+              target.id === 'event-running' || target.id === 'countdown-title'
+                ? target
+                : target.closest('#event-running') || target.closest('#countdown-title')
+            );
+          }
+        });
+      });
+
+      observer.observe(document.body, {
+        subtree: true,
+        childList: true,
+        characterData: true
+      });
+    }
+
     function formatCountdownSpecialTitle_(label) {
       return normalizeCountdownDisplayTitle_(label);
     }
@@ -12734,6 +12787,7 @@ function setCountdownBlackMode(enabled) {
     }
 
     function updatePrayerCountdown() {
+      installRamadanMaghribTextGuard_();
 
       readPrayerTimesFromUI();
       updateFridayPrayerDisplay();
