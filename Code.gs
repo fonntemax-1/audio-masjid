@@ -274,10 +274,13 @@ function getPanelIqomahBlackMode() {
       sheet.getRange('C22').getDisplayValue() || ''
     ).trim().toUpperCase();
 
-    const mode = raw === 'AUTO' ? 'AUTO' : 'NORMAL';
+    const mode =
+      raw === 'AUTO' ? 'AUTO' :
+      raw === 'SLEEP' ? 'SLEEP' :
+      'OFF';
 
     Logger.log(
-      'PANELS API C22 IQOMAH BLACK = [' +
+      'PANELS API C22 = [' +
       raw + '] => mode = [' + mode + ']'
     );
 
