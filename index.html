@@ -13524,7 +13524,13 @@ function setCountdownBlackMode(enabled) {
 
         const adzanEvent =
           events.find(function(event) {
-            return String(event.eventName || '').toUpperCase() === 'ADZAN';
+            const eventName =
+              String(event.eventName || '').trim().toUpperCase();
+            return (
+              eventName === 'ADZAN' ||
+              eventName === 'ADZAN-BIASA' ||
+              eventName === 'ADZAN-SUBUH'
+            );
           });
 
         const doaEvent =
@@ -13906,7 +13912,7 @@ function setCountdownBlackMode(enabled) {
             const sec = Math.floor(diff % 60);
 
             activeState = {
-              title: 'MENUJU ADZAN MAGHRIB',
+              title: 'MENUJU MAGHRIB',
               timer:
                 String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
