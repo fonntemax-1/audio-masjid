@@ -8338,14 +8338,15 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     //   - YouTube PLAY tetapi MUTE terus.
     //
     // AUTO:
-    //   - YouTube tetap PLAY tetapi SELALU MUTE.
-    //   - AUTO tidak pernah UNMUTE otomatis.
-    //   - Hanya ON yang mengaktifkan suara YouTube.
+    //   - MUTE 5 menit sebelum Qiroah sampai 15 menit setelah IQOMAH.
+    //   - Di luar window tersebut YouTube UNMUTE otomatis.
+    // ON:
+    //   - UNMUTE terus.
     //
     // STOP:
     //   - YouTube benar-benar STOP / iframe dilepas.
     //
-    // AUTO selalu MUTE. ON adalah satu-satunya mode yang UNMUTE.
+    // AUTO menggunakan window jadwal audio. ON selalu UNMUTE.
     // =========================================================
 
     const YOUTUBE_AUTO_STOP_BEFORE_AUDIO = 5 * 60;
@@ -9077,66 +9078,37 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       }
 
       // =======================================================
-      // MODE AUTO = SELALU MUTE
-      //
-      // AUTO sekarang berarti YouTube tetap PLAY tetapi SELALU MUTE.
-      // AUTO tidak lagi melakukan UNMUTE berdasarkan jadwal Qiroah/IQOMAH.
-      // Hanya mode ON yang boleh mengirim UNMUTE.
-      //
-      // Ini sengaja dibuat sebelum logika SLEEP/jadwal agar tidak ada
-      // evaluasi waktu yang dapat membuka suara kembali.
-      // =======================================================
-      if (mode === 'AUTO') {
-        if (!youtubeAutoMuted) {
-          youtubeAutoMuted = true;
-          muteYouTubeIframe();
-        } else {
-          youtubeAutoMuted = true;
-        }
-        return;
-      }
-
-      // =======================================================
       // MODE SLEEP OVERRIDE
       // =======================================================
       if (
         document.body.classList.contains('panel-sleep-mode')
       ) {
-        if (mode === 'STOP') {
-          stopYouTubeIframe();
-          youtubeAutoMuted = false;
-          return;
-        }
-
         if (!youtubeAutoMuted) {
           youtubeAutoMuted = true;
           muteYouTubeIframe();
         } else {
           youtubeAutoMuted = true;
         }
-
         return;
       }
 
       // =======================================================
       // MODE AUTO
       //
-      // AUTO HARUS DIEVALUASI TERUS-MENERUS, bukan hanya saat
-      // startup. Aturannya:
+      // AUTO:
+      //   1. MUTE mulai 5 menit sebelum Qiroah.
+      //   2. Tetap MUTE selama Qiroah sampai IQOMAH selesai.
+      //   3. Tetap MUTE sampai 15 menit setelah IQOMAH selesai.
+      //   4. Setelah +15 menit tersebut -> UNMUTE.
       //
-      //   1. 5 menit sebelum Qiroah -> MUTE
-      //   2. Mulai Qiroah sampai 15 menit setelah IQOMAH selesai
-      //      -> tetap MUTE
-      //   3. Setelah window tersebut berakhir -> UNMUTE
-      //
-      // Evaluasi dilakukan dari countdown setiap detik. Tidak ada
-      // reload iframe dan tidak menyentuh scheduler/audio.
+      // Di luar window tersebut YouTube tetap PLAY + UNMUTE.
+      // Tidak ada reload iframe.
       // =======================================================
       if (mode !== 'AUTO') {
         return;
       }
 
-      // Jadwal audio belum siap: pertahankan kondisi aman MUTE.
+      // Jadwal audio belum siap: kondisi aman = MUTE.
       if (
         !WEB_APP_STATE.audio.scheduleInitialized
       ) {
@@ -9154,9 +9126,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       const qiroahHold =
         getYouTubeQiroahHoldWindow(now);
 
-      // Qiroah yang benar-benar sedang berjalan menjadi kondisi MUTE
-      // paling kuat. Ini tidak bergantung pada apakah perhitungan
-      // hold-window menemukan IQOMAH dengan benar.
+      // Qiroah yang sedang berjalan menjadi kondisi MUTE terkuat.
       const currentAudioEvent =
         getYouTubeCurrentAudioEvent(now);
 
@@ -9205,13 +9175,12 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             ? targetSec
             : null;
 
-        // Kirim MUTE hanya saat transisi UNMUTED -> MUTED.
         if (!youtubeAutoMuted) {
           youtubeAutoMuted = true;
           muteYouTubeIframe();
 
           console.log(
-            'YOUTUBE AUTO: MUTE mulai 5 menit sebelum Qiroah / masuk window Qiroah-Iqomah.',
+            'YOUTUBE AUTO: MUTE mulai 5 menit sebelum Qiroah sampai 15 menit setelah IQOMAH.',
             activeWindow
           );
         }
@@ -9220,25 +9189,22 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         return;
       }
 
-      // Tidak berada dalam window AUTO:
-      // YouTube harus kembali ON/UNMUTE.
+      // Di luar window AUTO -> UNMUTE.
       youtubeAutoMuteKey = '';
       youtubeAutoMutePrayer = '';
       youtubeAutoMuteQiroahTargetSec = null;
 
-      // Kirim UNMUTE hanya saat transisi MUTED -> UNMUTED.
       if (youtubeAutoMuted) {
         youtubeAutoMuted = false;
         unmuteYouTubeIframe();
 
         console.log(
-          'YOUTUBE AUTO: UNMUTE - window Qiroah sampai 15 menit setelah Iqomah sudah selesai.'
+          'YOUTUBE AUTO: UNMUTE - sudah di luar window 5 menit sebelum Qiroah sampai 15 menit setelah IQOMAH.'
         );
       }
 
       youtubeAutoScheduleEvaluated = true;
     }
-
     let youtubeAutoResetDateKey = '';
 
     function resetYouTubeAutoStopForNewDate(
