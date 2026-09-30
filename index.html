@@ -13861,7 +13861,7 @@ function setCountdownBlackMode(enabled) {
           displayIqomahEndSec + (15 * 60);
 
         // PANEL C22 = AUTO:
-        // Layar hitam dimulai tepat 2 menit sebelum WAKTU IQOMAH
+        // Layar hitam dimulai tepat 5 detik sebelum WAKTU IQOMAH
         // dan berakhir 15 menit setelah AUDIO IQOMAH selesai.
         //
         // Berlaku untuk semua sholat, Ramadan maupun non-Ramadan.
@@ -13869,7 +13869,7 @@ function setCountdownBlackMode(enabled) {
         const panelBlackStartSec =
           Math.max(
             adzanStartSec,
-            displayIqomahTimeSec - (2 * 60)
+            displayIqomahTimeSec - 5
           );
 
         const panelBlackEndSec =
