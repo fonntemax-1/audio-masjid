@@ -13034,45 +13034,6 @@ function setCountdownBlackMode(enabled) {
       const guard = function(node) {
         if (!node) return;
         const current = String(node.innerText || node.textContent || '');
-
-        // Banner Event dan countdown memiliki aturan berbeda:
-        // countdown tetap "WAKTU BERBUKA", sedangkan banner Event
-        // wajib "WAKTU BERBUKA PUASA <KOTA> DAN SEKITARNYA".
-        if (node.id === 'event-running') {
-          const activeState =
-            WEB_APP_STATE &&
-            WEB_APP_STATE.countdown
-              ? WEB_APP_STATE.countdown.active
-              : null;
-
-          const liveOverride =
-            getEventPrayerOverrideText_(activeState);
-
-          if (
-            liveOverride &&
-            /^WAKTU\\s+BERBUKA\\s+PUASA(?:\\s|$)/i.test(liveOverride) &&
-            current !== liveOverride
-          ) {
-            node.innerText = liveOverride;
-            return;
-          }
-
-          // Fallback untuk sumber lama yang masih menulis
-          // "WAKTU BERBUKA <KOTA> DAN SEKITARNYA".
-          if (
-            /^WAKTU\\s+BERBUKA(?:\\s|$)/i.test(current) &&
-            !/^WAKTU\\s+BERBUKA\\s+PUASA(?:\\s|$)/i.test(current)
-          ) {
-            node.innerText =
-              current.replace(
-                /^WAKTU\\s+BERBUKA/i,
-                'WAKTU BERBUKA PUASA'
-              );
-          }
-          return;
-        }
-
-        // Countdown tetap menggunakan normalisasi lama.
         const fixed = normalizeVisibleRamadanMaghribText_(current);
         if (fixed !== current) {
           node.innerText = fixed;
@@ -13563,13 +13524,7 @@ function setCountdownBlackMode(enabled) {
 
         const adzanEvent =
           events.find(function(event) {
-            const eventName =
-              String(event.eventName || '').trim().toUpperCase();
-            return (
-              eventName === 'ADZAN' ||
-              eventName === 'ADZAN-BIASA' ||
-              eventName === 'ADZAN-SUBUH'
-            );
+            return String(event.eventName || '').toUpperCase() === 'ADZAN';
           });
 
         const doaEvent =
@@ -13662,7 +13617,7 @@ function setCountdownBlackMode(enabled) {
           adzanStartSec;
 
         const panelBlackEndSec =
-          iqomahEndSec + (15 * 60);
+          iqomahTimeSec + (15 * 60);
 
         if (
           (
@@ -13909,13 +13864,7 @@ function setCountdownBlackMode(enabled) {
 
           const maghribAdzanEvent =
             events.find(function(event) {
-              const eventName =
-                String(event.eventName || '').trim().toUpperCase();
-              return (
-                eventName === 'ADZAN' ||
-                eventName === 'ADZAN-BIASA' ||
-                eventName === 'ADZAN-SUBUH'
-              );
+              return String(event.eventName || '').toUpperCase() === 'ADZAN';
             });
 
           const maghribAdzanStartSec =
@@ -13924,33 +13873,17 @@ function setCountdownBlackMode(enabled) {
               ? Number(maghribAdzanEvent.targetSec)
               : adzanStartSec;
 
-          // FASE 1: WAKTU BERBUKA.
-          // Setelah fase berbuka selesai, selalu sisakan 2 menit
-          // untuk countdown menuju Maghrib/Adzan Maghrib.
-          // Jangan menggunakan +3 menit sebagai batas display karena
-          // dapat melewati target Adzan dan membuat state langsung
-          // jatuh ke MENUJU IQOMAH.
+          // Rest buka puasa = 3 menit setelah DOA-BUKA selesai.
           const doaBukaEndSec =
             maghribDoaBukaEvent &&
             Number.isFinite(Number(maghribDoaBukaEvent.endSec))
               ? Number(maghribDoaBukaEvent.endSec)
               : Number(pSec);
 
-          const configuredBukaEndSec =
+          const bukaRestEndSec =
             doaBukaEndSec + (3 * 60);
 
-          const countdownMaghribStartSec =
-            Math.max(
-              Number(pSec),
-              maghribAdzanStartSec - (2 * 60)
-            );
-
-          const bukaRestEndSec =
-            Math.min(
-              configuredBukaEndSec,
-              countdownMaghribStartSec
-            );
-
+          // FASE 1: SIRINE + DOA-BUKA + REST 3 menit.
           if (
             nowSeconds >= Number(pSec) &&
             nowSeconds < bukaRestEndSec
@@ -13963,8 +13896,7 @@ function setCountdownBlackMode(enabled) {
             break;
           }
 
-          // FASE 2: countdown menuju Maghrib.
-          // Wajib tampil sebelum Adzan Maghrib.
+          // FASE 2: setelah rest selesai sampai ADZAN aktual.
           if (
             nowSeconds >= bukaRestEndSec &&
             nowSeconds < maghribAdzanStartSec
@@ -13975,7 +13907,7 @@ function setCountdownBlackMode(enabled) {
             const s = Math.floor(diff % 60);
 
             activeState = {
-              title: 'MENUJU MAGHRIB',
+              title: 'MENUJU SHOLAT MAGRIB',
               timer:
                 String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
@@ -13985,22 +13917,12 @@ function setCountdownBlackMode(enabled) {
             break;
           }
 
-          // Ramadan Maghrib harus memakai batas ADZAN dari event
-          // Maghrib sendiri, bukan batas generic yang bisa memakai
-          // anchor waktu sholat biasa.
-          const ramadanAdzanEndSec =
-            maghribAdzanEvent &&
-            Number.isFinite(Number(maghribAdzanEvent.endSec)) &&
-            Number(maghribAdzanEvent.endSec) > maghribAdzanStartSec
-              ? Number(maghribAdzanEvent.endSec)
-              : maghribAdzanStartSec + 180;
-
           if (
             nowSeconds >= maghribAdzanStartSec &&
-            nowSeconds < ramadanAdzanEndSec
+            nowSeconds < adzanEndSec
           ) {
             activeState = {
-              title: 'SHOLAT MAGHRIB',
+              title: 'ADZAN MAGHRIB',
               timer: 'MAGHRIB',
               prayerName: 'MAGHRIB'
             };
@@ -14038,7 +13960,7 @@ function setCountdownBlackMode(enabled) {
 
           activeState = {
             title: isRamadanMaghrib
-              ? 'MENUJU BUKA PUASA'
+              ? 'MENUJU WAKTU BERBUKA'
               : formatCountdownPrayerTitle_(
                   (isFridayWita() && p.name === 'DZUHUR') ? "JUM'AT" : displayName,
                   true
