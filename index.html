@@ -5172,11 +5172,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         // WAKTU SHOLAT, banner WAKTU SHOLAT harus tetap berjalan.
         // Jangan bergantung hanya pada computedSchedules karena pada
         // pergantian fase data audio dapat sementara belum tersedia.
-        const stateTitleUpper = String(state.title || '')
-          .replace(/\\s+/g, ' ')
-          .trim()
-          .toUpperCase();
-
         if (
           stateTitleUpper === 'ADZAN' ||
           stateTitleUpper.indexOf('ADZAN ') === 0 ||
