@@ -4887,6 +4887,16 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             eventRunningLastTime) /
           1000;
 
+        // TCL TV: jangan menulis transform ke DOM pada setiap frame 60fps.
+        // 30fps cukup halus untuk running text dan mengurangi beban main thread.
+        if (elapsed < (1 / 30)) {
+          eventRunningAnimation =
+            requestAnimationFrame(
+              animate
+            );
+          return;
+        }
+
         eventRunningLastTime =
           timestamp;
 
@@ -6762,7 +6772,24 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       const speed =
         0.2;
 
-      function step() {
+      let keuanganLastFrameTime = 0;
+
+      function step(timestamp) {
+
+        // Batasi update transform sekitar 30fps agar TV tidak tersendat.
+        if (
+          keuanganLastFrameTime &&
+          (timestamp - keuanganLastFrameTime) < (1000 / 30)
+        ) {
+          keuanganAnimId =
+            requestAnimationFrame(
+              step
+            );
+          return;
+        }
+
+        keuanganLastFrameTime =
+          timestamp;
 
         keuanganPos -=
           speed;
@@ -9834,6 +9861,15 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       if (!dateKey) return;
 
+      // Fungsi ini dipanggil dari updatePrayerCountdown() setiap detik.
+      // Semua reset/cache cleanup hanya boleh dilakukan ketika tanggal
+      // benar-benar berubah. Jangan scan localStorage setiap detik.
+      if (
+        WEB_APP_STATE.audio.lastDate === dateKey
+      ) {
+        return;
+      }
+
       resetYouTubeAutoStopForNewDate(
         dateKey
       );
@@ -11919,6 +11955,20 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       if (!subuhElement || !terbitElement) {
         return;
       }
+
+      // Kartu Ramadan tidak perlu dibangun ulang setiap detik.
+      // Render ulang hanya jika jadwal atau mode Ramadan berubah.
+      const renderKey =
+        String(isRamadanDisplay()) +
+        '|' +
+        String(subuhElement.dataset.rawPrayerTime || WEB_APP_STATE.prayer.schedule.subuh || '') +
+        '|' +
+        String(terbitElement.dataset.rawPrayerTime || WEB_APP_STATE.prayer.schedule.terbit || '');
+
+      if (updateRamadanPrayerCards._lastRenderKey === renderKey) {
+        return;
+      }
+      updateRamadanPrayerCards._lastRenderKey = renderKey;
 
       // Ambil nilai yang benar-benar berasal dari API/jadwal.
       // Jangan pernah mengambil waktu dari innerText setelah display
