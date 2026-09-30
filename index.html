@@ -59,17 +59,13 @@
     background: #000 !important;
   }
 
-  /* Tutup seluruh display dengan lapisan hitam.
-     Tidak menyembunyikan DOM asli sehingga scheduler/audio tetap aman. */
+  /* Mode hitam ringan:
+     Jangan membuat full-screen pseudo-element karena Chrome/TCL harus
+     melakukan repaint layer tambahan. Background body/clock-overlay
+     sudah cukup untuk menghasilkan layar hitam. */
   body.panel-countdown-auto::after {
-    content: "";
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    background: #000 !important;
-    z-index: 99990 !important;
-    pointer-events: none !important;
+    display: none !important;
+    content: none !important;
   }
 
   /* Countdown selalu berada DI ATAS lapisan hitam,
