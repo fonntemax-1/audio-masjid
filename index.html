@@ -13,10 +13,13 @@
       font-display: swap;
     }
   /* =========================================================
-     MODE DISPLAY COUNTDOWN - Panels!C2
-     AUTO : layar hitam saat countdown sholat aktif.
-     OFF  : display normal.
-     Black screen hanya visual; audio/YouTube/scheduler tetap berjalan.
+     MODE DISPLAY
+     Panels!C2 = AUTO/OFF untuk layar hitam countdown.
+     Panels!C22 = AUTO/OFF/SLEEP untuk mode layar setelah IQOMAH.
+     SLEEP : layar hitam + audio utama mute + YouTube mute,
+             lalu bangun 5 menit sebelum QIROAH berikutnya.
+     SLEEP tidak menghentikan scheduler, tidak pause audio,
+     dan tidak bergantung pada RAMADAN_DISPLAY.
      ========================================================= */
   body.panel-sleep-mode {
     background: #000 !important;
@@ -3352,7 +3355,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         // Jangan biarkan state mute/volume bawaan browser TV terbawa.
         try {
           audio.defaultMuted = false;
-          audio.muted = false;
+          audio.muted =
+            document.body.classList.contains('panel-sleep-mode');
           audio.volume = 1;
         } catch (outputStateError) {
           console.warn(
@@ -8627,6 +8631,32 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       }
 
       // =======================================================
+      // MODE AUTO / SLEEP OVERRIDE
+      //
+      // Jika C22=SLEEP dan layar sedang sleep, SLEEP menjadi prioritas
+      // mute sementara untuk YouTube. G20 tetap tersimpan dan setelah
+      // wake kontrol kembali sepenuhnya ke G20.
+      // =======================================================
+      if (
+        document.body.classList.contains('panel-sleep-mode')
+      ) {
+        if (mode === 'STOP') {
+          stopYouTubeIframe();
+          youtubeAutoMuted = false;
+          return;
+        }
+
+        if (!youtubeAutoMuted) {
+          youtubeAutoMuted = true;
+          muteYouTubeIframe();
+        } else {
+          youtubeAutoMuted = true;
+        }
+
+        return;
+      }
+
+      // =======================================================
       // MODE AUTO
       //
       // AUTO HARUS DIEVALUASI TERUS-MENERUS, bukan hanya saat
@@ -12275,6 +12305,10 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
       document.body.classList.remove('panel-sleep-mode');
 
+      // Saat operator mengganti C22, lepaskan mute SLEEP terlebih dahulu.
+      // Kontrol berikutnya akan kembali mengikuti mode normal.
+      setSleepAudioMute_(false);
+
       console.log(
         'PANELS C22 MODE =',
         WEB_APP_STATE.panel.iqomahMode
@@ -12467,6 +12501,34 @@ function setCountdownBlackMode(enabled) {
     }
 
     // =========================================================
+    // SLEEP MODE - AUDIO MUTE
+    // =========================================================
+    // SLEEP hanya membisukan output audio utama.
+    // Audio TIDAK dipause, currentTime TIDAK di-reset, dan scheduler
+    // tetap berjalan. Karena itu audio yang sudah berjalan tidak replay
+    // atau terpotong ketika SLEEP berakhir.
+    let sleepAudioMuted = false;
+
+    function setSleepAudioMute_(shouldMute) {
+      const mute = Boolean(shouldMute);
+      const audio = getAudioElement();
+
+      sleepAudioMuted = mute;
+
+      if (!audio) return;
+
+      try {
+        audio.muted = mute;
+      } catch (error) {
+        console.warn(
+          'SLEEP AUDIO MUTE GAGAL:',
+          error
+        );
+      }
+    }
+
+
+    // =========================================================
     // SLEEP MODE - NEXT QIROAH WAKE TARGET
     // =========================================================
     // Mengikuti qiroah yang benar-benar dibangun oleh scheduler audio.
@@ -12548,6 +12610,24 @@ function setCountdownBlackMode(enabled) {
         'panel-sleep-mode',
         shouldSleep
       );
+
+      // SLEEP adalah prioritas mute sementara untuk audio utama.
+      // Saat wake, mute dilepas tanpa pause/replay audio.
+      setSleepAudioMute_(shouldSleep);
+
+      // YouTube dievaluasi ulang segera setelah status SLEEP berubah.
+      // Jika G20=AUTO, kontrol kembali ke aturan AUTO setelah wake.
+      try {
+        updateYouTubeAudioStop(
+          nowSeconds,
+          WEB_APP_STATE.dateKey || getApiDate()
+        );
+      } catch (youtubeError) {
+        console.warn(
+          'SLEEP: sinkronisasi YouTube gagal:',
+          youtubeError
+        );
+      }
 
       return shouldSleep;
     }
