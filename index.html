@@ -14738,44 +14738,19 @@ function setCountdownBlackMode(enabled) {
     // =========================================================
     // AUDIO CATCH-UP LIVE MONITOR
     // =========================================================
-    // FINAL CATCH-UP di akhir pembuatan schedule hanya menangkap
-    // event yang aktif pada saat schedule selesai dibuat.
+    // Tidak lagi menjalankan scan queue setiap 1 detik.
     //
-    // Jika schedule sudah selesai SEBELUM audio dimulai, atau proses
-    // pembuatan schedule melewati batas detik event, catch-up final
-    // tidak akan dipanggil lagi. Monitor ini melakukan scan 1x/detik
-    // hanya ketika audio sedang tidak memainkan event.
+    // Catch-up startup sudah ditangani oleh:
+    //   1. final catch-up setelah schedule selesai,
+    //   2. watchdog maksimal 20 detik,
+    //   3. updatePrayerCountdown()/processAudioQueue().
     //
-    // Tidak mengubah timeline, durasi, urutan, GAP, ON/OFF, YouTube,
-    // atau audio yang sedang berjalan.
-    setInterval(
-      function() {
-        const audioState = WEB_APP_STATE.audio;
-
-        if (
-          !audioState ||
-          !audioState.scheduleInitialized ||
-          !audioState.initialized ||
-          audioState.processing ||
-          audioState.currentEventKey
-        ) {
-          return;
-        }
-
-        try {
-          queueCurrentAudioCatchUp(
-            WEB_APP_STATE.dateKey || getApiDate()
-          );
-        } catch (catchUpMonitorError) {
-          console.error(
-            'AUDIO CATCH-UP MONITOR ERROR:',
-            catchUpMonitorError
-          );
-        }
-      },
-      1000
-    );
-
+    // Scan permanen 1 detik sebelumnya menyebabkan seluruh
+    // computedSchedules dipindai terus-menerus dan menghasilkan
+    // console log AUDIO CATCH-UP CHECK berulang. Pada TV/Chrome,
+    // aktivitas ini dapat menumpuk dan membuat UI semakin berat.
+    // Tidak mengubah timeline, durasi, urutan, GAP, ON/OFF,
+    // YouTube, atau audio yang sedang berjalan.
     setInterval(
       updateGregorianDate,
       60000
