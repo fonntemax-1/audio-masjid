@@ -14228,11 +14228,37 @@ function setCountdownBlackMode(enabled) {
           break;
         }
 
+        // PENGUNCI TRANSISI SETELAH ADZAN.
+        // Ada jeda kecil antara akhir audio ADZAN dan akhir DOA-ADZAN.
+        // Pada interval ini tidak boleh ada state kosong, karena jika
+        // state kosong loop akan langsung mencari sholat berikutnya.
+        // Tahan display pada sholat yang sama sampai batas awal
+        // MENUJU IQOMAH tercapai. Audio tetap berjalan normal.
+        const menujuIqomahStartSec =
+          doaAdzanEvent &&
+          Number.isFinite(Number(doaAdzanEvent.endSec))
+            ? Number(doaAdzanEvent.endSec)
+            : adzanEndSec;
+
+        if (
+          p.hasIqomah &&
+          nowSeconds >= adzanEndSec &&
+          nowSeconds < menujuIqomahStartSec
+        ) {
+          activeState = {
+            title: 'ADZAN',
+            timer: displayName,
+            prayerName: p.name
+          };
+          break;
+        }
+
         // MENUJU IQOMAH.
         // Mulai setelah DOA-ADZAN selesai, yaitu masuk ke GAP
         // DOA-ADZAN -> BEEP. Dengan GAP 3 menit, countdown
         // menampilkan sisa waktu menuju IQOMAH secara nyata.
-        const menujuIqomahStartSec =
+        // Jika metadata IQOMAH tidak konsisten, anchor display yang
+        // sudah dinormalisasi tetap menjadi batas akhir fase ini.
           doaAdzanEvent &&
           Number.isFinite(Number(doaAdzanEvent.endSec))
             ? Number(doaAdzanEvent.endSec)
