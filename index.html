@@ -2624,6 +2624,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
         processing: false,
 
+        // Satu wake timer untuk queue yang menunggu target waktu.
+        // Tanpa guard ini, updatePrayerCountdown() setiap detik dapat
+        // membuat timer baru untuk item queue yang sama terus-menerus.
+        queueWakeTimer: null,
+
         queue: [],
 
         queuedLocks: new Set(),
@@ -4274,8 +4279,16 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
               )
             );
 
-          setTimeout(
-            processAudioQueue,
+          if (state.queueWakeTimer) {
+            clearTimeout(state.queueWakeTimer);
+            state.queueWakeTimer = null;
+          }
+
+          state.queueWakeTimer = setTimeout(
+            function() {
+              state.queueWakeTimer = null;
+              processAudioQueue();
+            },
             waitMs
           );
 
@@ -4457,10 +4470,15 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           state.processing = false;
 
-          setTimeout(
-            processAudioQueue,
-            1000
-          );
+          if (!state.queueWakeTimer) {
+            state.queueWakeTimer = setTimeout(
+              function() {
+                state.queueWakeTimer = null;
+                processAudioQueue();
+              },
+              1000
+            );
+          }
 
           return;
 
