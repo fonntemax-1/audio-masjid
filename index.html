@@ -5727,7 +5727,16 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           // C18 adalah sumber tema utama. Ini memastikan perubahan
           // HIJAU/MERAH/KUNING tetap diterapkan walaupun payload utama
           // getDataFromSheet() berasal dari deployment/cache lama.
-          refreshDisplayTheme().catch(function() {});
+          // refreshDisplayTheme() normalnya mengembalikan Promise.
+          // Guard ini mencegah TV error jika deployment/cache lama
+          // mengembalikan undefined saat API sedang refresh.
+          const themeRefreshResult = refreshDisplayTheme();
+          if (
+            themeRefreshResult &&
+            typeof themeRefreshResult.catch === 'function'
+          ) {
+            themeRefreshResult.catch(function() {});
+          }
 
           // PANEL MODE DIBACA ULANG SECARA TERPISAH.
           // Ini sengaja tidak bergantung pada payload getDataFromSheet(),
