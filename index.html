@@ -5183,6 +5183,31 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         .trim()
         .toUpperCase();
 
+      // MENUJU SHOLAT harus langsung mengunci running text.
+      // Nama sholat diambil dari judul countdown agar tidak bergantung
+      // pada prayerName yang pada Subuh dapat bernilai TERBIT.
+      if (stateTitleUpper.indexOf('MENUJU SHOLAT ') === 0) {
+        const menujuPrayer =
+          stateTitleUpper
+            .replace(/^MENUJU SHOLAT\s+/, '')
+            .trim();
+
+        if (
+          menujuPrayer === 'SUBUH' ||
+          menujuPrayer === 'DZUHUR' ||
+          menujuPrayer === 'ASHAR' ||
+          menujuPrayer === 'MAGHRIB' ||
+          menujuPrayer === 'ISYA'
+        ) {
+          const displayName =
+            isFridayWita() && menujuPrayer === 'DZUHUR'
+              ? "JUM'AT"
+              : menujuPrayer;
+
+          return 'WAKTU SHOLAT ' + displayName + suffix;
+        }
+      }
+
       // RAMADAN MAGHRIB: ketika countdown sedang berada pada
       // fase MENUJU WAKTU BERBUKA / WAKTU BERBUKA PUASA,
       // banner Event WAJIB menggunakan teks yang sama.
