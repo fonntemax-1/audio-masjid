@@ -1252,12 +1252,19 @@
           rgba(255,255,255,0.98) 0 7%,
           rgba(255,255,255,0.18) 8% 17%,
           transparent 18%),
-        radial-gradient(circle at 50% 50%,
-          #fffdf2 0%,
-          #f4ecd4 48%,
-          #d9c48b 78%,
-          #9a7125 100%);
+        radial-gradient(circle at 50% 48%,
+          #fffdf3 0%,
+          #f5edcf 63%,
+          #d8c58d 91%,
+          #a88943 100%);
+
+      /* Bezel emas berlapis agar terlihat metalik, bukan flat. */
+      border: 0.48vh solid #d8b45a;
       box-shadow:
+        0 1.1vh 2.8vh rgba(0,0,0,0.88),
+        0 0.25vh 0.5vh rgba(255,225,135,0.35),
+        inset 0 0 0 0.24vh #fff0ad,
+        inset 0 0 0 0.55vh #9a7125,
         inset 0 0 0 0.82vh #f3d477,
         inset 0 0 1.5vh rgba(80,48,8,0.55);
       overflow: hidden;
@@ -1309,7 +1316,7 @@
       pointer-events: none;
     }
 
-    /* Semua marker mengikuti "warna emas dial. */
+    /* Semua marker mengikuti warna emas dial. */
     .clock-face-svg g {
       stroke: #9a7125;
     }
