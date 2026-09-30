@@ -13889,7 +13889,7 @@ function setCountdownBlackMode(enabled) {
             nowSeconds < bukaRestEndSec
           ) {
             activeState = {
-              title: 'WAKTU BERBUKA',
+              title: 'WAKTU BERBUKA PUASA',
               timer: 'PUASA',
               prayerName: 'MAGHRIB'
             };
@@ -13907,7 +13907,7 @@ function setCountdownBlackMode(enabled) {
             const s = Math.floor(diff % 60);
 
             activeState = {
-              title: 'MENUJU SHOLAT MAGRIB',
+              title: 'MENUJU ADZAN MAGHRIB',
               timer:
                 String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
@@ -13917,9 +13917,19 @@ function setCountdownBlackMode(enabled) {
             break;
           }
 
+          // Ramadan Maghrib harus memakai batas ADZAN dari event
+          // Maghrib sendiri, bukan batas generic yang bisa memakai
+          // anchor waktu sholat biasa.
+          const ramadanAdzanEndSec =
+            maghribAdzanEvent &&
+            Number.isFinite(Number(maghribAdzanEvent.endSec)) &&
+            Number(maghribAdzanEvent.endSec) > maghribAdzanStartSec
+              ? Number(maghribAdzanEvent.endSec)
+              : maghribAdzanStartSec + 180;
+
           if (
             nowSeconds >= maghribAdzanStartSec &&
-            nowSeconds < adzanEndSec
+            nowSeconds < ramadanAdzanEndSec
           ) {
             activeState = {
               title: 'ADZAN MAGHRIB',
@@ -13960,7 +13970,7 @@ function setCountdownBlackMode(enabled) {
 
           activeState = {
             title: isRamadanMaghrib
-              ? 'MENUJU WAKTU BERBUKA'
+              ? 'MENUJU BUKA PUASA'
               : formatCountdownPrayerTitle_(
                   (isFridayWita() && p.name === 'DZUHUR') ? "JUM'AT" : displayName,
                   true
