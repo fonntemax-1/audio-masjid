@@ -5119,7 +5119,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         }
 
         // -------------------------------------------------------
-        // BERBUKA - Ramadan: mulai waktu Maghrib sampai ADZAN MAGHRIB.
+        // BERBUKA - RAMADAN MAGHRIB:
+        // Banner:
+        //   WAKTU BERBUKA PUASA (KOTA) DAN SEKITARNYA
+        // mulai saat display WAKTU BERBUKA PUASA muncul,
+        // lalu tetap sampai fase MENUJU MAGHRIB selesai.
         // -------------------------------------------------------
         const maghribSec = parsePrayerSec_(schedule.maghrib);
 
@@ -5139,6 +5143,26 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           ) {
             return 'WAKTU BERBUKA PUASA' + suffix;
           }
+        }
+
+        // -------------------------------------------------------
+        // KHUSUS RAMADAN MAGHRIB:
+        // Banner WAKTU BERBUKA PUASA mengikuti fase display
+        // WAKTU BERBUKA -> MENUJU MAGHRIB, sedangkan setelah
+        // ADZAN banner berganti menjadi WAKTU SHOLAT MAGHRIB.
+        // -------------------------------------------------------
+        if (
+          isRamadanDisplay() &&
+          stateTitleUpper.indexOf('WAKTU BERBUKA') === 0
+        ) {
+          return 'WAKTU BERBUKA PUASA' + suffix;
+        }
+
+        if (
+          isRamadanDisplay() &&
+          stateTitleUpper === 'MENUJU MAGHRIB'
+        ) {
+          return 'WAKTU BERBUKA PUASA' + suffix;
         }
 
         // -------------------------------------------------------
@@ -5240,8 +5264,25 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           if (iqomahStartSec === null) continue;
 
+          // KHUSUS MAGHRIB RAMADHAN:
+          // Banner WAKTU SHOLAT tetap tampil mulai ADZAN MAGHRIB
+          // sampai 15 menit SETELAH IQOMAH SELESAI.
+          const iqomahEndEvent =
+            findEvent_(events, 'IQOMAH');
+
+          const iqomahEndSec =
+            iqomahEndEvent &&
+            Number.isFinite(Number(iqomahEndEvent.endSec))
+              ? Number(iqomahEndEvent.endSec)
+              : iqomahStartSec;
+
           const runningTextEndSec =
-            iqomahStartSec + (15 * 60);
+            (
+              isRamadanDisplay() &&
+              prayerName === 'MAGHRIB'
+            )
+              ? iqomahEndSec + (15 * 60)
+              : iqomahStartSec + (15 * 60);
 
           if (
             nowSeconds >= adzanStartSec &&
