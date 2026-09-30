@@ -10549,7 +10549,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           return 1;
         }
 
-        // DOA-ADZAN -> BEEP = 5 MENIT untuk semua sholat.
+        // DOA-ADZAN -> BEEP = 3 MENIT untuk semua sholat.
         if (
           (
             prev === 'doa-adzan' ||
@@ -10557,7 +10557,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           ) &&
           next === 'beep'
         ) {
-          return 5 * 60;
+          return 3 * 60;
         }
 
         // MAGHRIB RAMADAN:
@@ -13547,7 +13547,25 @@ function setCountdownBlackMode(enabled) {
 
         const doaEvent =
           events.find(function(event) {
-            return String(event.eventName || '').toUpperCase() === 'DOA';
+            const eventName =
+              String(event.eventName || '').trim().toUpperCase();
+            return (
+              eventName === 'DOA' ||
+              eventName === 'DOA-ADZAN'
+            );
+          });
+
+        // DOA-ADZAN adalah batas awal countdown MENUJU IQOMAH.
+        // Countdown berjalan selama GAP DOA-ADZAN -> BEEP (3 menit)
+        // sampai target IQOMAH. BEEP tetap mengikuti scheduler audio.
+        const doaAdzanEvent =
+          events.find(function(event) {
+            const eventName =
+              String(event.eventName || '').trim().toUpperCase();
+            return (
+              eventName === 'DOA-ADZAN' ||
+              eventName === 'DOA'
+            );
           });
 
         const iqomahEvent =
@@ -14014,9 +14032,18 @@ function setCountdownBlackMode(enabled) {
         }
 
         // MENUJU IQOMAH.
+        // Mulai setelah DOA-ADZAN selesai, yaitu masuk ke GAP
+        // DOA-ADZAN -> BEEP. Dengan GAP 3 menit, countdown
+        // menampilkan sisa waktu menuju IQOMAH secara nyata.
+        const menujuIqomahStartSec =
+          doaAdzanEvent &&
+          Number.isFinite(Number(doaAdzanEvent.endSec))
+            ? Number(doaAdzanEvent.endSec)
+            : adzanEndSec;
+
         if (
           p.hasIqomah &&
-          nowSeconds >= adzanEndSec &&
+          nowSeconds >= menujuIqomahStartSec &&
           nowSeconds < iqomahTimeSec
         ) {
 
