@@ -3743,11 +3743,10 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
                 outputStateError
               );
             }
+            // Set source tanpa memanggil load() secara paksa untuk playback normal.
+            // Pemanggilan load() saat pergantian audio dapat memicu decoding/network
+            // burst pada Chrome TV dan membuat UI utama tersendat.
             audio.src = source;
-            // Jangan paksa preload=auto pada setiap event audio.
-            // TCL/Chrome TV dapat tersendat saat browser mulai mengambil
-            // file qiroah/tarhim yang panjang. Browser tetap akan memuat
-            // audio saat play(); metadata hanya dipakai untuk catch-up.
 
             // CATCH-UP GLOBAL:
             // targetSec = posisi 0 dari event.
@@ -3890,14 +3889,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           try {
 
-            console.log(
-              'AUDIO MULAI:',
-              label,
-              source
-            );
-
-            playResult =
-              audio.play();
+            // Hindari logging sinkron tepat saat media mulai pada TV.
+            playResult = audio.play();
 
           } catch (error) {
 
@@ -3922,11 +3915,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
                 function() {
 
                   WEB_APP_STATE.audio.initialized = true;
-
-                  console.log(
-                    'AUDIO PLAY OK:',
-                    label
-                  );
 
                 }
               )
@@ -4444,20 +4432,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
               0,
               Number(nowSeconds) - Number(item.targetSec)
             );
-
-          console.log(
-            'AUDIO CATCH-UP GLOBAL:',
-            item.prayerName || '-',
-            item.eventName || item.label || '-',
-            'targetSec=',
-            item.targetSec,
-            'endSec=',
-            item.endSec,
-            'nowSec=',
-            nowSeconds,
-            'startPositionSec=',
-            catchUpElapsedSec
-          );
 
         }
 
