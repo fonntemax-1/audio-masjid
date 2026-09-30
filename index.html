@@ -13813,17 +13813,26 @@ function setCountdownBlackMode(enabled) {
             minimumIqomahTimeSec
           );
 
-        // IQOMAH minimal berlangsung sesuai durasi fallback 180 detik.
-        // Untuk metadata valid, endSec tetap dipertahankan.
-        const displayIqomahEndSec =
-          Math.max(
-            Number(iqomahEndSec),
-            displayIqomahTimeSec + 180
-          );
+        // AKHIR IQOMAH DISPLAY HARUS MENGIKUTI AKHIR AUDIO IQOMAH.
+        // Jangan lagi memaksa IQOMAH tampil minimal 180 detik.
+        // Jika event IQOMAH memiliki target + endSec yang valid dan
+        // endSec berada setelah waktu mulai IQOMAH, gunakan endSec persis.
+        // Fallback 180 detik hanya dipakai bila metadata endSec tidak tersedia
+        // atau tidak valid.
+        const rawIqomahEndSec =
+          Number(iqomahEndSec);
 
-        // Durasi tampilan SHOLAT setelah IQOMAH:
-// semua waktu sholat = 15 menit.
-// Ini hanya mengatur countdown/display; sistem audio tidak berubah.
+        const hasValidIqomahAudioEnd =
+          Number.isFinite(rawIqomahEndSec) &&
+          rawIqomahEndSec > displayIqomahTimeSec;
+
+        const displayIqomahEndSec =
+          hasValidIqomahAudioEnd
+            ? rawIqomahEndSec
+            : displayIqomahTimeSec + 180;
+
+        // Setelah AUDIO IQOMAH selesai, WAKTU SHOLAT tampil tepat 15 menit.
+        // Ini hanya mengatur display/countdown; scheduler audio tidak diubah.
         const afterIqomahSec =
           displayIqomahEndSec + (15 * 60);
 
@@ -14047,12 +14056,10 @@ function setCountdownBlackMode(enabled) {
             break;
           }
 
-          // Setelah IQOMAH SUBUH selesai, tampilkan
-          // SHOLAT / SUBUH dengan style yang sama seperti ADZAN.
-          // State ini bertahan sampai batas perpindahan kartu
-          // (+15 menit setelah waktu IQOMAH).
+          // Setelah AUDIO IQOMAH SUBUH selesai, tampilkan
+          // WAKTU SHOLAT / SUBUH tepat selama 15 menit.
           if (
-            nowSeconds >= iqomahEndSec &&
+            nowSeconds >= displayIqomahEndSec &&
             nowSeconds < afterIqomahSec
           ) {
 
@@ -14271,7 +14278,7 @@ function setCountdownBlackMode(enabled) {
         ) {
 
           const diff =
-            iqomahTimeSec - nowSeconds;
+            displayIqomahTimeSec - nowSeconds;
 
           const m = Math.floor(diff / 60);
           const s = Math.floor(diff % 60);
@@ -14323,7 +14330,7 @@ function setCountdownBlackMode(enabled) {
 
         if (
           p.hasIqomah &&
-          nowSeconds >= iqomahEndSec &&
+          nowSeconds >= displayIqomahEndSec &&
           nowSeconds < afterIqomahSec &&
           (
             !isFridayJumat ||
