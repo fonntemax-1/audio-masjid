@@ -13906,11 +13906,23 @@ function setCountdownBlackMode(enabled) {
               );
             });
 
-          const maghribAdzanStartSec =
+          // DISPLAY RAMADAN MAGHRIB memakai timeline tetap:
+          // WAKTU BERBUKA 2 menit -> MENUJU MAGHRIB 1 menit
+          // -> ADZAN MAGHRIB 3 menit.
+          //
+          // Jangan memakai target ADZAN audio sebagai batas utama display.
+          // Scheduler audio dapat memiliki target yang sama dengan pSec
+          // (misalnya saat sequence/status tertentu), yang sebelumnya
+          // membuat seluruh fase BERBUKA/MENUJU MAGHRIB terlewati dan
+          // loop langsung mencari sholat berikutnya.
+          const audioMaghribAdzanStartSec =
             maghribAdzanEvent &&
             Number.isFinite(Number(maghribAdzanEvent.targetSec))
               ? Number(maghribAdzanEvent.targetSec)
-              : adzanStartSec;
+              : NaN;
+
+          const maghribAdzanStartSec =
+            Number(pSec) + (3 * 60);
 
           // FASE 1: WAKTU BERBUKA tepat 2 menit sejak waktu Maghrib.
           const bukaEndSec = Number(pSec) + (2 * 60);
@@ -13930,7 +13942,7 @@ function setCountdownBlackMode(enabled) {
 
           // FASE 2: countdown hanya 1 menit sebelum ADZAN MAGHRIB.
           const menujuAdzanStartSec =
-            Math.max(Number(pSec), maghribAdzanStartSec - 60);
+            Number(pSec) + (2 * 60);
 
           if (
             nowSeconds >= menujuAdzanStartSec &&
