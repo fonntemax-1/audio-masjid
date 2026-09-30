@@ -10385,12 +10385,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       const result = {};
 
-      // Jangan memuat metadata seluruh audio secara serial saat startup.
-      // Metadata akan diminta hanya ketika schedule benar-benar
-      // membutuhkannya. Ini mengurangi beban network/decoding TV saat
-      // halaman pertama dibuka.
+      // Metadata tetap dibaca untuk menjaga perhitungan timeline audio
+      // tetap akurat. Hasil setiap probe masuk cache sehingga file yang
+      // sama tidak diprobe berulang kali antar-sholat.
       for (const type of types) {
-        result[type] = 0;
+        result[type] = await getAudioDuration(type);
       }
 
       console.log('=== AUDIO DURASI METADATA ===', result);
