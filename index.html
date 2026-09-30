@@ -4954,6 +4954,19 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         .trim()
         .toUpperCase();
 
+      // RAMADAN MAGHRIB: ketika countdown sedang berada pada
+      // fase MENUJU WAKTU BERBUKA / WAKTU BERBUKA PUASA,
+      // banner Event WAJIB menggunakan teks yang sama.
+      // Jangan biarkan teks lama dari Event Sheet seperti
+      // "BUKA PUASA MAGRIB" mengambil alih tampilan.
+      if (
+        stateTitleUpper.indexOf('MENUJU WAKTU BERBUKA') === 0 ||
+        stateTitleUpper.indexOf('WAKTU BERBUKA PUASA') === 0 ||
+        stateTitleUpper === 'BUKA PUASA'
+      ) {
+        return 'WAKTU BERBUKA PUASA' + suffix;
+      }
+
       const prayerStateTitles = [
         'ADZAN',
         'MENUJU IQOMAH',
