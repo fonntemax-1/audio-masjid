@@ -3378,52 +3378,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       WEB_APP_STATE.audio.audioConfigReady = configReady;
 
-      if (configReady) {
-        WEB_APP_STATE.audio.audioConfigWaitLogged = false;
-
-        // AUDIO STARTUP GUARD:
-        // setAudioConfig() melakukan pekerjaan async (fallback realtime).
-        // Jangan biarkan unlock/scheduler menunggu tick berikutnya secara
-        // kebetulan. Begitu konfigurasi lengkap, pastikan audio permission
-        // dan scheduler dipicu kembali. Tidak mengubah urutan, durasi,
-        // target waktu, atau status event audio.
-        window.setTimeout(function() {
-          try {
-            if (!WEB_APP_STATE.audio.initialized) {
-              initAudioPermission();
-            }
-
-            if (
-              WEB_APP_STATE.prayer &&
-              WEB_APP_STATE.prayer.dateLoaded
-            ) {
-              const nowWita = getWitaTime();
-              const nowSeconds =
-                Number(nowWita.hour) * 3600 +
-                Number(nowWita.minute) * 60 +
-                Number(nowWita.second);
-
-              if (Number.isFinite(nowSeconds)) {
-                prepareDailyAudioSchedule(
-                  getApiDate(),
-                  nowSeconds
-                ).catch(function(error) {
-                  console.warn(
-                    'AUDIO STARTUP SCHEDULE RETRY GAGAL:',
-                    error
-                  );
-                });
-              }
-            }
-          } catch (startupAudioError) {
-            console.warn(
-              'AUDIO STARTUP GUARD GAGAL:',
-              startupAudioError
-            );
-          }
-        }, 0);
-      }
-
       const configSignature =
         JSON.stringify({
           audioConfig: audioConfig,
@@ -3434,6 +3388,56 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       const configChanged =
         WEB_APP_STATE.audio.audioConfigSignature !== configSignature;
+
+      if (configReady) {
+        WEB_APP_STATE.audio.audioConfigWaitLogged = false;
+
+        // AUDIO STARTUP GUARD:
+        // Hanya jalankan ulang scheduler saat konfigurasi benar-benar
+        // berubah atau scheduler belum pernah diinisialisasi.
+        // Polling Sheet setiap 30 detik tidak boleh membangun ulang
+        // schedule/durasi audio yang sama, karena itu membebani TV.
+        if (
+          configChanged ||
+          !WEB_APP_STATE.audio.scheduleInitialized
+        ) {
+          window.setTimeout(function() {
+            try {
+              if (!WEB_APP_STATE.audio.initialized) {
+                initAudioPermission();
+              }
+
+              if (
+                WEB_APP_STATE.prayer &&
+                WEB_APP_STATE.prayer.dateLoaded
+              ) {
+                const nowWita = getWitaTime();
+                const nowSeconds =
+                  Number(nowWita.hour) * 3600 +
+                  Number(nowWita.minute) * 60 +
+                  Number(nowWita.second);
+
+                if (Number.isFinite(nowSeconds)) {
+                  prepareDailyAudioSchedule(
+                    getApiDate(),
+                    nowSeconds
+                  ).catch(function(error) {
+                    console.warn(
+                      'AUDIO STARTUP SCHEDULE RETRY GAGAL:',
+                      error
+                    );
+                  });
+                }
+              }
+            } catch (startupAudioError) {
+              console.warn(
+                'AUDIO STARTUP GUARD GAGAL:',
+                startupAudioError
+              );
+            }
+          }, 0);
+        }
+      }
 
       if (configChanged) {
         WEB_APP_STATE.audio.audioConfigSignature = configSignature;
