@@ -5362,6 +5362,9 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           if (!currentElement) return;
 
+          // Bersihkan teks lama dari Event Sheet sebelum diproses.
+          text = normalizeVisibleRamadanMaghribText_(text);
+
           // PENTING: selama request Event Sheet berlangsung,
           // countdown bisa berpindah fase. Hitung ulang kondisi
           // sebelum memasukkan teks dari Spreadsheet.
@@ -12688,23 +12691,37 @@ function setCountdownBlackMode(enabled) {
     // "WAKTU BUKA MAGRIB", atau "BUKA PUASA MAGRIB"
     // wajib ditampilkan sebagai "WAKTU BERBUKA PUASA".
     function normalizeCountdownDisplayTitle_(value) {
-      const title = String(value || '')
+      let title = String(value || '')
         .replace(/\\s+/g, ' ')
         .trim()
         .toUpperCase();
 
+      // Normalisasi GLOBAL, bukan hanya judul countdown.
+      // Semua teks lama yang menyebut "BUKA/WAKTU BERBUKA MAGRIB"
+      // harus hilang dari layar.
       if (
-        title === 'WAKTU BERBUKA MAGRIB' ||
-        title === 'WAKTU BUKA MAGRIB' ||
-        title === 'WAKTU BERBUKA MAGHRIB' ||
-        title === 'WAKTU BUKA MAGHRIB' ||
-        title === 'BUKA PUASA MAGRIB' ||
-        title === 'BUKA PUASA MAGHRIB'
+        /^(WAKTU\\s+)?BERBUKA\\s+MAGHRIB$/.test(title) ||
+        /^(WAKTU\\s+)?BERBUKA\\s+MAGRIB$/.test(title) ||
+        /^WAKTU\\s+BUKA\\s+MAGHRIB$/.test(title) ||
+        /^WAKTU\\s+BUKA\\s+MAGRIB$/.test(title) ||
+        /^BUKA\\s+PUASA\\s+MAGHRIB$/.test(title) ||
+        /^BUKA\\s+PUASA\\s+MAGRIB$/.test(title)
       ) {
         return 'WAKTU BERBUKA PUASA';
       }
 
       return title;
+    }
+
+    function normalizeVisibleRamadanMaghribText_(value) {
+      const text = String(value || '');
+      return text
+        .replace(/WAKTU\\s+BERBUKA\\s+MAGHRIB/gi, 'WAKTU BERBUKA PUASA')
+        .replace(/WAKTU\\s+BERBUKA\\s+MAGRIB/gi, 'WAKTU BERBUKA PUASA')
+        .replace(/WAKTU\\s+BUKA\\s+MAGHRIB/gi, 'WAKTU BERBUKA PUASA')
+        .replace(/WAKTU\\s+BUKA\\s+MAGRIB/gi, 'WAKTU BERBUKA PUASA')
+        .replace(/BUKA\\s+PUASA\\s+MAGHRIB/gi, 'WAKTU BERBUKA PUASA')
+        .replace(/BUKA\\s+PUASA\\s+MAGRIB/gi, 'WAKTU BERBUKA PUASA');
     }
 
     function formatCountdownSpecialTitle_(label) {
@@ -13861,7 +13878,8 @@ function setCountdownBlackMode(enabled) {
           ensureCountdownCityTitle_(activeState.title);
 
         if (countdownTitle && displayCountdownTitle !== lastCountdownTitle) {
-          countdownTitle.innerText = displayCountdownTitle;
+          countdownTitle.innerText =
+            normalizeVisibleRamadanMaghribText_(displayCountdownTitle);
           updateCountdownTitleStyle(displayCountdownTitle);
           lastCountdownTitle = displayCountdownTitle;
         }
@@ -14031,7 +14049,8 @@ function setCountdownBlackMode(enabled) {
         });
 
         if (countdownTitle && nextTitle !== lastCountdownTitle) {
-          countdownTitle.innerText = nextTitle;
+          countdownTitle.innerText =
+            normalizeVisibleRamadanMaghribText_(nextTitle);
           updateCountdownTitleStyle(nextTitle);
           lastCountdownTitle = nextTitle;
         }
