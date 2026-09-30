@@ -5325,7 +5325,13 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     }
 
 
+    let eventRunningTextRequestInFlight = false;
+
     function loadEventRunningText() {
+
+      if (eventRunningTextRequestInFlight) {
+        return;
+      }
 
       const element =
         document.getElementById(
@@ -5398,6 +5404,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       if (eventPrayerOverrideText) {
         return;
       }
+
+      eventRunningTextRequestInFlight = true;
 
       gasApiCall('getEventRunningText')
         .then(function(text) {
@@ -5491,6 +5499,9 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             'Gagal mengambil data Event:',
             error
           );
+        })
+        .finally(function() {
+          eventRunningTextRequestInFlight = false;
         });
 
     }
@@ -5642,7 +5653,16 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     // FETCH SHEET
     // =========================================================
 
+    let sheetDataRequestInFlight = false;
+
     function fetchSheetData() {
+
+      if (sheetDataRequestInFlight) {
+        console.log('SHEET API: request sebelumnya masih berjalan, skip tick.');
+        return;
+      }
+
+      sheetDataRequestInFlight = true;
 
       console.log(
         'SHEET API: meminta getDataFromSheet termasuk Event...'
@@ -5716,6 +5736,9 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             'Gagal mengambil data sheet:',
             error
           );
+        })
+        .finally(function() {
+          sheetDataRequestInFlight = false;
         });
 
     }
@@ -12775,8 +12798,15 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 }
 
 
+let displayThemeRequestInFlight = null;
+
 function refreshDisplayTheme() {
-  return gasApiCall('getDisplayThemeSetting')
+  if (displayThemeRequestInFlight) {
+    return displayThemeRequestInFlight;
+  }
+
+  displayThemeRequestInFlight =
+    gasApiCall('getDisplayThemeSetting')
     .then(function(themeData) {
       const themeValue =
         typeof themeData === 'string'
@@ -12806,6 +12836,9 @@ function refreshDisplayTheme() {
         error && error.message ? error.message : error
       );
       throw error;
+    })
+    .finally(function() {
+      displayThemeRequestInFlight = null;
     });
 }
 
