@@ -13584,24 +13584,20 @@ function setCountdownBlackMode(enabled) {
           // Penting: ini DISPLAY SAJA. Scheduler/audio tidak disentuh.
           // Gunakan akhir SIRINE sebagai batas yang pasti agar fase
           // BUKA PUASA tidak langsung jatuh ke ADZAN.
-          const maghribAdzanStartSecRaw =
-            Number(adzanStartSec);
-
+          // Ramadan Maghrib display:
+          // FASE 1 = WAKTU BERBUKA selama tepat 3 menit.
+          // FASE 2 = MENUJU SHOLAT MAGRIB selama tepat 2 menit.
+          // Setelah itu = ADZAN MAGHRIB.
+          //
+          // Ini khusus DISPLAY. Scheduler/audio tetap menggunakan
+          // jadwal audio yang sudah ada dan tidak diubah.
           const sirineEndForDisplay =
-            Number.isFinite(Number(maghribSirineEndSec)) &&
-            Number(maghribSirineEndSec) > Number(pSec)
-              ? Number(maghribSirineEndSec)
-              : Number(pSec) + 1;
+            Number(pSec) + (3 * 60);
 
-          // Jika metadata ADZAN belum memberi target setelah Maghrib,
-          // fallback display ke akhir sirine. Ini tidak mengubah audio.
           const maghribAdzanStartSec =
-            Number.isFinite(maghribAdzanStartSecRaw) &&
-            maghribAdzanStartSecRaw > sirineEndForDisplay
-              ? maghribAdzanStartSecRaw
-              : sirineEndForDisplay;
+            sirineEndForDisplay + (2 * 60);
 
-          // FASE 1: BUKA PUASA selama sirine.
+          // FASE 1: WAKTU BERBUKA selama tepat 3 menit.
           if (
             nowSeconds >= Number(pSec) &&
             nowSeconds < sirineEndForDisplay
@@ -13618,7 +13614,7 @@ function setCountdownBlackMode(enabled) {
             break;
           }
 
-          // FASE 2: MENUJU ADZAN MAGRIB setelah sirine selesai.
+          // FASE 2: MENUJU SHOLAT MAGRIB selama tepat 2 menit.
           if (
             nowSeconds >= sirineEndForDisplay &&
             nowSeconds < maghribAdzanStartSec
@@ -13631,7 +13627,7 @@ function setCountdownBlackMode(enabled) {
             const s = Math.floor(diff % 60);
 
             activeState = {
-              title: 'MENUJU ADZAN MAGRIB',
+              title: 'MENUJU SHOLAT MAGRIB',
               timer:
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
@@ -13647,7 +13643,7 @@ function setCountdownBlackMode(enabled) {
           ) {
 
             activeState = {
-              title: 'ADZAN',
+              title: 'ADZAN MAGHRIB',
               timer: 'MAGHRIB',
               prayerName: 'MAGHRIB'
             };
