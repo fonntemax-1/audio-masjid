@@ -1,13 +1,12 @@
 {
   "success": true,
-  "generatedAt": "2026-09-30T13:03:08.802995+00:00",
-  "updatedAt": "2026-09-30T13:03:08.803011+00:00",
+  "generatedAt": "2026-09-30T18:24:24.318075+00:00",
+  "updatedAt": "2026-09-30T18:24:24.318088+00:00",
   "cityCount": 181,
   "cities": {
     "balikpapan": {
       "success": true,
-      "generatedAt": "2026-09-29T18:11:48.850Z",
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Balikpapan",
       "provinsi": "Kalimantan Timur",
       "slug": "balikpapan",
@@ -16,17 +15,18 @@
       "gmt": "UTC+8",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:45",
-        "terbit": "05:55",
+        "subuh": "04:46",
+        "terbit": "05:56",
         "dzuhur": "12:07",
-        "ashar": "15:09",
+        "ashar": "15:08",
         "maghrib": "18:09",
         "isya": "19:18"
-      }
+      },
+      "generatedAt": "2026-09-30T18:24:19.737533+00:00"
     },
     "banda-aceh": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Banda Aceh",
       "provinsi": "Aceh",
       "slug": "banda-aceh",
@@ -42,11 +42,11 @@
         "maghrib": "18:34",
         "isya": "19:43"
       },
-      "generatedAt": "2026-09-29T22:16:00.851966+00:00"
+      "generatedAt": "2026-09-30T18:24:09.833448+00:00"
     },
     "singaraja": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Singaraja",
       "provinsi": "Bali",
       "slug": "singaraja",
@@ -62,11 +62,11 @@
         "maghrib": "18:18",
         "isya": "19:27"
       },
-      "generatedAt": "2026-09-29T22:16:00.871733+00:00"
+      "generatedAt": "2026-09-30T18:24:09.796029+00:00"
     },
     "sigli": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sigli",
       "provinsi": "Aceh",
       "slug": "sigli",
@@ -82,11 +82,11 @@
         "maghrib": "18:32",
         "isya": "19:41"
       },
-      "generatedAt": "2026-09-29T22:16:01.107199+00:00"
+      "generatedAt": "2026-09-30T18:24:10.369232+00:00"
     },
     "sabang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sabang",
       "provinsi": "Aceh",
       "slug": "sabang",
@@ -102,11 +102,11 @@
         "maghrib": "18:34",
         "isya": "19:43"
       },
-      "generatedAt": "2026-09-29T22:16:00.939292+00:00"
+      "generatedAt": "2026-09-30T18:24:10.296578+00:00"
     },
     "subulussalam": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Subulussalam",
       "provinsi": "Aceh",
       "slug": "subulussalam",
@@ -122,11 +122,11 @@
         "maghrib": "18:24",
         "isya": "19:33"
       },
-      "generatedAt": "2026-09-29T22:16:01.107944+00:00"
+      "generatedAt": "2026-09-30T18:24:10.341879+00:00"
     },
     "tabanan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tabanan",
       "provinsi": "Bali",
       "slug": "tabanan",
@@ -142,11 +142,11 @@
         "maghrib": "18:18",
         "isya": "19:27"
       },
-      "generatedAt": "2026-09-29T22:16:01.493933+00:00"
+      "generatedAt": "2026-09-30T18:24:10.343838+00:00"
     },
     "lhokseumawe": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Lhokseumawe",
       "provinsi": "Aceh",
       "slug": "lhokseumawe",
@@ -162,11 +162,11 @@
         "maghrib": "18:27",
         "isya": "19:36"
       },
-      "generatedAt": "2026-09-29T22:16:00.887147+00:00"
+      "generatedAt": "2026-09-30T18:24:09.760676+00:00"
     },
     "denpasar": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Denpasar",
       "provinsi": "Bali",
       "slug": "denpasar",
@@ -182,11 +182,11 @@
         "maghrib": "18:17",
         "isya": "19:27"
       },
-      "generatedAt": "2026-09-29T22:16:01.106241+00:00"
+      "generatedAt": "2026-09-30T18:24:10.335739+00:00"
     },
     "gianyar": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Gianyar",
       "provinsi": "Bali",
       "slug": "gianyar",
@@ -202,11 +202,11 @@
         "maghrib": "18:17",
         "isya": "19:27"
       },
-      "generatedAt": "2026-09-29T22:16:01.548753+00:00"
+      "generatedAt": "2026-09-30T18:24:11.000100+00:00"
     },
     "tangerang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tangerang",
       "provinsi": "Banten",
       "slug": "tangerang",
@@ -222,11 +222,11 @@
         "maghrib": "17:51",
         "isya": "19:00"
       },
-      "generatedAt": "2026-09-29T22:16:01.572333+00:00"
+      "generatedAt": "2026-09-30T18:24:10.975328+00:00"
     },
     "tangerang-selatan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tangerang Selatan",
       "provinsi": "Banten",
       "slug": "tangerang-selatan",
@@ -242,11 +242,11 @@
         "maghrib": "17:51",
         "isya": "19:00"
       },
-      "generatedAt": "2026-09-29T22:16:01.730396+00:00"
+      "generatedAt": "2026-09-30T18:24:10.917195+00:00"
     },
     "serang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Serang",
       "provinsi": "Banten",
       "slug": "serang",
@@ -262,11 +262,11 @@
         "maghrib": "17:53",
         "isya": "19:02"
       },
-      "generatedAt": "2026-09-29T22:16:01.744380+00:00"
+      "generatedAt": "2026-09-30T18:24:10.978239+00:00"
     },
     "klungkung": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Klungkung",
       "provinsi": "Bali",
       "slug": "klungkung",
@@ -282,11 +282,11 @@
         "maghrib": "18:17",
         "isya": "19:26"
       },
-      "generatedAt": "2026-09-29T22:16:02.020312+00:00"
+      "generatedAt": "2026-09-30T18:24:10.394457+00:00"
     },
     "bengkulu": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bengkulu",
       "provinsi": "Bengkulu",
       "slug": "bengkulu",
@@ -302,11 +302,11 @@
         "maghrib": "18:08",
         "isya": "19:17"
       },
-      "generatedAt": "2026-09-29T22:16:02.176430+00:00"
+      "generatedAt": "2026-09-30T18:24:11.054392+00:00"
     },
     "yogyakarta": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Yogyakarta",
       "provinsi": "DI Yogyakarta",
       "slug": "yogyakarta",
@@ -315,18 +315,18 @@
       "gmt": "UTC+7",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:10",
+        "subuh": "04:09",
         "terbit": "05:20",
         "dzuhur": "11:33",
-        "ashar": "14:42",
-        "maghrib": "17:37",
+        "ashar": "14:41",
+        "maghrib": "17:36",
         "isya": "18:46"
       },
-      "generatedAt": "2026-09-29T22:16:02.195964+00:00"
+      "generatedAt": "2026-09-30T18:24:11.979213+00:00"
     },
     "bantul": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bantul",
       "provinsi": "DI Yogyakarta",
       "slug": "bantul",
@@ -342,11 +342,11 @@
         "maghrib": "17:37",
         "isya": "18:46"
       },
-      "generatedAt": "2026-09-29T22:16:02.361565+00:00"
+      "generatedAt": "2026-09-30T18:24:11.614963+00:00"
     },
     "pandeglang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pandeglang",
       "provinsi": "Banten",
       "slug": "pandeglang",
@@ -362,11 +362,11 @@
         "maghrib": "17:53",
         "isya": "19:03"
       },
-      "generatedAt": "2026-09-29T22:16:02.165057+00:00"
+      "generatedAt": "2026-09-30T18:24:11.488060+00:00"
     },
     "cilegon": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Cilegon",
       "provinsi": "Banten",
       "slug": "cilegon",
@@ -382,11 +382,11 @@
         "maghrib": "17:54",
         "isya": "19:03"
       },
-      "generatedAt": "2026-09-29T22:16:01.750689+00:00"
+      "generatedAt": "2026-09-30T18:24:11.402844+00:00"
     },
     "kulon-progo": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Kulon Progo",
       "provinsi": "DI Yogyakarta",
       "slug": "kulon-progo",
@@ -402,11 +402,11 @@
         "maghrib": "17:37",
         "isya": "18:47"
       },
-      "generatedAt": "2026-09-29T22:16:02.366526+00:00"
+      "generatedAt": "2026-09-30T18:24:11.613891+00:00"
     },
     "sleman": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sleman",
       "provinsi": "DI Yogyakarta",
       "slug": "sleman",
@@ -422,11 +422,11 @@
         "maghrib": "17:37",
         "isya": "18:46"
       },
-      "generatedAt": "2026-09-29T22:16:02.651538+00:00"
+      "generatedAt": "2026-09-30T18:24:11.605500+00:00"
     },
     "jakarta-utara": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Jakarta Utara",
       "provinsi": "DKI Jakarta",
       "slug": "jakarta-utara",
@@ -442,11 +442,11 @@
         "maghrib": "17:50",
         "isya": "19:00"
       },
-      "generatedAt": "2026-09-29T22:16:02.784531+00:00"
+      "generatedAt": "2026-09-30T18:24:11.967947+00:00"
     },
     "gunungkidul": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Gunungkidul",
       "provinsi": "DI Yogyakarta",
       "slug": "gunungkidul",
@@ -462,11 +462,11 @@
         "maghrib": "17:36",
         "isya": "18:45"
       },
-      "generatedAt": "2026-09-29T22:16:02.406947+00:00"
+      "generatedAt": "2026-09-30T18:24:12.100895+00:00"
     },
     "jakarta-barat": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Jakarta Barat",
       "provinsi": "DKI Jakarta",
       "slug": "jakarta-barat",
@@ -482,11 +482,11 @@
         "maghrib": "17:51",
         "isya": "19:00"
       },
-      "generatedAt": "2026-09-29T22:16:02.862214+00:00"
+      "generatedAt": "2026-09-30T18:24:12.171227+00:00"
     },
     "lebak": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Lebak",
       "provinsi": "Banten",
       "slug": "lebak",
@@ -502,11 +502,11 @@
         "maghrib": "17:53",
         "isya": "19:02"
       },
-      "generatedAt": "2026-09-29T22:16:02.113413+00:00"
+      "generatedAt": "2026-09-30T18:24:11.023125+00:00"
     },
     "jakarta-timur": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Jakarta Timur",
       "provinsi": "DKI Jakarta",
       "slug": "jakarta-timur",
@@ -522,11 +522,11 @@
         "maghrib": "17:50",
         "isya": "18:59"
       },
-      "generatedAt": "2026-09-29T22:16:02.983251+00:00"
+      "generatedAt": "2026-09-30T18:24:12.228662+00:00"
     },
     "gorontalo": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Gorontalo",
       "provinsi": "Gorontalo",
       "slug": "gorontalo",
@@ -542,11 +542,11 @@
         "maghrib": "17:44",
         "isya": "18:53"
       },
-      "generatedAt": "2026-09-29T22:16:03.021010+00:00"
+      "generatedAt": "2026-09-30T18:24:12.288139+00:00"
     },
     "jakarta-selatan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Jakarta Selatan",
       "provinsi": "DKI Jakarta",
       "slug": "jakarta-selatan",
@@ -562,11 +562,11 @@
         "maghrib": "17:51",
         "isya": "19:00"
       },
-      "generatedAt": "2026-09-29T22:16:02.863822+00:00"
+      "generatedAt": "2026-09-30T18:24:12.618752+00:00"
     },
     "jambi": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Jambi",
       "provinsi": "Jambi",
       "slug": "jambi",
@@ -582,11 +582,11 @@
         "maghrib": "18:02",
         "isya": "19:11"
       },
-      "generatedAt": "2026-09-29T22:16:03.382077+00:00"
+      "generatedAt": "2026-09-30T18:24:12.580300+00:00"
     },
     "sungai-penuh": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sungai Penuh",
       "provinsi": "Jambi",
       "slug": "sungai-penuh",
@@ -602,11 +602,11 @@
         "maghrib": "18:11",
         "isya": "19:20"
       },
-      "generatedAt": "2026-09-29T22:16:03.537350+00:00"
+      "generatedAt": "2026-09-30T18:24:12.735074+00:00"
     },
     "bandung": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bandung",
       "provinsi": "Jawa Barat",
       "slug": "bandung",
@@ -616,17 +616,17 @@
       "source": "MuslimKita / Kemenag",
       "jadwal": {
         "subuh": "04:21",
-        "terbit": "05:32",
+        "terbit": "05:31",
         "dzuhur": "11:44",
-        "ashar": "14:52",
+        "ashar": "14:51",
         "maghrib": "17:47",
         "isya": "18:57"
       },
-      "generatedAt": "2026-09-29T22:16:03.492466+00:00"
+      "generatedAt": "2026-09-30T18:24:12.778561+00:00"
     },
     "jakarta-pusat": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Jakarta Pusat",
       "provinsi": "DKI Jakarta",
       "slug": "jakarta-pusat",
@@ -642,11 +642,11 @@
         "maghrib": "17:50",
         "isya": "19:00"
       },
-      "generatedAt": "2026-09-29T22:16:02.988584+00:00"
+      "generatedAt": "2026-09-30T18:24:12.222263+00:00"
     },
     "bekasi": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bekasi",
       "provinsi": "Jawa Barat",
       "slug": "bekasi",
@@ -662,11 +662,11 @@
         "maghrib": "17:50",
         "isya": "18:59"
       },
-      "generatedAt": "2026-09-29T22:16:03.538482+00:00"
+      "generatedAt": "2026-09-30T18:24:12.854235+00:00"
     },
     "limboto": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Limboto",
       "provinsi": "Gorontalo",
       "slug": "limboto",
@@ -682,11 +682,11 @@
         "maghrib": "17:45",
         "isya": "18:53"
       },
-      "generatedAt": "2026-09-29T22:16:03.292990+00:00"
+      "generatedAt": "2026-09-30T18:24:12.542916+00:00"
     },
     "depok": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Depok",
       "provinsi": "Jawa Barat",
       "slug": "depok",
@@ -702,11 +702,11 @@
         "maghrib": "17:51",
         "isya": "19:00"
       },
-      "generatedAt": "2026-09-29T22:16:03.674285+00:00"
+      "generatedAt": "2026-09-30T18:24:12.878275+00:00"
     },
     "bogor": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bogor",
       "provinsi": "Jawa Barat",
       "slug": "bogor",
@@ -722,11 +722,11 @@
         "maghrib": "17:51",
         "isya": "19:00"
       },
-      "generatedAt": "2026-09-29T22:16:03.621567+00:00"
+      "generatedAt": "2026-09-30T18:24:12.894479+00:00"
     },
     "cimahi": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Cimahi",
       "provinsi": "Jawa Barat",
       "slug": "cimahi",
@@ -742,11 +742,11 @@
         "maghrib": "17:48",
         "isya": "18:57"
       },
-      "generatedAt": "2026-09-29T22:16:03.703898+00:00"
+      "generatedAt": "2026-09-30T18:24:13.112074+00:00"
     },
     "cirebon": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Cirebon",
       "provinsi": "Jawa Barat",
       "slug": "cirebon",
@@ -762,11 +762,11 @@
         "maghrib": "17:44",
         "isya": "18:53"
       },
-      "generatedAt": "2026-09-29T22:16:04.059193+00:00"
+      "generatedAt": "2026-09-30T18:24:13.197940+00:00"
     },
     "sukabumi": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sukabumi",
       "provinsi": "Jawa Barat",
       "slug": "sukabumi",
@@ -782,11 +782,11 @@
         "maghrib": "17:50",
         "isya": "19:00"
       },
-      "generatedAt": "2026-09-29T22:16:04.135903+00:00"
+      "generatedAt": "2026-09-30T18:24:13.340706+00:00"
     },
     "cianjur": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Cianjur",
       "provinsi": "Jawa Barat",
       "slug": "cianjur",
@@ -802,11 +802,11 @@
         "maghrib": "17:49",
         "isya": "18:59"
       },
-      "generatedAt": "2026-09-29T22:16:04.643480+00:00"
+      "generatedAt": "2026-09-30T18:24:13.910337+00:00"
     },
     "garut": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Garut",
       "provinsi": "Jawa Barat",
       "slug": "garut",
@@ -822,11 +822,11 @@
         "maghrib": "17:46",
         "isya": "18:56"
       },
-      "generatedAt": "2026-09-29T22:16:04.710317+00:00"
+      "generatedAt": "2026-09-30T18:24:13.483653+00:00"
     },
     "tasikmalaya": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tasikmalaya",
       "provinsi": "Jawa Barat",
       "slug": "tasikmalaya",
@@ -842,11 +842,11 @@
         "maghrib": "17:45",
         "isya": "18:54"
       },
-      "generatedAt": "2026-09-29T22:16:03.942708+00:00"
+      "generatedAt": "2026-09-30T18:24:13.153939+00:00"
     },
     "indramayu": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Indramayu",
       "provinsi": "Jawa Barat",
       "slug": "indramayu",
@@ -862,11 +862,11 @@
         "maghrib": "17:45",
         "isya": "18:54"
       },
-      "generatedAt": "2026-09-29T22:16:04.675739+00:00"
+      "generatedAt": "2026-09-30T18:24:13.517493+00:00"
     },
     "karawang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Karawang",
       "provinsi": "Jawa Barat",
       "slug": "karawang",
@@ -882,11 +882,11 @@
         "maghrib": "17:48",
         "isya": "18:58"
       },
-      "generatedAt": "2026-09-29T22:16:04.316540+00:00"
+      "generatedAt": "2026-09-30T18:24:13.474325+00:00"
     },
     "kuningan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Kuningan",
       "provinsi": "Jawa Barat",
       "slug": "kuningan",
@@ -902,11 +902,11 @@
         "maghrib": "17:44",
         "isya": "18:53"
       },
-      "generatedAt": "2026-09-29T22:16:04.424346+00:00"
+      "generatedAt": "2026-09-30T18:24:14.170603+00:00"
     },
     "majalengka": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Majalengka",
       "provinsi": "Jawa Barat",
       "slug": "majalengka",
@@ -922,11 +922,11 @@
         "maghrib": "17:45",
         "isya": "18:54"
       },
-      "generatedAt": "2026-09-29T22:16:04.555597+00:00"
+      "generatedAt": "2026-09-30T18:24:13.733622+00:00"
     },
     "purwakarta": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Purwakarta",
       "provinsi": "Jawa Barat",
       "slug": "purwakarta",
@@ -942,11 +942,11 @@
         "maghrib": "17:48",
         "isya": "18:57"
       },
-      "generatedAt": "2026-09-29T22:16:04.675158+00:00"
+      "generatedAt": "2026-09-30T18:24:13.815619+00:00"
     },
     "subang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Subang",
       "provinsi": "Jawa Barat",
       "slug": "subang",
@@ -962,11 +962,11 @@
         "maghrib": "17:47",
         "isya": "18:56"
       },
-      "generatedAt": "2026-09-29T22:16:04.860486+00:00"
+      "generatedAt": "2026-09-30T18:24:14.000128+00:00"
     },
     "sumedang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sumedang",
       "provinsi": "Jawa Barat",
       "slug": "sumedang",
@@ -975,18 +975,18 @@
       "gmt": "UTC+7",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:20",
+        "subuh": "04:19",
         "terbit": "05:30",
-        "dzuhur": "11:43",
-        "ashar": "14:50",
+        "dzuhur": "11:42",
+        "ashar": "14:49",
         "maghrib": "17:46",
         "isya": "18:55"
       },
-      "generatedAt": "2026-09-29T22:16:04.949039+00:00"
+      "generatedAt": "2026-09-30T18:24:14.090495+00:00"
     },
     "banjar": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Banjar",
       "provinsi": "Jawa Barat",
       "slug": "banjar",
@@ -1002,11 +1002,11 @@
         "maghrib": "17:44",
         "isya": "18:53"
       },
-      "generatedAt": "2026-09-29T22:16:05.278840+00:00"
+      "generatedAt": "2026-09-30T18:24:14.126714+00:00"
     },
     "ciamis": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Ciamis",
       "provinsi": "Jawa Barat",
       "slug": "ciamis",
@@ -1022,11 +1022,11 @@
         "maghrib": "17:45",
         "isya": "18:54"
       },
-      "generatedAt": "2026-09-29T22:16:05.080807+00:00"
+      "generatedAt": "2026-09-30T18:24:14.057963+00:00"
     },
     "pangandaran": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pangandaran",
       "provinsi": "Jawa Barat",
       "slug": "pangandaran",
@@ -1042,11 +1042,11 @@
         "maghrib": "17:43",
         "isya": "18:53"
       },
-      "generatedAt": "2026-09-29T22:16:05.282786+00:00"
+      "generatedAt": "2026-09-30T18:24:14.337874+00:00"
     },
     "magelang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Magelang",
       "provinsi": "Jawa Tengah",
       "slug": "magelang",
@@ -1062,11 +1062,11 @@
         "maghrib": "17:37",
         "isya": "18:47"
       },
-      "generatedAt": "2026-09-29T22:16:05.359932+00:00"
+      "generatedAt": "2026-09-30T18:24:14.604842+00:00"
     },
     "pekalongan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pekalongan",
       "provinsi": "Jawa Tengah",
       "slug": "pekalongan",
@@ -1082,11 +1082,11 @@
         "maghrib": "17:39",
         "isya": "18:49"
       },
-      "generatedAt": "2026-09-29T22:16:05.446830+00:00"
+      "generatedAt": "2026-09-30T18:24:14.696810+00:00"
     },
     "tegal": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tegal",
       "provinsi": "Jawa Tengah",
       "slug": "tegal",
@@ -1102,11 +1102,11 @@
         "maghrib": "17:41",
         "isya": "18:51"
       },
-      "generatedAt": "2026-09-29T22:16:05.561213+00:00"
+      "generatedAt": "2026-09-30T18:24:14.685384+00:00"
     },
     "salatiga": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Salatiga",
       "provinsi": "Jawa Tengah",
       "slug": "salatiga",
@@ -1122,11 +1122,11 @@
         "maghrib": "17:36",
         "isya": "18:45"
       },
-      "generatedAt": "2026-09-29T22:16:05.706973+00:00"
+      "generatedAt": "2026-09-30T18:24:14.741458+00:00"
     },
     "banjarnegara": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Banjarnegara",
       "provinsi": "Jawa Tengah",
       "slug": "banjarnegara",
@@ -1142,11 +1142,11 @@
         "maghrib": "17:39",
         "isya": "18:49"
       },
-      "generatedAt": "2026-09-29T22:16:05.886949+00:00"
+      "generatedAt": "2026-09-30T18:24:14.735912+00:00"
     },
     "semarang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Semarang",
       "provinsi": "Jawa Tengah",
       "slug": "semarang",
@@ -1155,18 +1155,18 @@
       "gmt": "UTC+7",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:10",
+        "subuh": "04:09",
         "terbit": "05:20",
-        "dzuhur": "11:33",
+        "dzuhur": "11:32",
         "ashar": "14:40",
         "maghrib": "17:36",
-        "isya": "18:46"
+        "isya": "18:45"
       },
-      "generatedAt": "2026-09-29T22:16:05.321266+00:00"
+      "generatedAt": "2026-09-30T18:24:14.381246+00:00"
     },
     "banyumas": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Banyumas",
       "provinsi": "Jawa Tengah",
       "slug": "banyumas",
@@ -1182,11 +1182,11 @@
         "maghrib": "17:41",
         "isya": "18:50"
       },
-      "generatedAt": "2026-09-29T22:16:05.878270+00:00"
+      "generatedAt": "2026-09-30T18:24:15.002710+00:00"
     },
     "purwokerto": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Purwokerto",
       "provinsi": "Jawa Tengah",
       "slug": "purwokerto",
@@ -1202,11 +1202,11 @@
         "maghrib": "17:41",
         "isya": "18:50"
       },
-      "generatedAt": "2026-09-29T22:16:05.902858+00:00"
+      "generatedAt": "2026-09-30T18:24:15.006737+00:00"
     },
     "batang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Batang",
       "provinsi": "Jawa Tengah",
       "slug": "batang",
@@ -1222,11 +1222,11 @@
         "maghrib": "17:39",
         "isya": "18:48"
       },
-      "generatedAt": "2026-09-29T22:16:05.935985+00:00"
+      "generatedAt": "2026-09-30T18:24:15.143843+00:00"
     },
     "boyolali": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Boyolali",
       "provinsi": "Jawa Tengah",
       "slug": "boyolali",
@@ -1242,11 +1242,11 @@
         "maghrib": "17:36",
         "isya": "18:45"
       },
-      "generatedAt": "2026-09-29T22:16:06.037792+00:00"
+      "generatedAt": "2026-09-30T18:24:15.271098+00:00"
     },
     "brebes": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Brebes",
       "provinsi": "Jawa Tengah",
       "slug": "brebes",
@@ -1262,11 +1262,11 @@
         "maghrib": "17:42",
         "isya": "18:51"
       },
-      "generatedAt": "2026-09-29T22:16:06.173277+00:00"
+      "generatedAt": "2026-09-30T18:24:15.291530+00:00"
     },
     "demak": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Demak",
       "provinsi": "Jawa Tengah",
       "slug": "demak",
@@ -1282,11 +1282,11 @@
         "maghrib": "17:35",
         "isya": "18:45"
       },
-      "generatedAt": "2026-09-29T22:16:06.503878+00:00"
+      "generatedAt": "2026-09-30T18:24:15.315298+00:00"
     },
     "grobogan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Grobogan",
       "provinsi": "Jawa Tengah",
       "slug": "grobogan",
@@ -1302,11 +1302,11 @@
         "maghrib": "17:34",
         "isya": "18:44"
       },
-      "generatedAt": "2026-09-29T22:16:06.494402+00:00"
+      "generatedAt": "2026-09-30T18:24:15.609399+00:00"
     },
     "cilacap": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Cilacap",
       "provinsi": "Jawa Tengah",
       "slug": "cilacap",
@@ -1322,11 +1322,11 @@
         "maghrib": "17:42",
         "isya": "18:51"
       },
-      "generatedAt": "2026-09-29T22:16:06.419056+00:00"
+      "generatedAt": "2026-09-30T18:24:15.356711+00:00"
     },
     "karanganyar": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Karanganyar",
       "provinsi": "Jawa Tengah",
       "slug": "karanganyar",
@@ -1342,11 +1342,11 @@
         "maghrib": "17:34",
         "isya": "18:44"
       },
-      "generatedAt": "2026-09-29T22:16:06.541470+00:00"
+      "generatedAt": "2026-09-30T18:24:15.737032+00:00"
     },
     "kebumen": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Kebumen",
       "provinsi": "Jawa Tengah",
       "slug": "kebumen",
@@ -1362,11 +1362,11 @@
         "maghrib": "17:39",
         "isya": "18:49"
       },
-      "generatedAt": "2026-09-29T22:16:06.586983+00:00"
+      "generatedAt": "2026-09-30T18:24:16.279992+00:00"
     },
     "kendal": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Kendal",
       "provinsi": "Jawa Tengah",
       "slug": "kendal",
@@ -1382,11 +1382,11 @@
         "maghrib": "17:37",
         "isya": "18:46"
       },
-      "generatedAt": "2026-09-29T22:16:06.642550+00:00"
+      "generatedAt": "2026-09-30T18:24:15.864071+00:00"
     },
     "klaten": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Klaten",
       "provinsi": "Jawa Tengah",
       "slug": "klaten",
@@ -1402,11 +1402,11 @@
         "maghrib": "17:36",
         "isya": "18:45"
       },
-      "generatedAt": "2026-09-29T22:16:06.784621+00:00"
+      "generatedAt": "2026-09-30T18:24:15.918161+00:00"
     },
     "pemalang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pemalang",
       "provinsi": "Jawa Tengah",
       "slug": "pemalang",
@@ -1422,11 +1422,11 @@
         "maghrib": "17:40",
         "isya": "18:50"
       },
-      "generatedAt": "2026-09-29T22:16:07.114935+00:00"
+      "generatedAt": "2026-09-30T18:24:16.262464+00:00"
     },
     "pati": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pati",
       "provinsi": "Jawa Tengah",
       "slug": "pati",
@@ -1442,11 +1442,11 @@
         "maghrib": "17:34",
         "isya": "18:43"
       },
-      "generatedAt": "2026-09-29T22:16:07.076269+00:00"
+      "generatedAt": "2026-09-30T18:24:15.935567+00:00"
     },
     "kudus": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Kudus",
       "provinsi": "Jawa Tengah",
       "slug": "kudus",
@@ -1462,11 +1462,11 @@
         "maghrib": "17:35",
         "isya": "18:44"
       },
-      "generatedAt": "2026-09-29T22:16:07.017931+00:00"
+      "generatedAt": "2026-09-30T18:24:15.913990+00:00"
     },
     "jepara": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Jepara",
       "provinsi": "Jawa Tengah",
       "slug": "jepara",
@@ -1482,11 +1482,11 @@
         "maghrib": "17:35",
         "isya": "18:44"
       },
-      "generatedAt": "2026-09-29T22:16:06.502970+00:00"
+      "generatedAt": "2026-09-30T18:24:15.581108+00:00"
     },
     "purbalingga": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Purbalingga",
       "provinsi": "Jawa Tengah",
       "slug": "purbalingga",
@@ -1502,11 +1502,11 @@
         "maghrib": "17:41",
         "isya": "18:50"
       },
-      "generatedAt": "2026-09-29T22:16:07.554059+00:00"
+      "generatedAt": "2026-09-30T18:24:16.201833+00:00"
     },
     "purworejo": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Purworejo",
       "provinsi": "Jawa Tengah",
       "slug": "purworejo",
@@ -1522,11 +1522,11 @@
         "maghrib": "17:38",
         "isya": "18:47"
       },
-      "generatedAt": "2026-09-29T22:16:07.642874+00:00"
+      "generatedAt": "2026-09-30T18:24:16.370386+00:00"
     },
     "rembang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Rembang",
       "provinsi": "Jawa Tengah",
       "slug": "rembang",
@@ -1542,11 +1542,11 @@
         "maghrib": "17:33",
         "isya": "18:42"
       },
-      "generatedAt": "2026-09-29T22:16:07.195891+00:00"
+      "generatedAt": "2026-09-30T18:24:16.495495+00:00"
     },
     "sragen": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sragen",
       "provinsi": "Jawa Tengah",
       "slug": "sragen",
@@ -1562,11 +1562,11 @@
         "maghrib": "17:34",
         "isya": "18:43"
       },
-      "generatedAt": "2026-09-29T22:16:07.226681+00:00"
+      "generatedAt": "2026-09-30T18:24:16.500130+00:00"
     },
     "temanggung": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Temanggung",
       "provinsi": "Jawa Tengah",
       "slug": "temanggung",
@@ -1582,11 +1582,11 @@
         "maghrib": "17:37",
         "isya": "18:47"
       },
-      "generatedAt": "2026-09-29T22:16:07.614902+00:00"
+      "generatedAt": "2026-09-30T18:24:16.515841+00:00"
     },
     "sukoharjo": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sukoharjo",
       "provinsi": "Jawa Tengah",
       "slug": "sukoharjo",
@@ -1602,11 +1602,11 @@
         "maghrib": "17:35",
         "isya": "18:44"
       },
-      "generatedAt": "2026-09-29T22:16:07.367448+00:00"
+      "generatedAt": "2026-09-30T18:24:16.520191+00:00"
     },
     "wonogiri": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Wonogiri",
       "provinsi": "Jawa Tengah",
       "slug": "wonogiri",
@@ -1622,11 +1622,11 @@
         "maghrib": "17:34",
         "isya": "18:44"
       },
-      "generatedAt": "2026-09-29T22:16:07.689101+00:00"
+      "generatedAt": "2026-09-30T18:24:16.809278+00:00"
     },
     "surabaya": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Surabaya",
       "provinsi": "Jawa Timur",
       "slug": "surabaya",
@@ -1635,18 +1635,18 @@
       "gmt": "UTC+7",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:01",
-        "terbit": "05:11",
+        "subuh": "04:00",
+        "terbit": "05:10",
         "dzuhur": "11:23",
-        "ashar": "14:32",
+        "ashar": "14:31",
         "maghrib": "17:27",
         "isya": "18:36"
       },
-      "generatedAt": "2026-09-29T22:16:07.772113+00:00"
+      "generatedAt": "2026-09-30T18:24:16.839408+00:00"
     },
     "malang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Malang",
       "provinsi": "Jawa Timur",
       "slug": "malang",
@@ -1662,11 +1662,11 @@
         "maghrib": "17:28",
         "isya": "18:37"
       },
-      "generatedAt": "2026-09-29T22:16:07.849781+00:00"
+      "generatedAt": "2026-09-30T18:24:16.960933+00:00"
     },
     "kediri": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Kediri",
       "provinsi": "Jawa Timur",
       "slug": "kediri",
@@ -1682,11 +1682,11 @@
         "maghrib": "17:30",
         "isya": "18:39"
       },
-      "generatedAt": "2026-09-29T22:16:08.001356+00:00"
+      "generatedAt": "2026-09-30T18:24:17.058977+00:00"
     },
     "mojokerto": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Mojokerto",
       "provinsi": "Jawa Timur",
       "slug": "mojokerto",
@@ -1702,11 +1702,11 @@
         "maghrib": "17:28",
         "isya": "18:38"
       },
-      "generatedAt": "2026-09-29T22:16:08.257835+00:00"
+      "generatedAt": "2026-09-30T18:24:17.131243+00:00"
     },
     "probolinggo": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Probolinggo",
       "provinsi": "Jawa Timur",
       "slug": "probolinggo",
@@ -1722,11 +1722,11 @@
         "maghrib": "17:25",
         "isya": "18:35"
       },
-      "generatedAt": "2026-09-29T22:16:08.296571+00:00"
+      "generatedAt": "2026-09-30T18:24:17.426061+00:00"
     },
     "blitar": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Blitar",
       "provinsi": "Jawa Timur",
       "slug": "blitar",
@@ -1742,11 +1742,11 @@
         "maghrib": "17:29",
         "isya": "18:39"
       },
-      "generatedAt": "2026-09-29T22:16:08.716500+00:00"
+      "generatedAt": "2026-09-30T18:24:17.153359+00:00"
     },
     "wonosobo": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Wonosobo",
       "provinsi": "Jawa Tengah",
       "slug": "wonosobo",
@@ -1762,11 +1762,11 @@
         "maghrib": "17:38",
         "isya": "18:48"
       },
-      "generatedAt": "2026-09-29T22:16:07.743922+00:00"
+      "generatedAt": "2026-09-30T18:24:16.843462+00:00"
     },
     "pasuruan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pasuruan",
       "provinsi": "Jawa Timur",
       "slug": "pasuruan",
@@ -1782,11 +1782,11 @@
         "maghrib": "17:26",
         "isya": "18:36"
       },
-      "generatedAt": "2026-09-29T22:16:08.343265+00:00"
+      "generatedAt": "2026-09-30T18:24:17.400238+00:00"
     },
     "madiun": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Madiun",
       "provinsi": "Jawa Timur",
       "slug": "madiun",
@@ -1802,11 +1802,11 @@
         "maghrib": "17:32",
         "isya": "18:41"
       },
-      "generatedAt": "2026-09-29T22:16:08.135710+00:00"
+      "generatedAt": "2026-09-30T18:24:17.091682+00:00"
     },
     "batu": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Batu",
       "provinsi": "Jawa Timur",
       "slug": "batu",
@@ -1822,11 +1822,11 @@
         "maghrib": "17:28",
         "isya": "18:37"
       },
-      "generatedAt": "2026-09-29T22:16:08.373114+00:00"
+      "generatedAt": "2026-09-30T18:24:17.430012+00:00"
     },
     "bojonegoro": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bojonegoro",
       "provinsi": "Jawa Timur",
       "slug": "bojonegoro",
@@ -1842,11 +1842,11 @@
         "maghrib": "17:30",
         "isya": "18:40"
       },
-      "generatedAt": "2026-09-29T22:16:08.602849+00:00"
+      "generatedAt": "2026-09-30T18:24:17.647640+00:00"
     },
     "bondowoso": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bondowoso",
       "provinsi": "Jawa Timur",
       "slug": "bondowoso",
@@ -1862,11 +1862,11 @@
         "maghrib": "17:23",
         "isya": "18:32"
       },
-      "generatedAt": "2026-09-29T22:16:08.725994+00:00"
+      "generatedAt": "2026-09-30T18:24:17.663285+00:00"
     },
     "jember": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Jember",
       "provinsi": "Jawa Timur",
       "slug": "jember",
@@ -1882,11 +1882,11 @@
         "maghrib": "17:23",
         "isya": "18:33"
       },
-      "generatedAt": "2026-09-29T22:16:08.928247+00:00"
+      "generatedAt": "2026-09-30T18:24:17.774604+00:00"
     },
     "gresik": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Gresik",
       "provinsi": "Jawa Timur",
       "slug": "gresik",
@@ -1902,11 +1902,11 @@
         "maghrib": "17:27",
         "isya": "18:37"
       },
-      "generatedAt": "2026-09-29T22:16:08.846191+00:00"
+      "generatedAt": "2026-09-30T18:24:17.771408+00:00"
     },
     "banyuwangi": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Banyuwangi",
       "provinsi": "Jawa Timur",
       "slug": "banyuwangi",
@@ -1922,11 +1922,11 @@
         "maghrib": "17:21",
         "isya": "18:30"
       },
-      "generatedAt": "2026-09-29T22:16:08.493476+00:00"
+      "generatedAt": "2026-09-30T18:24:17.567273+00:00"
     },
     "lamongan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Lamongan",
       "provinsi": "Jawa Timur",
       "slug": "lamongan",
@@ -1942,11 +1942,11 @@
         "maghrib": "17:28",
         "isya": "18:38"
       },
-      "generatedAt": "2026-09-29T22:16:08.985261+00:00"
+      "generatedAt": "2026-09-30T18:24:17.997463+00:00"
     },
     "lumajang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Lumajang",
       "provinsi": "Jawa Timur",
       "slug": "lumajang",
@@ -1962,11 +1962,11 @@
         "maghrib": "17:25",
         "isya": "18:35"
       },
-      "generatedAt": "2026-09-29T22:16:09.104245+00:00"
+      "generatedAt": "2026-09-30T18:24:17.992545+00:00"
     },
     "magetan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Magetan",
       "provinsi": "Jawa Timur",
       "slug": "magetan",
@@ -1982,11 +1982,11 @@
         "maghrib": "17:33",
         "isya": "18:42"
       },
-      "generatedAt": "2026-09-29T22:16:09.188045+00:00"
+      "generatedAt": "2026-09-30T18:24:18.156232+00:00"
     },
     "nganjuk": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Nganjuk",
       "provinsi": "Jawa Timur",
       "slug": "nganjuk",
@@ -2002,11 +2002,11 @@
         "maghrib": "17:30",
         "isya": "18:40"
       },
-      "generatedAt": "2026-09-29T22:16:09.337680+00:00"
+      "generatedAt": "2026-09-30T18:24:18.249276+00:00"
     },
     "ngawi": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Ngawi",
       "provinsi": "Jawa Timur",
       "slug": "ngawi",
@@ -2022,11 +2022,11 @@
         "maghrib": "17:32",
         "isya": "18:42"
       },
-      "generatedAt": "2026-09-29T22:16:09.308963+00:00"
+      "generatedAt": "2026-09-30T18:24:18.216280+00:00"
     },
     "pacitan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pacitan",
       "provinsi": "Jawa Timur",
       "slug": "pacitan",
@@ -2042,11 +2042,11 @@
         "maghrib": "17:34",
         "isya": "18:43"
       },
-      "generatedAt": "2026-09-29T22:16:09.500746+00:00"
+      "generatedAt": "2026-09-30T18:24:18.357594+00:00"
     },
     "pamekasan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pamekasan",
       "provinsi": "Jawa Timur",
       "slug": "pamekasan",
@@ -2062,11 +2062,11 @@
         "maghrib": "17:24",
         "isya": "18:33"
       },
-      "generatedAt": "2026-09-29T22:16:09.556599+00:00"
+      "generatedAt": "2026-09-30T18:24:18.390984+00:00"
     },
     "ponorogo": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Ponorogo",
       "provinsi": "Jawa Timur",
       "slug": "ponorogo",
@@ -2082,11 +2082,11 @@
         "maghrib": "17:32",
         "isya": "18:42"
       },
-      "generatedAt": "2026-09-29T22:16:09.550397+00:00"
+      "generatedAt": "2026-09-30T18:24:18.572719+00:00"
     },
     "sampang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sampang",
       "provinsi": "Jawa Timur",
       "slug": "sampang",
@@ -2102,11 +2102,11 @@
         "maghrib": "17:25",
         "isya": "18:34"
       },
-      "generatedAt": "2026-09-29T22:16:09.608593+00:00"
+      "generatedAt": "2026-09-30T18:24:18.570248+00:00"
     },
     "situbondo": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Situbondo",
       "provinsi": "Jawa Timur",
       "slug": "situbondo",
@@ -2122,11 +2122,11 @@
         "maghrib": "17:22",
         "isya": "18:31"
       },
-      "generatedAt": "2026-09-29T22:16:09.817049+00:00"
+      "generatedAt": "2026-09-30T18:24:18.718537+00:00"
     },
     "sidoarjo": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sidoarjo",
       "provinsi": "Jawa Timur",
       "slug": "sidoarjo",
@@ -2142,11 +2142,11 @@
         "maghrib": "17:27",
         "isya": "18:37"
       },
-      "generatedAt": "2026-09-29T22:16:09.781328+00:00"
+      "generatedAt": "2026-09-30T18:24:18.608367+00:00"
     },
     "sumenep": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sumenep",
       "provinsi": "Jawa Timur",
       "slug": "sumenep",
@@ -2162,11 +2162,11 @@
         "maghrib": "17:22",
         "isya": "18:32"
       },
-      "generatedAt": "2026-09-29T22:16:09.935116+00:00"
+      "generatedAt": "2026-09-30T18:24:18.784999+00:00"
     },
     "tuban": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tuban",
       "provinsi": "Jawa Timur",
       "slug": "tuban",
@@ -2182,11 +2182,11 @@
         "maghrib": "17:30",
         "isya": "18:39"
       },
-      "generatedAt": "2026-09-29T22:16:10.122061+00:00"
+      "generatedAt": "2026-09-30T18:24:18.928559+00:00"
     },
     "trenggalek": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Trenggalek",
       "provinsi": "Jawa Timur",
       "slug": "trenggalek",
@@ -2202,11 +2202,11 @@
         "maghrib": "17:31",
         "isya": "18:41"
       },
-      "generatedAt": "2026-09-29T22:16:09.948983+00:00"
+      "generatedAt": "2026-09-30T18:24:18.874901+00:00"
     },
     "bangkalan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bangkalan",
       "provinsi": "Jawa Timur",
       "slug": "bangkalan",
@@ -2222,11 +2222,11 @@
         "maghrib": "17:27",
         "isya": "18:36"
       },
-      "generatedAt": "2026-09-29T22:16:10.192641+00:00"
+      "generatedAt": "2026-09-30T18:24:19.159532+00:00"
     },
     "tulungagung": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tulungagung",
       "provinsi": "Jawa Timur",
       "slug": "tulungagung",
@@ -2242,11 +2242,11 @@
         "maghrib": "17:31",
         "isya": "18:40"
       },
-      "generatedAt": "2026-09-29T22:16:10.174516+00:00"
+      "generatedAt": "2026-09-30T18:24:19.043040+00:00"
     },
     "pontianak": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pontianak",
       "provinsi": "Kalimantan Barat",
       "slug": "pontianak",
@@ -2262,11 +2262,11 @@
         "maghrib": "17:39",
         "isya": "18:48"
       },
-      "generatedAt": "2026-09-29T22:16:10.239767+00:00"
+      "generatedAt": "2026-09-30T18:24:19.146820+00:00"
     },
     "singkawang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Singkawang",
       "provinsi": "Kalimantan Barat",
       "slug": "singkawang",
@@ -2282,11 +2282,11 @@
         "maghrib": "17:41",
         "isya": "18:49"
       },
-      "generatedAt": "2026-09-29T22:16:10.413915+00:00"
+      "generatedAt": "2026-09-30T18:24:19.160033+00:00"
     },
     "banjarmasin": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Banjarmasin",
       "provinsi": "Kalimantan Selatan",
       "slug": "banjarmasin",
@@ -2302,11 +2302,11 @@
         "maghrib": "18:19",
         "isya": "19:28"
       },
-      "generatedAt": "2026-09-29T22:16:10.556947+00:00"
+      "generatedAt": "2026-09-30T18:24:19.376900+00:00"
     },
     "ketapang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Ketapang",
       "provinsi": "Kalimantan Barat",
       "slug": "ketapang",
@@ -2322,11 +2322,11 @@
         "maghrib": "17:37",
         "isya": "18:46"
       },
-      "generatedAt": "2026-09-29T22:16:10.471203+00:00"
+      "generatedAt": "2026-09-30T18:24:19.363472+00:00"
     },
     "banjarbaru": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Banjarbaru",
       "provinsi": "Kalimantan Selatan",
       "slug": "banjarbaru",
@@ -2342,11 +2342,11 @@
         "maghrib": "18:18",
         "isya": "19:27"
       },
-      "generatedAt": "2026-09-29T22:16:10.581232+00:00"
+      "generatedAt": "2026-09-30T18:24:19.448347+00:00"
     },
     "martapura": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Martapura",
       "provinsi": "Kalimantan Selatan",
       "slug": "martapura",
@@ -2362,11 +2362,11 @@
         "maghrib": "18:18",
         "isya": "19:27"
       },
-      "generatedAt": "2026-09-29T22:16:10.737878+00:00"
+      "generatedAt": "2026-09-30T18:24:19.576831+00:00"
     },
     "sampit": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sampit",
       "provinsi": "Kalimantan Tengah",
       "slug": "sampit",
@@ -2382,11 +2382,11 @@
         "maghrib": "17:25",
         "isya": "18:34"
       },
-      "generatedAt": "2026-09-29T22:16:10.834560+00:00"
+      "generatedAt": "2026-09-30T18:24:19.787155+00:00"
     },
     "palangka-raya": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Palangka Raya",
       "provinsi": "Kalimantan Tengah",
       "slug": "palangka-raya",
@@ -2402,11 +2402,11 @@
         "maghrib": "17:21",
         "isya": "18:30"
       },
-      "generatedAt": "2026-09-29T22:16:10.806142+00:00"
+      "generatedAt": "2026-09-30T18:24:19.617339+00:00"
     },
     "samarinda": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Samarinda",
       "provinsi": "Kalimantan Timur",
       "slug": "samarinda",
@@ -2422,11 +2422,11 @@
         "maghrib": "18:08",
         "isya": "19:17"
       },
-      "generatedAt": "2026-09-29T22:16:10.839312+00:00"
+      "generatedAt": "2026-09-30T18:24:19.753763+00:00"
     },
     "bontang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bontang",
       "provinsi": "Kalimantan Timur",
       "slug": "bontang",
@@ -2442,11 +2442,11 @@
         "maghrib": "18:07",
         "isya": "19:15"
       },
-      "generatedAt": "2026-09-29T22:16:11.012975+00:00"
+      "generatedAt": "2026-09-30T18:24:19.944542+00:00"
     },
     "tanjungpinang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tanjungpinang",
       "provinsi": "Kepulauan Riau",
       "slug": "tanjungpinang",
@@ -2462,11 +2462,11 @@
         "maghrib": "17:59",
         "isya": "19:07"
       },
-      "generatedAt": "2026-09-29T22:16:11.209412+00:00"
+      "generatedAt": "2026-09-30T18:24:20.212294+00:00"
     },
     "batam": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Batam",
       "provinsi": "Kepulauan Riau",
       "slug": "batam",
@@ -2482,11 +2482,11 @@
         "maghrib": "18:00",
         "isya": "19:09"
       },
-      "generatedAt": "2026-09-29T22:16:11.180869+00:00"
+      "generatedAt": "2026-09-30T18:24:20.038726+00:00"
     },
     "tarakan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tarakan",
       "provinsi": "Kalimantan Utara",
       "slug": "tarakan",
@@ -2502,11 +2502,11 @@
         "maghrib": "18:06",
         "isya": "19:15"
       },
-      "generatedAt": "2026-09-29T22:16:11.096489+00:00"
+      "generatedAt": "2026-09-30T18:24:19.963236+00:00"
     },
     "karimun": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Karimun",
       "provinsi": "Kepulauan Riau",
       "slug": "karimun",
@@ -2522,11 +2522,11 @@
         "maghrib": "18:03",
         "isya": "19:11"
       },
-      "generatedAt": "2026-09-29T22:16:11.447182+00:00"
+      "generatedAt": "2026-09-30T18:24:20.333412+00:00"
     },
     "tanjung-pinang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tanjung Pinang",
       "provinsi": "Kepulauan Riau",
       "slug": "tanjung-pinang",
@@ -2542,11 +2542,11 @@
         "maghrib": "17:59",
         "isya": "19:07"
       },
-      "generatedAt": "2026-09-29T22:16:11.366095+00:00"
+      "generatedAt": "2026-09-30T18:24:20.203401+00:00"
     },
     "bandar-lampung": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bandar Lampung",
       "provinsi": "Lampung",
       "slug": "bandar-lampung",
@@ -2562,11 +2562,11 @@
         "maghrib": "17:57",
         "isya": "19:06"
       },
-      "generatedAt": "2026-09-29T22:16:11.479870+00:00"
+      "generatedAt": "2026-09-30T18:24:20.325092+00:00"
     },
     "metro": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Metro",
       "provinsi": "Lampung",
       "slug": "metro",
@@ -2582,11 +2582,11 @@
         "maghrib": "17:56",
         "isya": "19:05"
       },
-      "generatedAt": "2026-09-29T22:16:11.458581+00:00"
+      "generatedAt": "2026-09-30T18:24:20.336545+00:00"
     },
     "ambon": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Ambon",
       "provinsi": "Maluku",
       "slug": "ambon",
@@ -2595,18 +2595,18 @@
       "gmt": "UTC+9",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "05:10",
-        "terbit": "06:20",
-        "dzuhur": "12:30",
-        "ashar": "15:44",
-        "maghrib": "18:30",
-        "isya": "19:40"
+        "subuh": "05:00",
+        "terbit": "06:10",
+        "dzuhur": "12:22",
+        "ashar": "15:23",
+        "maghrib": "18:25",
+        "isya": "19:33"
       },
-      "generatedAt": "2026-09-29T15:40:31.842748+00:00"
+      "generatedAt": "2026-09-30T18:24:20.531489+00:00"
     },
     "tual": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tual",
       "provinsi": "Maluku",
       "slug": "tual",
@@ -2615,18 +2615,18 @@
       "gmt": "UTC+9",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:55",
-        "terbit": "06:12",
-        "dzuhur": "12:14",
-        "ashar": "15:35",
+        "subuh": "04:41",
+        "terbit": "05:51",
+        "dzuhur": "12:03",
+        "ashar": "15:09",
         "maghrib": "18:07",
-        "isya": "19:22"
+        "isya": "19:16"
       },
-      "generatedAt": "2026-09-29T15:40:31.846131+00:00"
+      "generatedAt": "2026-09-30T18:24:20.558263+00:00"
     },
     "mataram": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Mataram",
       "provinsi": "Nusa Tenggara Barat",
       "slug": "mataram",
@@ -2642,11 +2642,11 @@
         "maghrib": "18:14",
         "isya": "19:23"
       },
-      "generatedAt": "2026-09-29T22:16:11.632887+00:00"
+      "generatedAt": "2026-09-30T18:24:20.795616+00:00"
     },
     "tidore": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tidore",
       "provinsi": "Maluku Utara",
       "slug": "tidore",
@@ -2655,18 +2655,18 @@
       "gmt": "UTC+9",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "05:05",
-        "terbit": "06:22",
-        "dzuhur": "12:35",
-        "ashar": "16:00",
-        "maghrib": "18:39",
-        "isya": "19:54"
+        "subuh": "05:04",
+        "terbit": "06:14",
+        "dzuhur": "12:25",
+        "ashar": "15:29",
+        "maghrib": "18:27",
+        "isya": "19:36"
       },
-      "generatedAt": "2026-09-29T15:40:31.957523+00:00"
+      "generatedAt": "2026-09-30T18:24:20.637284+00:00"
     },
     "sumbawa-besar": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sumbawa Besar",
       "provinsi": "Nusa Tenggara Barat",
       "slug": "sumbawa-besar",
@@ -2682,11 +2682,11 @@
         "maghrib": "18:09",
         "isya": "19:18"
       },
-      "generatedAt": "2026-09-29T22:16:11.800897+00:00"
+      "generatedAt": "2026-09-30T18:24:20.918958+00:00"
     },
     "bima": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bima",
       "provinsi": "Nusa Tenggara Barat",
       "slug": "bima",
@@ -2702,11 +2702,11 @@
         "maghrib": "18:03",
         "isya": "19:13"
       },
-      "generatedAt": "2026-09-29T22:16:11.725714+00:00"
+      "generatedAt": "2026-09-30T18:24:20.794923+00:00"
     },
     "kupang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Kupang",
       "provinsi": "Nusa Tenggara Timur",
       "slug": "kupang",
@@ -2722,11 +2722,11 @@
         "maghrib": "17:44",
         "isya": "18:54"
       },
-      "generatedAt": "2026-09-29T22:16:11.837154+00:00"
+      "generatedAt": "2026-09-30T18:24:20.976636+00:00"
     },
     "ende": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Ende",
       "provinsi": "Nusa Tenggara Timur",
       "slug": "ende",
@@ -2742,11 +2742,11 @@
         "maghrib": "17:52",
         "isya": "19:01"
       },
-      "generatedAt": "2026-09-29T22:16:11.979696+00:00"
+      "generatedAt": "2026-09-30T18:24:20.924435+00:00"
     },
     "maumere": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Maumere",
       "provinsi": "Nusa Tenggara Timur",
       "slug": "maumere",
@@ -2762,11 +2762,11 @@
         "maghrib": "17:49",
         "isya": "18:59"
       },
-      "generatedAt": "2026-09-29T22:16:12.080330+00:00"
+      "generatedAt": "2026-09-30T18:24:21.149446+00:00"
     },
     "labuan-bajo": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Labuan Bajo",
       "provinsi": "Nusa Tenggara Timur",
       "slug": "labuan-bajo",
@@ -2782,11 +2782,11 @@
         "maghrib": "17:59",
         "isya": "19:08"
       },
-      "generatedAt": "2026-09-29T22:16:12.083542+00:00"
+      "generatedAt": "2026-09-30T18:24:21.128560+00:00"
     },
     "jayapura": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Jayapura",
       "provinsi": "Papua",
       "slug": "jayapura",
@@ -2795,18 +2795,18 @@
       "gmt": "UTC+9",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:13",
-        "terbit": "05:23",
-        "dzuhur": "11:34",
-        "ashar": "14:38",
-        "maghrib": "17:36",
-        "isya": "18:45"
+        "subuh": "04:10",
+        "terbit": "05:20",
+        "dzuhur": "11:32",
+        "ashar": "14:31",
+        "maghrib": "17:34",
+        "isya": "18:43"
       },
-      "generatedAt": "2026-09-29T15:40:32.549526+00:00"
+      "generatedAt": "2026-09-30T18:24:21.349293+00:00"
     },
     "biak": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Biak",
       "provinsi": "Papua",
       "slug": "biak",
@@ -2815,18 +2815,18 @@
       "gmt": "UTC+9",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:34",
-        "terbit": "05:51",
-        "dzuhur": "12:01",
-        "ashar": "15:25",
-        "maghrib": "18:01",
-        "isya": "19:16"
+        "subuh": "04:29",
+        "terbit": "05:39",
+        "dzuhur": "11:50",
+        "ashar": "14:51",
+        "maghrib": "17:53",
+        "isya": "19:01"
       },
-      "generatedAt": "2026-09-29T15:40:32.665024+00:00"
+      "generatedAt": "2026-09-30T18:24:21.394602+00:00"
     },
     "sorong": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Sorong",
       "provinsi": "Papua Barat Daya",
       "slug": "sorong",
@@ -2835,18 +2835,18 @@
       "gmt": "UTC+9",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:53",
-        "terbit": "06:10",
-        "dzuhur": "12:20",
-        "ashar": "15:44",
-        "maghrib": "18:21",
-        "isya": "19:36"
+        "subuh": "04:48",
+        "terbit": "05:58",
+        "dzuhur": "12:09",
+        "ashar": "15:11",
+        "maghrib": "18:12",
+        "isya": "19:21"
       },
-      "generatedAt": "2026-09-29T15:40:32.774523+00:00"
+      "generatedAt": "2026-09-30T18:24:21.532763+00:00"
     },
     "manokwari": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Manokwari",
       "provinsi": "Papua Barat",
       "slug": "manokwari",
@@ -2855,18 +2855,18 @@
       "gmt": "UTC+9",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:42",
-        "terbit": "05:58",
-        "dzuhur": "12:09",
-        "ashar": "15:33",
-        "maghrib": "18:10",
-        "isya": "19:25"
+        "subuh": "04:37",
+        "terbit": "05:47",
+        "dzuhur": "11:58",
+        "ashar": "15:00",
+        "maghrib": "18:01",
+        "isya": "19:09"
       },
-      "generatedAt": "2026-09-29T15:40:32.791146+00:00"
+      "generatedAt": "2026-09-30T18:24:21.412251+00:00"
     },
     "wamena": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Wamena",
       "provinsi": "Papua Pegunungan",
       "slug": "wamena",
@@ -2875,18 +2875,18 @@
       "gmt": "UTC+9",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:28",
-        "terbit": "05:44",
-        "dzuhur": "11:49",
-        "ashar": "15:12",
-        "maghrib": "17:45",
-        "isya": "19:00"
+        "subuh": "04:17",
+        "terbit": "05:27",
+        "dzuhur": "11:39",
+        "ashar": "14:41",
+        "maghrib": "17:42",
+        "isya": "18:51"
       },
-      "generatedAt": "2026-09-29T15:40:33.124746+00:00"
+      "generatedAt": "2026-09-30T18:24:21.537624+00:00"
     },
     "merauke": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Merauke",
       "provinsi": "Papua Selatan",
       "slug": "merauke",
@@ -2895,18 +2895,18 @@
       "gmt": "UTC+9",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:29",
-        "terbit": "05:46",
-        "dzuhur": "11:43",
-        "ashar": "15:02",
-        "maghrib": "17:31",
+        "subuh": "04:10",
+        "terbit": "05:20",
+        "dzuhur": "11:33",
+        "ashar": "14:43",
+        "maghrib": "17:37",
         "isya": "18:46"
       },
-      "generatedAt": "2026-09-29T15:40:33.147178+00:00"
+      "generatedAt": "2026-09-30T18:24:21.700907+00:00"
     },
     "timika": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Timika",
       "provinsi": "Papua Tengah",
       "slug": "timika",
@@ -2915,18 +2915,18 @@
       "gmt": "UTC+9",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:37",
-        "terbit": "05:53",
-        "dzuhur": "11:57",
-        "ashar": "15:20",
-        "maghrib": "17:52",
-        "isya": "19:07"
+        "subuh": "04:25",
+        "terbit": "05:35",
+        "dzuhur": "11:47",
+        "ashar": "14:50",
+        "maghrib": "17:50",
+        "isya": "18:59"
       },
-      "generatedAt": "2026-09-29T15:40:33.157943+00:00"
+      "generatedAt": "2026-09-30T18:24:21.946960+00:00"
     },
     "nabire": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Nabire",
       "provinsi": "Papua Tengah",
       "slug": "nabire",
@@ -2935,18 +2935,18 @@
       "gmt": "UTC+9",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:40",
-        "terbit": "05:57",
-        "dzuhur": "12:03",
-        "ashar": "15:26",
-        "maghrib": "18:00",
-        "isya": "19:15"
+        "subuh": "04:31",
+        "terbit": "05:41",
+        "dzuhur": "11:53",
+        "ashar": "14:54",
+        "maghrib": "17:55",
+        "isya": "19:04"
       },
-      "generatedAt": "2026-09-29T15:40:33.233752+00:00"
+      "generatedAt": "2026-09-30T18:24:21.734040+00:00"
     },
     "pekanbaru": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pekanbaru",
       "provinsi": "Riau",
       "slug": "pekanbaru",
@@ -2962,11 +2962,11 @@
         "maghrib": "18:11",
         "isya": "19:19"
       },
-      "generatedAt": "2026-09-29T22:16:12.235385+00:00"
+      "generatedAt": "2026-09-30T18:24:21.950153+00:00"
     },
     "dumai": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Dumai",
       "provinsi": "Riau",
       "slug": "dumai",
@@ -2982,11 +2982,11 @@
         "maghrib": "18:11",
         "isya": "19:19"
       },
-      "generatedAt": "2026-09-29T22:16:12.405216+00:00"
+      "generatedAt": "2026-09-30T18:24:21.987743+00:00"
     },
     "kampar": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Kampar",
       "provinsi": "Riau",
       "slug": "kampar",
@@ -3002,11 +3002,11 @@
         "maghrib": "18:12",
         "isya": "19:21"
       },
-      "generatedAt": "2026-09-29T22:16:12.454227+00:00"
+      "generatedAt": "2026-09-30T18:24:22.140036+00:00"
     },
     "pelalawan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pelalawan",
       "provinsi": "Riau",
       "slug": "pelalawan",
@@ -3022,11 +3022,11 @@
         "maghrib": "18:08",
         "isya": "19:16"
       },
-      "generatedAt": "2026-09-29T22:16:12.476322+00:00"
+      "generatedAt": "2026-09-30T18:24:22.174326+00:00"
     },
     "parepare": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Parepare",
       "provinsi": "Sulawesi Selatan",
       "slug": "parepare",
@@ -3042,11 +3042,11 @@
         "maghrib": "17:59",
         "isya": "19:08"
       },
-      "generatedAt": "2026-09-29T22:16:12.700539+00:00"
+      "generatedAt": "2026-09-30T18:24:22.303215+00:00"
     },
     "palopo": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Palopo",
       "provinsi": "Sulawesi Selatan",
       "slug": "palopo",
@@ -3062,11 +3062,11 @@
         "maghrib": "17:56",
         "isya": "19:05"
       },
-      "generatedAt": "2026-09-29T22:16:12.705996+00:00"
+      "generatedAt": "2026-09-30T18:24:22.312094+00:00"
     },
     "makassar": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Makassar",
       "provinsi": "Sulawesi Selatan",
       "slug": "makassar",
@@ -3082,11 +3082,11 @@
         "maghrib": "18:00",
         "isya": "19:09"
       },
-      "generatedAt": "2026-09-29T22:16:12.635222+00:00"
+      "generatedAt": "2026-09-30T18:24:22.169997+00:00"
     },
     "palu": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Palu",
       "provinsi": "Sulawesi Tengah",
       "slug": "palu",
@@ -3102,11 +3102,11 @@
         "maghrib": "17:57",
         "isya": "19:06"
       },
-      "generatedAt": "2026-09-29T22:16:12.849938+00:00"
+      "generatedAt": "2026-09-30T18:24:22.551946+00:00"
     },
     "poso": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Poso",
       "provinsi": "Sulawesi Tengah",
       "slug": "poso",
@@ -3122,11 +3122,11 @@
         "maghrib": "17:54",
         "isya": "19:03"
       },
-      "generatedAt": "2026-09-29T22:16:13.088258+00:00"
+      "generatedAt": "2026-09-30T18:24:22.724730+00:00"
     },
     "luwuk": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Luwuk",
       "provinsi": "Sulawesi Tengah",
       "slug": "luwuk",
@@ -3142,11 +3142,11 @@
         "maghrib": "17:46",
         "isya": "18:54"
       },
-      "generatedAt": "2026-09-29T22:16:13.084731+00:00"
+      "generatedAt": "2026-09-30T18:24:22.583278+00:00"
     },
     "kendari": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Kendari",
       "provinsi": "Sulawesi Tenggara",
       "slug": "kendari",
@@ -3162,11 +3162,11 @@
         "maghrib": "17:47",
         "isya": "18:56"
       },
-      "generatedAt": "2026-09-29T22:16:13.085999+00:00"
+      "generatedAt": "2026-09-30T18:24:22.778035+00:00"
     },
     "bau-bau": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bau-Bau",
       "provinsi": "Sulawesi Tenggara",
       "slug": "bau-bau",
@@ -3182,11 +3182,11 @@
         "maghrib": "17:47",
         "isya": "18:56"
       },
-      "generatedAt": "2026-09-29T22:16:13.242637+00:00"
+      "generatedAt": "2026-09-30T18:24:22.767141+00:00"
     },
     "manado": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Manado",
       "provinsi": "Sulawesi Utara",
       "slug": "manado",
@@ -3202,11 +3202,11 @@
         "maghrib": "17:37",
         "isya": "18:46"
       },
-      "generatedAt": "2026-09-29T22:16:13.316562+00:00"
+      "generatedAt": "2026-09-30T18:24:22.907968+00:00"
     },
     "tomohon": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tomohon",
       "provinsi": "Sulawesi Utara",
       "slug": "tomohon",
@@ -3222,11 +3222,11 @@
         "maghrib": "17:37",
         "isya": "18:46"
       },
-      "generatedAt": "2026-09-29T22:16:13.385410+00:00"
+      "generatedAt": "2026-09-30T18:24:23.135025+00:00"
     },
     "bitung": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bitung",
       "provinsi": "Sulawesi Utara",
       "slug": "bitung",
@@ -3242,11 +3242,11 @@
         "maghrib": "17:36",
         "isya": "18:44"
       },
-      "generatedAt": "2026-09-29T22:16:13.315133+00:00"
+      "generatedAt": "2026-09-30T18:24:22.867578+00:00"
     },
     "kotamobagu": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Kotamobagu",
       "provinsi": "Sulawesi Utara",
       "slug": "kotamobagu",
@@ -3262,11 +3262,11 @@
         "maghrib": "17:39",
         "isya": "18:48"
       },
-      "generatedAt": "2026-09-29T22:16:13.443738+00:00"
+      "generatedAt": "2026-09-30T18:24:23.150023+00:00"
     },
     "bukittinggi": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Bukittinggi",
       "provinsi": "Sumatera Barat",
       "slug": "bukittinggi",
@@ -3282,11 +3282,11 @@
         "maghrib": "18:15",
         "isya": "19:24"
       },
-      "generatedAt": "2026-09-29T22:16:13.707780+00:00"
+      "generatedAt": "2026-09-30T18:24:23.380838+00:00"
     },
     "padang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Padang",
       "provinsi": "Sumatera Barat",
       "slug": "padang",
@@ -3302,11 +3302,11 @@
         "maghrib": "18:15",
         "isya": "19:24"
       },
-      "generatedAt": "2026-09-29T22:16:13.700686+00:00"
+      "generatedAt": "2026-09-30T18:24:23.284814+00:00"
     },
     "payakumbuh": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Payakumbuh",
       "provinsi": "Sumatera Barat",
       "slug": "payakumbuh",
@@ -3322,11 +3322,11 @@
         "maghrib": "18:14",
         "isya": "19:23"
       },
-      "generatedAt": "2026-09-29T22:16:13.686230+00:00"
+      "generatedAt": "2026-09-30T18:24:23.434637+00:00"
     },
     "pariaman": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pariaman",
       "provinsi": "Sumatera Barat",
       "slug": "pariaman",
@@ -3342,11 +3342,11 @@
         "maghrib": "18:16",
         "isya": "19:25"
       },
-      "generatedAt": "2026-09-29T22:16:13.926820+00:00"
+      "generatedAt": "2026-09-30T18:24:23.498751+00:00"
     },
     "lubuklinggau": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Lubuklinggau",
       "provinsi": "Sumatera Selatan",
       "slug": "lubuklinggau",
@@ -3362,11 +3362,11 @@
         "maghrib": "18:06",
         "isya": "19:15"
       },
-      "generatedAt": "2026-09-29T22:16:13.975092+00:00"
+      "generatedAt": "2026-09-30T18:24:23.767491+00:00"
     },
     "prabumulih": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Prabumulih",
       "provinsi": "Sumatera Selatan",
       "slug": "prabumulih",
@@ -3382,11 +3382,11 @@
         "maghrib": "18:00",
         "isya": "19:09"
       },
-      "generatedAt": "2026-09-29T22:16:14.066327+00:00"
+      "generatedAt": "2026-09-30T18:24:23.729669+00:00"
     },
     "palembang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Palembang",
       "provinsi": "Sumatera Selatan",
       "slug": "palembang",
@@ -3395,18 +3395,18 @@
       "gmt": "UTC+7",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:34",
-        "terbit": "05:44",
+        "subuh": "04:33",
+        "terbit": "05:43",
         "dzuhur": "11:55",
-        "ashar": "14:56",
+        "ashar": "14:55",
         "maghrib": "17:58",
         "isya": "19:07"
       },
-      "generatedAt": "2026-09-29T22:16:13.902869+00:00"
+      "generatedAt": "2026-09-30T18:24:23.658376+00:00"
     },
     "pagar-alam": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pagar Alam",
       "provinsi": "Sumatera Selatan",
       "slug": "pagar-alam",
@@ -3422,11 +3422,11 @@
         "maghrib": "18:04",
         "isya": "19:13"
       },
-      "generatedAt": "2026-09-29T22:16:14.276847+00:00"
+      "generatedAt": "2026-09-30T18:24:23.848849+00:00"
     },
     "medan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Medan",
       "provinsi": "Sumatera Utara",
       "slug": "medan",
@@ -3442,11 +3442,11 @@
         "maghrib": "18:21",
         "isya": "19:30"
       },
-      "generatedAt": "2026-09-29T22:16:14.291695+00:00"
+      "generatedAt": "2026-09-30T18:24:23.954527+00:00"
     },
     "binjai": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Binjai",
       "provinsi": "Sumatera Utara",
       "slug": "binjai",
@@ -3462,11 +3462,11 @@
         "maghrib": "18:22",
         "isya": "19:31"
       },
-      "generatedAt": "2026-09-29T22:16:14.316988+00:00"
+      "generatedAt": "2026-09-30T18:24:24.011734+00:00"
     },
     "pematangsiantar": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Pematangsiantar",
       "provinsi": "Sumatera Utara",
       "slug": "pematangsiantar",
@@ -3482,11 +3482,11 @@
         "maghrib": "18:20",
         "isya": "19:29"
       },
-      "generatedAt": "2026-09-29T22:16:14.476560+00:00"
+      "generatedAt": "2026-09-30T18:24:24.059875+00:00"
     },
     "deli-serdang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Deli Serdang",
       "provinsi": "Sumatera Utara",
       "slug": "deli-serdang",
@@ -3502,11 +3502,11 @@
         "maghrib": "18:21",
         "isya": "19:30"
       },
-      "generatedAt": "2026-09-29T22:16:14.532874+00:00"
+      "generatedAt": "2026-09-30T18:24:24.208380+00:00"
     },
     "padangsidempuan": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Padangsidempuan",
       "provinsi": "Sumatera Utara",
       "slug": "padangsidempuan",
@@ -3522,11 +3522,11 @@
         "maghrib": "18:19",
         "isya": "19:28"
       },
-      "generatedAt": "2026-09-29T22:16:14.796002+00:00"
+      "generatedAt": "2026-09-30T18:24:24.317413+00:00"
     },
     "tebing-tinggi": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Tebing Tinggi",
       "provinsi": "Sumatera Utara",
       "slug": "tebing-tinggi",
@@ -3542,11 +3542,11 @@
         "maghrib": "18:19",
         "isya": "19:28"
       },
-      "generatedAt": "2026-09-29T22:16:14.476438+00:00"
+      "generatedAt": "2026-09-30T18:24:24.059344+00:00"
     },
     "langsa": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Langsa",
       "provinsi": "Aceh",
       "slug": "langsa",
@@ -3555,18 +3555,18 @@
       "gmt": "UTC+7",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:56",
-        "terbit": "06:14",
-        "dzuhur": "12:33",
-        "ashar": "15:59",
-        "maghrib": "18:43",
-        "isya": "19:59"
+        "subuh": "05:02",
+        "terbit": "06:12",
+        "dzuhur": "12:23",
+        "ashar": "15:32",
+        "maghrib": "18:24",
+        "isya": "19:33"
       },
-      "generatedAt": "2026-09-29T22:16:00.893540+00:00"
+      "generatedAt": "2026-09-30T18:24:09.812773+00:00"
     },
     "blora": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Blora",
       "provinsi": "Jawa Tengah",
       "slug": "blora",
@@ -3575,18 +3575,18 @@
       "gmt": "UTC+7",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:23",
-        "terbit": "05:40",
-        "dzuhur": "11:39",
-        "ashar": "15:00",
-        "maghrib": "17:30",
-        "isya": "18:45"
+        "subuh": "04:06",
+        "terbit": "05:16",
+        "dzuhur": "11:29",
+        "ashar": "14:37",
+        "maghrib": "17:32",
+        "isya": "18:42"
       },
-      "generatedAt": "2026-09-29T22:16:05.990169+00:00"
+      "generatedAt": "2026-09-30T18:24:15.226747+00:00"
     },
     "jombang": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Jombang",
       "provinsi": "Jawa Timur",
       "slug": "jombang",
@@ -3595,18 +3595,18 @@
       "gmt": "UTC+7",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:21",
-        "terbit": "05:37",
-        "dzuhur": "11:36",
-        "ashar": "14:56",
-        "maghrib": "17:26",
-        "isya": "18:41"
+        "subuh": "04:03",
+        "terbit": "05:13",
+        "dzuhur": "11:25",
+        "ashar": "14:34",
+        "maghrib": "17:29",
+        "isya": "18:39"
       },
-      "generatedAt": "2026-09-29T22:16:08.927011+00:00"
+      "generatedAt": "2026-09-30T18:24:18.036178+00:00"
     },
     "solok": {
       "success": true,
-      "tanggal": "2026-09-30",
+      "tanggal": "2026-10-01",
       "kota": "Solok",
       "provinsi": "Sumatera Barat",
       "slug": "solok",
@@ -3615,14 +3615,14 @@
       "gmt": "UTC+7",
       "source": "MuslimKita / Kemenag",
       "jadwal": {
-        "subuh": "04:55",
-        "terbit": "06:12",
-        "dzuhur": "12:22",
-        "ashar": "15:47",
-        "maghrib": "18:24",
-        "isya": "19:39"
+        "subuh": "04:51",
+        "terbit": "06:00",
+        "dzuhur": "12:12",
+        "ashar": "15:14",
+        "maghrib": "18:14",
+        "isya": "19:23"
       },
-      "generatedAt": "2026-09-29T22:16:13.875290+00:00"
+      "generatedAt": "2026-09-30T18:24:23.420905+00:00"
     }
   }
 }
