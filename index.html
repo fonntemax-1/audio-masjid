@@ -5164,6 +5164,13 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
     function getEventPrayerOverrideText_(state) {
 
+      // Saat startup/pergantian fase, state countdown dapat null.
+      // Tidak ada banner khusus jika belum ada state aktif.
+      // Biarkan loadEventRunningText() mengambil Event Text Spreadsheet.
+      if (!state || typeof state !== 'object') {
+        return '';
+      }
+
       // State countdown boleh kosong sesaat saat pergantian fase.
       // Banner khusus tetap harus ditentukan dari waktu aktual/schedule,
       // agar Event Sheet tidak dapat mengambil alih sebelum batas waktunya.
