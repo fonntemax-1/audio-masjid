@@ -3866,8 +3866,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             };
 
             if (catchUpElapsed > 0) {
-              // Catch-up memang membutuhkan metadata sebelum seek.
-              audio.load();
+              // Catch-up membutuhkan metadata sebelum seek, tetapi src yang
+              // baru sudah memicu loading. Jangan memanggil audio.load()
+              // kedua kali karena pada Chrome/TCL TV hal ini dapat memicu
+              // burst network/decoding tepat saat audio mulai dan membuat
+              // main UI tersendat/hang.
               await waitForMetadata();
               applyCatchUpPosition();
             }
