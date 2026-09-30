@@ -2469,6 +2469,14 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     // Jangan biarkan refresh Sheet 30 detik mengulang request GAS yang lambat.
     let audioScheduleFallbackAttempted = false;
 
+    // Watchdog catch-up:
+    // Setelah schedule selesai dibuat, metadata audio/API/unlock browser
+    // masih dapat selesai pada waktu yang berbeda. Watchdog ini melakukan
+    // scan ulang event aktif beberapa detik tanpa mengubah timeline audio.
+    let audioCatchUpWatchdogTimer = null;
+    let audioCatchUpWatchdogDate = '';
+    let audioCatchUpWatchdogUntil = 0;
+
     function gasApiCall(action, params) {
 
       return new Promise(function(resolve, reject) {
@@ -3399,6 +3407,17 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
                 console.log(
                   'AUDIO: autoplay/unlock berhasil.'
                 );
+
+                // Setelah audio berhasil di-unlock, lakukan scan catch-up
+                // lagi agar event yang aktif saat startup tidak terlewat.
+                try {
+                  startAudioCatchUpWatchdog(WEB_APP_STATE.dateKey);
+                } catch (catchUpUnlockError) {
+                  console.warn(
+                    'AUDIO CATCH-UP WATCHDOG UNLOCK ERROR:',
+                    catchUpUnlockError
+                  );
+                }
 
                 processAudioQueue();
 
@@ -11289,6 +11308,99 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       if (state.initialized) {
         processAudioQueue();
       }
+
+      // Jangan hanya mengandalkan satu scan. Saat startup, pembuatan
+      // schedule, metadata audio, dan autoplay unlock dapat selesai
+      // pada detik yang berbeda. Watchdog memastikan event aktif tetap
+      // masuk queue tanpa mengubah target/durasi/urutan.
+      startAudioCatchUpWatchdog(dateKey);
+
+    }
+
+    function startAudioCatchUpWatchdog(dateKey) {
+
+      const state = WEB_APP_STATE.audio;
+
+      if (
+        !state ||
+        !state.scheduleInitialized ||
+        !dateKey
+      ) {
+        return;
+      }
+
+      const nowMs = Date.now();
+
+      // Satu watchdog aktif per tanggal. Jika masih aktif, cukup biarkan
+      // timer yang sudah ada bekerja.
+      if (
+        audioCatchUpWatchdogTimer &&
+        audioCatchUpWatchdogDate === dateKey &&
+        nowMs < audioCatchUpWatchdogUntil
+      ) {
+        return;
+      }
+
+      if (audioCatchUpWatchdogTimer) {
+        clearTimeout(audioCatchUpWatchdogTimer);
+        audioCatchUpWatchdogTimer = null;
+      }
+
+      audioCatchUpWatchdogDate = dateKey;
+      audioCatchUpWatchdogUntil = nowMs + (20 * 1000);
+
+      function runCatchUpScan() {
+
+        audioCatchUpWatchdogTimer = null;
+
+        if (
+          WEB_APP_STATE.dateKey &&
+          WEB_APP_STATE.dateKey !== dateKey
+        ) {
+          return;
+        }
+
+        const liveState = WEB_APP_STATE.audio;
+
+        if (
+          !liveState ||
+          !liveState.scheduleInitialized
+        ) {
+          return;
+        }
+
+        try {
+          queueCurrentAudioCatchUp(dateKey);
+        } catch (error) {
+          console.warn(
+            'AUDIO CATCH-UP WATCHDOG ERROR:',
+            error
+          );
+        }
+
+        const now = Date.now();
+
+        if (now < audioCatchUpWatchdogUntil) {
+
+          audioCatchUpWatchdogTimer =
+            setTimeout(
+              runCatchUpScan,
+              1000
+            );
+
+        } else {
+
+          audioCatchUpWatchdogDate = '';
+          audioCatchUpWatchdogUntil = 0;
+
+        }
+
+      }
+
+      // Scan pertama segera, kemudian ulang setiap 1 detik selama
+      // maksimal 20 detik. Tidak ada replay karena queuedLocks dan
+      // playedLocks tetap menjadi pengaman.
+      runCatchUpScan();
 
     }
 
