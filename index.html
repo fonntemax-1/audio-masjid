@@ -2352,6 +2352,18 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     border-top-color: #f4c542 !important;
   }
 
+  /* KUNING: panel utama tetap terbuka/transparan seperti tampilan hijau.
+     Hanya latar tiga frame ini yang dibuat transparan; border, teks,
+     audio, scheduler, YouTube, dan layout tidak diubah. */
+  :root[data-display-theme="kuning"] .countdown-box,
+  body[data-display-theme="kuning"] .countdown-box,
+  :root[data-display-theme="kuning"] .digital-clock-box,
+  body[data-display-theme="kuning"] .digital-clock-box,
+  :root[data-display-theme="kuning"] .infaq-panel,
+  body[data-display-theme="kuning"] .infaq-panel {
+    background: transparent !important;
+  }
+
 </style>
 
 </head>
