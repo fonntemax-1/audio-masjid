@@ -1408,6 +1408,53 @@
       z-index: 5;
     }
 
+    /* =========================================================
+       JAM ANALOG MENGIKUTI TEMA DISPLAY
+       Hanya warna visual yang berubah; mekanisme waktu tetap sama.
+       ========================================================= */
+    :root[data-display-theme="hijau"] .analog-clock,
+    :root[data-display-theme="merah"] .analog-clock,
+    :root[data-display-theme="kuning"] .analog-clock {
+      border-color: var(--theme-border) !important;
+      box-shadow:
+        inset 0 0 0 0.82vh var(--theme-border),
+        inset 0 0 1.5vh rgba(0,0,0,0.55);
+    }
+
+    :root[data-display-theme="hijau"] .clock-face-svg g,
+    :root[data-display-theme="merah"] .clock-face-svg g,
+    :root[data-display-theme="kuning"] .clock-face-svg g {
+      stroke: var(--theme-accent) !important;
+    }
+
+    :root[data-display-theme="hijau"] .clock-face-svg g[stroke-width="1.5"],
+    :root[data-display-theme="merah"] .clock-face-svg g[stroke-width="1.5"],
+    :root[data-display-theme="kuning"] .clock-face-svg g[stroke-width="1.5"] {
+      stroke: var(--theme-highlight) !important;
+    }
+
+    :root[data-display-theme="hijau"] .analog-clock .hour,
+    :root[data-display-theme="merah"] .analog-clock .hour,
+    :root[data-display-theme="kuning"] .analog-clock .hour,
+    :root[data-display-theme="hijau"] .analog-clock .minute,
+    :root[data-display-theme="merah"] .analog-clock .minute,
+    :root[data-display-theme="kuning"] .analog-clock .minute {
+      background: var(--theme-accent) !important;
+    }
+
+    :root[data-display-theme="hijau"] .analog-clock .second,
+    :root[data-display-theme="merah"] .analog-clock .second,
+    :root[data-display-theme="kuning"] .analog-clock .second {
+      background: var(--theme-highlight) !important;
+    }
+
+    :root[data-display-theme="hijau"] .analog-clock .center-dot,
+    :root[data-display-theme="merah"] .analog-clock .center-dot,
+    :root[data-display-theme="kuning"] .analog-clock .center-dot {
+      background: var(--theme-accent) !important;
+      border-color: var(--theme-highlight) !important;
+    }
+
     .digital-clock-box {
       background: rgba(3, 33, 22, 0.88);
       backdrop-filter: none;
