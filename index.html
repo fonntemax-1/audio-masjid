@@ -2519,6 +2519,40 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     filter: drop-shadow(0.12vh 0.22vh 0.22vh rgba(0,25,15,0.78));
   }
 
+  /* HIJAU: angka dan garis menit hijau tua. */
+  :root[data-display-theme="hijau"] .analog-clock .clock-face-svg g,
+  body[data-display-theme="hijau"] .analog-clock .clock-face-svg g {
+    stroke: #174d38 !important;
+  }
+
+  :root[data-display-theme="hijau"] .analog-clock .clock-face-svg g[stroke-width="1.5"],
+  body[data-display-theme="hijau"] .analog-clock .clock-face-svg g[stroke-width="1.5"] {
+    stroke: #245e47 !important;
+    opacity: 0.88 !important;
+  }
+
+  :root[data-display-theme="hijau"] .analog-clock .clock-face-svg text,
+  body[data-display-theme="hijau"] .analog-clock .clock-face-svg text {
+    fill: #174d38 !important;
+  }
+
+  /* HIJAU: jarum detik hijau tua dengan efek metalik halus. */
+  :root[data-display-theme="hijau"] .analog-clock .second,
+  body[data-display-theme="hijau"] .analog-clock .second {
+    background:
+      linear-gradient(90deg,
+        #061a11 0%,
+        #0d4b32 25%,
+        #2d8a5d 46%,
+        #66c998 50%,
+        #247b50 56%,
+        #0b3a27 76%,
+        #04130c 100%) !important;
+    filter:
+      drop-shadow(0.10vh 0.18vh 0.20vh rgba(0,20,13,0.82))
+      drop-shadow(0 0 0.18vh rgba(78,180,125,0.22)) !important;
+  }
+
   /* =========================================================
      ANALOG CLOCK — TEMA MERAH
      Bezel merah tua doff dengan kilau metalik halus.
