@@ -5947,46 +5947,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           updateUI(data);
 
-          // TEMA DISPLAY DIBACA ULANG SECARA TERPISAH.
-          // C18 adalah sumber tema utama. Ini memastikan perubahan
-          // HIJAU/MERAH/KUNING tetap diterapkan walaupun payload utama
-          // getDataFromSheet() berasal dari deployment/cache lama.
-          // refreshDisplayTheme() normalnya mengembalikan Promise.
-          // Guard ini mencegah TV error jika deployment/cache lama
-          // mengembalikan undefined saat API sedang refresh.
-          const themeRefreshResult = refreshDisplayTheme();
-          if (
-            themeRefreshResult &&
-            typeof themeRefreshResult.catch === 'function'
-          ) {
-            themeRefreshResult.catch(function() {});
-          }
-
-          // PANEL MODE DIBACA ULANG SECARA TERPISAH.
-          // Ini sengaja tidak bergantung pada payload getDataFromSheet(),
-          // sehingga panels!C2 tetap menjadi kontrol utama layar hitam
-          // walaupun payload utama berubah. Tidak menyentuh audio.
-          gasApiCall('getPanelDisplayMode')
-            .then(function(panelData) {
-              if (
-                panelData &&
-                typeof panelData === 'object' &&
-                panelData.mode !== undefined
-              ) {
-                console.log(
-                  'PANELS API TERPISAH:',
-                  panelData.mode
-                );
-                setPanelDisplayMode(panelData.mode);
-              }
-            })
-            .catch(function(panelError) {
-              console.warn(
-                'PANELS API TERPISAH GAGAL:',
-                panelError.message || panelError
-              );
-            });
-
+          // C18 dan C2 tidak dipanggil lagi dari sini.
+          // Keduanya memiliki polling khusus agar refresh getDataFromSheet()
+          // tidak membuat beberapa request JSONP Apps Script bersamaan.
+          // Ini mengurangi beban network/main-thread tanpa mengubah
+          // data Sheet, audio scheduler, atau tampilan utama.
         })
         .catch(function(error) {
           console.error(
@@ -11896,11 +11861,10 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         processAudioQueue();
       }
 
-      // Jangan hanya mengandalkan satu scan. Saat startup, pembuatan
-      // schedule, metadata audio, dan autoplay unlock dapat selesai
-      // pada detik yang berbeda. Watchdog memastikan event aktif tetap
-      // masuk queue tanpa mengubah target/durasi/urutan.
-      startAudioCatchUpWatchdog(dateKey);
+      // Watchdog hanya dijadwalkan oleh scheduler utama / startup.
+      // Jangan memanggil startAudioCatchUpWatchdog() dari dalam
+      // queueCurrentAudioCatchUp(), karena callback watchdog sendiri
+      // memanggil fungsi ini dan dapat membentuk loop 3 detik tanpa akhir.
 
     }
 
@@ -15461,7 +15425,40 @@ function setCountdownBlackMode(enabled) {
     );
 
     // Selector panels!G20 harus merespons maksimal sekitar 1-2 detik.\n    // Polling khusus ini tidak mengubah polling data utama 30 detik.\n    startFastYouTubeControlPolling_();
-      startFastIqomahBlackModePolling_();
+    startFastIqomahBlackModePolling_();
+
+    // panels!C2 tetap diperiksa terpisah, tetapi tidak lagi ikut setiap
+    // getDataFromSheet(). 30 detik cukup cepat untuk perubahan AUTO/OFF
+    // dan mencegah request JSONP bertumpuk.
+    let panelDisplayModeRequestInFlight = false;
+    function pollPanelDisplayMode_() {
+      if (panelDisplayModeRequestInFlight) return;
+      panelDisplayModeRequestInFlight = true;
+
+      gasApiCall('getPanelDisplayMode')
+        .then(function(panelData) {
+          if (
+            panelData &&
+            typeof panelData === 'object' &&
+            panelData.mode !== undefined
+          ) {
+            const mode = String(panelData.mode || 'OFF').trim().toUpperCase();
+            setPanelDisplayMode(mode);
+          }
+        })
+        .catch(function(error) {
+          console.warn(
+            'PANELS C2 GAGAL:',
+            error && error.message ? error.message : error
+          );
+        })
+        .finally(function() {
+          panelDisplayModeRequestInFlight = false;
+        });
+    }
+
+    pollPanelDisplayMode_();
+    setInterval(pollPanelDisplayMode_, 30000);
 
     // Tema panels!C18 diperiksa terpisah agar perubahan HIJAU/MERAH/KUNING
     // tidak menunggu reload halaman. Hanya visual, tidak menyentuh audio.
@@ -15472,7 +15469,7 @@ function setCountdownBlackMode(enabled) {
           themeRefreshResult.catch(function() {});
         }
       },
-      10000
+      30000
     );
 
     setInterval(
