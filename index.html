@@ -13034,6 +13034,45 @@ function setCountdownBlackMode(enabled) {
       const guard = function(node) {
         if (!node) return;
         const current = String(node.innerText || node.textContent || '');
+
+        // Banner Event dan countdown memiliki aturan berbeda:
+        // countdown tetap "WAKTU BERBUKA", sedangkan banner Event
+        // wajib "WAKTU BERBUKA PUASA <KOTA> DAN SEKITARNYA".
+        if (node.id === 'event-running') {
+          const activeState =
+            WEB_APP_STATE &&
+            WEB_APP_STATE.countdown
+              ? WEB_APP_STATE.countdown.active
+              : null;
+
+          const liveOverride =
+            getEventPrayerOverrideText_(activeState);
+
+          if (
+            liveOverride &&
+            /^WAKTU\\s+BERBUKA\\s+PUASA(?:\\s|$)/i.test(liveOverride) &&
+            current !== liveOverride
+          ) {
+            node.innerText = liveOverride;
+            return;
+          }
+
+          // Fallback untuk sumber lama yang masih menulis
+          // "WAKTU BERBUKA <KOTA> DAN SEKITARNYA".
+          if (
+            /^WAKTU\\s+BERBUKA(?:\\s|$)/i.test(current) &&
+            !/^WAKTU\\s+BERBUKA\\s+PUASA(?:\\s|$)/i.test(current)
+          ) {
+            node.innerText =
+              current.replace(
+                /^WAKTU\\s+BERBUKA/i,
+                'WAKTU BERBUKA PUASA'
+              );
+          }
+          return;
+        }
+
+        // Countdown tetap menggunakan normalisasi lama.
         const fixed = normalizeVisibleRamadanMaghribText_(current);
         if (fixed !== current) {
           node.innerText = fixed;
