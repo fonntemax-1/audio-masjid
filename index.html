@@ -13873,17 +13873,33 @@ function setCountdownBlackMode(enabled) {
               ? Number(maghribAdzanEvent.targetSec)
               : adzanStartSec;
 
-          // Rest buka puasa = 3 menit setelah DOA-BUKA selesai.
+          // FASE 1: WAKTU BERBUKA.
+          // Setelah fase berbuka selesai, selalu sisakan 2 menit
+          // untuk countdown menuju Maghrib/Adzan Maghrib.
+          // Jangan menggunakan +3 menit sebagai batas display karena
+          // dapat melewati target Adzan dan membuat state langsung
+          // jatuh ke MENUJU IQOMAH.
           const doaBukaEndSec =
             maghribDoaBukaEvent &&
             Number.isFinite(Number(maghribDoaBukaEvent.endSec))
               ? Number(maghribDoaBukaEvent.endSec)
               : Number(pSec);
 
-          const bukaRestEndSec =
+          const configuredBukaEndSec =
             doaBukaEndSec + (3 * 60);
 
-          // FASE 1: SIRINE + DOA-BUKA + REST 3 menit.
+          const countdownMaghribStartSec =
+            Math.max(
+              Number(pSec),
+              maghribAdzanStartSec - (2 * 60)
+            );
+
+          const bukaRestEndSec =
+            Math.min(
+              configuredBukaEndSec,
+              countdownMaghribStartSec
+            );
+
           if (
             nowSeconds >= Number(pSec) &&
             nowSeconds < bukaRestEndSec
@@ -13896,7 +13912,8 @@ function setCountdownBlackMode(enabled) {
             break;
           }
 
-          // FASE 2: setelah rest selesai sampai ADZAN aktual.
+          // FASE 2: countdown menuju Maghrib.
+          // Wajib tampil sebelum Adzan Maghrib.
           if (
             nowSeconds >= bukaRestEndSec &&
             nowSeconds < maghribAdzanStartSec
@@ -13907,7 +13924,7 @@ function setCountdownBlackMode(enabled) {
             const s = Math.floor(diff % 60);
 
             activeState = {
-              title: 'MENUJU ADZAN MAGHRIB',
+              title: 'MENUJU MAGHRIB',
               timer:
                 String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
@@ -13932,7 +13949,7 @@ function setCountdownBlackMode(enabled) {
             nowSeconds < ramadanAdzanEndSec
           ) {
             activeState = {
-              title: 'ADZAN MAGHRIB',
+              title: 'SHOLAT MAGHRIB',
               timer: 'MAGHRIB',
               prayerName: 'MAGHRIB'
             };
