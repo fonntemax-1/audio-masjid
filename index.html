@@ -409,6 +409,208 @@
     gap: 0.6vh !important;
   }
 
+
+  /* =========================================================
+     RESPONSIVE MOBILE
+     TV/desktop layout tetap. Hanya aktif pada layar kecil.
+     Tidak menyentuh scheduler, audio, YouTube, atau API.
+     ========================================================= */
+  @media (max-width: 700px) {
+    html, body {
+      width: 100%;
+      min-width: 0;
+      height: 100%;
+      overflow: auto !important;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      padding: 0.5vh 1vw;
+    }
+
+    .screen-container {
+      width: 100%;
+      min-height: 100%;
+      height: auto;
+      grid-template-rows: auto auto auto;
+      gap: 0.8vh;
+      padding: 0.6vh;
+      border-width: 0.2vh;
+      border-radius: 0.8vh;
+    }
+
+    .header {
+      min-height: 15vh;
+      height: auto;
+      padding: 1vh 2vw;
+      gap: 1vw;
+    }
+
+    .header-logo {
+      left: 2vw;
+      width: 15vw;
+      height: 10vh;
+    }
+
+    .header-center {
+      padding: 0 1vw 0 17vw;
+    }
+
+    .header-center h1 {
+      font-size: clamp(1.25rem, 6vw, 2rem);
+    }
+
+    .header-center .latin-name {
+      font-size: clamp(1.15rem, 5vw, 1.8rem);
+    }
+
+    .header-center .slogan {
+      font-size: clamp(0.65rem, 2.7vw, 1rem);
+      white-space: normal;
+      line-height: 1.15;
+    }
+
+    .date-box {
+      font-size: clamp(0.65rem, 2.6vw, 0.95rem);
+    }
+
+    .center-panel {
+      min-height: 55vh;
+      height: auto;
+    }
+
+    .clock-overlay {
+      top: 1vh;
+      right: 1vw;
+      bottom: 2vh;
+      max-width: 92vw;
+    }
+
+    .countdown-box {
+      max-width: 72vw;
+      padding: 0.4vh 2vw;
+    }
+
+    .countdown-title {
+      font-size: clamp(0.7rem, 3.5vw, 1.15rem);
+      white-space: normal;
+    }
+
+    .countdown-timer {
+      font-size: clamp(1.15rem, 6vw, 2rem);
+    }
+
+    .event-running {
+      font-size: clamp(0.65rem, 3vw, 1rem);
+    }
+
+    .prayer-card {
+      min-width: 0;
+    }
+
+    .prayer-name {
+      font-size: clamp(0.65rem, 2.7vw, 1rem);
+    }
+
+    .prayer-time {
+      font-size: clamp(1rem, 5vw, 1.8rem);
+    }
+
+    .panel-black-message {
+      width: 100vw !important;
+      padding: 0 3vw !important;
+    }
+
+    body.panel-countdown-auto .clock-overlay .panel-black-message {
+      top: 8vh !important;
+      width: 100vw !important;
+      padding: 0 3vw !important;
+      gap: 0 !important;
+    }
+
+    body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-title {
+      font-size: clamp(1.25rem, 7vw, 2.2rem) !important;
+    }
+
+    body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-prayer {
+      font-size: clamp(1.65rem, 9vw, 2.8rem) !important;
+    }
+
+    body.panel-countdown-auto .clock-overlay .panel-black-icon {
+      width: clamp(80px, 22vw, 125px) !important;
+      height: clamp(80px, 25vw, 135px) !important;
+      margin: 0.8vh 0 0.8vh 0 !important;
+      transform: translateY(0.5vh) !important;
+    }
+
+    body.panel-countdown-auto .clock-overlay .panel-black-line {
+      font-size: clamp(0.68rem, 3.4vw, 1.05rem) !important;
+      line-height: 1.2 !important;
+      white-space: normal !important;
+    }
+
+    body.panel-countdown-auto .clock-overlay .countdown-timer {
+      font-size: clamp(1.2rem, 6vw, 2rem) !important;
+    }
+
+    body.panel-countdown-auto .clock-overlay .digital-time {
+      font-size: clamp(1.5rem, 7vw, 2.4rem) !important;
+    }
+
+    body.panel-countdown-auto .clock-overlay .tz-text {
+      font-size: clamp(0.75rem, 3.5vw, 1.1rem) !important;
+    }
+
+    .analog-clock {
+      width: 28vw;
+      height: 28vw;
+      min-width: 70px;
+      min-height: 70px;
+      max-width: 120px;
+      max-height: 120px;
+    }
+
+    .finance-panel,
+    .infaq-panel,
+    .youtube-panel,
+    .khutbah-panel {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    img, iframe {
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 700px) and (orientation: landscape) {
+    .header {
+      min-height: 22vh;
+    }
+
+    .center-panel {
+      min-height: 65vh;
+    }
+
+    .header-logo {
+      width: 11vw;
+      height: 16vh;
+    }
+
+    .header-center {
+      padding-left: 13vw;
+    }
+
+    body.panel-countdown-auto .clock-overlay .panel-black-message {
+      top: 5vh !important;
+    }
+
+    body.panel-countdown-auto .clock-overlay .panel-black-icon {
+      width: clamp(75px, 13vw, 120px) !important;
+      height: clamp(75px, 16vh, 125px) !important;
+    }
+  }
+
   </style>
   <link rel="icon" type="image/png" href="favicon.png">
   <!-- Preload ikon mode hitam agar tidak terlambat saat C22 AUTO aktif. -->
