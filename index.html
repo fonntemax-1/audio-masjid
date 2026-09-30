@@ -15183,7 +15183,10 @@ function setCountdownBlackMode(enabled) {
     // tidak menunggu reload halaman. Hanya visual, tidak menyentuh audio.
     setInterval(
       function() {
-        refreshDisplayTheme().catch(function() {});
+        const themeRefreshResult = refreshDisplayTheme();
+        if (themeRefreshResult && typeof themeRefreshResult.catch === 'function') {
+          themeRefreshResult.catch(function() {});
+        }
       },
       10000
     );
