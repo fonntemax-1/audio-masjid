@@ -13848,23 +13848,26 @@ function setCountdownBlackMode(enabled) {
         }
 
         // -------------------------------------------------------
-        // -------------------------------------------------------
         // RAMADAN KHUSUS MAGHRIB
-        // Timeline display mengikuti audio:
-        // SIRINE -> DOA-BUKA -> REST 3 MENIT -> BEEP -> ADZAN.
+        // Timeline display:
+        // WAKTU BERBUKA 2 MENIT
+        // -> MENUJU ADZAN MAGHRIB 1 MENIT
+        // -> ADZAN MAGHRIB 3 MENIT
+        // -> MENUJU IQOMAH (ditangani logika umum berikutnya)
         // -------------------------------------------------------
         if (
           isRamadanDisplay() &&
           p.name === 'MAGHRIB'
         ) {
-          const maghribDoaBukaEvent =
-            events.find(function(event) {
-              return String(event.eventName || '').toUpperCase() === 'DOA-BUKA';
-            });
-
           const maghribAdzanEvent =
             events.find(function(event) {
-              return String(event.eventName || '').toUpperCase() === 'ADZAN';
+              const eventName =
+                String(event.eventName || '').trim().toUpperCase();
+              return (
+                eventName === 'ADZAN' ||
+                eventName === 'ADZAN-BIASA' ||
+                eventName === 'ADZAN-SUBUH'
+              );
             });
 
           const maghribAdzanStartSec =
@@ -13873,20 +13876,13 @@ function setCountdownBlackMode(enabled) {
               ? Number(maghribAdzanEvent.targetSec)
               : adzanStartSec;
 
-          // Rest buka puasa = 3 menit setelah DOA-BUKA selesai.
-          const doaBukaEndSec =
-            maghribDoaBukaEvent &&
-            Number.isFinite(Number(maghribDoaBukaEvent.endSec))
-              ? Number(maghribDoaBukaEvent.endSec)
-              : Number(pSec);
+          // FASE 1: WAKTU BERBUKA tepat 2 menit sejak waktu Maghrib.
+          const bukaEndSec = Number(pSec) + (2 * 60);
 
-          const bukaRestEndSec =
-            doaBukaEndSec + (3 * 60);
-
-          // FASE 1: SIRINE + DOA-BUKA + REST 3 menit.
           if (
             nowSeconds >= Number(pSec) &&
-            nowSeconds < bukaRestEndSec
+            nowSeconds < bukaEndSec &&
+            nowSeconds < maghribAdzanStartSec
           ) {
             activeState = {
               title: 'WAKTU BERBUKA',
@@ -13896,30 +13892,37 @@ function setCountdownBlackMode(enabled) {
             break;
           }
 
-          // FASE 2: setelah rest selesai sampai ADZAN aktual.
+          // FASE 2: countdown hanya 1 menit sebelum ADZAN MAGHRIB.
+          const menujuAdzanStartSec =
+            Math.max(Number(pSec), maghribAdzanStartSec - 60);
+
           if (
-            nowSeconds >= bukaRestEndSec &&
+            nowSeconds >= menujuAdzanStartSec &&
             nowSeconds < maghribAdzanStartSec
           ) {
             const diff = maghribAdzanStartSec - nowSeconds;
             const h = Math.floor(diff / 3600);
             const m = Math.floor((diff % 3600) / 60);
-            const s = Math.floor(diff % 60);
+            const sec = Math.floor(diff % 60);
 
             activeState = {
-              title: 'MENUJU SHOLAT MAGRIB',
+              title: 'MENUJU ADZAN MAGHRIB',
               timer:
                 String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
-                String(s).padStart(2, '0'),
+                String(sec).padStart(2, '0'),
               prayerName: 'MAGHRIB'
             };
             break;
           }
 
+          // FASE 3: ADZAN MAGHRIB berlangsung 3 menit.
+          const maghribAdzanEndSec =
+            maghribAdzanStartSec + (3 * 60);
+
           if (
             nowSeconds >= maghribAdzanStartSec &&
-            nowSeconds < adzanEndSec
+            nowSeconds < maghribAdzanEndSec
           ) {
             activeState = {
               title: 'ADZAN MAGHRIB',
