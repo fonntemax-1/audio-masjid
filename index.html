@@ -2442,7 +2442,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     </div>
   </div>
 
-  <audio id="adzan-audio" preload="metadata" playsinline></audio>
+  <audio id="adzan-audio" preload="none" playsinline></audio>
 
   <script>
 
@@ -3861,12 +3861,15 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
                   { once: true }
                 );
 
-                audio.load();
+                // load() dipanggil oleh caller hanya sekali.
+                // Jangan memuat ulang media di sini karena pada TV
+                // reload media dapat memicu decoding/network burst.
               });
             };
 
             if (catchUpElapsed > 0) {
               // Catch-up memang membutuhkan metadata sebelum seek.
+              // Satu kali load saja; waitForMetadata() hanya menunggu event.
               audio.load();
               await waitForMetadata();
               applyCatchUpPosition();
