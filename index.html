@@ -13647,11 +13647,15 @@ function setCountdownBlackMode(enabled) {
         const afterIqomahSec =
           iqomahEndSec + (15 * 60);
 
-        // Panel AUTO mulai hitam 2 menit SEBELUM waktu IQOMAH.
-        // Panel kembali normal tepat 15 menit SETELAH waktu IQOMAH.
-        // Tidak menggunakan durasi audio IQOMAH untuk batas visual.
+        // Panel AUTO mulai hitam tepat saat fase ADZAN dimulai.
+        // Dengan demikian ADZAN selalu termasuk mode hitam, bukan hanya
+        // fase MENUJU IQOMAH/IQOMAH.
+        // Untuk RAMADAN MAGHRIB, adzanStartSec mengikuti target ADZAN
+        // khusus setelah rangkaian berbuka.
+        // Panel kembali normal 15 menit setelah IQOMAH dimulai.
+        // Audio/scheduler tidak diubah.
         const panelBlackStartSec =
-          iqomahTimeSec - (2 * 60);
+          adzanStartSec;
 
         const panelBlackEndSec =
           iqomahTimeSec + (15 * 60);
