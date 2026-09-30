@@ -13563,7 +13563,13 @@ function setCountdownBlackMode(enabled) {
 
         const adzanEvent =
           events.find(function(event) {
-            return String(event.eventName || '').toUpperCase() === 'ADZAN';
+            const eventName =
+              String(event.eventName || '').trim().toUpperCase();
+            return (
+              eventName === 'ADZAN' ||
+              eventName === 'ADZAN-BIASA' ||
+              eventName === 'ADZAN-SUBUH'
+            );
           });
 
         const doaEvent =
@@ -13903,7 +13909,13 @@ function setCountdownBlackMode(enabled) {
 
           const maghribAdzanEvent =
             events.find(function(event) {
-              return String(event.eventName || '').toUpperCase() === 'ADZAN';
+              const eventName =
+                String(event.eventName || '').trim().toUpperCase();
+              return (
+                eventName === 'ADZAN' ||
+                eventName === 'ADZAN-BIASA' ||
+                eventName === 'ADZAN-SUBUH'
+              );
             });
 
           const maghribAdzanStartSec =
