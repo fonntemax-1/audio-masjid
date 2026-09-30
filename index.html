@@ -14756,10 +14756,10 @@ function setCountdownBlackMode(enabled) {
       60000
     );
 
-    setInterval(
-      updateHijriDate,
-      60000
-    );
+    // updateHijriDate() cukup dipanggil saat startup dan saat pergantian hari.
+    // Tidak perlu polling setiap 60 detik karena tanggal Hijri tidak berubah
+    // setiap menit. Ini juga menghindari request Apps Script tambahan
+    // tepat sekitar 60 detik setelah startup.
 
     setInterval(
       checkDateChange,
