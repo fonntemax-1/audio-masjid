@@ -5207,10 +5207,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       ];
 
       const isPrayerState =
-        prayerStateTitles.indexOf(stateTitleUpper) >= 0 ||
-        stateTitleUpper === 'WAKTU' ||
-        stateTitleUpper.indexOf('MENUJU SHOLAT') === 0 ||
-        stateTitleUpper.indexOf('WAKTU SHOLAT') === 0;
+        prayerStateTitles.indexOf(stateTitleUpper) >= 0;
 
       if (isPrayerState) {
         let statePrayerName =
@@ -5222,25 +5219,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         // state visual. Identifikasi melalui timer/state bila perlu.
         if (statePrayerName === 'TERBIT') {
           statePrayerName = 'SUBUH';
-        }
-
-        // Fase sebelum adzan memakai judul "MENUJU SHOLAT NAMA".
-        // Ambil nama sholat langsung dari judul agar running text
-        // tetap tampil sejak countdown menuju sholat dimulai.
-        if (!statePrayerName && stateTitleUpper.indexOf('MENUJU SHOLAT ') === 0) {
-          const menujuName = stateTitleUpper
-            .replace(/^MENUJU SHOLAT\s+/, '')
-            .trim();
-
-          if (
-            menujuName === 'SUBUH' ||
-            menujuName === 'DZUHUR' ||
-            menujuName === 'ASHAR' ||
-            menujuName === 'MAGHRIB' ||
-            menujuName === 'ISYA'
-          ) {
-            statePrayerName = menujuName;
-          }
         }
 
         if (
