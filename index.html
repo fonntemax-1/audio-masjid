@@ -14577,6 +14577,25 @@ function setCountdownBlackMode(enabled) {
           panelBlackPrayerName = "JUM'AT";
         }
 
+        // Sinkronkan isi panel hitam dengan state countdown AKTIF.
+        // Sebelumnya elemen ini hanya memiliki nilai HTML awal "SUBUH",
+        // sehingga pada malam hari black screen tetap menampilkan SUBUH.
+        if (panelBlackPrayerEl) {
+          panelBlackPrayerEl.textContent = panelBlackPrayerName || activePrayerName || '';
+        }
+
+        if (panelBlackCityEl) {
+          const blackCity =
+            String(
+              window.__MASJID_HEADER_CITY__ ||
+              getSelectedCity_() ||
+              ''
+            ).trim();
+          if (blackCity) {
+            panelBlackCityEl.textContent = blackCity;
+          }
+        }
+
         const effectiveSleep =
           updatePanelSleepMode_(
             panelSleepWindow,
