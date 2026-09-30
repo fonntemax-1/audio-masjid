@@ -323,7 +323,7 @@
   body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-prayer {
     color: #f4c542 !important;
     -webkit-text-fill-color: #f4c542 !important;
-    font-size: clamp(2.8rem, 5.35vw, 5.5rem) !important;
+    font-size: clamp(2.45rem, 4.75vw, 4.9rem) !important;
     line-height: 1 !important;
     font-weight: 800 !important;
   }
@@ -331,6 +331,13 @@
   /* Ikon handphone berada tepat di atas teks baris pertama.
      Ukuran mengikuti layar agar tidak bertabrakan dengan countdown
      di atas maupun jam digital di bawah. */
+  /* Handphone sedikit diperbesar agar lebih mudah terlihat di TV. */
+  body.panel-countdown-auto .clock-overlay .panel-black-icon img {
+    width: clamp(4.2rem, 8vw, 8.2rem) !important;
+    height: auto !important;
+    max-width: none !important;
+  }
+
   body.panel-countdown-auto .clock-overlay .panel-black-icon {
     display: flex !important;
     align-items: center !important;
