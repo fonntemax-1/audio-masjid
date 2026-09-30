@@ -5082,16 +5082,22 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         }
 
         // -------------------------------------------------------
-        // BERBUKA - Ramadan saja, 3 menit
+        // BERBUKA - Ramadan: SIRINE + DOA-BUKA + REST 3 menit.
         // -------------------------------------------------------
         const maghribSec = parsePrayerSec_(schedule.maghrib);
 
         if (isRamadanDisplay() && maghribSec !== null) {
-          // Banner berbuka dikunci ke fase display yang sama dengan
-          // countdown utama: hanya setelah waktu Maghrib tiba.
-          // Fase sebelum Maghrib ("MENUJU WAKTU BERBUKA") tidak
-          // boleh menampilkan banner berbuka.
-          const maghribOpenEndSec = maghribSec + (3 * 60);
+          const maghribEvents = getComputedEvents_('MAGHRIB');
+          const doaBukaEvent = findEvent_(maghribEvents, 'DOA-BUKA');
+
+          const doaBukaEndSec =
+            doaBukaEvent &&
+            Number.isFinite(Number(doaBukaEvent.endSec))
+              ? Number(doaBukaEvent.endSec)
+              : maghribSec;
+
+          const maghribOpenEndSec =
+            doaBukaEndSec + (3 * 60);
 
           if (
             nowSeconds >= maghribSec &&
@@ -10359,20 +10365,15 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           return 1;
         }
 
-        // DOA-ADZAN -> BEEP pada Ramadan = 3 MENIT.
+        // DOA-ADZAN -> BEEP = 5 MENIT untuk semua sholat.
         if (
-          ramadan &&
-          (
-            name === 'SUBUH' ||
-            name === 'MAGHRIB'
-          ) &&
           (
             prev === 'doa-adzan' ||
             prev === 'doa'
           ) &&
           next === 'beep'
         ) {
-          return 3 * 60;
+          return 5 * 60;
         }
 
         // MAGHRIB RAMADAN:
@@ -13521,119 +13522,70 @@ function setCountdownBlackMode(enabled) {
         // -------------------------------------------------------
         // -------------------------------------------------------
         // RAMADAN KHUSUS MAGHRIB
-        // Sirine mulai tepat pada waktu Maghrib.
-        // Selama sirine berbunyi, tampilkan:
-        // WAKTU BERBUKA
-        // PUASA
-        // Setelah sirine selesai, lanjut ADZAN MAGHRIB.
+        // Timeline display mengikuti audio:
+        // SIRINE -> DOA-BUKA -> REST 3 MENIT -> BEEP -> ADZAN.
         // -------------------------------------------------------
         if (
           isRamadanDisplay() &&
           p.name === 'MAGHRIB'
         ) {
-
-          const maghribSirineEvent =
+          const maghribDoaBukaEvent =
             events.find(function(event) {
-              return (
-                String(event.eventName || '').toUpperCase() === 'SIRINE' &&
-                Number(event.targetSec) === Number(pSec)
-              );
+              return String(event.eventName || '').toUpperCase() === 'DOA-BUKA';
             });
 
-          const maghribSirineEndSec =
-            maghribSirineEvent &&
-            Number.isFinite(Number(maghribSirineEvent.endSec))
-              ? Number(maghribSirineEvent.endSec)
+          const maghribAdzanEvent =
+            events.find(function(event) {
+              return String(event.eventName || '').toUpperCase() === 'ADZAN';
+            });
+
+          const maghribAdzanStartSec =
+            maghribAdzanEvent &&
+            Number.isFinite(Number(maghribAdzanEvent.targetSec))
+              ? Number(maghribAdzanEvent.targetSec)
+              : adzanStartSec;
+
+          // Rest buka puasa = 3 menit setelah DOA-BUKA selesai.
+          const doaBukaEndSec =
+            maghribDoaBukaEvent &&
+            Number.isFinite(Number(maghribDoaBukaEvent.endSec))
+              ? Number(maghribDoaBukaEvent.endSec)
               : Number(pSec);
 
-          // 5 menit sebelum waktu Maghrib:
-          // tampilkan countdown MENUJU WAKTU BERBUKA.
+          const bukaRestEndSec =
+            doaBukaEndSec + (3 * 60);
+
+          // FASE 1: SIRINE + DOA-BUKA + REST 3 menit.
           if (
-            nowSeconds >= (Number(pSec) - (5 * 60)) &&
-            nowSeconds < Number(pSec)
+            nowSeconds >= Number(pSec) &&
+            nowSeconds < bukaRestEndSec
           ) {
+            activeState = {
+              title: 'WAKTU BERBUKA',
+              timer: 'PUASA',
+              prayerName: 'MAGHRIB'
+            };
+            break;
+          }
 
-            const diff =
-              Number(pSec) - nowSeconds;
-
+          // FASE 2: setelah rest selesai sampai ADZAN aktual.
+          if (
+            nowSeconds >= bukaRestEndSec &&
+            nowSeconds < maghribAdzanStartSec
+          ) {
+            const diff = maghribAdzanStartSec - nowSeconds;
             const h = Math.floor(diff / 3600);
             const m = Math.floor((diff % 3600) / 60);
             const s = Math.floor(diff % 60);
 
             activeState = {
-              title: 'MENUJU WAKTU BERBUKA',
+              title: 'MENUJU SHOLAT MAGRIB',
               timer:
                 String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
               prayerName: 'MAGHRIB'
             };
-
-            break;
-          }
-
-          // Setelah hitung mundur MENUJU WAKTU BERBUKA selesai,
-          // Ramadan Maghrib WAJIB melewati dua fase display:
-          //
-          //   1. BUKA PUASA
-          //      dimulai tepat pada pSec / awal sirine
-          //   2. MENUJU SHOLAT MAGRIB
-          //      dimulai setelah fase WAKTU BERBUKA selesai dan
-          //      berlangsung tepat 1 menit sebelum ADZAN MAGHRIB.
-          //
-          // Penting: ini DISPLAY SAJA. Scheduler/audio tidak disentuh.
-          // Gunakan akhir SIRINE sebagai batas yang pasti agar fase
-          // BUKA PUASA tidak langsung jatuh ke ADZAN.
-          // Ramadan Maghrib display:
-          // FASE 1 = WAKTU BERBUKA selama tepat 3 menit.
-          // FASE 2 = MENUJU SHOLAT MAGRIB selama tepat 1 menit.
-          // Setelah itu = ADZAN MAGHRIB.
-          //
-          // Ini khusus DISPLAY. Scheduler/audio tetap menggunakan
-          // jadwal audio yang sudah ada dan tidak diubah.
-          const sirineEndForDisplay =
-            Number(pSec) + (3 * 60);
-
-          const maghribAdzanStartSec =
-            sirineEndForDisplay + (1 * 60);
-
-          // FASE 1: WAKTU BERBUKA selama tepat 3 menit.
-          if (
-            nowSeconds >= Number(pSec) &&
-            nowSeconds < sirineEndForDisplay
-          ) {
-
-            activeState = {
-              // Fase berbuka: jangan tampilkan "MAGHRIB" di bawah
-              // judul karena penggunaannya adalah label waktu berbuka.
-              title: 'WAKTU BERBUKA',
-              timer: 'PUASA',
-              prayerName: 'MAGHRIB'
-            };
-
-            break;
-          }
-
-          // FASE 2: MENUJU SHOLAT MAGRIB selama tepat 1 menit.
-          if (
-            nowSeconds >= sirineEndForDisplay &&
-            nowSeconds < maghribAdzanStartSec
-          ) {
-
-            const diff =
-              maghribAdzanStartSec - nowSeconds;
-
-            const m = Math.floor(diff / 60);
-            const s = Math.floor(diff % 60);
-
-            activeState = {
-              title: 'MENUJU SHOLAT MAGRIB',
-              timer:
-                String(m).padStart(2, '0') + ':' +
-                String(s).padStart(2, '0'),
-              prayerName: 'MAGHRIB'
-            };
-
             break;
           }
 
@@ -13641,13 +13593,11 @@ function setCountdownBlackMode(enabled) {
             nowSeconds >= maghribAdzanStartSec &&
             nowSeconds < adzanEndSec
           ) {
-
             activeState = {
               title: 'ADZAN MAGHRIB',
               timer: 'MAGHRIB',
               prayerName: 'MAGHRIB'
             };
-
             break;
           }
         }
