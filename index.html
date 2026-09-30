@@ -12967,12 +12967,12 @@ function refreshDisplayTheme() {
 
 
 function setCountdownBlackMode(enabled) {
-      // Panels!C2 tetap menjadi MAIN CONTROL.
-      // AUTO  = black screen saat countdown aktif.
-      // OFF   = tampilan normal.
-      // RAMADAN_DISPLAY tidak ikut menentukan layar hitam.
+      // Panels!C22 menjadi MAIN CONTROL untuk mode hitam IQOMAH.
+      // AUTO = hitam 2 menit sebelum IQOMAH sampai 15 menit
+      //        setelah AUDIO IQOMAH selesai.
+      // OFF  = tampilan normal.
       const shouldBlack =
-        WEB_APP_STATE.panel.mode === 'AUTO' &&
+        WEB_APP_STATE.panel.iqomahMode === 'AUTO' &&
         Boolean(enabled);
 
       WEB_APP_STATE.panel.countdownBlack =
@@ -12983,6 +12983,7 @@ function setCountdownBlackMode(enabled) {
         shouldBlack
       );
     }
+
 
     // =========================================================
     // SLEEP MODE - AUDIO MUTE
