@@ -5828,8 +5828,10 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       currentLogoUrl = resolvedUrl;
       currentLogoCacheKey = cacheKey;
 
-      const assetUrl =
-        withAssetCacheBust_(resolvedUrl, 'logo');
+      // Jangan tambahkan cache-bust per jam pada logo.
+      // URL logo yang sama harus tetap memakai HTTP/browser cache.
+      // Ini mencegah TV mengunduh ulang gambar logo setiap jam.
+      const assetUrl = resolvedUrl;
 
       element.onerror =
         function() {
@@ -6741,11 +6743,14 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           const img =
             document.createElement('img');
 
-          img.src = withAssetCacheBust_(value, 'qris');
+          // QRIS ditampilkan kecil di TV, jadi jangan paksa download ulang
+          // setiap jam dan jangan beri prioritas jaringan tinggi.
+          // Browser cache akan dipakai selama URL QRIS tidak berubah.
+          img.src = value;
           img.alt = 'INFAQ & SHADAQAH';
           img.decoding = 'async';
-          img.loading = 'eager';
-          img.fetchPriority = 'high';
+          img.loading = 'lazy';
+          img.fetchPriority = 'low';
           img.style.display = 'block';
           img.style.width = 'auto';
           img.style.height = 'auto';
