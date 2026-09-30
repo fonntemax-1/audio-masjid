@@ -13321,27 +13321,43 @@ function setCountdownBlackMode(enabled) {
       // =======================================================
       // AUDIO PROCESSING
       // =======================================================
+      //
+      // prepareDailyAudioSchedule() adalah async. Memanggilnya setiap
+      // detik walaupun schedule sudah lengkap hanya membuat Promise baru
+      // dan pekerjaan microtask tambahan. Pada TV hal ini terus berulang
+      // sepanjang hari dan dapat membuat main thread tersendat.
+      //
+      // Schedule tetap dibuat sekali per tanggal; saat tanggal berubah
+      // resetAudioForNewDate() mengembalikan scheduleInitialized=false,
+      // sehingga blok ini otomatis membangun ulang schedule.
+      const audioScheduleWasReady =
+        WEB_APP_STATE.audio.scheduleInitialized === true;
 
-      prepareDailyAudioSchedule(
-        nowDate,
-        nowSeconds
-      );
+      if (!audioScheduleWasReady) {
+        prepareDailyAudioSchedule(
+          nowDate,
+          nowSeconds
+        );
+      }
 
       processAudioQueue();
 
-      // YouTube AUTO dievaluasi setiap tick countdown.
-      // Hanya perubahan status MUTE/UNMUTE yang mengirim command
-      // ke iframe; tidak ada reload dan tidak menyentuh audio.
-      try {
-        updateYouTubeAudioStop(
-          nowSeconds,
-          nowDate
-        );
-      } catch (youtubeError) {
-        console.error(
-          'YOUTUBE AUTO TICK ERROR:',
-          youtubeError
-        );
+      // Pada tick biasa, kontrol YouTube sudah dijalankan di awal
+      // updatePrayerCountdown(). Jalankan pemeriksaan kedua hanya ketika
+      // schedule baru saja dibangun, karena pemeriksaan pertama dapat
+      // terjadi sebelum metadata/schedule tersedia.
+      if (!audioScheduleWasReady) {
+        try {
+          updateYouTubeAudioStop(
+            nowSeconds,
+            nowDate
+          );
+        } catch (youtubeError) {
+          console.error(
+            'YOUTUBE AUTO TICK ERROR:',
+            youtubeError
+          );
+        }
       }
 
       // YouTube AUTO hanya diperiksa saat schedule audio siap.
@@ -14070,17 +14086,9 @@ function setCountdownBlackMode(enabled) {
 
         }
 
-        if (nextPrayer) {
-          console.log(
-            'COUNTDOWN NEXT PRAYER:',
-            nextPrayer.name,
-            nextPrayer.time,
-            'targetSec=',
-            nextSeconds,
-            'nowSec=',
-            nowSeconds
-          );
-        }
+        // Jangan menulis log setiap detik.
+        // Console DevTools pada TV dapat menahan object/string dan
+        // membuat main thread serta memori terus bertambah.
 
       }
 
