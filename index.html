@@ -2519,6 +2519,62 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     filter: drop-shadow(0.12vh 0.22vh 0.22vh rgba(0,25,15,0.78));
   }
 
+  /* =========================================================
+     ANALOG CLOCK — TEMA MERAH
+     Bezel merah tua doff dengan kilau metalik halus.
+     Jarum jam & menit mengikuti warna merah tema.
+     ========================================================= */
+  :root[data-display-theme="merah"] .analog-clock,
+  body[data-display-theme="merah"] .analog-clock {
+    border-color: #5b171d !important;
+    box-shadow:
+      0 1.1vh 2.8vh rgba(0,0,0,0.88),
+      0 0.25vh 0.5vh rgba(255,90,95,0.18),
+      inset 0 0 0 0.24vh #9a3a40,
+      inset 0 0 0 0.55vh #3d0b10,
+      inset 0 0 0 0.82vh #702127,
+      inset 0 0 1.5vh rgba(35,0,4,0.72) !important;
+  }
+
+  :root[data-display-theme="merah"] .analog-clock::before,
+  body[data-display-theme="merah"] .analog-clock::before {
+    background:
+      conic-gradient(
+        from 215deg,
+        rgba(255,215,218,0.40),
+        rgba(255,215,218,0.04) 14%,
+        rgba(55,0,6,0.44) 31%,
+        rgba(190,65,72,0.50) 48%,
+        rgba(65,0,7,0.34) 65%,
+        rgba(255,225,228,0.30) 82%,
+        rgba(55,0,6,0.38)
+      ) !important;
+  }
+
+  :root[data-display-theme="merah"] .analog-clock .hour,
+  body[data-display-theme="merah"] .analog-clock .hour {
+    background:
+      linear-gradient(90deg,
+        #2a060a 0%,
+        #70151d 30%,
+        #c34a52 50%,
+        #8e252d 68%,
+        #210407 100%) !important;
+    filter: drop-shadow(0.12vh 0.22vh 0.22vh rgba(35,0,4,0.78));
+  }
+
+  :root[data-display-theme="merah"] .analog-clock .minute,
+  body[data-display-theme="merah"] .analog-clock .minute {
+    background:
+      linear-gradient(90deg,
+        #240507 0%,
+        #68151c 32%,
+        #c44750 50%,
+        #86242c 68%,
+        #1c0305 100%) !important;
+    filter: drop-shadow(0.12vh 0.22vh 0.22vh rgba(35,0,4,0.78));
+  }
+
 </style>
 
 </head>
