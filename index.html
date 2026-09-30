@@ -11039,6 +11039,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         //
         // Anchor utama = dimulainya SIRINE (pSec).
         // getSystemGapSeconds() menjaga gap persis sesuai aturan di atas.
+        // Khusus ADZAN -> DOA-ADZAN, gap tetap 3 detik setelah
+        // audio ADZAN selesai.
         // -------------------------------------------------------
         const sirineTarget = Number(pSec);
 
@@ -11142,7 +11144,10 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         const fixedMaghribAdzanTarget =
           Number(pSec) + (3 * 60);
 
-        // BEEP pertama = tepat 1 detik sebelum ADZAN.
+        // BEEP pertama MAGHRIB RAMADHAN dimulai tepat 4 detik
+        // sebelum DISPLAY/ADZAN MAGHRIB dimulai.
+        // Target BEEP adalah waktu mulai audio, bukan waktu selesai.
+        // Jadi durasi file BEEP tidak menggeser titik mulai ADZAN.
         if (
           firstBeepIndexBeforeAdzan >= 0
         ) {
@@ -11151,8 +11156,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           const fixedFirstBeepTarget =
             fixedMaghribAdzanTarget -
-            1 -
-            firstBeepItem.duration;
+            4;
 
           add(
             'BEEP',
