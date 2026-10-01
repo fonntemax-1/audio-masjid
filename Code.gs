@@ -3212,16 +3212,30 @@ function getEventRunningText() {
 
   const sheet =
     ss.getSheetByName(
-      'Event'
+      'panels'
     );
 
   if (!sheet) {
     return '';
   }
 
+  // =========================================================
+  // SUMBER EVENT RUNNING TEXT
+  // panels!B33:B37
+  //
+  // B33 = Event 1
+  // B34 = Event 2
+  // B35 = Event 3
+  // B36 = Event 4
+  // B37 = Event 5
+  //
+  // Baris kosong otomatis dilewati.
+  // Urutan mengikuti B33 -> B37.
+  // =========================================================
+
   const values =
     sheet
-      .getRange('A1:B4')
+      .getRange('B33:B37')
       .getDisplayValues();
 
   const result = [];
@@ -3229,16 +3243,9 @@ function getEventRunningText() {
   values.forEach(
     function(row) {
 
-      const label =
+      const value =
         row[0]
           ? row[0]
-              .toString()
-              .trim()
-          : '';
-
-      const value =
-        row[1]
-          ? row[1]
               .toString()
               .trim()
           : '';
@@ -3247,18 +3254,7 @@ function getEventRunningText() {
         return;
       }
 
-      if (!label) {
-        result.push(
-          value
-        );
-        return;
-      }
-
-      result.push(
-        label +
-        ': ' +
-        value
-      );
+      result.push(value);
     }
   );
 
@@ -3266,7 +3262,6 @@ function getEventRunningText() {
     ' • '
   );
 }
-
 
 // =========================================================
 // TEST AUDIO ADZAN
