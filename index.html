@@ -7420,17 +7420,45 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         table
       );
 
-      // Duplikasi 1x agar laporan keuangan berjalan CONTINUE.
-      // Saat tabel pertama keluar dari atas, salinan kedua sudah
-      // langsung mengisi area tanpa jeda/kosong.
-      const tableClone = table.cloneNode(true);
-      tableClone.setAttribute('aria-hidden', 'true');
-      content.appendChild(tableClone);
+      // =====================================================
+      // LOOP CONTINUE TANPA AREA KOSONG
+      // =====================================================
+      // Jangan hanya membuat 1 clone. Jumlah salinan dibuat
+      // secukupnya agar ketika tabel pertama bergerak keluar,
+      // selalu ada tabel berikutnya yang mengisi viewport.
+      // Semua salinan identik sehingga titik loop dapat kembali
+      // ke awal tabel pertama tanpa terlihat putus.
+      const area =
+        document.getElementById('keuangan-scroll-area');
 
-      setTimeout(
-        startKeuanganScroll,
-        500
-      );
+      const baseHeight =
+        table.getBoundingClientRect().height;
+
+      if (area && baseHeight > 0) {
+        let copyCount = 1;
+        let totalHeight = content.scrollHeight;
+
+        while (
+          totalHeight < area.clientHeight + baseHeight &&
+          copyCount < 6
+        ) {
+          const tableClone = table.cloneNode(true);
+          tableClone.setAttribute('aria-hidden', 'true');
+          content.appendChild(tableClone);
+          copyCount += 1;
+          totalHeight = content.scrollHeight;
+        }
+      } else {
+        const tableClone = table.cloneNode(true);
+        tableClone.setAttribute('aria-hidden', 'true');
+        content.appendChild(tableClone);
+      }
+
+      // Tunggu layout/font selesai dihitung sebelum menentukan
+      // tinggi loop. requestAnimationFrame mengikuti repaint browser.
+      requestAnimationFrame(function() {
+        startKeuanganScroll();
+      });
 
     }
 
@@ -7488,20 +7516,25 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           ? singleContent.getBoundingClientRect().height
           : 0;
 
-      if (
-        singleHeight <= 0 ||
-        singleHeight <= areaHeight
-      ) {
-
+      if (singleHeight <= 0) {
         content.style.transform =
           'translateY(0px)';
-
         return;
-
       }
 
+      // Selalu izinkan scrolling jika tabel memang memiliki data.
+      // Jika tabel lebih pendek dari frame, salinan identik tetap
+      // akan mengisi ruang sehingga tidak pernah muncul layar kosong.
       const loopHeight =
         singleHeight;
+
+      // Pastikan content memiliki minimal 2 salinan.
+      if (content.children.length < 2) {
+        const clone =
+          singleContent.cloneNode(true);
+        clone.setAttribute('aria-hidden', 'true');
+        content.appendChild(clone);
+      }
 
       keuanganPos = 0;
 
@@ -7530,18 +7563,22 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         keuanganPos -=
           speed;
 
-        if (
-          keuanganPos <=
-          -loopHeight
-        ) {
+        // Reset hanya sebesar tepat 1 tinggi tabel pertama.
+        // Karena tabel berikutnya identik, posisi visual pada titik
+        // reset sama persis dengan posisi sebelumnya: tidak ada blank
+        // gap dan tidak ada lompatan yang terlihat.
+        if (keuanganPos <= -loopHeight) {
+          keuanganPos += loopHeight;
 
-          keuanganPos +=
-            loopHeight;
-
+          // Pengaman floating-point agar posisi tidak melewati
+          // satu loop akibat frame yang terlambat.
+          if (keuanganPos < -loopHeight) {
+            keuanganPos %= loopHeight;
+          }
         }
 
         content.style.transform =
-          `translateY(${keuanganPos}px)`;
+          `translate3d(0, ${keuanganPos}px, 0)`;
 
         keuanganAnimId =
           requestAnimationFrame(
