@@ -50,6 +50,10 @@ function handleGithubApiRequest_(params) {
         result = getYoutubeControl();
         break;
 
+      case 'getPanelKegiatan':
+        result = getPanelKegiatan();
+        break;
+
       case 'getPanelIqomahBlackMode':
         result = getPanelIqomahBlackMode();
         break;
