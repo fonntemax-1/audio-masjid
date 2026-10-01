@@ -7079,7 +7079,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         const keuanganFontSize =
           window.getComputedStyle(keuanganTable).fontSize;
         if (keuanganFontSize) {
-          dateEl.style.fontSize = 'calc(' + keuanganFontSize + ' * 1.10)';
+          dateEl.style.fontSize = keuanganFontSize;
         }
       }
       dateEl.style.display = dateValue ? 'block' : 'none';
