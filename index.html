@@ -6453,6 +6453,62 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
 
     // =========================================================
+    // LOGO RESPONSIVE TERHADAP PANJANG NAMA MASJID
+    // Hanya posisi logo yang bergeser; layout/frame tidak berubah.
+    // =========================================================
+    function updateLogoPositionResponsive_() {
+      const header = document.querySelector('.header');
+      const logo = document.querySelector('.header-logo');
+      const name = document.querySelector('.header-center .latin-name');
+
+      if (!header || !logo || !name) return;
+
+      // Kembalikan ke posisi CSS normal sebelum menghitung.
+      logo.style.transform = 'translateY(-50%)';
+
+      const headerRect = header.getBoundingClientRect();
+      const nameRect = name.getBoundingClientRect();
+      const logoRect = logo.getBoundingClientRect();
+
+      const gap = Math.max(10, headerRect.width * 0.012);
+
+      // Jika nama terlalu panjang dan mendekati/menabrak logo,
+      // geser LOGO ke kiri saja.
+      const overlap = logoRect.right + gap - nameRect.left;
+      const maxLeftShift =
+        Math.max(0, logoRect.left - headerRect.left);
+
+      if (overlap > 0 && maxLeftShift > 0) {
+        const shift = Math.min(overlap, maxLeftShift);
+        logo.style.transform =
+          'translate(-' + shift.toFixed(1) + 'px, -50%)';
+      }
+    }
+
+    function startLogoResponsive_() {
+      updateLogoPositionResponsive_();
+
+      const name = document.querySelector('.header-center .latin-name');
+      const header = document.querySelector('.header');
+
+      if (window.ResizeObserver && (name || header)) {
+        const observer = new ResizeObserver(
+          updateLogoPositionResponsive_
+        );
+        if (name) observer.observe(name);
+        if (header) observer.observe(header);
+        window.__logoResponsiveObserver = observer;
+      }
+
+      window.addEventListener(
+        'resize',
+        updateLogoPositionResponsive_,
+        { passive: true }
+      );
+    }
+
+
+    // =========================================================
     // UPDATE UI
     // =========================================================
 
@@ -6636,7 +6692,9 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         }
 
         if (oldTimezone !== newTimezone) {
-          startAutoRefresh();
+          startLogoResponsive_();
+
+    startAutoRefresh();
           updateClock();
           updateGregorianDate();
           updateHijriDate();
@@ -6805,6 +6863,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             nama
               ? (/^MASJID\\b/i.test(nama) ? nama : 'MASJID ' + nama)
               : '';
+
+          updateLogoPositionResponsive_();
 
         }
 
