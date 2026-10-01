@@ -699,46 +699,72 @@
       color: var(--theme-accent) !important;
     }
 
-    /* Fase bulan Hijriah: tanggal Masehi di atas, bulan di tengah, Hijriah di bawah. */
-    .header-date-stack {
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      gap:.45vh; min-width:0; height:100%;
+    /* =========================================================
+       ICON FASE BULAN - mengikuti tanggal Hijriah
+       Dibuat dengan CSS agar selalu terlihat tanpa asset eksternal.
+       ========================================================= */
+    .hijri-date-box {
+      display: flex !important;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.35vw;
     }
-    .gregorian-date-box, .hijri-date-box {
-      display:flex !important; flex-direction:column !important; align-items:center !important;
-      justify-content:center !important; gap:.08vh !important; width:100%; text-align:center !important;
-    }
-    .header-date-stack .greg-day, .header-date-stack .greg-text,
-    .header-date-stack .hijri-num, .header-date-stack .hijri-text {
-      text-align:center !important; line-height:1.05 !important;
-    }
-    .header-date-stack .hijri-num { margin-left:0 !important; line-height:1 !important; }
 
     .moon-phase {
-      position:relative; flex:0 0 auto;
-      width:clamp(46px,5vw,78px); height:clamp(46px,5vw,78px);
-      margin:.15vh 0; border-radius:50%; overflow:hidden;
-      background:radial-gradient(circle at 35% 30%,var(--theme-running),var(--theme-accent) 48%,var(--theme-border) 82%);
-      border:.14vh solid var(--theme-accent);
-      box-shadow:0 0 .8vh var(--theme-accent),inset -.3vh -.3vh .55vh rgba(0,0,0,.42);
-      font-size:0 !important; line-height:0;
+      position: relative;
+      flex: 0 0 auto;
+      width: clamp(20px, 2.1vw, 34px);
+      height: clamp(20px, 2.1vw, 34px);
+      border-radius: 50%;
+      overflow: hidden;
+      background: radial-gradient(circle at 35% 32%,
+        #fff9d6 0%,
+        #f6df8a 32%,
+        #d7b84f 68%,
+        #8e6c20 100%);
+      box-shadow:
+        0 0 0.35vh rgba(255, 225, 120, 0.55),
+        inset -0.12vh -0.12vh 0.25vh rgba(50, 30, 0, 0.45);
+      font-size: 0 !important;
+      line-height: 0;
     }
+
     .moon-phase::after {
-      content:""; position:absolute; width:100%; height:100%; border-radius:50%;
-      background:var(--theme-bg-deep); transition:none;
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--theme-bg-deep, #011910);
+      transition: none;
     }
+
     .moon-phase.phase-1 {
-      background:var(--theme-bg-deep); border:.18vh solid var(--theme-accent);
-      box-shadow:0 0 .9vh var(--theme-accent);
+      background: #171717;
+      border: 0.08vh solid rgba(255, 220, 120, 0.22);
+      box-shadow: none;
     }
-    .moon-phase.phase-1::after, .moon-phase.phase-3::after, .moon-phase.phase-5::after,
-    .moon-phase.phase-7::after { display:none; }
-    .moon-phase.phase-2::after { left:42%; top:0; }
-    .moon-phase.phase-3 { background:linear-gradient(90deg,var(--theme-bg-deep) 0 50%,var(--theme-accent) 50% 100%); }
-    .moon-phase.phase-4::after { left:62%; top:0; }
-    .moon-phase.phase-6::after { left:-62%; top:0; }
-    .moon-phase.phase-7 { background:linear-gradient(90deg,var(--theme-accent) 0 50%,var(--theme-bg-deep) 50% 100%); }
-    .moon-phase.phase-8::after { left:-42%; top:0; }
+
+    .moon-phase.phase-1::after { display: none; }
+    .moon-phase.phase-2::after { left: 42%; top: 0; }
+
+    .moon-phase.phase-3 {
+      background: linear-gradient(90deg,
+        #252525 0 50%,
+        #f6df8a 50% 100%);
+    }
+    .moon-phase.phase-3::after { display: none; }
+    .moon-phase.phase-4::after { left: 62%; top: 0; }
+    .moon-phase.phase-5::after { display: none; }
+    .moon-phase.phase-6::after { left: -62%; top: 0; }
+
+    .moon-phase.phase-7 {
+      background: linear-gradient(90deg,
+        #f6df8a 0 50%,
+        #252525 50% 100%);
+    }
+    .moon-phase.phase-7::after { display: none; }
+    .moon-phase.phase-8::after { left: -42%; top: 0; }
 
     .hijri-date-box .hijri-num {
       margin-left: 0 !important;
@@ -2777,16 +2803,17 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       </div>
 
       <div class="header-right">
-        <div class="header-date-stack">
-          <div class="date-box gregorian-date-box">
-            <div class="greg-day" id="day-name">--</div>
-            <div class="greg-text" id="date-full">--</div>
-          </div>
+        <div class="date-box hijri-date-box">
           <div class="moon-phase phase-1" id="moon-phase" aria-hidden="true"></div>
-          <div class="date-box hijri-date-box">
-            <div class="hijri-num" id="hijri-num">--</div>
-            <div class="hijri-text" id="hijri-text">--</div>
-          </div>
+          <div class="hijri-num" id="hijri-num">--</div>
+          <div class="hijri-text" id="hijri-text">--</div>
+        </div>
+
+        <div class="header-divider"></div>
+
+        <div class="date-box">
+          <div class="greg-day" id="day-name">--</div>
+          <div class="greg-text" id="date-full">--</div>
         </div>
       </div>
 
