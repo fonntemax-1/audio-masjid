@@ -2726,7 +2726,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       </div>
 
       <div class="header-center">
-    <div class="latin-name" id="nama_masjid">MASJID AL SOBIRIN</div>
+    <div class="latin-name" id="nama_masjid"></div>
         <div class="sub" id="alamat_masjid">Alamat / Kontak / Website / Info Lainnya</div>
         <div class="slogan" id="slogan_masjid">Slogan / Info Lainnya</div>
       </div>
@@ -6791,7 +6791,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       }
 
-      if (data.Nama) {
+      if (data.Nama !== undefined) {
 
         const element =
           document.getElementById(
@@ -6799,19 +6799,12 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           );
 
         if (element) {
-
-          // Nama header dinormalisasi agar penulisan selalu
-          // konsisten: AL SOBIRIN (bukan AL SHOBIRIN).
-          const nama =
-            String(data.Nama || '')
-              .trim()
-              .replace(/AL\\s+SHOBIRIN/gi, 'AL SOBIRIN');
+          const nama = String(data.Nama || '').trim();
 
           element.innerText =
             nama
-              ? 'MASJID ' + nama
-              : 'MASJID AL SOBIRIN';
-
+              ? (/^MASJID\\b/i.test(nama) ? nama : 'MASJID ' + nama)
+              : '';
         }
 
       }
