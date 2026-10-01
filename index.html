@@ -7420,6 +7420,13 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         table
       );
 
+      // Duplikasi 1x agar laporan keuangan berjalan CONTINUE.
+      // Saat tabel pertama keluar dari atas, salinan kedua sudah
+      // langsung mengisi area tanpa jeda/kosong.
+      const tableClone = table.cloneNode(true);
+      tableClone.setAttribute('aria-hidden', 'true');
+      content.appendChild(tableClone);
+
       setTimeout(
         startKeuanganScroll,
         500
@@ -7470,12 +7477,20 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       const areaHeight =
         area.clientHeight;
 
-      const contentHeight =
-        content.scrollHeight;
+      // Content berisi 2 tabel identik. Gunakan tinggi SATU tabel
+      // sebagai jarak loop sehingga perpindahan kembali ke 0px
+      // tidak terlihat oleh mata.
+      const singleContent =
+        content.firstElementChild;
+
+      const singleHeight =
+        singleContent
+          ? singleContent.getBoundingClientRect().height
+          : 0;
 
       if (
-        contentHeight <=
-        areaHeight
+        singleHeight <= 0 ||
+        singleHeight <= areaHeight
       ) {
 
         content.style.transform =
@@ -7485,8 +7500,10 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       }
 
-      keuanganPos =
-        areaHeight;
+      const loopHeight =
+        singleHeight;
+
+      keuanganPos = 0;
 
       const speed =
         0.2;
@@ -7514,12 +7531,12 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           speed;
 
         if (
-          keuanganPos <
-          -contentHeight
+          keuanganPos <=
+          -loopHeight
         ) {
 
-          keuanganPos =
-            areaHeight;
+          keuanganPos +=
+            loopHeight;
 
         }
 
