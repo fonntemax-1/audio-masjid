@@ -1972,35 +1972,67 @@
       justify-content: flex-start;
     }
 
+    /* =====================================================
+       PETUGAS SHOLAT - RESPONSIVE TERHADAP UKURAN FRAME
+       Ukuran mengikuti lebar panel, bukan angka tetap.
+       Cocok untuk TV, PC, dan layar yang lebih kecil.
+       ===================================================== */
+    .right-sidebar .panel-box:last-child {
+      container-type: inline-size;
+      container-name: petugas-panel;
+    }
+
     .khotbah-list {
       display: flex;
       flex-direction: column;
-      gap: 0.8vh;
-      /* Font PETUGAS diperbesar agar KHATIB/IMAM/BILAL
-         dan nama petugas lebih mudah dibaca. */
-      font-size: clamp(0.95rem, 1.35vw, 1.45rem);
-      margin-top: 1vh;
+      gap: clamp(0.45vh, 0.8cqw, 0.8vh);
+      margin-top: clamp(0.6vh, 1cqw, 1vh);
+      font-size: clamp(0.85rem, 4.2cqw, 1.45rem);
+      line-height: 1.15;
     }
 
     .khotbah-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      min-width: 0;
+      gap: clamp(0.4rem, 1.5cqw, 1rem);
     }
 
     .khotbah-role {
       color: #ffcc00;
       font-weight: bold;
       width: 25%;
+      min-width: 4.2em;
+      flex: 0 0 25%;
       font-size: inherit;
+      line-height: 1.15;
+      white-space: nowrap;
     }
 
     .khotbah-name {
       color: #00ffaa;
       font-weight: bold;
       text-align: right;
-      flex: 1;
+      flex: 1 1 auto;
+      min-width: 0;
       font-size: inherit;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    /* Saat panel sangat sempit, teks tetap terbaca tanpa
+       membuat frame melebar atau keluar dari batas panel. */
+    @container petugas-panel (max-width: 260px) {
+      .khotbah-list {
+        font-size: clamp(0.78rem, 4.6cqw, 1.05rem);
+        gap: 0.5vh;
+      }
+
+      .khotbah-role {
+        min-width: 3.8em;
+      }
     }
 
     .footer {
