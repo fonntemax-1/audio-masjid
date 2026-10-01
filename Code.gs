@@ -4205,6 +4205,8 @@ function setupPanelKegiatan() {
     selector.setValue(PANEL_KEGIATAN_OPTIONS_[0]);
   }
 
+  formatPanelKegiatanSelector_(selector);
+
   updatePanelKegiatanFields_(sheet, selector.getDisplayValue());
 
   // Pasang installable onEdit agar tetap bekerja bila Code.gs
@@ -4239,7 +4241,32 @@ function onEdit(e) {
   if (sheet.getName() !== "panels") return;
   if (range.getA1Notation() !== "C26") return;
 
+  formatPanelKegiatanSelector_(range);
   updatePanelKegiatanFields_(sheet, range.getDisplayValue());
+}
+
+/**
+ * Warna C26 mengikuti jenis kegiatan yang dipilih.
+ * Apps Script tidak mengekspos warna item menu dropdown,
+ * jadi warna diterapkan pada sel/chip pilihan aktif.
+ */
+function formatPanelKegiatanSelector_(selector) {
+  const key = String(selector.getDisplayValue() || "").trim().toUpperCase();
+
+  const colors = {
+    "SHOLAT JUM'AT": ["#d9ead3", "#274e13"],
+    "SHOLAT TARAWIH": ["#e4dfec", "#351c75"],
+    "SHOLAT IDUL FITRI": ["#fff2cc", "#7f6000"],
+    "SHOLAT IDUL ADHA": ["#cfe2f3", "#073763"]
+  };
+
+  const color = colors[key] || ["#ffffff", "#000000"];
+
+  selector
+    .setBackground(color[0])
+    .setFontColor(color[1])
+    .setFontWeight("bold")
+    .setHorizontalAlignment("center");
 }
 
 /**
