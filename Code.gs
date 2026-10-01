@@ -4244,10 +4244,36 @@ function onEdit(e) {
   if (range.getA1Notation() !== "C26") return;
 
   formatPanelKegiatanSelector_(range);
-
-  // Saat jenis kegiatan diganti, bersihkan data kegiatan lama
-  // agar field tidak tertukar antar kegiatan.
   updatePanelKegiatanFields_(sheet, range.getDisplayValue(), false);
+}
+
+/**
+ * Buat installable edit trigger untuk panels!C26.
+ * Code.gs ini memakai SPREADSHEET_ID/openById(), sehingga simple
+ * onEdit tidak cukup untuk spreadsheet yang tidak terikat langsung.
+ * Jalankan fungsi ini SEKALI dari Apps Script Editor dan izinkan akses.
+ */
+function setupPanelKegiatanEditTrigger() {
+  const spreadsheetId = PropertiesService
+    .getScriptProperties()
+    .getProperty("SPREADSHEET_ID");
+
+  if (!spreadsheetId) {
+    throw new Error("SPREADSHEET_ID belum diisi pada Script Properties.");
+  }
+
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    if (trigger.getHandlerFunction() === "onEdit") {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+
+  ScriptApp.newTrigger("onEdit")
+    .forSpreadsheet(spreadsheetId)
+    .onEdit()
+    .create();
+
+  Logger.log("TRIGGER PANEL KEGIATAN berhasil dibuat.");
 }
 
 /**
