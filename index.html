@@ -7427,13 +7427,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         table
       );
 
-      // Duplikasi 1x agar laporan keuangan berjalan CONTINUE.
-      // Saat tabel pertama keluar dari atas, salinan kedua sudah
-      // langsung mengisi area tanpa jeda/kosong.
-      const tableClone = table.cloneNode(true);
-      tableClone.setAttribute('aria-hidden', 'true');
-      content.appendChild(tableClone);
-
+      // Scrolling default: hanya satu tabel, tanpa clone/ganda.
       setTimeout(
         startKeuanganScroll,
         500
@@ -7465,107 +7459,58 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           'keuangan-content'
         );
 
-      if (
-        !area ||
-        !content
-      ) return;
+      if (!area || !content) return;
 
       if (keuanganAnimId) {
-
-        cancelAnimationFrame(
-          keuanganAnimId
-        );
-
-        keuanganAnimId =
-          null;
-
+        cancelAnimationFrame(keuanganAnimId);
+        keuanganAnimId = null;
       }
-
-      const areaHeight =
-        area.clientHeight;
-
-      // Content berisi 2 tabel identik. Gunakan tinggi SATU tabel
-      // sebagai jarak loop sehingga perpindahan kembali ke 0px
-      // tidak terlihat oleh mata.
-      const singleContent =
-        content.firstElementChild;
-
-      const singleHeight =
-        singleContent
-          ? singleContent.getBoundingClientRect().height
-          : 0;
-
-      if (
-        singleHeight <= 0 ||
-        singleHeight <= areaHeight
-      ) {
-        content.style.transform =
-          'translateY(0px)';
-
-        return;
-      }
-
-      const loopHeight =
-        singleHeight;
 
       keuanganPos = 0;
+      content.style.transform = 'translateY(0px)';
 
-      const speed =
-        0.2;
-
-      let keuanganLastFrameTime = 0;
+      const speed = 0.2;
+      let lastFrame = 0;
 
       function step(timestamp) {
 
-        // Batasi update transform sekitar 30fps agar TV tidak tersendat.
         if (
-          keuanganLastFrameTime &&
-          (timestamp - keuanganLastFrameTime) < (1000 / 30)
+          lastFrame &&
+          (timestamp - lastFrame) < (1000 / 30)
         ) {
-          keuanganAnimId =
-            requestAnimationFrame(
-              step
-            );
+          keuanganAnimId = requestAnimationFrame(step);
           return;
         }
 
-        keuanganLastFrameTime =
-          timestamp;
+        lastFrame = timestamp;
 
-        keuanganPos -=
-          speed;
+        const maxScroll =
+          Math.max(
+            0,
+            content.scrollHeight - area.clientHeight
+          );
 
-        // Reset hanya sebesar tepat 1 tinggi tabel pertama.
-        // Karena tabel berikutnya identik, posisi visual pada titik
-        // reset sama persis dengan posisi sebelumnya: tidak ada blank
-        // gap dan tidak ada lompatan yang terlihat.
-        if (keuanganPos <= -loopHeight) {
-          keuanganPos += loopHeight;
+        if (maxScroll <= 0) {
+          keuanganAnimId = null;
+          return;
+        }
 
-          // Pengaman floating-point agar posisi tidak melewati
-          // satu loop akibat frame yang terlambat.
-          if (keuanganPos < -loopHeight) {
-            keuanganPos %= loopHeight;
-          }
+        keuanganPos -= speed;
+
+        if (Math.abs(keuanganPos) >= maxScroll) {
+          keuanganPos = 0;
         }
 
         content.style.transform =
-          `translateY(${keuanganPos}px)`;
+          'translateY(' + keuanganPos + 'px)';
 
         keuanganAnimId =
-          requestAnimationFrame(
-            step
-          );
-
+          requestAnimationFrame(step);
       }
 
       keuanganAnimId =
-        requestAnimationFrame(
-          step
-        );
-
+        requestAnimationFrame(step);
     }
-
 
     // =========================================================
     // SINKRONISASI WAKTU INTERNET / SERVER
