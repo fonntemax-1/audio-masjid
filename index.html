@@ -15087,6 +15087,13 @@ function setCountdownBlackMode(enabled) {
 
         let panelBlackPrayerName = activePrayerName;
 
+        // SUBUH: beberapa state visual memakai prayerName TERBIT.
+        // Untuk mode hitam, TERBIT tidak boleh ditampilkan sebagai
+        // nama sholat karena yang dimaksud adalah WAKTU SHOLAT SUBUH.
+        if (panelBlackPrayerName === 'TERBIT') {
+          panelBlackPrayerName = 'SUBUH';
+        }
+
         // Khusus Imsak/Berbuka, gunakan jenis waktu dari state.
         const activeTitleUpper =
           String(activeState.title || '').replace(/\\s+/g, ' ').trim().toUpperCase();
