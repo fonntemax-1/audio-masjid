@@ -6999,23 +6999,53 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       if (!titleEl || !listEl) return;
 
       const jenis = String(data && data.jenis || '').trim().toUpperCase();
-      titleEl.textContent = jenis ? (jenis.indexOf('SHOLAT ') === 0 ? 'PETUGAS ' + jenis : 'PETUGAS SHOLAT ' + jenis) : 'PETUGAS SHOLAT';
+      titleEl.textContent = jenis
+        ? (jenis.indexOf('SHOLAT ') === 0 ? 'PETUGAS ' + jenis : 'PETUGAS SHOLAT ' + jenis)
+        : 'PETUGAS SHOLAT';
       listEl.style.display = jenis ? 'flex' : 'none';
 
       const fields = data && data.fields && typeof data.fields === 'object'
         ? data.fields
         : {};
 
-      // B27:B30 dari Code.gs adalah sumber urutan field.
-      // Jangan memakai daftar tetap karena TARAWIH memakai KULTUM
-      // dan IDUL FITRI/ADHA memakai BILAL.
+      // Tanggal langsung di bawah judul, tanpa label "Tanggal".
+      // Format: 2 Oktober 2026, center, warna putih.
+      const dateRow = Object.keys(fields).find(function(label) {
+        return String(label || '').trim().toUpperCase() === 'TANGGAL';
+      });
+      const dateValue = dateRow ? String(fields[dateRow] || '').trim() : '';
+
+      let dateEl = document.getElementById('petugas-tanggal');
+      if (!dateEl) {
+        dateEl = document.createElement('div');
+        dateEl.id = 'petugas-tanggal';
+        titleEl.insertAdjacentElement('afterend', dateEl);
+      }
+
+      dateEl.textContent = dateValue
+        ? formatPanelKegiatanDate_(dateValue)
+        : '';
+      dateEl.style.cssText =
+        'text-align:center;' +
+        'color:#ffffff;' +
+        'font-weight:700;' +
+        'font-size:clamp(0.85rem,1.25vw,1.25rem);' +
+        'line-height:1.2;' +
+        'margin-top:0.35vh;' +
+        'margin-bottom:0.8vh;';
+      dateEl.style.display = dateValue ? 'block' : 'none';
+
+      // Field lain tetap mengikuti urutan B27:B30.
+      // Tanggal dikeluarkan dari daftar agar tidak tampil dua kali.
       const entries = Object.keys(fields).map(function(label) {
         return {
           label: String(label || '').trim(),
           value: String(fields[label] == null ? '' : fields[label]).trim()
         };
       }).filter(function(item) {
-        return item.label && item.value;
+        return item.label &&
+          item.label.toUpperCase() !== 'TANGGAL' &&
+          item.value;
       });
 
       for (let i = 1; i <= 4; i++) {
@@ -7027,11 +7057,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
         if (item) {
           row.textContent = item.label;
-          valueEl.textContent =
-            item.label.toUpperCase() === 'TANGGAL'
-              ? formatPanelKegiatanDate_(item.value)
-              : item.value;
-
+          valueEl.textContent = item.value;
           row.parentElement.style.display = 'flex';
         } else {
           row.textContent = '';
@@ -7040,7 +7066,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         }
       }
     }
-
     let panelKegiatanRequestInFlight = false;
     function fetchPanelKegiatan_() {
       if (panelKegiatanRequestInFlight) return;
