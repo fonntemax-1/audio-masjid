@@ -4189,7 +4189,7 @@ const PANEL_KEGIATAN_OPTIONS_ = [
 
 const PANEL_KEGIATAN_FIELDS_ = {
   "SHOLAT JUM'AT": ["Tanggal", "Khatib", "Imam", "Muadzin"],
-  "SHOLAT TARAWIH": ["Tanggal", "Imam", "Kultum"],
+  "SHOLAT TARAWIH": ["Tanggal", "Imam", "Bilal", "Kultum"],
   "SHOLAT IDUL FITRI": ["Tanggal", "Khatib", "Imam", "Bilal"],
   "SHOLAT IDUL ADHA": ["Tanggal", "Khatib", "Imam", "Bilal"]
 };
