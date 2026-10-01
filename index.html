@@ -701,7 +701,7 @@
 
     /* =========================================================
        ICON FASE BULAN - mengikuti tanggal Hijriah
-       Tidak menambah request jaringan.
+       Dibuat dengan CSS agar selalu terlihat tanpa asset eksternal.
        ========================================================= */
     .hijri-date-box {
       display: flex !important;
@@ -711,17 +711,91 @@
     }
 
     .moon-phase {
+      position: relative;
       flex: 0 0 auto;
       width: clamp(20px, 2.1vw, 34px);
       height: clamp(20px, 2.1vw, 34px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif;
-      font-size: clamp(1.15rem, 2.0vw, 2.2rem);
-      line-height: 1;
-      filter: drop-shadow(0 0 0.18vh rgba(255,255,255,0.22));
-      transform: translateY(-0.05vh);
+      border-radius: 50%;
+      overflow: hidden;
+      background: radial-gradient(circle at 35% 32%,
+        #fff9d6 0%,
+        #f6df8a 32%,
+        #d7b84f 68%,
+        #8e6c20 100%);
+      box-shadow:
+        0 0 0.35vh rgba(255, 225, 120, 0.55),
+        inset -0.12vh -0.12vh 0.25vh rgba(50, 30, 0, 0.45);
+      font-size: 0 !important;
+      line-height: 0;
+    }
+
+    .moon-phase::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--theme-bg-deep, #011910);
+      transition: none;
+    }
+
+    .moon-phase.phase-1 {
+      background: #171717;
+      border: 0.08vh solid rgba(255, 220, 120, 0.22);
+      box-shadow: none;
+    }
+
+    .moon-phase.phase-1::after {
+      display: none;
+    }
+
+    /* Sabit membesar */
+    .moon-phase.phase-2::after {
+      left: 42%;
+      top: 0;
+    }
+
+    /* Perbani awal */
+    .moon-phase.phase-3 {
+      background: linear-gradient(90deg,
+        #252525 0 50%,
+        #f6df8a 50% 100%);
+    }
+    .moon-phase.phase-3::after {
+      display: none;
+    }
+
+    /* Cembung membesar */
+    .moon-phase.phase-4::after {
+      left: 62%;
+      top: 0;
+    }
+
+    /* Purnama */
+    .moon-phase.phase-5::after {
+      display: none;
+    }
+
+    /* Cembung mengecil */
+    .moon-phase.phase-6::after {
+      left: -62%;
+      top: 0;
+    }
+
+    /* Perbani akhir */
+    .moon-phase.phase-7 {
+      background: linear-gradient(90deg,
+        #f6df8a 0 50%,
+        #252525 50% 100%);
+    }
+    .moon-phase.phase-7::after {
+      display: none;
+    }
+
+    /* Sabit mengecil */
+    .moon-phase.phase-8::after {
+      left: -42%;
+      top: 0;
     }
 
     .hijri-date-box .hijri-num {
@@ -2762,7 +2836,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       <div class="header-right">
         <div class="date-box hijri-date-box">
-          <div class="moon-phase" id="moon-phase" aria-hidden="true">🌑</div>
+          <div class="moon-phase phase-1" id="moon-phase" aria-hidden="true"></div>
           <div class="hijri-num" id="hijri-num">--</div>
           <div class="hijri-text" id="hijri-text">--</div>
         </div>
@@ -8070,40 +8144,30 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       const day = Number(hijriDay);
 
-      if (!Number.isFinite(day) || day < 1) {
-        element.innerText = '🌑';
-        element.title = 'Fase bulan tidak tersedia';
-        return;
-      }
+      let phase = 1;
 
-      let icon = '🌑';
-      let label = 'Bulan baru';
-
-      if (day >= 2 && day <= 6) {
-        icon = '🌒';
-        label = 'Sabit membesar';
+      if (Number.isFinite(day) && day >= 2 && day <= 6) {
+        phase = 2;
       } else if (day >= 7 && day <= 8) {
-        icon = '🌓';
-        label = 'Perbani awal';
+        phase = 3;
       } else if (day >= 9 && day <= 13) {
-        icon = '🌔';
-        label = 'Cembung membesar';
+        phase = 4;
       } else if (day >= 14 && day <= 16) {
-        icon = '🌕';
-        label = 'Purnama';
+        phase = 5;
       } else if (day >= 17 && day <= 20) {
-        icon = '🌖';
-        label = 'Cembung mengecil';
+        phase = 6;
       } else if (day >= 21 && day <= 23) {
-        icon = '🌗';
-        label = 'Perbani akhir';
+        phase = 7;
       } else if (day >= 24) {
-        icon = '🌘';
-        label = 'Sabit mengecil';
+        phase = 8;
       }
 
-      element.innerText = icon;
-      element.title = label;
+      element.className =
+        'moon-phase phase-' + phase;
+
+      element.title =
+        'Fase bulan Hijriah hari ' +
+        (Number.isFinite(day) ? day : '--');
     }
 
     function updateHijriDate() {
