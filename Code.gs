@@ -4175,9 +4175,8 @@ function DIAGNOSTIK_ADZAN_E_Z_20260927() {
 // FORM KEGIATAN MASJID - PANELS!C26
 // ============================================================
 // C26 = dropdown JENIS KEGIATAN.
-// C27:C30 = nama field.
-// D27:D30 = data yang diisi.
-// Tidak menyentuh kontrol panels C18, C20, C22, audio, atau scheduler.
+// B27:B30 = label field.
+// C27:C30 = data kegiatan.
 // ============================================================
 
 const PANEL_KEGIATAN_OPTIONS_ = [
@@ -4197,6 +4196,12 @@ const PANEL_KEGIATAN_FIELDS_ = {
 /**
  * Jalankan sekali dari Apps Script Editor untuk memasang
  * dropdown panels!C26 dan struktur field kegiatan.
+ *
+ * Aturan tanggal:
+ * - SHOLAT JUM'AT  : otomatis Jumat pada minggu berjalan.
+ * - TARAWIH        : manual.
+ * - IDUL FITRI     : manual.
+ * - IDUL ADHA      : manual.
  */
 function setupPanelKegiatan() {
   const ss = getSpreadsheet();
@@ -4215,27 +4220,19 @@ function setupPanelKegiatan() {
 
   selector.setDataValidation(rule);
 
-  // Jika C26 kosong, gunakan pilihan pertama sebagai default.
   if (!String(selector.getDisplayValue() || "").trim()) {
     selector.setValue(PANEL_KEGIATAN_OPTIONS_[0]);
   }
 
   formatPanelKegiatanSelector_(selector);
-
-  // Label B27:B30 dibuat dengan formula berdasarkan C26.
-  // C27:C30 tetap menjadi sel input manual dan tidak ditimpa.
-  setupPanelKegiatanLabelFormulas_(sheet);
-
-  // C27 otomatis mengikuti C26 melalui formula.
-  // Tidak membutuhkan onEdit/installable trigger.
+  updatePanelKegiatanFields_(sheet, selector.getDisplayValue(), true);
 
   Logger.log("FORM KEGIATAN PANELS!C26 berhasil disiapkan.");
-  Logger.log("B27:B30 otomatis mengikuti pilihan C26; C27:C30 tetap untuk input.");
 }
 
 /**
- * Trigger edit untuk panels!C26.
- * Saat dropdown berubah, label field di bawahnya otomatis berubah.
+ * Trigger saat panels!C26 diubah.
+ * onEdit memang dipanggil ketika pengguna mengubah nilai sel di Sheets.
  */
 function onEdit(e) {
   if (!e || !e.range) return;
@@ -4247,23 +4244,14 @@ function onEdit(e) {
   if (range.getA1Notation() !== "C26") return;
 
   formatPanelKegiatanSelector_(range);
-  updatePanelKegiatanFields_(sheet, range.getDisplayValue());
 
-  const selectedKegiatan = String(range.getDisplayValue() || "").trim().toUpperCase();
-
-  if (selectedKegiatan === "SHOLAT JUM'AT") {
-    setTanggalJumatMingguBerjalan_(sheet);
-  } else if (selectedKegiatan === "SHOLAT TARAWIH") {
-    sheet.getRange("C27")
-      .setValue(new Date())
-      .setNumberFormat("dd/MM/yyyy");
-  }
+  // Saat jenis kegiatan diganti, bersihkan data kegiatan lama
+  // agar field tidak tertukar antar kegiatan.
+  updatePanelKegiatanFields_(sheet, range.getDisplayValue(), false);
 }
 
 /**
  * Warna C26 mengikuti jenis kegiatan yang dipilih.
- * Apps Script tidak mengekspos warna item menu dropdown,
- * jadi warna diterapkan pada sel/chip pilihan aktif.
  */
 function formatPanelKegiatanSelector_(selector) {
   const key = String(selector.getDisplayValue() || "").trim().toUpperCase();
@@ -4286,13 +4274,16 @@ function formatPanelKegiatanSelector_(selector) {
 }
 
 /**
- * Membentuk field kegiatan pada C27:D30.
- * Field yang tidak diperlukan dikosongkan agar tidak membawa data kegiatan lama.
+ * Mengisi tanggal Jumat pada minggu berjalan.
+ * Contoh jika hari ini Senin-Sabtu, yang dipilih adalah Jumat
+ * pada minggu kalender yang sedang berjalan; jika hari ini Jumat,
+ * tanggal hari ini yang digunakan.
  */
 function setTanggalJumatMingguBerjalan_(sheet) {
   const today = new Date();
   const day = today.getDay(); // Minggu=0 ... Jumat=5 ... Sabtu=6
   const diffToFriday = 5 - day;
+
   const friday = new Date(today);
   friday.setDate(today.getDate() + diffToFriday);
   friday.setHours(0, 0, 0, 0);
@@ -4302,82 +4293,17 @@ function setTanggalJumatMingguBerjalan_(sheet) {
     .setNumberFormat("dd/MM/yyyy");
 }
 
-function setupPanelKegiatanLabelFormulas_(sheet) {
-  // Gunakan label statis yang mengikuti pilihan C26.
-  // Tidak memakai formula IF agar tidak muncul #ERROR! pada field kegiatan.
-  const key = String(sheet.getRange("C26").getDisplayValue() || "").trim().toUpperCase();
-  const fields = PANEL_KEGIATAN_FIELDS_[key] || [];
-
-  const labels = fields.map(function(label) {
-    return [label];
-  });
-
-  while (labels.length < 4) {
-    labels.push([""]);
-  }
-
-  sheet.getRange("B27:B30").setValues(labels);
-
-  // Tanggal otomatis:
-  // JUM'AT = Jumat minggu berjalan.
-  // TARAWIH = tanggal Masehi hari ini.
-  // IDUL FITRI/ADHA = input manual.
-  if (key === "SHOLAT JUM'AT") {
-    setTanggalJumatMingguBerjalan_(sheet);
-  } else if (key === "SHOLAT TARAWIH") {
-    sheet.getRange("C27")
-      .setValue(new Date())
-      .setNumberFormat("dd/MM/yyyy");
-  } else {
-    sheet.getRange("C27").clearContent().setNumberFormat("dd/MM/yyyy");
-  }
-}
-
 /**
- * Mengambil tanggal Masehi hari ini jika tanggal Hijriah saat ini
- * berada di bulan Ramadan (bulan ke-9).
+ * Membentuk B27:B30 sesuai C26 dan mengatur C27:C30.
  *
- * Contoh:
- * 1 Ramadan 1447 H -> 19/02/2026 menurut penetapan Pemerintah Indonesia.
- *
- * Fungsi ini dipakai oleh formula C27 untuk SHOLAT TARAWIH.
+ * resetValues=true dipakai saat setup awal.
+ * Saat C26 berubah melalui onEdit, data lama selalu dibersihkan
+ * agar Khatib/Imam/Muadzin/Bilal/Kultum tidak tertukar.
  */
-function TANGGAL_RAMADHAN_SEKARANG() {
-  const timezone = Session.getScriptTimeZone() || "Asia/Makassar";
-  const now = new Date();
-
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: timezone,
-    calendar: "islamic-umalqura",
-    year: "numeric",
-    month: "numeric",
-    day: "numeric"
-  }).formatToParts(now);
-
-  const hijri = {};
-  parts.forEach(function(part) {
-    if (part.type !== "literal") {
-      hijri[part.type] = part.value;
-    }
-  });
-
-  // Ramadan adalah bulan Hijriah ke-9.
-  if (Number(hijri.month) !== 9) {
-    return "";
-  }
-
-  // Kembalikan tanggal Masehi hari ini.
-  // Formula Sheets akan menampilkannya sesuai format dd/MM/yyyy.
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
-
-function updatePanelKegiatanFields_(sheet, kegiatan) {
+function updatePanelKegiatanFields_(sheet, kegiatan, resetValues) {
   const key = String(kegiatan || "").trim().toUpperCase();
   const fields = PANEL_KEGIATAN_FIELDS_[key] || [];
 
-  // Struktur FORM KEGIATAN:
-  // B27:B30 = nama field
-  // C27:C30 = data yang diisi
   const labelRange = sheet.getRange("B27:B30");
   const valueRange = sheet.getRange("C27:C30");
 
@@ -4391,30 +4317,42 @@ function updatePanelKegiatanFields_(sheet, kegiatan) {
 
   labelRange.setValues(labels);
 
-  // Hapus nilai lama hanya pada field yang tidak lagi digunakan.
-  const currentValues = valueRange.getValues();
-  for (let i = fields.length; i < 4; i++) {
-    currentValues[i][0] = "";
+  // Semua kegiatan memiliki tanggal pada C27.
+  // C27 hanya otomatis untuk JUM'AT; kegiatan lain manual.
+  if (resetValues) {
+    valueRange.clearContent();
+  } else {
+    // Saat dropdown berubah, hapus data kegiatan sebelumnya.
+    valueRange.clearContent();
   }
-  valueRange.setValues(currentValues);
 
-  // Format tanggal untuk field pertama jika tersedia.
   valueRange.clearDataValidations();
 
   if (fields.length > 0 && fields[0] === "Tanggal") {
     valueRange.getCell(1, 1).setNumberFormat("dd/MM/yyyy");
   }
 
-  // Bersihkan label/data bila pilihan tidak valid.
-  if (!fields.length) {
+  if (key === "SHOLAT JUM'AT") {
+    setTanggalJumatMingguBerjalan_(sheet);
+  } else if (!fields.length) {
     labelRange.clearContent();
     valueRange.clearContent();
   }
 }
 
 /**
+ * Kompatibilitas nama fungsi lama.
+ * Tidak lagi menggunakan formula Sheets/custom function.
+ */
+function setupPanelKegiatanLabelFormulas_(sheet) {
+  updatePanelKegiatanFields_(sheet, sheet.getRange("C26").getDisplayValue(), true);
+}
+
+/**
  * API data kegiatan untuk GitHub Pages.
- * Membaca panels!C26 dan data kegiatan pada C27:D30.
+ *
+ * Label selalu diambil dari konfigurasi PANEL_KEGIATAN_FIELDS_
+ * sehingga tidak pernah bergantung pada formula/error di B27:B30.
  */
 function getPanelKegiatan() {
   try {
@@ -4434,19 +4372,18 @@ function getPanelKegiatan() {
       sheet.getRange("C26").getDisplayValue() || ""
     ).trim().toUpperCase();
 
-    const labels = sheet.getRange("B27:B30").getDisplayValues();
+    const configuredFields = PANEL_KEGIATAN_FIELDS_[jenis] || [];
     const values = sheet.getRange("C27:C30").getDisplayValues();
 
     const fields = {};
 
-    for (let i = 0; i < 4; i++) {
-      const label = String(labels[i][0] || "").trim();
-      const value = String(values[i][0] || "").trim();
-
-      if (label) {
-        fields[label] = value;
-      }
-    }
+    configuredFields.forEach(function(label, index) {
+      fields[label] = String(
+        values[index] && values[index][0] != null
+          ? values[index][0]
+          : ""
+      ).trim();
+    });
 
     return {
       success: true,
