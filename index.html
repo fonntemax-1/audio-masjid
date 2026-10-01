@@ -418,9 +418,20 @@
   @media (max-width: 700px) {
     .header-right {
       max-width: 43vw;
-      padding-right: clamp(2.6rem, 10vw, 3.4rem);
+      padding-right: 0;
       gap: 0.8vw;
       align-items: center;
+    }
+
+    .header-right .hijri-date-box {
+      padding-left: clamp(2rem, 9vw, 2.8rem);
+    }
+
+    .header-right .header-moon {
+      left: 0;
+      width: clamp(1.8rem, 8vw, 2.7rem);
+      height: clamp(1.8rem, 8vw, 2.7rem);
+      font-size: clamp(1.7rem, 7vw, 2.5rem);
     }
 
     .header-right .date-box {
@@ -1096,30 +1107,33 @@
        ICON BULAN - paling kanan frame header
        Hanya visual; tidak mengubah tanggal/scheduler/audio.
        ========================================================= */
+    .hijri-date-box {
+      position: relative;
+      padding-left: clamp(2.6rem, 4.5vw, 4.2rem);
+    }
+
     .header-moon {
       position: absolute;
-      right: 0.7vw;
+      left: 0;
       top: 50%;
       transform: translateY(-50%);
-      width: clamp(2.4rem, 4vw, 4.2rem);
-      height: clamp(2.4rem, 4vw, 4.2rem);
+      width: clamp(2.2rem, 3.8vw, 3.8rem);
+      height: clamp(2.2rem, 3.8vw, 3.8rem);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 20;
+      z-index: 2;
       pointer-events: none;
       color: var(--theme-accent) !important;
       font-family: Arial, sans-serif;
-      font-size: clamp(2.2rem, 3.8vw, 4rem);
+      font-size: clamp(2rem, 3.4vw, 3.5rem);
       line-height: 1;
       font-weight: 400;
-      text-shadow: 0 0 0.35rem currentColor;
+      text-shadow: 0 0 0.3rem currentColor;
     }
 
     .header-moon::before {
-      content: "☾";
-      display: block;
-      color: currentColor;
+      content: none;
     }
 
     @media (max-width: 700px) {
@@ -2818,10 +2832,9 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         <div class="slogan" id="slogan_masjid">Slogan / Info Lainnya</div>
       </div>
 
-      <div class="header-moon" id="header-moon" aria-hidden="true" title="Fase bulan">☾</div>
-
       <div class="header-right">
         <div class="date-box hijri-date-box">
+          <div class="header-moon" id="header-moon" aria-hidden="true" title="Fase bulan">☾</div>
           <div class="hijri-num" id="hijri-num">--</div>
           <div class="hijri-text" id="hijri-text">--</div>
         </div>
