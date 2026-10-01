@@ -1161,7 +1161,20 @@
     }
 
     .header-moon::before {
-      content: none;
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 82%;
+      height: 82%;
+      transform: translate(-50%, -50%);
+      border: 0.11rem solid rgba(255,255,255,0.92);
+      border-radius: 50%;
+      box-shadow:
+        0 0 0.28rem rgba(255,255,255,0.95),
+        0 0 0.55rem rgba(255,255,255,0.72);
+      z-index: -1;
+      pointer-events: none;
     }
 
     @media (max-width: 700px) {
