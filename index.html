@@ -2804,7 +2804,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       <div class="header-right">
         <div class="date-box hijri-date-box">
-          <div class="moon-phase phase-1" id="moon-phase" aria-hidden="true"></div>
           <div class="hijri-num" id="hijri-num">--</div>
           <div class="hijri-text" id="hijri-text">--</div>
         </div>
@@ -8105,31 +8104,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     // 21-23   = perbani akhir
     // 24-29/30= sabit mengecil
     // =========================================================
-    function updateMoonPhaseIcon_(hijriDay) {
-      const element =
-        document.getElementById('moon-phase');
-
-      if (!element) return;
-
-      const day = Number(hijriDay);
-
-      let phase = 1;
-
-      if (Number.isFinite(day) && day >= 2 && day <= 6) {
-        phase = 2;
-      } else if (day >= 7 && day <= 8) {
-        phase = 3;
-      } else if (day >= 9 && day <= 13) {
-        phase = 4;
-      } else if (day >= 14 && day <= 16) {
-        phase = 5;
-      } else if (day >= 17 && day <= 20) {
-        phase = 6;
-      } else if (day >= 21 && day <= 23) {
-        phase = 7;
-      } else if (day >= 24) {
-        phase = 8;
-      }
 
       element.className =
         'moon-phase phase-' + phase;
@@ -8181,7 +8155,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           if (match) {
 
-            updateMoonPhaseIcon_(match[1]);
 
             if (numElement) {
               numElement.innerText =
@@ -8198,7 +8171,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
           } else {
 
-            updateMoonPhaseIcon_('--');
 
             if (numElement) {
               numElement.innerText = '--';
