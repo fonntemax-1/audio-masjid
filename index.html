@@ -13348,7 +13348,15 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
 
     if (isFridayWita()) {
 
-      if (nowSeconds < batasDzuhur) {
+      // Jumat memakai DZUHUR sebagai nama internal, tetapi kartu
+      // ditampilkan sebagai JUM'AT. Highlight harus mengikuti aturan
+      // transisi Jumat yang sama dengan countdown: tetap JUM'AT sampai
+      // 13:00 WITA, lalu berpindah ke ASHAR. Jangan gunakan batasDzuhur
+      // di sini karena batas tersebut mengikuti akhir IQOMAH + 15 menit
+      // dan dapat berbeda dari aturan tampilan Jumat.
+      const fridayTransitionSec = 13 * 3600;
+
+      if (nowSeconds < fridayTransitionSec) {
         targetPrayerName = 'DZUHUR';
       } else if (nowSeconds < batasAshar) {
         targetPrayerName = 'ASHAR';
