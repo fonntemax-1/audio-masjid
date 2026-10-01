@@ -4305,14 +4305,52 @@ function setupPanelKegiatanLabelFormulas_(sheet) {
   ];
   sheet.getRange("B27:B30").setFormulas(formulas.map(function(f){ return [f]; }));
 
-  // C27 = tanggal Jumat minggu berjalan saat C26 = SHOLAT JUM'AT.
-  // Senin-Kamis => Jumat terdekat pada minggu berjalan.
-  // Jumat => hari ini.
-  // Sabtu-Minggu => Jumat yang baru lewat.
-  // Untuk kegiatan lain C27 dikosongkan.
+  // C27 otomatis:
+  // - JUM'AT  = Jumat minggu berjalan.
+  // - TARAWIH = tanggal Masehi hari ini hanya saat tanggal Hijriah
+  //             saat ini berada di bulan Ramadan.
+  // - IDUL FITRI/ADHA = tetap dikosongkan untuk input manual.
   sheet.getRange("C27")
-    .setFormula('=IF($C$26="SHOLAT JUM\'AT",TODAY()+5-WEEKDAY(TODAY(),2),"")')
+    .setFormula('=IF($C$26="SHOLAT JUM\'AT",TODAY()+5-WEEKDAY(TODAY(),2),IF($C$26="SHOLAT TARAWIH",TANGGAL_RAMADHAN_SEKARANG(),""))')
     .setNumberFormat("dd/MM/yyyy");
+}
+
+/**
+ * Mengambil tanggal Masehi hari ini jika tanggal Hijriah saat ini
+ * berada di bulan Ramadan (bulan ke-9).
+ *
+ * Contoh:
+ * 1 Ramadan 1447 H -> 19/02/2026 menurut penetapan Pemerintah Indonesia.
+ *
+ * Fungsi ini dipakai oleh formula C27 untuk SHOLAT TARAWIH.
+ */
+function TANGGAL_RAMADHAN_SEKARANG() {
+  const timezone = Session.getScriptTimeZone() || "Asia/Makassar";
+  const now = new Date();
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    calendar: "islamic-umalqura",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric"
+  }).formatToParts(now);
+
+  const hijri = {};
+  parts.forEach(function(part) {
+    if (part.type !== "literal") {
+      hijri[part.type] = part.value;
+    }
+  });
+
+  // Ramadan adalah bulan Hijriah ke-9.
+  if (Number(hijri.month) !== 9) {
+    return "";
+  }
+
+  // Kembalikan tanggal Masehi hari ini.
+  // Formula Sheets akan menampilkannya sesuai format dd/MM/yyyy.
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
 function updatePanelKegiatanFields_(sheet, kegiatan) {
