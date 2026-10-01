@@ -4328,34 +4328,25 @@ function updatePanelKegiatanFields_(sheet, kegiatan, resetValues) {
   const labelRange = sheet.getRange("B27:B30");
   const valueRange = sheet.getRange("C27:C30");
 
-  const labels = fields.map(function(label) {
-    return [label];
-  });
+  // Label B27:B30 berubah otomatis berdasarkan C26.
+  // Menggunakan formula Sheet sehingga TIDAK membutuhkan onEdit trigger.
+  const formulaRows = [
+    ['=IF($C$26="SHOLAT JUM\'AT","Tanggal",IF($C$26="SHOLAT TARAWIH","Tanggal",IF($C$26="SHOLAT IDUL FITRI","Tanggal",IF($C$26="SHOLAT IDUL ADHA","Tanggal",""))))'],
+    ['=IF($C$26="SHOLAT JUM\'AT","Khatib",IF($C$26="SHOLAT TARAWIH","Imam",IF($C$26="SHOLAT IDUL FITRI","Khatib",IF($C$26="SHOLAT IDUL ADHA","Khatib",""))))'],
+    ['=IF($C$26="SHOLAT JUM\'AT","Imam",IF($C$26="SHOLAT TARAWIH","Bilal",IF($C$26="SHOLAT IDUL FITRI","Imam",IF($C$26="SHOLAT IDUL ADHA","Imam",""))))'],
+    ['=IF($C$26="SHOLAT JUM\'AT","Muadzin",IF($C$26="SHOLAT TARAWIH","Kultum",IF($C$26="SHOLAT IDUL FITRI","Bilal",IF($C$26="SHOLAT IDUL ADHA","Bilal",""))))']
+  ];
 
-  while (labels.length < 4) {
-    labels.push([""]);
-  }
+  labelRange.setFormulas(formulaRows);
 
-  labelRange.setValues(labels);
-
-  // Setiap kali jenis kegiatan berubah, kosongkan seluruh data lama.
-  // SEMUA kegiatan: C27 (Tanggal) wajib diisi MANUAL.
-  valueRange.clearContent();
+  // SEMUA data kegiatan, termasuk tanggal C27, MANUAL.
+  // C27:C30 tidak diisi/dihapus ketika C26 berubah.
   valueRange.clearDataValidations();
 
   if (fields.length > 0 && fields[0] === "Tanggal") {
     valueRange.getCell(1, 1).setNumberFormat("dd/MM/yyyy");
   }
-
-  // Semua tanggal kegiatan manual.
-  // Tidak ada lagi pengisian otomatis berdasarkan hari Jumat.
-
-  if (!fields.length) {
-    labelRange.clearContent();
-    valueRange.clearContent();
-  }
 }
-
 /**
  * Kompatibilitas nama fungsi lama.
  * Tidak lagi menggunakan formula Sheets/custom function.
