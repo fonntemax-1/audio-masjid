@@ -7463,6 +7463,34 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       keuanganPos = 0;
       content.style.transform = 'translateY(0px)';
 
+      /*
+       * Loop dibuat dengan 2 salinan tabel.
+       * Salinan kedua masuk dari bawah sebelum salinan pertama
+       * benar-benar hilang, sehingga tidak ada refresh/lompatan.
+       */
+      let firstBlock = content.firstElementChild;
+
+      if (
+        firstBlock &&
+        firstBlock.tagName === 'TABLE' &&
+        content.children.length === 1
+      ) {
+        const clone = firstBlock.cloneNode(true);
+        clone.setAttribute('aria-hidden', 'true');
+        content.appendChild(clone);
+      }
+
+      firstBlock = content.firstElementChild;
+
+      if (!firstBlock || firstBlock.tagName !== 'TABLE') return;
+
+      const loopHeight = firstBlock.getBoundingClientRect().height;
+
+      if (loopHeight <= area.clientHeight) {
+        content.style.transform = 'translateY(0px)';
+        return;
+      }
+
       const speed = 0.2;
       let lastFrame = 0;
 
@@ -7478,32 +7506,15 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
         lastFrame = timestamp;
 
-        const maxScroll =
-          Math.max(
-            0,
-            content.scrollHeight - area.clientHeight
-          );
-
-        if (maxScroll <= 0) {
-          keuanganAnimId = null;
-          return;
-        }
-
         keuanganPos -= speed;
 
-        if (Math.abs(keuanganPos) >= maxScroll) {
-          keuanganPos = -maxScroll;
-          content.style.transform =
-            'translateY(' + keuanganPos + 'px)';
-
-          requestAnimationFrame(function () {
-            keuanganPos = 0;
-            content.style.transform =
-              'translateY(0px)';
-            keuanganAnimId =
-              requestAnimationFrame(step);
-          });
-          return;
+        /*
+         * Jangan reset saat frame kosong.
+         * Reset tepat setelah satu tabel penuh lewat,
+         * ketika tabel kedua sudah berada di posisi yang sama.
+         */
+        if (Math.abs(keuanganPos) >= loopHeight) {
+          keuanganPos += loopHeight;
         }
 
         content.style.transform =
