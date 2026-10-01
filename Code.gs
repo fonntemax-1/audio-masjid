@@ -410,7 +410,33 @@ function getDataFromSheet() {
     Logger.log('LOKASI API = ' + JSON.stringify(result.Lokasi));
 
     // =====================================================
-    // HEADER MASJID - panels!B12:C16
+    // HEADER MASJID
+    // NAMA dibaca LANGSUNG dari panels!C12.
+    // Field lain tetap mengikuti pasangan label B13:C16.
+    // =====================================================
+    const headerSheet = ss.getSheetByName('panels');
+    if (headerSheet) {
+      result.Nama = String(
+        headerSheet.getRange('C12').getDisplayValue() || ''
+      ).trim();
+
+      const headerValues = headerSheet.getRange('B13:C16').getDisplayValues();
+      const headerData = {};
+
+      headerValues.forEach(function(row) {
+        const key = String(row[0] || '').trim().toUpperCase();
+        const value = String(row[1] || '').trim();
+        if (key) headerData[key] = value;
+      });
+
+      result.Alamat = headerData.ALAMAT || '';
+      result.Kota = headerData.KOTA || '';
+      result['No. Telp'] = headerData['NO HP'] || '';
+      result.Slogan = headerData.SLOGAN || '';
+
+      Logger.log('PANELS HEADER: Nama=panels!C12 = ' + result.Nama);
+    }
+
     // =====================================================
     const headerSheet = ss.getSheetByName('panels');
     if (headerSheet) {
