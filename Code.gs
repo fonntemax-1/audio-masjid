@@ -4267,8 +4267,11 @@ function updatePanelKegiatanFields_(sheet, kegiatan) {
   const key = String(kegiatan || "").trim().toUpperCase();
   const fields = PANEL_KEGIATAN_FIELDS_[key] || [];
 
-  const labelRange = sheet.getRange("C27:C30");
-  const valueRange = sheet.getRange("D27:D30");
+  // Struktur FORM KEGIATAN:
+  // B27:B30 = nama field
+  // C27:C30 = data yang diisi
+  const labelRange = sheet.getRange("B27:B30");
+  const valueRange = sheet.getRange("C27:C30");
 
   const labels = fields.map(function(label) {
     return [label];
@@ -4294,7 +4297,7 @@ function updatePanelKegiatanFields_(sheet, kegiatan) {
     valueRange.getCell(1, 1).setNumberFormat("dd/MM/yyyy");
   }
 
-  // Bersihkan label/kolom sampai baris 30 bila pilihan tidak valid.
+  // Bersihkan label/data bila pilihan tidak valid.
   if (!fields.length) {
     labelRange.clearContent();
     valueRange.clearContent();
