@@ -1217,6 +1217,21 @@ function getDataFromSheet() {
 
 
     // =====================================================
+    // PETUGAS SHOLAT - panels!C26:C30
+    // =====================================================
+    try {
+      const kegiatanSheet = ss.getSheetByName('panels');
+      if (kegiatanSheet) {
+        result.PanelKegiatan = getPanelKegiatan();
+      } else {
+        result.PanelKegiatan = { success: false, jenis: '', fields: {} };
+      }
+    } catch (kegiatanError) {
+      Logger.log('PANEL KEGIATAN GET DATA ERROR: ' + kegiatanError.message);
+      result.PanelKegiatan = { success: false, jenis: '', fields: {} };
+    }
+
+    // =====================================================
     // DEBUG HASIL AKHIR
     // =====================================================
 
