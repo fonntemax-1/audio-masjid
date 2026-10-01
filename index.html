@@ -7492,7 +7492,18 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         keuanganPos -= speed;
 
         if (Math.abs(keuanganPos) >= maxScroll) {
-          keuanganPos = 0;
+          keuanganPos = -maxScroll;
+          content.style.transform =
+            'translateY(' + keuanganPos + 'px)';
+
+          requestAnimationFrame(function () {
+            keuanganPos = 0;
+            content.style.transform =
+              'translateY(0px)';
+            keuanganAnimId =
+              requestAnimationFrame(step);
+          });
+          return;
         }
 
         content.style.transform =
