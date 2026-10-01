@@ -4334,7 +4334,7 @@ function updatePanelKegiatanFields_(sheet, kegiatan, resetValues) {
     ['=IF($C$26="SHOLAT JUM\'AT","Tanggal",IF($C$26="SHOLAT TARAWIH","Tanggal",IF($C$26="SHOLAT IDUL FITRI","Tanggal",IF($C$26="SHOLAT IDUL ADHA","Tanggal",""))))'],
     ['=IF($C$26="SHOLAT JUM\'AT","Khatib",IF($C$26="SHOLAT TARAWIH","Imam",IF($C$26="SHOLAT IDUL FITRI","Khatib",IF($C$26="SHOLAT IDUL ADHA","Khatib",""))))'],
     ['=IF($C$26="SHOLAT JUM\'AT","Imam",IF($C$26="SHOLAT TARAWIH","Bilal",IF($C$26="SHOLAT IDUL FITRI","Imam",IF($C$26="SHOLAT IDUL ADHA","Imam",""))))'],
-    ['=IF($C$26="SHOLAT JUM\'AT","Muadzin",IF($C$26="SHOLAT TARAWIH","Kultum",IF($C$26="SHOLAT IDUL FITRI","Bilal",IF($C$26="SHOLAT IDUL ADHA","Bilal",""))))']
+    ['=IF($C$26="SHOLAT JUM\'AT","Bilal",IF($C$26="SHOLAT TARAWIH","Kultum",IF($C$26="SHOLAT IDUL FITRI","Bilal",IF($C$26="SHOLAT IDUL ADHA","Bilal",""))))']
   ];
 
   labelRange.setFormulas(formulaRows);
