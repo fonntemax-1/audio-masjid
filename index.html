@@ -7002,29 +7002,42 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       titleEl.textContent = jenis ? 'PETUGAS SHOLAT ' + jenis : 'PETUGAS SHOLAT';
       listEl.style.display = jenis ? 'flex' : 'none';
 
-      const fields = data && data.fields && typeof data.fields === 'object' ? data.fields : {};
-      const normalized = {};
-      Object.keys(fields).forEach(function(key) {
-        normalized[String(key).trim().toUpperCase()] = fields[key];
+      const fields = data && data.fields && typeof data.fields === 'object'
+        ? data.fields
+        : {};
+
+      // B27:B30 dari Code.gs adalah sumber urutan field.
+      // Jangan memakai daftar tetap karena TARAWIH memakai KULTUM
+      // dan IDUL FITRI/ADHA memakai BILAL.
+      const entries = Object.keys(fields).map(function(label) {
+        return {
+          label: String(label || '').trim(),
+          value: String(fields[label] == null ? '' : fields[label]).trim()
+        };
+      }).filter(function(item) {
+        return item.label && item.value;
       });
 
-      const wanted = ['TANGGAL','KHATIB','IMAM','MUADZIN'];
-      let rowIndex = 0;
-      wanted.forEach(function(key) {
-        const value = normalized[key];
-        if (value === undefined || String(value).trim() === '') return;
-        rowIndex++;
-        const labelEl = document.getElementById('k-label-' + rowIndex);
-        const valueEl = document.getElementById('k-value-' + rowIndex);
-        if (!labelEl || !valueEl) return;
-        labelEl.textContent = key === 'KHATIB' ? 'Khatib' : key.charAt(0) + key.slice(1).toLowerCase();
-        valueEl.textContent = key === 'TANGGAL' ? formatPanelKegiatanDate_(value) : String(value).trim();
-        valueEl.parentElement.style.display = 'flex';
-      });
+      for (let i = 1; i <= 4; i++) {
+        const row = document.getElementById('k-label-' + i);
+        const valueEl = document.getElementById('k-value-' + i);
+        if (!row || !valueEl) continue;
 
-      for (let i = rowIndex + 1; i <= 4; i++) {
-        const labelEl = document.getElementById('k-label-' + i);
-        if (labelEl && labelEl.parentElement) labelEl.parentElement.style.display = 'none';
+        const item = entries[i - 1];
+
+        if (item) {
+          row.textContent = item.label;
+          valueEl.textContent =
+            item.label.toUpperCase() === 'TANGGAL'
+              ? formatPanelKegiatanDate_(item.value)
+              : item.value;
+
+          row.parentElement.style.display = 'flex';
+        } else {
+          row.textContent = '';
+          valueEl.textContent = '';
+          row.parentElement.style.display = 'none';
+        }
       }
     }
 
