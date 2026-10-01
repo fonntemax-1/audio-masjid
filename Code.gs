@@ -4303,22 +4303,34 @@ function setTanggalJumatMingguBerjalan_(sheet) {
 }
 
 function setupPanelKegiatanLabelFormulas_(sheet) {
-  const formulas = [
-    '=IF($C$26="SHOLAT JUM\'AT","Tanggal",IF($C$26="SHOLAT TARAWIH","Tanggal",IF($C$26="SHOLAT IDUL FITRI","Tanggal",IF($C$26="SHOLAT IDUL ADHA","Tanggal",""))))',
-    '=IF($C$26="SHOLAT JUM\'AT","Khatib",IF($C$26="SHOLAT TARAWIH","Imam",IF(OR($C$26="SHOLAT IDUL FITRI",$C$26="SHOLAT IDUL ADHA"),"Khatib","")))',
-    '=IF($C$26="SHOLAT JUM\'AT","Imam",$C$26="SHOLAT TARAWIH","Bilal",IF(OR($C$26="SHOLAT IDUL FITRI",$C$26="SHOLAT IDUL ADHA"),"Imam","")))',
-    '=IF($C$26="SHOLAT JUM\'AT","Muadzin",$C$26="SHOLAT TARAWIH","Kultum",IF(OR($C$26="SHOLAT IDUL FITRI",$C$26="SHOLAT IDUL ADHA"),"Bilal","")))'
-  ];
-  sheet.getRange("B27:B30").setFormulas(formulas.map(function(f){ return [f]; }));
+  // Gunakan label statis yang mengikuti pilihan C26.
+  // Tidak memakai formula IF agar tidak muncul #ERROR! pada field kegiatan.
+  const key = String(sheet.getRange("C26").getDisplayValue() || "").trim().toUpperCase();
+  const fields = PANEL_KEGIATAN_FIELDS_[key] || [];
 
-  // C27 otomatis:
-  // - JUM'AT  = Jumat minggu berjalan.
-  // - TARAWIH = tanggal Masehi hari ini hanya saat tanggal Hijriah
-  //             saat ini berada di bulan Ramadan.
-  // - IDUL FITRI/ADHA = tetap dikosongkan untuk input manual.
-  sheet.getRange("C27")
-    .setFormula('=IF($C$26="SHOLAT JUM\'AT",TODAY()+5-WEEKDAY(TODAY(),2),IF($C$26="SHOLAT TARAWIH",TODAY(),""))')
-    .setNumberFormat("dd/MM/yyyy");
+  const labels = fields.map(function(label) {
+    return [label];
+  });
+
+  while (labels.length < 4) {
+    labels.push([""]);
+  }
+
+  sheet.getRange("B27:B30").setValues(labels);
+
+  // Tanggal otomatis:
+  // JUM'AT = Jumat minggu berjalan.
+  // TARAWIH = tanggal Masehi hari ini.
+  // IDUL FITRI/ADHA = input manual.
+  if (key === "SHOLAT JUM'AT") {
+    setTanggalJumatMingguBerjalan_(sheet);
+  } else if (key === "SHOLAT TARAWIH") {
+    sheet.getRange("C27")
+      .setValue(new Date())
+      .setNumberFormat("dd/MM/yyyy");
+  } else {
+    sheet.getRange("C27").clearContent().setNumberFormat("dd/MM/yyyy");
+  }
 }
 
 /**
