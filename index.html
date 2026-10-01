@@ -868,9 +868,7 @@
   min-width: 0;
   text-align: center;
   transform: none;
-  padding: 0 var(--header-right-space, 12vw) 0 var(--header-logo-space, 10vw);
-  box-sizing: border-box;
-  transition: padding-left 0.25s ease, padding-right 0.25s ease;
+  padding: 0 1.2vw 0 10vw;
 }
 
 .header-center h1 {
@@ -889,8 +887,6 @@
 }
 
 .header-center .latin-name {
-  max-width: 100%;
-  box-sizing: border-box;
   color: #ffcc00;
   font-family: 'ALHAMBRA', serif;
   font-size: clamp(1.85rem, 3.0vh, 3.8rem);
@@ -6457,73 +6453,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
 
     // =========================================================
-    // HEADER RESPONSIVE - LOGO <-> NAMA MASJID
-    // Jarak logo, nama masjid, dan panel tanggal dihitung dari
-    // ukuran aktual elemen agar tidak saling bertabrakan.
-    // =========================================================
-
-    function updateHeaderResponsive_() {
-      const header = document.querySelector('.header');
-      const logo = document.querySelector('.header-logo');
-      const right = document.querySelector('.header-right');
-      const center = document.querySelector('.header-center');
-
-      if (!header || !logo || !right || !center) return;
-
-      const headerRect = header.getBoundingClientRect();
-      const logoRect = logo.getBoundingClientRect();
-      const rightRect = right.getBoundingClientRect();
-
-      const gap = Math.max(
-        12,
-        Math.round(headerRect.width * 0.012)
-      );
-
-      const logoSpace =
-        Math.max(0, logoRect.right - headerRect.left + gap);
-
-      const rightSpace =
-        Math.max(0, headerRect.right - rightRect.left + gap);
-
-      center.style.setProperty(
-        '--header-logo-space',
-        logoSpace + 'px'
-      );
-
-      center.style.setProperty(
-        '--header-right-space',
-        rightSpace + 'px'
-      );
-    }
-
-    function startHeaderResponsive_() {
-      updateHeaderResponsive_();
-
-      if (window.ResizeObserver) {
-        const observer = new ResizeObserver(
-          updateHeaderResponsive_
-        );
-
-        const header = document.querySelector('.header');
-        const logo = document.querySelector('.header-logo');
-        const right = document.querySelector('.header-right');
-
-        if (header) observer.observe(header);
-        if (logo) observer.observe(logo);
-        if (right) observer.observe(right);
-
-        window.__headerResponsiveObserver = observer;
-      }
-
-      window.addEventListener(
-        'resize',
-        updateHeaderResponsive_,
-        { passive: true }
-      );
-    }
-
-
-    // =========================================================
     // UPDATE UI
     // =========================================================
 
@@ -6707,9 +6636,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         }
 
         if (oldTimezone !== newTimezone) {
-          startHeaderResponsive_();
-
-    startAutoRefresh();
+          startAutoRefresh();
           updateClock();
           updateGregorianDate();
           updateHijriDate();
@@ -6879,7 +6806,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
               ? (/^MASJID\\b/i.test(nama) ? nama : 'MASJID ' + nama)
               : '';
 
-          updateHeaderResponsive_();
         }
 
       }
