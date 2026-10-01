@@ -4249,8 +4249,14 @@ function onEdit(e) {
   formatPanelKegiatanSelector_(range);
   updatePanelKegiatanFields_(sheet, range.getDisplayValue());
 
-  if (String(range.getDisplayValue() || "").trim().toUpperCase() === "SHOLAT JUM'AT") {
+  const selectedKegiatan = String(range.getDisplayValue() || "").trim().toUpperCase();
+
+  if (selectedKegiatan === "SHOLAT JUM'AT") {
     setTanggalJumatMingguBerjalan_(sheet);
+  } else if (selectedKegiatan === "SHOLAT TARAWIH") {
+    sheet.getRange("C27")
+      .setValue(new Date())
+      .setNumberFormat("dd/MM/yyyy");
   }
 }
 
@@ -4300,8 +4306,8 @@ function setupPanelKegiatanLabelFormulas_(sheet) {
   const formulas = [
     '=IF($C$26="SHOLAT JUM\'AT","Tanggal",IF($C$26="SHOLAT TARAWIH","Tanggal",IF($C$26="SHOLAT IDUL FITRI","Tanggal",IF($C$26="SHOLAT IDUL ADHA","Tanggal",""))))',
     '=IF($C$26="SHOLAT JUM\'AT","Khatib",IF($C$26="SHOLAT TARAWIH","Imam",IF(OR($C$26="SHOLAT IDUL FITRI",$C$26="SHOLAT IDUL ADHA"),"Khatib","")))',
-    '=IF($C$26="SHOLAT JUM\'AT","Imam",IF($C$26="SHOLAT TARAWIH","Kultum",IF(OR($C$26="SHOLAT IDUL FITRI",$C$26="SHOLAT IDUL ADHA"),"Imam","")))',
-    '=IF($C$26="SHOLAT JUM\'AT","Muadzin",IF($C$26="SHOLAT TARAWIH","",IF(OR($C$26="SHOLAT IDUL FITRI",$C$26="SHOLAT IDUL ADHA"),"Bilal","")))'
+    '=IF($C$26="SHOLAT JUM\'AT","Imam",$C$26="SHOLAT TARAWIH","Bilal",IF(OR($C$26="SHOLAT IDUL FITRI",$C$26="SHOLAT IDUL ADHA"),"Imam","")))',
+    '=IF($C$26="SHOLAT JUM\'AT","Muadzin",$C$26="SHOLAT TARAWIH","Kultum",IF(OR($C$26="SHOLAT IDUL FITRI",$C$26="SHOLAT IDUL ADHA"),"Bilal","")))'
   ];
   sheet.getRange("B27:B30").setFormulas(formulas.map(function(f){ return [f]; }));
 
@@ -4311,7 +4317,7 @@ function setupPanelKegiatanLabelFormulas_(sheet) {
   //             saat ini berada di bulan Ramadan.
   // - IDUL FITRI/ADHA = tetap dikosongkan untuk input manual.
   sheet.getRange("C27")
-    .setFormula('=IF($C$26="SHOLAT JUM\'AT",TODAY()+5-WEEKDAY(TODAY(),2),IF($C$26="SHOLAT TARAWIH",TANGGAL_RAMADHAN_SEKARANG(),""))')
+    .setFormula('=IF($C$26="SHOLAT JUM\'AT",TODAY()+5-WEEKDAY(TODAY(),2),IF($C$26="SHOLAT TARAWIH",TODAY(),""))')
     .setNumberFormat("dd/MM/yyyy");
 }
 
