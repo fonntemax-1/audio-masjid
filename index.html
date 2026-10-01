@@ -2936,24 +2936,13 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         </div>
 
         <div class="panel-box">
-          <div class="panel-title">KHOTBAH JUMAT</div>
-          <div class="panel-sub" id="tgl-khotbah">-</div>
+          <div class="panel-title" id="petugas-title">PETUGAS SHOLAT JUM'AT</div>
 
-          <div class="khotbah-list">
-            <div class="khotbah-item">
-              <span class="khotbah-role">Khotib</span>
-              <span class="khotbah-name" id="k-khotib">-</span>
-            </div>
-
-            <div class="khotbah-item">
-              <span class="khotbah-role">Imam</span>
-              <span class="khotbah-name" id="k-imam">-</span>
-            </div>
-
-            <div class="khotbah-item">
-              <span class="khotbah-role">Muadzin</span>
-              <span class="khotbah-name" id="k-muadzin">-</span>
-            </div>
+          <div class="khotbah-list" id="petugas-sholat-list">
+            <div class="khotbah-item"><span class="khotbah-role" id="k-label-1">Tanggal</span><span class="khotbah-name" id="k-value-1">-</span></div>
+            <div class="khotbah-item"><span class="khotbah-role" id="k-label-2">Khatib</span><span class="khotbah-name" id="k-value-2">-</span></div>
+            <div class="khotbah-item"><span class="khotbah-role" id="k-label-3">Imam</span><span class="khotbah-name" id="k-value-3">-</span></div>
+            <div class="khotbah-item"><span class="khotbah-role" id="k-label-4">Muadzin</span><span class="khotbah-name" id="k-value-4">-</span></div>
           </div>
         </div>
       </div>
@@ -6987,7 +6976,64 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
 
       // =======================================================
-      // RUNNING TEXT
+          // =======================================================
+    // PETUGAS SHOLAT - PANELS!C26:C30
+    // =======================================================
+    function formatPanelKegiatanDate_(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '-';
+      const m = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+      if (!m) return raw;
+      const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+      return months[Number(m[2]) - 1] ? Number(m[1]) + ' ' + months[Number(m[2]) - 1] + ' ' + m[3] : raw;
+    }
+
+    function updatePanelKegiatanDisplay_(data) {
+      const titleEl = document.getElementById('petugas-title');
+      const listEl = document.getElementById('petugas-sholat-list');
+      if (!titleEl || !listEl) return;
+
+      const jenis = String(data && data.jenis || '').trim().toUpperCase();
+      titleEl.textContent = jenis ? 'PETUGAS SHOLAT ' + jenis : 'PETUGAS SHOLAT';
+      listEl.style.display = jenis ? 'flex' : 'none';
+
+      const fields = data && data.fields && typeof data.fields === 'object' ? data.fields : {};
+      const normalized = {};
+      Object.keys(fields).forEach(function(key) {
+        normalized[String(key).trim().toUpperCase()] = fields[key];
+      });
+
+      const wanted = ['TANGGAL','KHATIB','IMAM','MUADZIN'];
+      let rowIndex = 0;
+      wanted.forEach(function(key) {
+        const value = normalized[key];
+        if (value === undefined || String(value).trim() === '') return;
+        rowIndex++;
+        const labelEl = document.getElementById('k-label-' + rowIndex);
+        const valueEl = document.getElementById('k-value-' + rowIndex);
+        if (!labelEl || !valueEl) return;
+        labelEl.textContent = key === 'KHATIB' ? 'Khatib' : key.charAt(0) + key.slice(1).toLowerCase();
+        valueEl.textContent = key === 'TANGGAL' ? formatPanelKegiatanDate_(value) : String(value).trim();
+        valueEl.parentElement.style.display = 'flex';
+      });
+
+      for (let i = rowIndex + 1; i <= 4; i++) {
+        const labelEl = document.getElementById('k-label-' + i);
+        if (labelEl && labelEl.parentElement) labelEl.parentElement.style.display = 'none';
+      }
+    }
+
+    let panelKegiatanRequestInFlight = false;
+    function fetchPanelKegiatan_() {
+      if (panelKegiatanRequestInFlight) return;
+      panelKegiatanRequestInFlight = true;
+      gasApiCall('getPanelKegiatan')
+        .then(function(data) { updatePanelKegiatanDisplay_(data); })
+        .catch(function(error) { console.warn('PANEL KEGIATAN GAGAL:', error && error.message ? error.message : error); })
+        .finally(function() { panelKegiatanRequestInFlight = false; });
+    }
+
+// RUNNING TEXT
       // =======================================================
 
       if (data.Running_Text) {
@@ -15735,7 +15781,10 @@ function setCountdownBlackMode(enabled) {
       30000
     );
 
-    // Selector panels!G20 harus merespons maksimal sekitar 1-2 detik.\n    // Polling khusus ini tidak mengubah polling data utama 30 detik.\n    startFastYouTubeControlPolling_();
+        fetchPanelKegiatan_();
+    setInterval(fetchPanelKegiatan_, 30000);
+
+// Selector panels!G20 harus merespons maksimal sekitar 1-2 detik.\n    // Polling khusus ini tidak mengubah polling data utama 30 detik.\n    startFastYouTubeControlPolling_();
     startFastIqomahBlackModePolling_();
 
     // panels!C2 tetap diperiksa terpisah, tetapi tidak lagi ikut setiap
