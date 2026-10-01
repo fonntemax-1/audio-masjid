@@ -1125,6 +1125,16 @@
     .hijri-date-box {
       position: relative;
       padding-left: clamp(2.6rem, 4.5vw, 4.2rem);
+      width: max-content;
+      min-width: max-content;
+      max-width: none;
+      white-space: nowrap;
+      overflow: visible;
+    }
+
+    .hijri-date-box .hijri-text {
+      white-space: nowrap;
+      display: block;
     }
 
     .header-moon {
