@@ -6999,7 +6999,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       if (!titleEl || !listEl) return;
 
       const jenis = String(data && data.jenis || '').trim().toUpperCase();
-      titleEl.textContent = jenis ? 'PETUGAS SHOLAT ' + jenis : 'PETUGAS SHOLAT';
+      titleEl.textContent = jenis ? (jenis.indexOf('SHOLAT ') === 0 ? 'PETUGAS ' + jenis : 'PETUGAS SHOLAT ' + jenis) : 'PETUGAS SHOLAT';
       listEl.style.display = jenis ? 'flex' : 'none';
 
       const fields = data && data.fields && typeof data.fields === 'object'
