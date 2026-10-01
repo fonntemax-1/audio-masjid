@@ -8022,26 +8022,6 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     // HIJRI - API INDONESIA
     // =========================================================
 
-    // =========================================================
-    // FASE BULAN BERDASARKAN TANGGAL HIJRIAH
-    // 1       = bulan baru
-    // 2-6     = sabit membesar
-    // 7-8     = perbani awal
-    // 9-13    = cembung membesar
-    // 14-16   = purnama
-    // 17-20   = cembung mengecil
-    // 21-23   = perbani akhir
-    // 24-29/30= sabit mengecil
-    // =========================================================
-
-      element.className =
-        'moon-phase phase-' + phase;
-
-      element.title =
-        'Fase bulan Hijriah hari ' +
-        (Number.isFinite(day) ? day : '--');
-    }
-
     function updateHijriDate() {
 
       const apiDate =
