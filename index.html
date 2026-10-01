@@ -7464,9 +7464,10 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       content.style.transform = 'translateY(0px)';
 
       /*
-       * Loop dibuat dengan 2 salinan tabel.
-       * Salinan kedua masuk dari bawah sebelum salinan pertama
-       * benar-benar hilang, sehingga tidak ada refresh/lompatan.
+       * Loop kontinu dengan jeda kosong 1/2 tinggi frame.
+       * Setelah satu tabel selesai keluar, layar kosong terlebih
+       * dahulu setengah frame. Baru salinan tabel berikutnya masuk.
+       * Ini membuat pergantian lebih nyaman dibaca tanpa refresh.
        */
       let firstBlock = content.firstElementChild;
 
@@ -7477,6 +7478,18 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       ) {
         const clone = firstBlock.cloneNode(true);
         clone.setAttribute('aria-hidden', 'true');
+
+        const spacer = document.createElement('div');
+        spacer.className = 'keuangan-scroll-spacer';
+
+        const spacerHeight = Math.max(
+          1,
+          Math.round(area.clientHeight * 0.5)
+        );
+        spacer.style.height = spacerHeight + 'px';
+        spacer.setAttribute('aria-hidden', 'true');
+
+        content.appendChild(spacer);
         content.appendChild(clone);
       }
 
@@ -7484,13 +7497,21 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       if (!firstBlock || firstBlock.tagName !== 'TABLE') return;
 
-      const loopHeight = firstBlock.getBoundingClientRect().height;
+      const loopSpacer = content.children[1];
+      const loopHeight =
+        firstBlock.getBoundingClientRect().height;
+
+      const gapHeight =
+        loopSpacer && loopSpacer.classList.contains('keuangan-scroll-spacer')
+          ? loopSpacer.getBoundingClientRect().height
+          : Math.round(area.clientHeight * 0.5);
 
       if (loopHeight <= area.clientHeight) {
         content.style.transform = 'translateY(0px)';
         return;
       }
 
+      const loopDistance = loopHeight + gapHeight;
       const speed = 0.2;
       let lastFrame = 0;
 
@@ -7509,12 +7530,12 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         keuanganPos -= speed;
 
         /*
-         * Jangan reset saat frame kosong.
-         * Reset tepat setelah satu tabel penuh lewat,
-         * ketika tabel kedua sudah berada di posisi yang sama.
+         * Reset hanya setelah tabel pertama + jeda 1/2 frame
+         * sudah seluruhnya lewat. Pada saat reset, salinan kedua
+         * berada tepat di posisi awal tabel pertama.
          */
-        if (Math.abs(keuanganPos) >= loopHeight) {
-          keuanganPos += loopHeight;
+        if (Math.abs(keuanganPos) >= loopDistance) {
+          keuanganPos += loopDistance;
         }
 
         content.style.transform =
