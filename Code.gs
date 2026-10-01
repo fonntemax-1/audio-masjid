@@ -4211,10 +4211,8 @@ function setupPanelKegiatan() {
   // C27:C30 tetap menjadi sel input manual dan tidak ditimpa.
   setupPanelKegiatanLabelFormulas_(sheet);
 
-  // SHOLAT JUM'AT: isi tanggal Jumat minggu berjalan otomatis.
-  if (String(selector.getDisplayValue() || "").trim().toUpperCase() === "SHOLAT JUM'AT") {
-    setTanggalJumatMingguBerjalan_(sheet);
-  }
+  // C27 otomatis mengikuti C26 melalui formula.
+  // Tidak membutuhkan onEdit/installable trigger.
 
   Logger.log("FORM KEGIATAN PANELS!C26 berhasil disiapkan.");
   Logger.log("B27:B30 otomatis mengikuti pilihan C26; C27:C30 tetap untuk input.");
@@ -4291,6 +4289,15 @@ function setupPanelKegiatanLabelFormulas_(sheet) {
     '=IF($C$26="SHOLAT JUM\'AT","Muadzin",IF($C$26="SHOLAT TARAWIH","",IF(OR($C$26="SHOLAT IDUL FITRI",$C$26="SHOLAT IDUL ADHA"),"Bilal","")))'
   ];
   sheet.getRange("B27:B30").setFormulas(formulas.map(function(f){ return [f]; }));
+
+  // C27 = tanggal Jumat minggu berjalan saat C26 = SHOLAT JUM'AT.
+  // Senin-Kamis => Jumat terdekat pada minggu berjalan.
+  // Jumat => hari ini.
+  // Sabtu-Minggu => Jumat yang baru lewat.
+  // Untuk kegiatan lain C27 dikosongkan.
+  sheet.getRange("C27")
+    .setFormula('=IF($C$26="SHOLAT JUM\'AT",TODAY()+5-WEEKDAY(TODAY(),2),"")')
+    .setNumberFormat("dd/MM/yyyy");
 }
 
 function updatePanelKegiatanFields_(sheet, kegiatan) {
