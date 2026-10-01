@@ -416,6 +416,37 @@
      Tidak menyentuh scheduler, audio, YouTube, atau API.
      ========================================================= */
   @media (max-width: 700px) {
+    .header-right {
+      max-width: 43vw;
+      padding-right: clamp(2.6rem, 10vw, 3.4rem);
+      gap: 0.8vw;
+      align-items: center;
+    }
+
+    .header-right .date-box {
+      max-width: 18vw;
+    }
+
+    .header-right .date-box .hijri-num {
+      font-size: clamp(0.9rem, 4.5vw, 1.45rem);
+    }
+
+    .header-right .date-box .hijri-text,
+    .header-right .date-box .greg-text {
+      font-size: clamp(0.5rem, 2.3vw, 0.78rem);
+      line-height: 1.05;
+    }
+
+    .header-right .date-box .greg-day {
+      font-size: clamp(0.62rem, 2.7vw, 0.9rem);
+      padding: 0.15vh 0.5vw;
+    }
+
+    .header-right .header-divider {
+      height: 4vh;
+      flex: 0 0 auto;
+    }
+
     html, body {
       width: 100%;
       min-width: 0;
@@ -1003,11 +1034,21 @@
     .header-right {
       display: flex;
       align-items: center;
-      gap: 1vw;
+      justify-content: flex-end;
+      gap: clamp(0.35vw, 0.8vw, 1vw);
+      flex: 0 0 auto;
+      min-width: 0;
+      max-width: 34vw;
+      padding-right: clamp(3.2rem, 5vw, 5rem);
+      position: relative;
     }
 
     .date-box {
       text-align: center;
+      min-width: 0;
+      max-width: 11vw;
+      flex: 0 1 auto;
+      overflow: hidden;
     }
 
     .date-box .hijri-num {
@@ -1026,17 +1067,23 @@
       background: #ffffff;
       color: #000;
       font-weight: 900;
-      padding: 0.2vh 0.8vw;
+      padding: 0.2vh 0.6vw;
       border-radius: 0.5vh;
-      font-size: clamp(1rem, 1.7vw, 1.8rem);
+      font-size: clamp(0.8rem, 1.45vw, 1.55rem);
       text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .date-box .greg-text {
       color: #ffffff;
-      font-size: clamp(0.8rem, 1.3vw, 1.4rem);
+      font-size: clamp(0.68rem, 1.05vw, 1.2rem);
       font-weight: bold;
+      line-height: 1.08;
       margin-top: 0.2vh;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
 
     .header-divider {
