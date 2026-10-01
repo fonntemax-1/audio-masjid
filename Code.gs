@@ -4207,14 +4207,12 @@ function setupPanelKegiatan() {
 
   formatPanelKegiatanSelector_(selector);
 
-  updatePanelKegiatanFields_(sheet, selector.getDisplayValue());
+  // Label B27:B30 dibuat dengan formula berdasarkan C26.
+  // C27:C30 tetap menjadi sel input manual dan tidak ditimpa.
+  setupPanelKegiatanLabelFormulas_(sheet);
 
-  // Trigger installable sengaja tidak dibuat di sini.
-  // setupPanelKegiatan() dapat dijalankan tanpa permission ScriptApp.
-  // Jika project standalone membutuhkan trigger, pasang trigger onEdit
-  // secara manual dari Apps Script > Triggers.
   Logger.log("FORM KEGIATAN PANELS!C26 berhasil disiapkan.");
-  Logger.log("Warna C26 mengikuti pilihan dropdown secara otomatis.");
+  Logger.log("B27:B30 otomatis mengikuti pilihan C26; C27:C30 tetap untuk input.");
 }
 
 /**
@@ -4263,6 +4261,16 @@ function formatPanelKegiatanSelector_(selector) {
  * Membentuk field kegiatan pada C27:D30.
  * Field yang tidak diperlukan dikosongkan agar tidak membawa data kegiatan lama.
  */
+function setupPanelKegiatanLabelFormulas_(sheet) {
+  const formulas = [
+    '=IF($C$26="SHOLAT JUM\'AT","Tanggal",IF($C$26="SHOLAT TARAWIH","Tanggal",IF($C$26="SHOLAT IDUL FITRI","Tanggal",IF($C$26="SHOLAT IDUL ADHA","Tanggal",""))))',
+    '=IF($C$26="SHOLAT JUM\'AT","Khatib",IF($C$26="SHOLAT TARAWIH","Imam",IF(OR($C$26="SHOLAT IDUL FITRI",$C$26="SHOLAT IDUL ADHA"),"Khatib","")))',
+    '=IF($C$26="SHOLAT JUM\'AT","Imam",IF($C$26="SHOLAT TARAWIH","Kultum",IF(OR($C$26="SHOLAT IDUL FITRI",$C$26="SHOLAT IDUL ADHA"),"Imam","")))',
+    '=IF($C$26="SHOLAT JUM\'AT","Muadzin",IF($C$26="SHOLAT TARAWIH","",IF(OR($C$26="SHOLAT IDUL FITRI",$C$26="SHOLAT IDUL ADHA"),"Bilal","")))'
+  ];
+  sheet.getRange("B27:B30").setFormulas(formulas.map(function(f){ return [f]; }));
+}
+
 function updatePanelKegiatanFields_(sheet, kegiatan) {
   const key = String(kegiatan || "").trim().toUpperCase();
   const fields = PANEL_KEGIATAN_FIELDS_[key] || [];
@@ -4326,8 +4334,8 @@ function getPanelKegiatan() {
       sheet.getRange("C26").getDisplayValue() || ""
     ).trim().toUpperCase();
 
-    const labels = sheet.getRange("C27:C30").getDisplayValues();
-    const values = sheet.getRange("D27:D30").getDisplayValues();
+    const labels = sheet.getRange("B27:B30").getDisplayValues();
+    const values = sheet.getRange("C27:C30").getDisplayValues();
 
     const fields = {};
 
