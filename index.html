@@ -1976,7 +1976,9 @@
       display: flex;
       flex-direction: column;
       gap: 0.8vh;
-      font-size: clamp(0.8rem, 1.1vw, 1.2rem);
+      /* Font PETUGAS diperbesar agar KHATIB/IMAM/BILAL
+         dan nama petugas lebih mudah dibaca. */
+      font-size: clamp(0.95rem, 1.35vw, 1.45rem);
       margin-top: 1vh;
     }
 
@@ -1990,6 +1992,7 @@
       color: #ffcc00;
       font-weight: bold;
       width: 25%;
+      font-size: inherit;
     }
 
     .khotbah-name {
@@ -1997,6 +2000,7 @@
       font-weight: bold;
       text-align: right;
       flex: 1;
+      font-size: inherit;
     }
 
     .footer {
