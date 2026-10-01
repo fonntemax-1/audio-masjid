@@ -4243,10 +4243,10 @@ function formatPanelKegiatanSelector_(selector) {
   const key = String(selector.getDisplayValue() || "").trim().toUpperCase();
 
   const colors = {
-    "SHOLAT JUM'AT": ["#d9ead3", "#274e13"],
-    "SHOLAT TARAWIH": ["#e4dfec", "#351c75"],
-    "SHOLAT IDUL FITRI": ["#fff2cc", "#7f6000"],
-    "SHOLAT IDUL ADHA": ["#cfe2f3", "#073763"]
+    "SHOLAT JUM'AT": ["#b6d7a8", "#1b4332"],
+    "SHOLAT TARAWIH": ["#d9d2e9", "#351c75"],
+    "SHOLAT IDUL FITRI": ["#ffe599", "#7f6000"],
+    "SHOLAT IDUL ADHA": ["#9fc5e8", "#073763"]
   };
 
   const color = colors[key] || ["#ffffff", "#000000"];
@@ -4255,7 +4255,8 @@ function formatPanelKegiatanSelector_(selector) {
     .setBackground(color[0])
     .setFontColor(color[1])
     .setFontWeight("bold")
-    .setHorizontalAlignment("center");
+    .setHorizontalAlignment("center")
+    .setWrap(false);
 }
 
 /**
