@@ -4160,8 +4160,8 @@ function DIAGNOSTIK_ADZAN_E_Z_20260927() {
 // FORM KEGIATAN MASJID - PANELS!C26
 // ============================================================
 // C26 = dropdown JENIS KEGIATAN.
-// B27:B30 = label field.
-// C27:C30 = nilai field.
+// C27:C30 = nama field.
+// D27:D30 = data yang diisi.
 // Tidak menyentuh kontrol panels C18, C20, C22, audio, atau scheduler.
 // ============================================================
 
@@ -4227,15 +4227,15 @@ function onEdit(e) {
 }
 
 /**
- * Membentuk field kegiatan pada B27:C30.
+ * Membentuk field kegiatan pada C27:D30.
  * Field yang tidak diperlukan dikosongkan agar tidak membawa data kegiatan lama.
  */
 function updatePanelKegiatanFields_(sheet, kegiatan) {
   const key = String(kegiatan || "").trim().toUpperCase();
   const fields = PANEL_KEGIATAN_FIELDS_[key] || [];
 
-  const labelRange = sheet.getRange("B27:B30");
-  const valueRange = sheet.getRange("C27:C30");
+  const labelRange = sheet.getRange("C27:C30");
+  const valueRange = sheet.getRange("D27:D30");
 
   const labels = fields.map(function(label) {
     return [label];
@@ -4270,7 +4270,7 @@ function updatePanelKegiatanFields_(sheet, kegiatan) {
 
 /**
  * API data kegiatan untuk GitHub Pages.
- * Membaca panels!C26:C30 dan tidak mengubah data.
+ * Membaca panels!C26 dan data kegiatan pada C27:D30.
  */
 function getPanelKegiatan() {
   try {
@@ -4290,8 +4290,8 @@ function getPanelKegiatan() {
       sheet.getRange("C26").getDisplayValue() || ""
     ).trim().toUpperCase();
 
-    const labels = sheet.getRange("B27:B30").getDisplayValues();
-    const values = sheet.getRange("C27:C30").getDisplayValues();
+    const labels = sheet.getRange("C27:C30").getDisplayValues();
+    const values = sheet.getRange("D27:D30").getDisplayValues();
 
     const fields = {};
 
