@@ -7029,10 +7029,22 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         'text-align:center;' +
         'color:#ffffff;' +
         'font-weight:700;' +
-        'font-size:clamp(0.68rem,1.05cqw,1.05rem);' +
         'line-height:1.2;' +
         'margin-top:0.35vh;' +
         'margin-bottom:0.8vh;';
+
+      // Ukuran font TANGGAL PETUGAS SHOLAT harus sama persis
+      // dengan ukuran font isi pada LAPORAN KEUANGAN.
+      // Ambil ukuran aktual dari .keuangan-table agar mengikuti
+      // container/frame laporan keuangan, termasuk saat responsive.
+      const keuanganTable = document.querySelector('.keuangan-table');
+      if (keuanganTable) {
+        const keuanganFontSize =
+          window.getComputedStyle(keuanganTable).fontSize;
+        if (keuanganFontSize) {
+          dateEl.style.fontSize = keuanganFontSize;
+        }
+      }
       dateEl.style.display = dateValue ? 'block' : 'none';
 
       // Field lain tetap mengikuti urutan B27:B30.
