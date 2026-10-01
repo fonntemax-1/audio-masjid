@@ -6800,8 +6800,12 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
         if (element) {
 
+          // Nama header dinormalisasi agar penulisan selalu
+          // konsisten: AL SOBIRIN (bukan AL SHOBIRIN).
           const nama =
-            String(data.Nama || '').trim();
+            String(data.Nama || '')
+              .trim()
+              .replace(/AL\\s+SHOBIRIN/gi, 'AL SOBIRIN');
 
           element.innerText =
             nama
