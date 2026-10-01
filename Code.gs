@@ -4211,6 +4211,11 @@ function setupPanelKegiatan() {
   // C27:C30 tetap menjadi sel input manual dan tidak ditimpa.
   setupPanelKegiatanLabelFormulas_(sheet);
 
+  // SHOLAT JUM'AT: isi tanggal Jumat minggu berjalan otomatis.
+  if (String(selector.getDisplayValue() || "").trim().toUpperCase() === "SHOLAT JUM'AT") {
+    setTanggalJumatMingguBerjalan_(sheet);
+  }
+
   Logger.log("FORM KEGIATAN PANELS!C26 berhasil disiapkan.");
   Logger.log("B27:B30 otomatis mengikuti pilihan C26; C27:C30 tetap untuk input.");
 }
@@ -4230,6 +4235,10 @@ function onEdit(e) {
 
   formatPanelKegiatanSelector_(range);
   updatePanelKegiatanFields_(sheet, range.getDisplayValue());
+
+  if (String(range.getDisplayValue() || "").trim().toUpperCase() === "SHOLAT JUM'AT") {
+    setTanggalJumatMingguBerjalan_(sheet);
+  }
 }
 
 /**
@@ -4261,6 +4270,19 @@ function formatPanelKegiatanSelector_(selector) {
  * Membentuk field kegiatan pada C27:D30.
  * Field yang tidak diperlukan dikosongkan agar tidak membawa data kegiatan lama.
  */
+function setTanggalJumatMingguBerjalan_(sheet) {
+  const today = new Date();
+  const day = today.getDay(); // Minggu=0 ... Jumat=5 ... Sabtu=6
+  const diffToFriday = 5 - day;
+  const friday = new Date(today);
+  friday.setDate(today.getDate() + diffToFriday);
+  friday.setHours(0, 0, 0, 0);
+
+  sheet.getRange("C27")
+    .setValue(friday)
+    .setNumberFormat("dd/MM/yyyy");
+}
+
 function setupPanelKegiatanLabelFormulas_(sheet) {
   const formulas = [
     '=IF($C$26="SHOLAT JUM\'AT","Tanggal",IF($C$26="SHOLAT TARAWIH","Tanggal",IF($C$26="SHOLAT IDUL FITRI","Tanggal",IF($C$26="SHOLAT IDUL ADHA","Tanggal",""))))',
