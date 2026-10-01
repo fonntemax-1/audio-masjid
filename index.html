@@ -6913,6 +6913,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         data.YoutubeStatus || 'AUTO'
       );
 
+      // PETUGAS SHOLAT dari main getDataFromSheet API.
+      if (data.PanelKegiatan) {
+        updatePanelKegiatanDisplay_(data.PanelKegiatan);
+      }
+
 
       // =======================================================
       // KHOTBAH
@@ -15781,10 +15786,7 @@ function setCountdownBlackMode(enabled) {
       30000
     );
 
-        fetchPanelKegiatan_();
-    setInterval(fetchPanelKegiatan_, 30000);
-
-// Selector panels!G20 harus merespons maksimal sekitar 1-2 detik.\n    // Polling khusus ini tidak mengubah polling data utama 30 detik.\n    startFastYouTubeControlPolling_();
+    // Selector panels!G20 harus merespons maksimal sekitar 1-2 detik.\n    // Polling khusus ini tidak mengubah polling data utama 30 detik.\n    startFastYouTubeControlPolling_();
     startFastIqomahBlackModePolling_();
 
     // panels!C2 tetap diperiksa terpisah, tetapi tidak lagi ikut setiap
