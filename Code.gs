@@ -4343,15 +4343,10 @@ function updatePanelKegiatanFields_(sheet, kegiatan, resetValues) {
 
   labelRange.setValues(labels);
 
-  // Semua kegiatan memiliki tanggal pada C27.
-  // C27 hanya otomatis untuk JUM'AT; kegiatan lain manual.
-  if (resetValues) {
-    valueRange.clearContent();
-  } else {
-    // Saat dropdown berubah, hapus data kegiatan sebelumnya.
-    valueRange.clearContent();
-  }
-
+  // Setiap kali jenis kegiatan berubah, kosongkan seluruh data lama.
+  // Hanya SHOLAT JUM'AT yang mengisi C27 otomatis.
+  // TARAWIH, IDUL FITRI, dan IDUL ADHA: C27 wajib manual.
+  valueRange.clearContent();
   valueRange.clearDataValidations();
 
   if (fields.length > 0 && fields[0] === "Tanggal") {
@@ -4360,6 +4355,11 @@ function updatePanelKegiatanFields_(sheet, kegiatan, resetValues) {
 
   if (key === "SHOLAT JUM'AT") {
     setTanggalJumatMingguBerjalan_(sheet);
+  } else if (key === "SHOLAT TARAWIH" ||
+             key === "SHOLAT IDUL FITRI" ||
+             key === "SHOLAT IDUL ADHA") {
+    // Tanggal manual: jangan pernah mengisi C27 secara otomatis.
+    valueRange.getCell(1, 1).clearContent();
   } else if (!fields.length) {
     labelRange.clearContent();
     valueRange.clearContent();
