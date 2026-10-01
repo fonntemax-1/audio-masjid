@@ -4155,3 +4155,170 @@ function DIAGNOSTIK_ADZAN_E_Z_20260927() {
   Logger.log('DIAGNOSTIK ADZAN E:Z SELESAI');
   Logger.log('========================================');
 }
+
+// ============================================================
+// FORM KEGIATAN MASJID - PANELS!C26
+// ============================================================
+// C26 = dropdown JENIS KEGIATAN.
+// B27:B30 = label field.
+// C27:C30 = nilai field.
+// Tidak menyentuh kontrol panels C18, C20, C22, audio, atau scheduler.
+// ============================================================
+
+const PANEL_KEGIATAN_OPTIONS_ = [
+  "SHOLAT JUM'AT",
+  "SHOLAT TARAWIH",
+  "SHOLAT IDUL FITRI",
+  "SHOLAT IDUL ADHA"
+];
+
+const PANEL_KEGIATAN_FIELDS_ = {
+  "SHOLAT JUM'AT": ["Tanggal", "Khatib", "Imam", "Muadzin"],
+  "SHOLAT TARAWIH": ["Tanggal", "Imam", "Kultum"],
+  "SHOLAT IDUL FITRI": ["Tanggal", "Khatib", "Imam", "Bilal"],
+  "SHOLAT IDUL ADHA": ["Tanggal", "Khatib", "Imam", "Bilal"]
+};
+
+/**
+ * Jalankan sekali dari Apps Script Editor untuk memasang
+ * dropdown panels!C26 dan struktur field kegiatan.
+ */
+function setupPanelKegiatan() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName("panels");
+
+  if (!sheet) {
+    throw new Error("Sheet panels tidak ditemukan.");
+  }
+
+  const selector = sheet.getRange("C26");
+
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(PANEL_KEGIATAN_OPTIONS_, true)
+    .setAllowInvalid(false)
+    .build();
+
+  selector.setDataValidation(rule);
+
+  // Jika C26 kosong, gunakan pilihan pertama sebagai default.
+  if (!String(selector.getDisplayValue() || "").trim()) {
+    selector.setValue(PANEL_KEGIATAN_OPTIONS_[0]);
+  }
+
+  updatePanelKegiatanFields_(sheet, selector.getDisplayValue());
+
+  Logger.log("FORM KEGIATAN PANELS!C26 berhasil disiapkan.");
+}
+
+/**
+ * Trigger edit untuk panels!C26.
+ * Saat dropdown berubah, label field di bawahnya otomatis berubah.
+ */
+function onEdit(e) {
+  if (!e || !e.range) return;
+
+  const range = e.range;
+  const sheet = range.getSheet();
+
+  if (sheet.getName() !== "panels") return;
+  if (range.getA1Notation() !== "C26") return;
+
+  updatePanelKegiatanFields_(sheet, range.getDisplayValue());
+}
+
+/**
+ * Membentuk field kegiatan pada B27:C30.
+ * Field yang tidak diperlukan dikosongkan agar tidak membawa data kegiatan lama.
+ */
+function updatePanelKegiatanFields_(sheet, kegiatan) {
+  const key = String(kegiatan || "").trim().toUpperCase();
+  const fields = PANEL_KEGIATAN_FIELDS_[key] || [];
+
+  const labelRange = sheet.getRange("B27:B30");
+  const valueRange = sheet.getRange("C27:C30");
+
+  const labels = fields.map(function(label) {
+    return [label];
+  });
+
+  while (labels.length < 4) {
+    labels.push([""]);
+  }
+
+  labelRange.setValues(labels);
+
+  // Hapus nilai lama hanya pada field yang tidak lagi digunakan.
+  const currentValues = valueRange.getValues();
+  for (let i = fields.length; i < 4; i++) {
+    currentValues[i][0] = "";
+  }
+  valueRange.setValues(currentValues);
+
+  // Format tanggal untuk field pertama jika tersedia.
+  valueRange.clearDataValidations();
+
+  if (fields.length > 0 && fields[0] === "Tanggal") {
+    valueRange.getCell(1, 1).setNumberFormat("dd/MM/yyyy");
+  }
+
+  // Bersihkan label/kolom sampai baris 30 bila pilihan tidak valid.
+  if (!fields.length) {
+    labelRange.clearContent();
+    valueRange.clearContent();
+  }
+}
+
+/**
+ * API data kegiatan untuk GitHub Pages.
+ * Membaca panels!C26:C30 dan tidak mengubah data.
+ */
+function getPanelKegiatan() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName("panels");
+
+    if (!sheet) {
+      return {
+        success: false,
+        error: "Sheet panels tidak ditemukan.",
+        jenis: "",
+        fields: {}
+      };
+    }
+
+    const jenis = String(
+      sheet.getRange("C26").getDisplayValue() || ""
+    ).trim().toUpperCase();
+
+    const labels = sheet.getRange("B27:B30").getDisplayValues();
+    const values = sheet.getRange("C27:C30").getDisplayValues();
+
+    const fields = {};
+
+    for (let i = 0; i < 4; i++) {
+      const label = String(labels[i][0] || "").trim();
+      const value = String(values[i][0] || "").trim();
+
+      if (label) {
+        fields[label] = value;
+      }
+    }
+
+    return {
+      success: true,
+      jenis: jenis,
+      fields: fields
+    };
+
+  } catch (error) {
+    Logger.log("PANEL KEGIATAN ERROR: " + error.message);
+
+    return {
+      success: false,
+      error: error.message,
+      jenis: "",
+      fields: {}
+    };
+  }
+}
+
