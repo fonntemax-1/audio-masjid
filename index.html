@@ -5292,14 +5292,19 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       const fridayState =
         isFridayWita();
 
-      if (fridayState === previousFridayState) return;
-
+      // Jangan bergantung pada previousFridayState saja.
+      // State countdown/highlight dapat dirender ulang dan menimpa
+      // label kartu. Pastikan label visual selalu sinkron dengan hari.
       previousFridayState = fridayState;
 
-      nameElement.innerText =
+      const nextLabel =
         fridayState
           ? "JUM'AT"
           : 'DZUHUR';
+
+      if (nameElement.innerText !== nextLabel) {
+        nameElement.innerText = nextLabel;
+      }
 
     }
 
@@ -13190,6 +13195,16 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
     // state yang sama agar tidak terjadi perpindahan pada waktu berbeda.
     if (synchronizedPrayerName) {
       targetPrayerName = synchronizedPrayerName;
+
+      // Label Jumat adalah JUM'AT hanya untuk tampilan.
+      // Kunci kartu tetap DZUHUR agar class active-prayer
+      // selalu berpindah ke kartu yang benar.
+      if (
+        isFridayWita() &&
+        String(targetPrayerName || '').trim().toUpperCase() === "JUM'AT"
+      ) {
+        targetPrayerName = 'DZUHUR';
+      }
     }
 
     // =======================================================
