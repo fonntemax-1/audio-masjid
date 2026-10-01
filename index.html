@@ -13336,34 +13336,13 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
     }
 
     // =======================================================
-    // KHUSUS HARI JUM'AT
+    // HARI JUM'AT
     //
-    // Nama kartu tetap JUM'AT (internal = DZUHUR), tetapi
-    // highlight mengikuti siklus sholat normal:
-    // JUM'AT aktif sampai IQOMAH + 15 menit,
-    // lalu berpindah ke ASHAR seperti kartu sholat lainnya.
-    //
-    // Tidak lagi dikunci sampai 13:00 WITA.
+    // Tidak ada aturan highlight khusus untuk Jumat.
+    // Siklus dan timing mengikuti hari biasa.
+    // Satu-satunya perbedaan adalah label kartu internal DZUHUR
+    // ditampilkan sebagai JUM'AT oleh updateFridayPrayerDisplay().
     // =======================================================
-
-    if (isFridayWita()) {
-
-      // Jumat memakai DZUHUR sebagai nama internal, tetapi kartu
-      // ditampilkan sebagai JUM'AT. Highlight harus mengikuti aturan
-      // transisi Jumat yang sama dengan countdown: tetap JUM'AT sampai
-      // 13:00 WITA, lalu berpindah ke ASHAR. Jangan gunakan batasDzuhur
-      // di sini karena batas tersebut mengikuti akhir IQOMAH + 15 menit
-      // dan dapat berbeda dari aturan tampilan Jumat.
-      const fridayTransitionSec = 13 * 3600;
-
-      if (nowSeconds < fridayTransitionSec) {
-        targetPrayerName = 'DZUHUR';
-      } else if (nowSeconds < batasAshar) {
-        targetPrayerName = 'ASHAR';
-      }
-
-    }
-
     // =======================================================
     // TERAPKAN CLASS ACTIVE
     // =======================================================
