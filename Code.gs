@@ -4209,23 +4209,12 @@ function setupPanelKegiatan() {
 
   updatePanelKegiatanFields_(sheet, selector.getDisplayValue());
 
-  // Pasang installable onEdit agar tetap bekerja bila Code.gs
-  // merupakan project Apps Script standalone yang memakai SPREADSHEET_ID.
-  const triggers = ScriptApp.getProjectTriggers();
-  const exists = triggers.some(function(trigger) {
-    return trigger.getHandlerFunction() === "onEdit" &&
-           trigger.getEventType() === ScriptApp.EventType.ON_EDIT;
-  });
-
-  if (!exists) {
-    ScriptApp.newTrigger("onEdit")
-      .forSpreadsheet(ss)
-      .onEdit()
-      .create();
-    Logger.log("Trigger onEdit FORM KEGIATAN berhasil dibuat.");
-  }
-
+  // Trigger installable sengaja tidak dibuat di sini.
+  // setupPanelKegiatan() dapat dijalankan tanpa permission ScriptApp.
+  // Jika project standalone membutuhkan trigger, pasang trigger onEdit
+  // secara manual dari Apps Script > Triggers.
   Logger.log("FORM KEGIATAN PANELS!C26 berhasil disiapkan.");
+  Logger.log("Warna C26 mengikuti pilihan dropdown secara otomatis.");
 }
 
 /**
