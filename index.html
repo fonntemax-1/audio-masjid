@@ -1954,6 +1954,25 @@
       overflow-wrap: break-word;
     }
 
+    /* QUR'BAN: setiap item satu baris penuh, tidak wrap ke bawah. */
+    .qurban-display .keuangan-table {
+      table-layout: auto;
+      width: max-content;
+      min-width: 100%;
+    }
+
+    .qurban-display .keuangan-table td {
+      width: auto !important;
+      white-space: nowrap !important;
+      word-break: keep-all !important;
+      overflow-wrap: normal !important;
+      text-align: left !important;
+    }
+
+    .qurban-display .keuangan-scroll-area {
+      overflow: hidden;
+    }
+
     .keuangan-table td:last-child {
       width: 45%;
       text-align: right;
@@ -6539,8 +6558,9 @@ function updateFridayPrayerDisplay() {
           const selector = String(source.selector || 'KEUANGAN').trim().toUpperCase();
           const title = String(source.title || '');
           const date = String(source.date || '');
+          const a3 = String(source.a3 || '');
           const rows = Array.isArray(source.rows) ? source.rows : [];
-          const signature = selector + '|' + title + '|' + date + '|' + JSON.stringify(rows);
+          const signature = selector + '|' + title + '|' + date + '|' + a3 + '|' + JSON.stringify(rows);
 
           if (signature === panelKeuanganFastLastSignature) return;
           panelKeuanganFastLastSignature = signature;
@@ -6551,9 +6571,24 @@ function updateFridayPrayerDisplay() {
           if (finTitle) finTitle.innerText = title.trim();
 
           const finSub = document.getElementById('fin-sub');
-          if (finSub) finSub.innerText = date;
+          if (finSub) finSub.innerText =
+            selector === 'QURBAN'
+              ? ('MASJID ' + date.trim()).trim()
+              : date;
 
-          updateKeuangan(rows, date);
+          const finExtra = document.getElementById('fin-extra');
+          if (finExtra) {
+            finExtra.innerText = selector === 'QURBAN' ? a3.trim() : '';
+            finExtra.style.display =
+              selector === 'QURBAN' && a3.trim() ? '' : 'none';
+          }
+
+          const finPanelBox = document.getElementById('fin-panel-box');
+          if (finPanelBox) {
+            finPanelBox.classList.toggle('qurban-display', selector === 'QURBAN');
+          }
+
+          updateKeuangan(rows, date, selector);
 
           // Sinkronkan state agar polling utama tidak langsung mengganti kembali.
           if (typeof previousKeuanganJson !== 'undefined') {
@@ -7576,8 +7611,13 @@ function updateFridayPrayerDisplay() {
 
     function updateKeuangan(
       rows,
-      keuanganTanggal
+      keuanganTanggal,
+      keuanganSelector
     ) {
+      const isQurban =
+        String(keuanganSelector || 'KEUANGAN')
+          .trim()
+          .toUpperCase() === 'QURBAN';
 
       const content =
         document.getElementById(
