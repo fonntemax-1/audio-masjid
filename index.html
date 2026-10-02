@@ -6637,13 +6637,38 @@ function updateFridayPrayerDisplay() {
           console.log('PANEL C49 CEPAT BERUBAH =>', selector);
 
           const finTitle = document.getElementById('fin-title');
-          if (finTitle) finTitle.innerText = title.trim();
+          if (finTitle) {
+            finTitle.innerText = title.trim();
+
+            // KEUANGAN A1 = persis model visual QUR'BAN A1.
+            // Inline style dipasang agar tidak kalah oleh style dinamis/polling.
+            finTitle.style.color = '#ffcc00';
+            finTitle.style.webkitTextFillColor = '#ffcc00';
+            finTitle.style.fontFamily = 'inherit';
+            finTitle.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
+            finTitle.style.fontWeight = '900';
+            finTitle.style.lineHeight = 'normal';
+            finTitle.style.textAlign = 'center';
+            finTitle.style.letterSpacing = '0.05vw';
+          }
 
           const finSub = document.getElementById('fin-sub');
-          if (finSub) finSub.innerText =
-            selector === 'QURBAN'
-              ? ('MASJID ' + date.trim()).trim()
-              : date;
+          if (finSub) {
+            finSub.innerText =
+              selector === 'QURBAN'
+                ? ('MASJID ' + date.trim()).trim()
+                : date;
+
+            // KEUANGAN A2 = persis model visual QUR'BAN A3.
+            finSub.style.color = '#ffffff';
+            finSub.style.webkitTextFillColor = '#ffffff';
+            finSub.style.fontFamily = 'inherit';
+            finSub.style.fontSize = 'clamp(0.95rem, 5.2cqw, 1.70rem)';
+            finSub.style.fontWeight = 'bold';
+            finSub.style.lineHeight = '1.15';
+            finSub.style.textAlign = 'center';
+            finSub.style.marginBottom = '1.8vh';
+          }
 
           const finExtra = document.getElementById('fin-extra');
           if (finExtra) {
@@ -7314,6 +7339,16 @@ function updateFridayPrayerDisplay() {
       if (finTitle) {
         finTitle.innerText =
           String(data.KeuanganJudul || '').trim();
+
+        // KEUANGAN A1 = persis model visual QUR'BAN A1.
+        finTitle.style.color = '#ffcc00';
+        finTitle.style.webkitTextFillColor = '#ffcc00';
+        finTitle.style.fontFamily = 'inherit';
+        finTitle.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
+        finTitle.style.fontWeight = '900';
+        finTitle.style.lineHeight = 'normal';
+        finTitle.style.textAlign = 'center';
+        finTitle.style.letterSpacing = '0.05vw';
       }
 
       const finSub =
@@ -7334,6 +7369,16 @@ function updateFridayPrayerDisplay() {
           keuanganSelector === 'QURBAN'
             ? ('MASJID ' + String(data.KeuanganTanggal || '').trim()).trim()
             : (data.KeuanganTanggal || '');
+
+        // KEUANGAN A2 = persis model visual QUR'BAN A3.
+        finSub.style.color = '#ffffff';
+        finSub.style.webkitTextFillColor = '#ffffff';
+        finSub.style.fontFamily = 'inherit';
+        finSub.style.fontSize = 'clamp(0.95rem, 5.2cqw, 1.70rem)';
+        finSub.style.fontWeight = 'bold';
+        finSub.style.lineHeight = '1.15';
+        finSub.style.textAlign = 'center';
+        finSub.style.marginBottom = '1.8vh';
       }
 
       const finExtra =
