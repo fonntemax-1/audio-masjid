@@ -5041,7 +5041,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           state.queue.shift();
           state.queuedLocks.delete(item.eventKey);
           state.processing = false;
-          setTimeout(function() { processAudioQueue(); }, 0);
+          setTimeout(function() { processAudioQueue(); }, 25);
           return;
 
         }
@@ -5077,7 +5077,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           state.queue.shift();
           state.queuedLocks.delete(item.eventKey);
           state.processing = false;
-          setTimeout(function() { processAudioQueue(); }, 0);
+          setTimeout(function() { processAudioQueue(); }, 25);
           return;
 
         }
@@ -5108,7 +5108,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           state.queueWakeTimer = setTimeout(
             function() {
               state.queueWakeTimer = null;
-              setTimeout(function() { processAudioQueue(); }, 0);
+              setTimeout(function() { processAudioQueue(); }, 25);
             },
             waitMs
           );
@@ -5177,7 +5177,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           state.queuedLocks.delete(item.eventKey);
 
           state.processing = false;
-          setTimeout(function() { processAudioQueue(); }, 0);
+          setTimeout(function() { processAudioQueue(); }, 25);
           return;
 
         }
@@ -5216,7 +5216,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             state.queue.shift();
             state.queuedLocks.delete(item.eventKey);
             state.processing = false;
-            setTimeout(function() { processAudioQueue(); }, 0);
+            setTimeout(function() { processAudioQueue(); }, 25);
             return;
           }
         }
@@ -5248,7 +5248,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           state.queue.shift();
           state.queuedLocks.delete(item.eventKey);
           state.processing = false;
-          setTimeout(function() { processAudioQueue(); }, 0);
+          setTimeout(function() { processAudioQueue(); }, 25);
           return;
         }
 
@@ -5285,7 +5285,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
             state.queueWakeTimer = setTimeout(
               function() {
                 state.queueWakeTimer = null;
-                setTimeout(function() { processAudioQueue(); }, 0);
+                setTimeout(function() { processAudioQueue(); }, 25);
               },
               1000
             );
@@ -5359,7 +5359,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
                 state.processing = false;
 
-                setTimeout(function() { processAudioQueue(); }, 0);
+                setTimeout(function() { processAudioQueue(); }, 25);
 
                 return;
 
@@ -5472,7 +5472,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
               state.currentEventKey = '';
               state.processing = false;
 
-              setTimeout(function() { processAudioQueue(); }, 0);
+              setTimeout(function() { processAudioQueue(); }, 25);
 
             }
           )
