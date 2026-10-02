@@ -48,6 +48,7 @@ async function main() {
   const audio = {
     version: 1,
     updatedAt: new Date().toISOString(),
+    enabled: true,
     source: 'Google Sheets via Apps Script sync',
     Audio: data.Audio || {},
     AudioSchedule: data.AudioSchedule || {},
@@ -59,6 +60,7 @@ async function main() {
   const event = {
     version: 1,
     updatedAt: new Date().toISOString(),
+    enabled: true,
     source: 'Google Sheets via Apps Script sync',
     Event: Array.isArray(data.Event) ? data.Event : []
   };
