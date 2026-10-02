@@ -782,44 +782,13 @@ function getDataFromSheet() {
           // JUDUL + TANGGAL LAPORAN LANGSUNG DARI SHEET KEUANGAN
           // ---------------------------------------------------
 
-          const keuanganTanggalRaw =
-            sheet
-              .getRange('A2')
-              .getValue();
-
-          if (
-            keuanganTanggalRaw instanceof Date
-          ) {
-
-            result.KeuanganTanggal =
-              formatTanggalIndonesia(
-                keuanganTanggalRaw
-              );
-
-          } else if (
-            keuanganTanggalRaw !== null &&
-            keuanganTanggalRaw !== undefined
-          ) {
-
-            // A2 kadang tersimpan sebagai TEXT, misalnya
-            // "02 Oktober 2026". Normalisasi tanggal di depan
-            // agar tetap menjadi "2 Oktober 2026".
-            const tanggalText =
-              keuanganTanggalRaw
-                .toString()
-                .trim();
-
-            result.KeuanganTanggal =
-              tanggalText.replace(
-                /^(0+)(\d{1,2})(\s+)/,
-                '$2$3'
-              );
-
-          } else {
-
-            result.KeuanganTanggal =
-              '';
-          }
+          // Tampilkan isi Keuangan!A2 PERSIS seperti yang terlihat
+          // di Spreadsheet. Tidak ada parsing, normalisasi, atau
+          // perubahan format tanggal.
+          result.KeuanganTanggal =
+            String(
+              sheet.getRange('A2').getDisplayValue() || ''
+            );
 
 
           for (
