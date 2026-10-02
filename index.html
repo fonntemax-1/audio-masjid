@@ -16415,9 +16415,9 @@ function setCountdownBlackMode(enabled) {
     loadEventRunningText();
     updateHijriDate();
 
-    // PETUGAS SHOLAT: tampilkan data PANELS!C28:C32 di FRONT-END.
+    // PETUGAS SHOLAT + KEUANGAN/QUR'BAN memakai satu jalur realtime khusus.
     // Tidak mengubah scheduler/audio.
-    fetchPanelKegiatan_();
+    startRealtimePanelsFast_();
 
     // Sinkronisasi internet hanya informasi tambahan.
     syncInternetTime();
@@ -16466,9 +16466,8 @@ function setCountdownBlackMode(enabled) {
       30000
     );
 
-    // Petugas Sholat, theme, header, kegiatan, event, YouTube, dan C22
-    // disinkronkan lewat jalur polling ringan terpisah.
-    startFastPanelKeuanganPolling_();
+    // Jalur khusus Petugas Sholat + KEUANGAN/QUR'BAN sudah dipasang
+    // di atas dan berjalan setiap 1 detik.
 
     // Kontrol YouTube G20 dipisahkan dari tick countdown 1 detik.
     // Ini mencegah evaluasi iframe/jadwal YouTube ikut membebani jalur
