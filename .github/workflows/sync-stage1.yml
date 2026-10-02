@@ -34,3 +34,5 @@ jobs:
           git add data/event.json data/audio-config.json
           git commit -m "chore: sync Event and Audio config from Sheets"
           git push
+
+# Stage 1 sync workflow installed.
