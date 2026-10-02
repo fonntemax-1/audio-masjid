@@ -1875,8 +1875,8 @@
     /* QUR'BAN A2: samakan PERSIS dengan QUR'BAN A1.
        Untuk KEUANGAN biasa, format A2 tetap seperti sebelumnya. */
     #fin-panel-box.qurban-display #fin-sub {
-      color: #ffcc00 !important;
-      -webkit-text-fill-color: #ffcc00 !important;
+      color: var(--theme-accent) !important;
+      -webkit-text-fill-color: var(--theme-accent) !important;
       font-family: inherit !important;
       font-size: clamp(1rem, 1.4vw, 1.5rem) !important;
       font-weight: 900 !important;
@@ -6658,8 +6658,8 @@ function updateFridayPrayerDisplay() {
           : date;
 
         if (selector === 'QURBAN') {
-          finSub.style.color = '#ffcc00';
-          finSub.style.webkitTextFillColor = '#ffcc00';
+          finSub.style.color = 'var(--theme-accent)';
+          finSub.style.webkitTextFillColor = 'var(--theme-accent)';
           finSub.style.fontFamily = 'inherit';
           finSub.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
           finSub.style.fontWeight = '900';
