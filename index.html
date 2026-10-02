@@ -4287,6 +4287,28 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
                   );
                 }
 
+                // AUDIO UNLOCK HANDOFF:
+                // Jika schedule sudah selesai dibangun tepat sebelum/bersamaan
+                // dengan unlock, jangan hanya memanggil processAudioQueue().
+                // Pastikan event yang SEDANG aktif dipindahkan ke queue terlebih
+                // dahulu. Lock event mencegah duplikasi.
+                try {
+                  if (
+                    WEB_APP_STATE.audio.scheduleInitialized &&
+                    WEB_APP_STATE.dateKey
+                  ) {
+                    queueCurrentAudioCatchUp(
+                      WEB_APP_STATE.dateKey,
+                      { silent: true }
+                    );
+                  }
+                } catch (catchUpAfterUnlockError) {
+                  console.warn(
+                    'AUDIO CATCH-UP AFTER UNLOCK ERROR:',
+                    catchUpAfterUnlockError
+                  );
+                }
+
                 processAudioQueue();
 
               }
@@ -13403,8 +13425,22 @@ function updateFridayPrayerDisplay() {
 
         audioState.scheduleInitialized = true;
 
-        // Pastikan watchdog juga aktif walaupun seluruh schedule
-        // selesai tanpa ada event yang tertinggal.
+        // HANDOFF FIX:
+        // Begitu seluruh computedSchedules selesai, lakukan catch-up
+        // setelah flag scheduleInitialized benar-benar TRUE. Ini menjadi
+        // pintu final dari proses async metadata -> scheduler -> queue.
+        // Jika autoplay/unlock selesai lebih dulu, event aktif langsung
+        // masuk queue. Jika unlock belum selesai, lock tetap aman dan
+        // initAudioPermission() akan melakukan catch-up lagi setelah unlock.
+        try {
+          queueCurrentAudioCatchUp(dateKey, { silent: true });
+        } catch (audioScheduleReadyCatchUpError) {
+          console.warn(
+            'AUDIO SCHEDULE READY CATCH-UP ERROR:',
+            audioScheduleReadyCatchUpError
+          );
+        }
+
         try {
           startAudioCatchUpWatchdog(dateKey);
         } catch (audioWatchdogError) {
@@ -13413,6 +13449,28 @@ function updateFridayPrayerDisplay() {
             audioWatchdogError
           );
         }
+
+        // Retry ringan hanya untuk menutup race antara metadata terakhir,
+        // autoplay unlock, dan tick realtime. Tidak membangun ulang schedule.
+        [250, 1000, 2000].forEach(function(delay) {
+          setTimeout(function() {
+            if (
+              WEB_APP_STATE.dateKey !== dateKey ||
+              !WEB_APP_STATE.audio.scheduleInitialized
+            ) {
+              return;
+            }
+
+            try {
+              queueCurrentAudioCatchUp(dateKey, { silent: true });
+            } catch (audioHandoffRetryError) {
+              console.warn(
+                'AUDIO HANDOFF RETRY ERROR:',
+                audioHandoffRetryError
+              );
+            }
+          }, delay);
+        });
 
         // =====================================================
         // FINAL CATCH-UP SETELAH SCHEDULE BENAR-BENAR LENGKAP
