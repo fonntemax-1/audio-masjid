@@ -1,0 +1,53 @@
+name: Deploy Apps Script Backend
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "Code.gs"
+      - "API.gs"
+      - "appsscript.json"
+      - ".github/workflows/deploy-apps-script.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Install clasp
+        run: npm install -g @google/clasp
+
+      - name: Configure clasp authentication
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+        run: |
+          test -n "$CLASPRC_JSON"
+          mkdir -p "$HOME/.config/configstore"
+          printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+
+      - name: Configure Apps Script project
+        env:
+          SCRIPT_ID: ${{ secrets.APPS_SCRIPT_ID }}
+        run: |
+          test -n "$SCRIPT_ID"
+          printf '%s\n' '{"scriptId":"'"$SCRIPT_ID"'","rootDir":"."}' > .clasp.json
+
+      - name: Push source to Apps Script
+        run: clasp push --force
+
+      - name: Update existing Web App deployment
+        env:
+          DEPLOYMENT_ID: ${{ secrets.APPS_SCRIPT_DEPLOYMENT_ID }}
+        run: |
+          test -n "$DEPLOYMENT_ID"
+          clasp deploy --deploymentId "$DEPLOYMENT_ID" --description "GitHub main $(git rev-parse --short HEAD)"
