@@ -2546,11 +2546,18 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 
 
 
-/* INFAQ & SHADAQAH - kiri tanpa frame */
+
+/* INFAQ & SHADAQAH di sisi kiri FRAME UTAMA, tanpa frame */
+.center-panel { position: relative !important; }
 .infaq-left-widget {
-  width: 100%;
-  margin-top: 1vh;
-  padding: 0.4vh 0.5vw 0;
+  position: absolute !important;
+  left: 1vw !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 25 !important;
+  width: clamp(70px, 8vw, 115px) !important;
+  margin: 0 !important;
+  padding: 0 !important;
   text-align: center;
   background: transparent !important;
   border: 0 !important;
@@ -2560,26 +2567,28 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
   color: #ffcc00;
   font-family: 'Cinzel', serif;
   font-weight: 700;
-  font-size: clamp(.65rem, 1.15vw, 1rem);
+  font-size: clamp(.55rem, .85vw, .85rem);
   line-height: 1.1;
-  white-space: nowrap;
+  white-space: normal;
 }
 .infaq-left-content {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: .4vh;
+  margin-top: .45vh;
 }
 .infaq-left-content img {
   display: block;
-  width: min(7vw, 90px);
+  width: clamp(55px, 5.5vw, 82px);
   height: auto;
-  max-width: 100%;
   aspect-ratio: 1 / 1;
   object-fit: contain;
 }
 @media (max-width: 700px) {
-  .infaq-left-widget { margin-top: .6vh; }
-  .infaq-left-title { font-size: clamp(.6rem, 2.8vw, .9rem); }
-  .infaq-left-content img { width: min(20vw, 90px); }
+  .infaq-left-widget {
+    left: .7vw !important;
+    width: 22vw !important;
+  }
+  .infaq-left-title { font-size: clamp(.55rem, 2.4vw, .8rem); }
+  .infaq-left-content img { width: min(18vw, 78px); }
 }
