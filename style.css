@@ -2682,3 +2682,48 @@ body,
   min-width: 0 !important;
   max-width: 100% !important;
 }
+
+
+/* KUNING: warna elemen yang diminta disamakan dengan warna dasar
+   nama MESJID (emas #ffcc00). Tidak mengubah warna tema lain. */
+:root[data-display-theme="kuning"] .infaq-left-title,
+body[data-display-theme="kuning"] .infaq-left-title,
+:root[data-display-theme="kuning"] .infaq-panel .panel-title,
+body[data-display-theme="kuning"] .infaq-panel .panel-title,
+:root[data-display-theme="kuning"] .digital-time,
+body[data-display-theme="kuning"] .digital-time,
+:root[data-display-theme="kuning"] #fin-panel-box #fin-title,
+body[data-display-theme="kuning"] #fin-panel-box #fin-title,
+:root[data-display-theme="kuning"] .right-sidebar .panel-box:first-child .panel-title,
+body[data-display-theme="kuning"] .right-sidebar .panel-box:first-child .panel-title,
+:root[data-display-theme="kuning"] .date-box .hijri-text,
+body[data-display-theme="kuning"] .date-box .hijri-text {
+  color: #ffcc00 !important;
+  -webkit-text-fill-color: #ffcc00 !important;
+}
+
+/* KUNING: gambar/bentuk bulan mengikuti warna nama MESJID. */
+:root[data-display-theme="kuning"] .header-moon,
+body[data-display-theme="kuning"] .header-moon {
+  color: #ffcc00 !important;
+}
+:root[data-display-theme="kuning"] .header-moon::after,
+body[data-display-theme="kuning"] .header-moon::after,
+:root[data-display-theme="kuning"] .header-moon.moon-waxing-crescent::after,
+body[data-display-theme="kuning"] .header-moon.moon-waxing-crescent::after,
+:root[data-display-theme="kuning"] .header-moon.moon-waxing-gibbous::after,
+body[data-display-theme="kuning"] .header-moon.moon-waxing-gibbous::after,
+:root[data-display-theme="kuning"] .header-moon.moon-full::after,
+body[data-display-theme="kuning"] .header-moon.moon-full::after,
+:root[data-display-theme="kuning"] .header-moon.moon-waning-gibbous::after,
+body[data-display-theme="kuning"] .header-moon.moon-waning-gibbous::after,
+:root[data-display-theme="kuning"] .header-moon.moon-last-quarter::after,
+body[data-display-theme="kuning"] .header-moon.moon-last-quarter::after,
+:root[data-display-theme="kuning"] .header-moon.moon-waning-crescent::after,
+body[data-display-theme="kuning"] .header-moon.moon-waning-crescent::after {
+  background: #ffcc00 !important;
+}
+:root[data-display-theme="kuning"] .header-moon.moon-new::after,
+body[data-display-theme="kuning"] .header-moon.moon-new::after {
+  background: transparent !important;
+}
