@@ -11703,30 +11703,36 @@ function updateFridayPrayerDisplay() {
         Number(triggerWita.minute) * 60 +
         Number(triggerWita.second);
 
-      // Untuk audio protected, trigger yang terlambat masih boleh
-      // masuk bila belum pernah dimainkan pada sesi ini. processAudioQueue()
-      // akan memainkan file sampai selesai natural. Event yang sudah
-      // benar-benar lewat tetap tidak dibuat ulang oleh scheduler baru.
+      // OPTIMASI QUEUE:
+      // Event yang BELUM waktunya tidak dimasukkan ke queue.
+      // Sebelumnya seluruh rangkaian Maghrib + Isya dapat masuk sekaligus
+      // sehingga queue membengkak (contoh: queueLength=16) dan TV harus
+      // menyortir/mengelola banyak audio yang masih berjam-jam ke depan.
+      //
+      // Event akan dimasukkan ketika targetSec benar-benar aktif melalui
+      // queueCurrentAudioCatchUp()/processPrayerAudio() pada tick berikutnya.
+      // Event yang sedang aktif tetap boleh catch-up sesuai posisi waktunya.
+      if (
+        typeof targetSec === 'number' &&
+        triggerNowSeconds < targetSec
+      ) {
+        return;
+      }
+
+      // Event yang sudah benar-benar selesai tidak perlu dibuat ulang.
+      // Untuk protected sequence, jangan pernah menunggu/menyimpan event
+      // lama di queue hanya karena event tersebut wajib dimainkan utuh.
       if (
         typeof endSec === 'number' &&
-        triggerNowSeconds > endSec &&
-        !triggerProtectedSequence
+        triggerNowSeconds > endSec
       ) {
 
-        console.log(
-          'AUDIO SKIP (sudah selesai):',
-          prayerName,
-          eventName,
-          'endSec=',
-          endSec,
-          'nowSec=',
-          triggerNowSeconds
-        );
-
-        WEB_APP_STATE
-          .audio
-          .failedLocks
-          .add(key);
+        if (!triggerProtectedSequence) {
+          WEB_APP_STATE
+            .audio
+            .failedLocks
+            .add(key);
+        }
 
         return;
 
