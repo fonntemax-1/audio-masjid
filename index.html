@@ -16297,6 +16297,10 @@ function setCountdownBlackMode(enabled) {
     loadEventRunningText();
     updateHijriDate();
 
+    // PETUGAS SHOLAT: tampilkan data PANELS!C26:C30 di FRONT-END.
+    // Tidak mengubah scheduler/audio.
+    fetchPanelKegiatan_();
+
     // Sinkronisasi internet hanya informasi tambahan.
     syncInternetTime();
 
@@ -16353,6 +16357,12 @@ function setCountdownBlackMode(enabled) {
 
     setInterval(
       fetchSheetData,
+      30000
+    );
+
+    // Refresh ringan Petugas Sholat tanpa menunggu reload halaman.
+    setInterval(
+      fetchPanelKegiatan_,
       30000
     );
 
