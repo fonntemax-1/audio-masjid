@@ -12988,7 +12988,11 @@ function updateFridayPrayerDisplay() {
     //
     // Hanya event yang sedang aktif yang dipastikan masuk queue.
     // Tidak mengubah timeline audio.
-    function queueCurrentAudioCatchUp(dateKey) {
+    function queueCurrentAudioCatchUp(dateKey, options) {
+
+      options = options || {};
+
+      const silent = options.silent === true;
 
       const state = WEB_APP_STATE.audio;
 
@@ -13095,19 +13099,25 @@ function updateFridayPrayerDisplay() {
 
       });
 
-      console.log(
-        'AUDIO CATCH-UP READY:',
-        'date=',
-        dateKey,
-        'nowSec=',
-        nowSeconds,
-        'activeEvents=',
-        activeCount,
-        'queueLength=',
-        state.queue.length,
-        'audioInitialized=',
-        state.initialized
-      );
+      // Tick realtime dapat memanggil catch-up secara ringan setiap detik
+      // agar event berikutnya masuk tepat saat target tercapai. Jangan
+      // membanjiri console pada jalur realtime; log detail tetap dipakai
+      // untuk startup/watchdog normal.
+      if (!silent) {
+        console.log(
+          'AUDIO CATCH-UP READY:',
+          'date=',
+          dateKey,
+          'nowSec=',
+          nowSeconds,
+          'activeEvents=',
+          activeCount,
+          'queueLength=',
+          state.queue.length,
+          'audioInitialized=',
+          state.initialized
+        );
+      }
 
       // Jika unlock audio sudah berhasil, langsung proses queue.
       // Jika belum, initAudioPermission() akan memprosesnya setelah unlock.
@@ -14977,6 +14987,28 @@ function setCountdownBlackMode(enabled) {
           nowDate,
           nowSeconds
         );
+      } else {
+        // SCHEDULE sudah lengkap. triggerAudioEvent() sengaja menolak
+        // event yang masih di masa depan agar reload tidak membangun queue
+        // berisi seluruh rangkaian Maghrib/Isya sekaligus.
+        // Karena itu scheduler realtime harus membuka event berikutnya
+        // tepat ketika targetSec tercapai.
+        //
+        // Scan ini ringan (hanya computedSchedules yang sudah ada),
+        // tidak membangun ulang durasi/schedule dan tidak mencetak log
+        // setiap detik. Event yang sudah di-queue/played otomatis dilewati
+        // oleh queuedLocks/playedLocks.
+        try {
+          queueCurrentAudioCatchUp(
+            nowDate,
+            { silent: true }
+          );
+        } catch (audioRealtimeCatchUpError) {
+          console.warn(
+            'AUDIO REALTIME CATCH-UP ERROR:',
+            audioRealtimeCatchUpError
+          );
+        }
       }
 
       // AUDIO QUEUE TIDAK lagi diproses dari tick countdown.
