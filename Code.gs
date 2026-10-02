@@ -4455,42 +4455,53 @@ function getRealtimeDisplayConfig() {
     const panels = ss.getSheetByName('panels');
     if (!panels) return { success: false, error: 'Sheet panels tidak ditemukan.' };
 
-    const values = panels.getRange('B12:C37').getDisplayValues();
+    // Satu pembacaan blok untuk seluruh kontrol realtime.
+    // Menghindari banyak getRange() terpisah yang membuat Apps Script lambat.
+    const grid = panels.getRange('B5:G37').getDisplayValues();
+
+    const cell = function(row, col) {
+      return String((grid[row - 5] || [])[col - 2] || '').trim();
+    };
+
+    const location = [cell(5,3), cell(6,3), cell(7,3), cell(8,3), cell(9,3), cell(10,3)];
+    const c18 = cell(18,3);
+    const youtube = cell(20,3);
+    const youtubeStatusRaw = cell(20,7).toUpperCase();
+    const c22Raw = cell(22,3).toUpperCase();
+    const c2Raw = cell(2,3).toUpperCase();
+
+    // Header di B12:C37.
     const header = {};
-    values.forEach(function(row) {
-      const key = String(row[0] || '').trim().toUpperCase();
-      const value = String(row[1] || '').trim();
+    for (let r = 12; r <= 37; r++) {
+      const key = cell(r,2).toUpperCase();
+      const value = cell(r,3);
       if (['NAMA','ALAMAT','KOTA','NO HP','SLOGAN','WEBSITE','INFO LAINNYA'].indexOf(key) >= 0) {
         header[key] = value;
       }
-    });
+    }
 
-    const location = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
-      return String(row[0] || '').trim();
-    });
-    const kegiatan = panels.getRange('C27:C30').getDisplayValues().map(function(row) {
-      return String(row[0] || '').trim();
-    });
-    const event = panels.getRange('B33:B37').getDisplayValues().map(function(row) {
-      return String(row[0] || '').trim();
-    }).filter(Boolean);
+    const kegiatan = [cell(27,3), cell(28,3), cell(29,3), cell(30,3)];
+    const event = [];
+    for (let r = 33; r <= 37; r++) {
+      const value = cell(r,2);
+      if (value) event.push(value);
+    }
 
-    const youtubeStatusRaw = String(panels.getRange('G20').getDisplayValue() || '').trim().toUpperCase();
-    const c22Raw = String(panels.getRange('C22').getDisplayValue() || '').trim().toUpperCase();
-    const c2Raw = String(panels.getRange('C2').getDisplayValue() || '').trim().toUpperCase();
+    let theme = String(c18 || '').trim().toUpperCase();
+    if (theme !== 'HIJAU' && theme !== 'MERAH' && theme !== 'KUNING') theme = 'KUNING';
 
     return {
       success: true,
       PanelMode: c2Raw === 'AUTO' ? 'AUTO' : 'OFF',
       Lokasi: {
-        kota: location[0] || '', provinsi: location[1] || '', zona: location[2] || '',
-        timezone: location[3] || '', gmt: location[4] || '', slug: location[5] || ''
+        kota: location[0], provinsi: location[1], zona: location[2],
+        timezone: location[3], gmt: location[4], slug: location[5]
       },
-      DisplayTheme: getDisplayThemeSetting(),
-      Youtube: String(panels.getRange('C20').getDisplayValue() || '').trim(),
+      DisplayTheme: theme,
+      Youtube: youtube,
       YoutubeStatus: ['ON','OFF','AUTO','STOP'].indexOf(youtubeStatusRaw) >= 0 ? youtubeStatusRaw : 'AUTO',
       IqomahMode: c22Raw === 'AUTO' ? 'AUTO' : c22Raw === 'SLEEP' ? 'SLEEP' : 'OFF',
-      Nama: header.NAMA || String(panels.getRange('C12').getDisplayValue() || '').trim(),
+      Nama: header.NAMA || cell(12,3),
       Alamat: header.ALAMAT || '',
       Kota: header.KOTA || '',
       'No. Telp': header['NO HP'] || '',
@@ -4498,7 +4509,7 @@ function getRealtimeDisplayConfig() {
       Website: header.WEBSITE || '',
       InfoLainnya: header['INFO LAINNYA'] || '',
       Kegiatan: {
-        jenis: String(panels.getRange('C26').getDisplayValue() || '').trim().toUpperCase(),
+        jenis: cell(26,3).toUpperCase(),
         values: kegiatan
       },
       EventRunningText: event.join(' • ')
