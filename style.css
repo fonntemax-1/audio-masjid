@@ -2405,6 +2405,30 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
   text-align: center !important;
 }
 
+/* INFAQ mengikuti lebar kolom jam/countdown dan tidak melewati BANNER EVENT. */
+.clock-overlay .infaq-panel {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  flex: 0 1 auto !important;
+  align-self: stretch !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  overflow: hidden !important;
+}
+
+.clock-overlay .infaq-list {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.clock-overlay .infaq-item {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
 /* CLOCK + PANEL HITAM: PANEL TIDAK BOLEH MENGUBAH LAYOUT JAM */
 .clock-overlay .panel-black-message {
   display: none !important;
