@@ -6864,7 +6864,9 @@ function updateFridayPrayerDisplay() {
     }
 
     pollRealtimeDisplayConfig_();
-    setInterval(pollRealtimeDisplayConfig_, 2000);
+    // Snapshot realtime dibuat satu-satunya jalur sinkronisasi C2/C18/C20/G20/C22,
+    // petugas, kegiatan, dan event. 1.5 detik tanpa request paralel.
+    setInterval(pollRealtimeDisplayConfig_, 1500);
 
     // =========================================================
     // IQOMAH / SLEEP SCREEN CONTROL - panels!C22
@@ -16508,10 +16510,9 @@ function setCountdownBlackMode(enabled) {
       30000
     );
 
-    // Petugas Sholat disinkronkan oleh realtime display config.
-
-    // Selector panels!G20 harus merespons maksimal sekitar 1-2 detik.\n    // Polling khusus ini tidak mengubah polling data utama 30 detik.\n    startFastYouTubeControlPolling_();
-    startFastIqomahBlackModePolling_();
+    // Petugas Sholat, YouTube G20, C22, theme, C2, kegiatan, dan event
+    // disinkronkan oleh realtime display config.
+    // Hanya panel Keuangan/Qur'ban yang tetap memakai polling khusus 1 detik.
     startFastPanelKeuanganPolling_();
 
     // panels!C2 tetap diperiksa terpisah, tetapi tidak lagi ikut setiap
