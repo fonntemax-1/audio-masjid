@@ -782,12 +782,20 @@ function getDataFromSheet() {
           // JUDUL + TANGGAL LAPORAN LANGSUNG DARI SHEET KEUANGAN
           // ---------------------------------------------------
 
-          // Tampilkan isi Keuangan!A2 PERSIS seperti yang terlihat
-          // di Spreadsheet. Tidak ada parsing, normalisasi, atau
-          // perubahan format tanggal.
-          result.KeuanganTanggal =
+          // Keuangan!A2 adalah sumber tanggal laporan.
+          // Jika API Sheets mengembalikan nol di depan hari (mis. 02 Oktober
+          // 2026) padahal tampilan Spreadsheet adalah 2 Oktober 2026,
+          // hilangkan HANYA nol di depan angka hari. Bagian tanggal lainnya
+          // tidak diubah. Tidak menyentuh scheduler/audio.
+          const keuanganTanggalDisplay =
             String(
               sheet.getRange('A2').getDisplayValue() || ''
+            );
+
+          result.KeuanganTanggal =
+            keuanganTanggalDisplay.replace(
+              /^(0)(\\d)(\\s)/,
+              '$2$3'
             );
 
 
