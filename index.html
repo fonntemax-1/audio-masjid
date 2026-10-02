@@ -7155,8 +7155,7 @@ function updateFridayPrayerDisplay() {
 
       if (finTitle) {
         finTitle.innerText =
-          data.KeuanganJudul ||
-          'LAPORAN KEUANGAN';
+          String(data.KeuanganJudul || '').trim();
       }
 
       const finSub =
