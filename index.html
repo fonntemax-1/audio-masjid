@@ -3147,7 +3147,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       <div class="right-sidebar">
         <div class="panel-box">
-          <div class="panel-title">LAPORAN KEUANGAN</div>
+          <div class="panel-title" id="fin-title">-</div>
           <div class="panel-sub" id="fin-sub">-</div>
 
           <div class="keuangan-scroll-area" id="keuangan-scroll-area">
@@ -7147,6 +7147,17 @@ function updateFridayPrayerDisplay() {
       // =======================================================
       // KEUANGAN
       // =======================================================
+
+      const finTitle =
+        document.getElementById(
+          'fin-title'
+        );
+
+      if (finTitle) {
+        finTitle.innerText =
+          data.KeuanganJudul ||
+          '-';
+      }
 
       const finSub =
         document.getElementById(
