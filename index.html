@@ -1078,8 +1078,9 @@
 
       audioScheduleConfig = normalizedAudioSchedule;
 
-      audioDurationConfig =
-        data.AudioDurations || {};
+      // Durasi tidak lagi dibaca dari Sheet.
+      // Timeline memakai metadata durasi aktual file MP3.
+      audioDurationConfig = {};
 
       audioFridayConfig =
         data.AudioFriday || {};
