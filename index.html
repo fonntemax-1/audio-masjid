@@ -7519,18 +7519,10 @@ function updateFridayPrayerDisplay() {
         'margin-top:0.35vh;' +
         'margin-bottom:0.8vh;';
 
-      // Ukuran font TANGGAL PETUGAS SHOLAT harus sama persis
-      // dengan ukuran font isi pada LAPORAN KEUANGAN.
-      // Ambil ukuran aktual dari .keuangan-table agar mengikuti
-      // container/frame laporan keuangan, termasuk saat responsive.
-      const keuanganTable = document.querySelector('.keuangan-table');
-      if (keuanganTable) {
-        const keuanganFontSize =
-          window.getComputedStyle(keuanganTable).fontSize;
-        if (keuanganFontSize) {
-          dateEl.style.fontSize = keuanganFontSize;
-        }
-      }
+      // Ukuran font PANELS!C27 (Tanggal Petugas Sholat)
+      // harus sama dengan font QUR'BAN!A3 (#fin-extra).
+      // Gunakan formula responsive yang sama persis.
+      dateEl.style.fontSize = 'clamp(0.95rem, 5.2cqw, 1.70rem)';
       dateEl.style.display = dateValue ? 'block' : 'none';
 
       // Field lain tetap mengikuti urutan B27:B30.
