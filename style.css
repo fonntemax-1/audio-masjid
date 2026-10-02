@@ -1103,55 +1103,50 @@
      * overflow panel/clock-overlay.
      */
     /*
-     * QRIS: jangan pernah dipotong oleh panel/clock-overlay.
-     * Gunakan ukuran konservatif terhadap tinggi viewport dan
-     * beri ruang untuk judul INFAQ & SHADAQAH.
+     * QRIS RESPONSIVE
+     * Ukuran mengikuti ruang nyata yang tersedia di panel,
+     * bukan angka tetap. Rasio QR tetap 1:1 dan tidak dipotong.
      */
-    .infaq-list > img,
-    .clock-overlay .infaq-panel .infaq-list > img {
+    .clock-overlay .infaq-panel {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      overflow: hidden !important;
+    }
+
+    .clock-overlay .infaq-list {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      height: 100% !important;
+      overflow: hidden !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .clock-overlay .infaq-list > img {
       display: block !important;
+      flex: 0 1 auto !important;
       width: auto !important;
       height: auto !important;
-      max-width: min(8vh, calc(100% - 0.5vw)) !important;
-      max-height: 8vh !important;
+      /*
+       * Ukuran maksimum responsif terhadap WIDTH dan HEIGHT viewport.
+       * Tidak ada ukuran 6vh/8vh/9vh yang memaksa QR menjadi kecil.
+       */
+      max-width: min(11vh, 100%, 11vw) !important;
+      max-height: min(11vh, 100%) !important;
+      aspect-ratio: 1 / 1 !important;
       object-fit: contain !important;
-      flex: 0 0 auto !important;
-      margin: 0 auto !important;
+      margin: auto !important;
       box-sizing: border-box !important;
     }
 
-    .clock-overlay .infaq-panel {
-      overflow: hidden !important;
-      max-height: 16vh !important;
-      min-height: 0 !important;
-    }
-
-    @media (max-height: 850px) and (min-width: 701px) {
-      .infaq-panel,
-      .clock-overlay .infaq-panel {
-        max-height: 14vh !important;
-      }
-
-      .infaq-list > img,
-      .clock-overlay .infaq-panel .infaq-list > img {
-        max-width: min(6vh, calc(100% - 0.5vw)) !important;
-        max-height: 6vh !important;
+    @media (max-width: 700px) {
+      .clock-overlay .infaq-list > img {
+        max-width: min(24vw, 24vh, 100%) !important;
+        max-height: min(24vw, 24vh, 100%) !important;
       }
     }
-
-    @media (max-height: 650px) and (min-width: 701px) {
-      .infaq-panel,
-      .clock-overlay .infaq-panel {
-        max-height: 11vh !important;
-      }
-
-      .infaq-list > img,
-      .clock-overlay .infaq-panel .infaq-list > img {
-        max-width: min(4.5vh, calc(100% - 0.5vw)) !important;
-        max-height: 4.5vh !important;
-      }
-    }
-
 
     .event-banner {
       position: relative;
