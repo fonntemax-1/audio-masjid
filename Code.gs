@@ -3283,13 +3283,13 @@ function getEventRunningText() {
 
   // =========================================================
   // SUMBER EVENT RUNNING TEXT
-  // panels!B33:B37
+  // panels!B35:B39
   //
-  // B33 = Event 1
-  // B34 = Event 2
-  // B35 = Event 3
-  // B36 = Event 4
-  // B37 = Event 5
+  // B35 = Event 1
+  // B36 = Event 2
+  // B37 = Event 3
+  // B38 = Event 4
+  // B39 = Event 5
   //
   // Baris kosong otomatis dilewati.
   // Urutan mengikuti B33 -> B37.
@@ -3297,7 +3297,7 @@ function getEventRunningText() {
 
   const values =
     sheet
-      .getRange('B33:B37')
+      .getRange('B35:B39')
       .getDisplayValues();
 
   const result = [];
@@ -4257,9 +4257,9 @@ function DIAGNOSTIK_ADZAN_E_Z_20260927() {
 // ============================================================
 // FORM KEGIATAN MASJID - PANELS!C26
 // ============================================================
-// C26 = dropdown JENIS KEGIATAN.
-// B27:B30 = label field.
-// C27:C30 = data kegiatan.
+// C28 = dropdown JENIS KEGIATAN.
+// B29:B32 = label field.
+// C29:C32 = data kegiatan.
 // ============================================================
 
 const PANEL_KEGIATAN_OPTIONS_ = [
@@ -4278,7 +4278,7 @@ const PANEL_KEGIATAN_FIELDS_ = {
 
 /**
  * Jalankan sekali dari Apps Script Editor untuk memasang
- * dropdown panels!C26 dan struktur field kegiatan.
+ * dropdown panels!C28 dan struktur field kegiatan.
  *
  * Aturan tanggal:
  * - SHOLAT JUM'AT  : otomatis Jumat pada minggu berjalan.
@@ -4294,7 +4294,7 @@ function setupPanelKegiatan() {
     throw new Error("Sheet panels tidak ditemukan.");
   }
 
-  const selector = sheet.getRange("C26");
+  const selector = sheet.getRange("C28");
 
   const rule = SpreadsheetApp.newDataValidation()
     .requireValueInList(PANEL_KEGIATAN_OPTIONS_, true)
@@ -4310,11 +4310,11 @@ function setupPanelKegiatan() {
   formatPanelKegiatanSelector_(selector);
   updatePanelKegiatanFields_(sheet, selector.getDisplayValue(), true);
 
-  Logger.log("FORM KEGIATAN PANELS!C26 berhasil disiapkan.");
+  Logger.log("FORM KEGIATAN PANELS!C28 berhasil disiapkan.");
 }
 
 /**
- * Trigger saat panels!C26 diubah.
+ * Trigger saat panels!C28 diubah.
  * onEdit memang dipanggil ketika pengguna mengubah nilai sel di Sheets.
  */
 function onEdit(e) {
@@ -4324,14 +4324,14 @@ function onEdit(e) {
   const sheet = range.getSheet();
 
   if (sheet.getName() !== "panels") return;
-  if (range.getA1Notation() !== "C26") return;
+  if (range.getA1Notation() !== "C28") return;
 
   formatPanelKegiatanSelector_(range);
   updatePanelKegiatanFields_(sheet, range.getDisplayValue(), false);
 }
 
 /**
- * Buat installable edit trigger untuk panels!C26.
+ * Buat installable edit trigger untuk panels!C28.
  * Code.gs ini memakai SPREADSHEET_ID/openById(), sehingga simple
  * onEdit tidak cukup untuk spreadsheet yang tidak terikat langsung.
  * Jalankan fungsi ini SEKALI dari Apps Script Editor dan izinkan akses.
@@ -4398,7 +4398,7 @@ function setTanggalJumatMingguBerjalan_(sheet) {
 }
 
 /**
- * Membentuk B27:B30 sesuai C26 dan mengatur C27:C30.
+ * Membentuk B29:B32 sesuai C28 dan mengatur C27:C30.
  *
  * resetValues=true dipakai saat setup awal.
  * Saat C26 berubah melalui onEdit, data lama selalu dibersihkan
@@ -4408,16 +4408,16 @@ function updatePanelKegiatanFields_(sheet, kegiatan, resetValues) {
   const key = String(kegiatan || "").trim().toUpperCase();
   const fields = PANEL_KEGIATAN_FIELDS_[key] || [];
 
-  const labelRange = sheet.getRange("B27:B30");
-  const valueRange = sheet.getRange("C27:C30");
+  const labelRange = sheet.getRange("B29:B32");
+  const valueRange = sheet.getRange("C29:C32");
 
   // Label B27:B30 berubah otomatis berdasarkan C26.
   // Menggunakan formula Sheet sehingga TIDAK membutuhkan onEdit trigger.
   const formulaRows = [
-    ['=IF($C$26="SHOLAT JUM\'AT";"Tanggal";IF($C$26="SHOLAT TARAWIH";"Tanggal";IF($C$26="SHOLAT IDUL FITRI";"Tanggal";IF($C$26="SHOLAT IDUL ADHA";"Tanggal";""))))'],
-    ['=IF($C$26="SHOLAT JUM\'AT";"Khatib";IF($C$26="SHOLAT TARAWIH";"Imam";IF($C$26="SHOLAT IDUL FITRI";"Khatib";IF($C$26="SHOLAT IDUL ADHA";"Khatib";""))))'],
-    ['=IF($C$26="SHOLAT JUM\'AT";"Imam";IF($C$26="SHOLAT TARAWIH";"Bilal";IF($C$26="SHOLAT IDUL FITRI";"Imam";IF($C$26="SHOLAT IDUL ADHA";"Imam";""))))'],
-    ['=IF($C$26="SHOLAT JUM\'AT";"Bilal";IF($C$26="SHOLAT TARAWIH";"Kultum";IF($C$26="SHOLAT IDUL FITRI";"Bilal";IF($C$26="SHOLAT IDUL ADHA";"Bilal";""))))']
+    ['=IF($C$28="SHOLAT JUM\'AT";"Tanggal";IF($C$28="SHOLAT TARAWIH";"Tanggal";IF($C$28="SHOLAT IDUL FITRI";"Tanggal";IF($C$28="SHOLAT IDUL ADHA";"Tanggal";""))))'],
+    ['=IF($C$28="SHOLAT JUM\'AT";"Khatib";IF($C$28="SHOLAT TARAWIH";"Imam";IF($C$28="SHOLAT IDUL FITRI";"Khatib";IF($C$28="SHOLAT IDUL ADHA";"Khatib";""))))'],
+    ['=IF($C$28="SHOLAT JUM\'AT";"Imam";IF($C$28="SHOLAT TARAWIH";"Bilal";IF($C$28="SHOLAT IDUL FITRI";"Imam";IF($C$28="SHOLAT IDUL ADHA";"Imam";""))))'],
+    ['=IF($C$28="SHOLAT JUM\'AT";"Bilal";IF($C$28="SHOLAT TARAWIH";"Kultum";IF($C$28="SHOLAT IDUL FITRI";"Bilal";IF($C$28="SHOLAT IDUL ADHA";"Bilal";""))))']
   ];
 
   labelRange.setFormulas(formulaRows);
@@ -4435,7 +4435,7 @@ function updatePanelKegiatanFields_(sheet, kegiatan, resetValues) {
  * Tidak lagi menggunakan formula Sheets/custom function.
  */
 function setupPanelKegiatanLabelFormulas_(sheet) {
-  updatePanelKegiatanFields_(sheet, sheet.getRange("C26").getDisplayValue(), true);
+  updatePanelKegiatanFields_(sheet, sheet.getRange("C28").getDisplayValue(), true);
 }
 
 /**
@@ -4457,7 +4457,7 @@ function getRealtimeDisplayConfig() {
 
     // Satu pembacaan blok untuk seluruh kontrol realtime.
     // Menghindari banyak getRange() terpisah yang membuat Apps Script lambat.
-    const grid = panels.getRange('B2:G37').getDisplayValues();
+    const grid = panels.getRange('B2:G39').getDisplayValues();
 
     const cell = function(row, col) {
       return String((grid[row - 2] || [])[col - 2] || '').trim();
@@ -4480,9 +4480,9 @@ function getRealtimeDisplayConfig() {
       }
     }
 
-    const kegiatan = [cell(27,3), cell(28,3), cell(29,3), cell(30,3)];
+    const kegiatan = [cell(29,3), cell(30,3), cell(31,3), cell(32,3)];
     const event = [];
-    for (let r = 33; r <= 37; r++) {
+    for (let r = 35; r <= 39; r++) {
       const value = cell(r,2);
       if (value) event.push(value);
     }
@@ -4509,7 +4509,7 @@ function getRealtimeDisplayConfig() {
       Website: header.WEBSITE || '',
       InfoLainnya: header['INFO LAINNYA'] || '',
       Kegiatan: {
-        jenis: cell(26,3).toUpperCase(),
+        jenis: cell(28,3).toUpperCase(),
         values: kegiatan
       },
       EventRunningText: event.join(' • ')
@@ -4535,11 +4535,11 @@ function getPanelKegiatan() {
     }
 
     const jenis = String(
-      sheet.getRange("C26").getDisplayValue() || ""
+      sheet.getRange("C28").getDisplayValue() || ""
     ).trim().toUpperCase();
 
     const configuredFields = PANEL_KEGIATAN_FIELDS_[jenis] || [];
-    const values = sheet.getRange("C27:C30").getDisplayValues();
+    const values = sheet.getRange("C29:C32").getDisplayValues();
 
     const fields = {};
 
@@ -4571,7 +4571,7 @@ function getPanelKegiatan() {
 
 
 // =====================================================
-// PANEL KEUANGAN / QUR'BAN CEPAT - panels!C49
+// PANEL KEUANGAN / QUR'BAN CEPAT - panels!C26
 // Hanya membaca selector + data panel. Tidak menjalankan
 // getDataFromSheet(), scheduler, audio, atau jadwal sholat.
 // =====================================================
