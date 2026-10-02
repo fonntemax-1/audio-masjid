@@ -14394,13 +14394,9 @@ function setCountdownBlackMode(enabled) {
           wakeSec === null ||
           Number(nowSeconds) < wakeSec;
 
-        console.log(
-          'PANEL SLEEP CHECK:',
-          'now=', nowSeconds,
-          'nextQiroah=', nextQiroahTarget,
-          'wake=', wakeSec,
-          'sleep=', shouldSleep
-        );
+        // Jangan logging setiap detik di TV/Chrome.
+        // Console spam dapat menahan main thread dan membuat
+        // jam/tampilan terlihat berhenti.
       }
 
       document.body.classList.toggle(
@@ -14412,18 +14408,25 @@ function setCountdownBlackMode(enabled) {
       // Saat wake, mute dilepas tanpa pause/replay audio.
       setSleepAudioMute_(shouldSleep);
 
-      // YouTube dievaluasi ulang segera setelah status SLEEP berubah.
-      // Jika G20=AUTO, kontrol kembali ke aturan AUTO setelah wake.
-      try {
-        updateYouTubeAudioStop(
-          nowSeconds,
-          WEB_APP_STATE.dateKey || getApiDate()
-        );
-      } catch (youtubeError) {
-        console.warn(
-          'SLEEP: sinkronisasi YouTube gagal:',
-          youtubeError
-        );
+      // updatePrayerCountdown() sudah mengevaluasi YouTube sekali
+      // pada tick yang sama. Di sini hanya lakukan evaluasi tambahan
+      // saat status SLEEP benar-benar berubah, agar tidak melakukan
+      // scan seluruh computedSchedules dua kali setiap detik.
+      const sleepStateChanged =
+        sleepAudioMuted !== shouldSleep;
+
+      if (sleepStateChanged) {
+        try {
+          updateYouTubeAudioStop(
+            nowSeconds,
+            WEB_APP_STATE.dateKey || getApiDate()
+          );
+        } catch (youtubeError) {
+          console.warn(
+            'SLEEP: sinkronisasi YouTube gagal:',
+            youtubeError
+          );
+        }
       }
 
       return shouldSleep;
