@@ -2544,3 +2544,42 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 }
 
 
+
+
+/* INFAQ & SHADAQAH - kiri tanpa frame */
+.infaq-left-widget {
+  width: 100%;
+  margin-top: 1vh;
+  padding: 0.4vh 0.5vw 0;
+  text-align: center;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+.infaq-left-title {
+  color: #ffcc00;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: clamp(.65rem, 1.15vw, 1rem);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.infaq-left-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: .4vh;
+}
+.infaq-left-content img {
+  display: block;
+  width: min(7vw, 90px);
+  height: auto;
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+}
+@media (max-width: 700px) {
+  .infaq-left-widget { margin-top: .6vh; }
+  .infaq-left-title { font-size: clamp(.6rem, 2.8vw, .9rem); }
+  .infaq-left-content img { width: min(20vw, 90px); }
+}
