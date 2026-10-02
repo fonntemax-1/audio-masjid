@@ -5871,8 +5871,15 @@ function updateFridayPrayerDisplay() {
         'IQOMAH'
       ];
 
+      // Setelah iqomah selesai, countdown dapat masuk fase
+      // "WAKTU SHOLAT". Fase ini juga harus mengunci banner khusus.
+      const isWaktuSholatState =
+        stateTitleUpper === 'WAKTU SHOLAT' ||
+        stateTitleUpper.indexOf('WAKTU SHOLAT ') === 0;
+
       const isPrayerState =
-        prayerStateTitles.indexOf(stateTitleUpper) >= 0;
+        prayerStateTitles.indexOf(stateTitleUpper) >= 0 ||
+        isWaktuSholatState;
 
       if (isPrayerState) {
         let statePrayerName =
