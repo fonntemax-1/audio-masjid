@@ -2320,6 +2320,33 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       0 0 0.20vh rgba(210,62,72,0.28) !important;
   }
 
+/* PANEL HITAM — HANYA TAMPIL SAAT WINDOW IQOMAH AKTIF */
+.clock-overlay .panel-black-message {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+body.panel-countdown-auto .clock-overlay .panel-black-message {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+body.panel-countdown-auto .clock-overlay .panel-black-icon {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+body.panel-countdown-auto .clock-overlay .panel-black-icon img {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
 /* CLOCK COMPOSITION — RIGHT ALIGNED / RESTORE ALL CLOCKS */
 .clock-overlay {
   top: 1.5vh !important;
