@@ -2959,6 +2959,7 @@ function updateFridayPrayerDisplay() {
 
 
     function getEventPrayerOverrideText_(state) {
+      const nowSeconds = Math.floor(getCurrentTimeSeconds());
 
       // Saat startup/pergantian fase, state countdown dapat null.
       // Tidak ada banner khusus jika belum ada state aktif.
