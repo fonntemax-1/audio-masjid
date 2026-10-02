@@ -3877,6 +3877,31 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       if (!value) return '';
 
+      // Semua file audio lokal repository dipusatkan di /audio.
+      // Tetap terima URL lama dari Sheet agar fallback tidak rusak.
+      const localAudioFiles = [
+        'qiroah.mp3',
+        'Shalawat Tarhim.mp3',
+        'sirine.mp3',
+        'beep.mp3',
+        'adzan-subuh.mp3',
+        'adzan-biasa.mp3',
+        'doa.mp3',
+        'doa-puasa.mp3',
+        'doa-buka.mp3',
+        'iqomah.mp3'
+      ];
+
+      for (const file of localAudioFiles) {
+        if (
+          value === file ||
+          value.endsWith('/' + file) ||
+          value.endsWith('/' + encodeURIComponent(file))
+        ) {
+          return './audio/' + encodeURIComponent(file);
+        }
+      }
+
       if (
         value.includes('drive.google.com')
       ) {
