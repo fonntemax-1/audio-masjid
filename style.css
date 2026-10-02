@@ -311,7 +311,8 @@
 
 .header-center .sub {
   color: #ffffff;
-  font-family: 'Cinzel', serif;
+  /* Font lokasi/header menggunakan Alhambra; Cinzel menjadi fallback. */
+  font-family: 'Alhambra', 'Cinzel', serif;
   font-size: clamp(0.72rem, 1.2vh, 1.2rem);
   line-height: 1.15;
   margin-top: 0.35vh;
@@ -331,14 +332,14 @@
 
   /* No. HP harus benar-benar mengikuti font ALAMAT,
      bukan hanya mengandalkan inherit dari elemen induk. */
-  font-family: 'Cinzel', serif !important;
+  font-family: 'Alhambra', 'Cinzel', serif !important;
   font-size: clamp(0.72rem, 1.2vh, 1.2rem) !important;
   font-weight: 700 !important;
   line-height: 1.15 !important;
 }
 
 .header-center .sub .wa-contact > span {
-  font-family: 'Cinzel', serif !important;
+  font-family: 'Alhambra', 'Cinzel', serif !important;
   font-size: inherit !important;
   font-weight: inherit !important;
   line-height: inherit !important;
