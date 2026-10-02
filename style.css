@@ -2319,3 +2319,22 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       0 0.10vh 0.20vh rgba(35,0,4,0.78),
       0 0 0.20vh rgba(210,62,72,0.28) !important;
   }
+
+
+/* CLOCK RIGHT ALIGNMENT - reference screenshot */
+.clock-overlay {
+  align-items: flex-end !important;
+}
+
+.clock-overlay .countdown-box,
+.clock-overlay .digital-clock-box,
+.clock-overlay .infaq-panel {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
+.clock-overlay .analog-clock {
+  align-self: flex-end !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
