@@ -7723,7 +7723,11 @@ function updateFridayPrayerDisplay() {
         const item = entries[i - 1];
 
         if (item) {
-          row.textContent = item.label;
+          // Label PETUGAS SHOLAT selalu huruf kapital dan sedikit diperbesar.
+          row.textContent = item.label.toUpperCase();
+          row.style.textTransform = 'uppercase';
+          row.style.fontSize = 'clamp(0.95rem, 2.15cqw, 1.55rem)';
+          row.style.fontWeight = '800';
           valueEl.textContent = item.value;
           row.parentElement.style.display = 'flex';
         } else {
