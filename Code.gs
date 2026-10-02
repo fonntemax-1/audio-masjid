@@ -811,7 +811,7 @@ function getDataFromSheet() {
 
             result.KeuanganTanggal =
               tanggalText.replace(
-                /^(0+)(\\d{1,2})(\\s+)/,
+                /^(0+)(\d{1,2})(\s+)/,
                 '$2$3'
               );
 
