@@ -1,0 +1,36 @@
+name: Sync Stage 1 - Event and Audio Config
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/sync-stage1.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sync Apps Script data to GitHub JSON
+        env:
+          GAS_API_URL: "https://script.google.com/macros/s/AKfycbz363_n9sqVZxwHkyDLYQXor4wtgf7IArCNQwNx23e9JMEbv_bKzXFQGkX5hmA3W9z8/exec"
+        run: node scripts/sync-stage1.mjs
+
+      - name: Commit synchronized JSON
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- data/event.json data/audio-config.json; then
+            echo "Stage 1 JSON tidak berubah."
+            exit 0
+          fi
+          git add data/event.json data/audio-config.json
+          git commit -m "chore: sync Event and Audio config from Sheets"
+          git push
