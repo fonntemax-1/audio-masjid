@@ -2351,7 +2351,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 .clock-overlay {
   top: 1.5vh !important;
   right: 1.5vw !important;
-  bottom: auto !important;
+  bottom: 6vh !important;
   height: auto !important;
   width: 16vw !important;
   max-width: 220px !important;
@@ -2361,7 +2361,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
   align-items: flex-end !important;
   justify-content: flex-start !important;
   gap: 1vh !important;
-  overflow: visible !important;
+  overflow: hidden !important;
   z-index: 20 !important;
 }
 
