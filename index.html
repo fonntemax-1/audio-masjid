@@ -14508,79 +14508,25 @@ function setCountdownBlackMode(enabled) {
     // "WAKTU BERBUKA MAGHRIB/MAGRIB" langsung ke DOM,
     // koreksi dilakukan tepat sebelum teks terlihat di TV.
     function installRamadanMaghribTextGuard_() {
-      const guard = function(node) {
-        if (!node) return;
-        const current = String(node.innerText || node.textContent || '');
-        const fixed = normalizeVisibleRamadanMaghribText_(current);
-        if (fixed !== current) {
-          node.innerText = fixed;
-        }
-      };
-
-      const eventEl = document.getElementById('event-running');
-      const countdownEl = document.getElementById('countdown-title');
-      const blackTitleEl = document.getElementById('panel-black-title');
-      const blackPrayerEl = document.getElementById('panel-black-prayer');
-
-      guard(eventEl);
-      guard(countdownEl);
-      guard(blackTitleEl);
-      guard(blackPrayerEl);
-
+      // Normalisasi dilakukan langsung saat teks ditulis ke DOM.
+      // Jangan memasang MutationObserver di elemen countdown/event:
+      // elemen-elemen ini berubah setiap detik dan observer dapat
+      // menambah pekerjaan main-thread pada TV/Chrome.
       if (window.__RAMADAN_MAGHRIB_TEXT_GUARD__) return;
       window.__RAMADAN_MAGHRIB_TEXT_GUARD__ = true;
 
-      const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-          if (mutation.type !== 'childList' && mutation.type !== 'characterData') return;
-          const target = mutation.target && mutation.target.nodeType === 1
-            ? mutation.target
-            : mutation.target && mutation.target.parentElement;
-          if (!target) return;
-
-          if (
-            target.id === 'event-running' ||
-            target.id === 'countdown-title' ||
-            target.id === 'panel-black-title' ||
-            target.id === 'panel-black-prayer' ||
-            (target.closest &&
-              (target.closest('#event-running') ||
-               target.closest('#countdown-title') ||
-               target.closest('#panel-black-title') ||
-               target.closest('#panel-black-prayer')))
-          ) {
-            guard(
-              target.id === 'event-running' ||
-              target.id === 'countdown-title' ||
-              target.id === 'panel-black-title' ||
-              target.id === 'panel-black-prayer'
-                ? target
-                : target.closest('#event-running') ||
-                  target.closest('#countdown-title') ||
-                  target.closest('#panel-black-title') ||
-                  target.closest('#panel-black-prayer')
-            );
-          }
-        });
-      });
-
-      // Jangan observasi seluruh BODY.
-      // Countdown memperbarui DOM setiap detik; observer pada seluruh
-      // body membuat setiap perubahan kecil (termasuk animasi/banner)
-      // memicu callback MutationObserver lagi. Pada TV ini dapat
-      // menyebabkan main thread tersendat/stag.
       [
-        eventEl,
-        countdownEl,
-        blackTitleEl,
-        blackPrayerEl
-      ].forEach(function(el) {
-        if (!el) return;
-        observer.observe(el, {
-          subtree: true,
-          childList: true,
-          characterData: true
-        });
+        document.getElementById('event-running'),
+        document.getElementById('countdown-title'),
+        document.getElementById('panel-black-title'),
+        document.getElementById('panel-black-prayer')
+      ].forEach(function(node) {
+        if (!node) return;
+        const current = String(node.textContent || '');
+        const fixed = normalizeVisibleRamadanMaghribText_(current);
+        if (fixed !== current) {
+          node.textContent = fixed;
+        }
       });
     }
 
