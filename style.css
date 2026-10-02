@@ -2598,3 +2598,18 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 .infaq-left-widget,
 .infaq-left-widget * { pointer-events: none !important; }
 .infaq-left-widget img { visibility: visible !important; opacity: 1 !important; }
+
+.infaq-left-text {
+  margin-top: .2vh;
+  color: #ffffff;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: clamp(.42rem, .62vw, .65rem);
+  line-height: 1.15;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.infaq-left-text:empty { display: none; }
+@media (max-width: 700px) {
+  .infaq-left-text { font-size: clamp(.42rem, 1.7vw, .6rem); }
+}
