@@ -3287,6 +3287,9 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
     const DEFAULT_LOGO_MASJID =
       './image/logo.png';
 
+    const DEFAULT_QRIS_IMAGE =
+      './image/QRIS.jpeg';
+
 
     // =========================================================
     // GITHUB PAGES -> GOOGLE APPS SCRIPT API
@@ -8119,7 +8122,7 @@ function updateFridayPrayerDisplay() {
           // QRIS ditampilkan kecil di TV, jadi jangan paksa download ulang
           // setiap jam dan jangan beri prioritas jaringan tinggi.
           // Browser cache akan dipakai selama URL QRIS tidak berubah.
-          img.src = value;
+          img.src = DEFAULT_QRIS_IMAGE;
           img.alt = 'INFAQ & SHADAQAH';
           img.decoding = 'async';
           img.loading = 'lazy';
