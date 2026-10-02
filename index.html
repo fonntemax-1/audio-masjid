@@ -6849,7 +6849,7 @@ function updateFridayPrayerDisplay() {
       if (info) parts.push(info);
       const alamatEl = document.getElementById('alamat_masjid');
       if (alamatEl) {
-        alamatEl.innerHTML = parts.length ? parts.join(' <span class="info-separator">|</span> ') : '';
+        alamatEl.innerHTML = parts.length ? parts.join(' <span class="info-separator">-</span> ') : '';
         alamatEl.style.display = parts.length ? '' : 'none';
       }
 
@@ -7429,7 +7429,7 @@ function updateFridayPrayerDisplay() {
       if (alamatElement) {
         alamatElement.innerHTML =
           alamatParts.length
-            ? alamatParts.join(' <span class="info-separator">|</span> ')
+            ? alamatParts.join(' <span class="info-separator">-</span> ')
             : '';
         alamatElement.style.display =
           alamatParts.length ? '' : 'none';
