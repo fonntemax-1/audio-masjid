@@ -2566,7 +2566,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 }
 .infaq-left-title {
   color: #ffcc00;
-  font-family: 'Cinzel', serif;
+  font-family: Arial, sans-serif;
   font-weight: 700;
   font-size: clamp(.72rem, 1.05vw, 1.05rem);
   line-height: 1.08;
@@ -2575,7 +2575,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 .infaq-left-text {
   margin-top: .18vh;
   color: #fff;
-  font-family: 'Cinzel', serif;
+  font-family: Arial, sans-serif;
   font-weight: 700;
   font-size: clamp(.42rem, .62vw, .62rem);
   line-height: 1.12;
@@ -2616,7 +2616,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 .infaq-left-text {
   margin-top: .2vh;
   color: #ffffff;
-  font-family: 'Cinzel', serif;
+  font-family: Arial, sans-serif;
   font-weight: 700;
   font-size: clamp(.42rem, .62vw, .65rem);
   line-height: 1.15;
