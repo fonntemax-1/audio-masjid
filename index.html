@@ -11703,39 +11703,34 @@ function updateFridayPrayerDisplay() {
         Number(triggerWita.minute) * 60 +
         Number(triggerWita.second);
 
-      // OPTIMASI QUEUE:
-      // Event yang BELUM waktunya tidak dimasukkan ke queue.
-      // Sebelumnya seluruh rangkaian Maghrib + Isya dapat masuk sekaligus
-      // sehingga queue membengkak (contoh: queueLength=16) dan TV harus
-      // menyortir/mengelola banyak audio yang masih berjam-jam ke depan.
-      //
-      // Event akan dimasukkan ketika targetSec benar-benar aktif melalui
-      // queueCurrentAudioCatchUp()/processPrayerAudio() pada tick berikutnya.
-      // Event yang sedang aktif tetap boleh catch-up sesuai posisi waktunya.
+      // NORMALISASI WAKTU:
+      // Hasil schedule dapat datang sebagai number maupun numeric string.
+      // Semua perbandingan queue HARUS memakai angka yang dinormalisasi.
+      const normalizedTargetSec = Number(targetSec);
+      const normalizedEndSec = Number(endSec);
+      const hasTargetSec = Number.isFinite(normalizedTargetSec);
+      const hasEndSec = Number.isFinite(normalizedEndSec);
+
+      // Jangan masukkan event yang BELUM waktunya ke queue.
+      // Ini mencegah seluruh rangkaian Maghrib/Isya masuk sekaligus
+      // saat halaman baru direload beberapa menit sebelum sholat.
       if (
-        typeof targetSec === 'number' &&
-        triggerNowSeconds < targetSec
+        hasTargetSec &&
+        triggerNowSeconds < normalizedTargetSec
       ) {
         return;
       }
 
       // Event yang sudah benar-benar selesai tidak perlu dibuat ulang.
-      // Untuk protected sequence, jangan pernah menunggu/menyimpan event
-      // lama di queue hanya karena event tersebut wajib dimainkan utuh.
+      // Event protected juga tidak boleh disimpan untuk dimainkan terlambat.
       if (
-        typeof endSec === 'number' &&
-        triggerNowSeconds > endSec
+        hasEndSec &&
+        triggerNowSeconds > normalizedEndSec
       ) {
-
         if (!triggerProtectedSequence) {
-          WEB_APP_STATE
-            .audio
-            .failedLocks
-            .add(key);
+          WEB_APP_STATE.audio.failedLocks.add(key);
         }
-
         return;
-
       }
 
       WEB_APP_STATE
@@ -11753,8 +11748,8 @@ function updateFridayPrayerDisplay() {
             prayerName: prayerName,
             eventName: eventName,
             dateKey: dateKey,
-            targetSec: targetSec,
-            endSec: endSec,
+            targetSec: hasTargetSec ? normalizedTargetSec : null,
+            endSec: hasEndSec ? normalizedEndSec : null,
             status: status || 'ON'
           }
         );
