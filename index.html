@@ -6839,18 +6839,13 @@ function updateFridayPrayerDisplay() {
       const nomor = String(data['No. Telp'] || '').trim();
       const alamat = String(data.Alamat || '').trim();
       const kota = String(data.Kota || '').trim();
-      const website = String(data.Website || '').trim();
-      const info = String(data.InfoLainnya || '').trim();
-      const parts = [];
-      if (alamat) parts.push(alamat);
-      if (kota) parts.push(kota);
-      if (nomor) parts.push('<span class="wa-contact"><span>' + nomor + '</span></span>');
-      if (website) parts.push(website);
-      if (info) parts.push(info);
       const alamatEl = document.getElementById('alamat_masjid');
       if (alamatEl) {
-        alamatEl.innerHTML = parts.length ? parts.join(' <span class="info-separator">-</span> ') : '';
-        alamatEl.style.display = parts.length ? '' : 'none';
+        const hasHeaderData = alamat || kota || nomor;
+        alamatEl.innerHTML = hasHeaderData
+          ? (alamat + ' - ' + kota + ' | ' + nomor)
+          : '';
+        alamatEl.style.display = hasHeaderData ? '' : 'none';
       }
 
       if (data.Kegiatan && Array.isArray(data.Kegiatan.values)) {
@@ -7402,37 +7397,17 @@ function updateFridayPrayerDisplay() {
 
       const alamat = String(data.Alamat || '').trim();
       const kota = String(data.Kota || '').trim();
-      const website = String(data.Website || '').trim();
-      const infoLainnya = String(
-        data.InfoLainnya ||
-        data['Info Lainnya'] ||
-        ''
-      ).trim();
       const slogan = String(data.Slogan || '').trim();
-
-      const alamatParts = [];
-      if (alamat) alamatParts.push(alamat);
-      if (kota) alamatParts.push(kota);
-      if (nomorTelp) {
-        alamatParts.push(
-          '<span class="wa-contact"><span>' +
-          nomorTelp +
-          '</span></span>'
-        );
-      }
-      if (website) alamatParts.push(website);
-      if (infoLainnya) alamatParts.push(infoLainnya);
 
       const alamatElement =
         document.getElementById('alamat_masjid');
 
       if (alamatElement) {
-        alamatElement.innerHTML =
-          alamatParts.length
-            ? alamatParts.join(' <span class="info-separator">-</span> ')
-            : '';
-        alamatElement.style.display =
-          alamatParts.length ? '' : 'none';
+        const hasHeaderData = alamat || kota || nomorTelp;
+        alamatElement.innerHTML = hasHeaderData
+          ? (alamat + ' - ' + kota + ' | ' + nomorTelp)
+          : '';
+        alamatElement.style.display = hasHeaderData ? '' : 'none';
       }
 
       const sloganElement =
