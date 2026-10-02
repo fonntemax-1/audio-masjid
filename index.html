@@ -509,10 +509,11 @@
           const audioData = await audioResponse.json();
 
           if (audioData && audioData.enabled === true) {
-            await setAudioConfig(audioData);
-            stage1AudioReady = true;
+            // Stage 1 disimpan sebagai cache saja.
+            // Jangan mengambil alih scheduler yang sedang berjalan sebelum
+            // sequence GitHub terbukti 100% identik dengan konfigurasi lama.
             console.log(
-              'STAGE 1 GITHUB AUDIO CONFIG READY:',
+              'STAGE 1 GITHUB AUDIO CACHE READY (NOT ACTIVE):',
               audioData.updatedAt || ''
             );
           }
@@ -526,14 +527,12 @@
             eventData.enabled === true &&
             Array.isArray(eventData.Event)
           ) {
+            // Stage 1 Event juga hanya cache.
+            // Sumber tampilan tetap Apps Script/Sheet agar tidak berubah.
             stage1EventRows = eventData.Event;
-            stage1EventReady = true;
-
-            WEB_APP_STATE.event.rows = stage1EventRows;
-            updateEventCountdown();
 
             console.log(
-              'STAGE 1 GITHUB EVENT READY:',
+              'STAGE 1 GITHUB EVENT CACHE READY (NOT ACTIVE):',
               stage1EventRows.length,
               eventData.updatedAt || ''
             );
@@ -13787,8 +13786,9 @@ function setCountdownBlackMode(enabled) {
         });
     }
 
-    // Stage 1: Event + Audio Config diprioritaskan dari GitHub.
-    // Apps Script tetap berjalan sebagai fallback untuk data lain.
+    // Stage 1: GitHub JSON disimpan sebagai cache/backup.
+    // Sumber aktif Event + Audio tetap Apps Script/Sheet sampai
+    // struktur dan sequence GitHub dinyatakan identik dengan versi stabil.
     loadGitHubStage1Config_();
 
     // Apps Script/panels berjalan paralel; tidak menghalangi kartu.
