@@ -4520,6 +4520,95 @@ function getRealtimeDisplayConfig() {
   }
 }
 
+// =====================================================
+// REALTIME KHUSUS PANEL - KEUANGAN / QUR'BAN / PETUGAS SHOLAT
+// Satu endpoint untuk frontend agar tidak melakukan beberapa
+// request Apps Script terpisah.
+// =====================================================
+function getRealtimePanelsFast() {
+  try {
+    const ss = getSpreadsheet();
+    const panels = ss.getSheetByName('panels');
+    if (!panels) return { success: false, error: 'Sheet panels tidak ditemukan.' };
+
+    const panelValues = panels.getRange('C26:C32').getDisplayValues();
+    const selectorRaw = String((panelValues[0] || [])[0] || 'KEUANGAN').trim();
+    const selectorKey = selectorRaw.toUpperCase().replace(/[\s’‘']/g, '');
+    const selectedKey = selectorKey === 'QURBAN' ? 'QURBAN' : 'KEUANGAN';
+
+    const jenis = String((panelValues[2] || [])[0] || '').trim().toUpperCase();
+    const kegiatanValues = [
+      String((panelValues[3] || [])[0] || '').trim(),
+      String((panelValues[4] || [])[0] || '').trim(),
+      String((panelValues[5] || [])[0] || '').trim(),
+      String((panelValues[6] || [])[0] || '').trim()
+    ];
+
+    const configuredFields = PANEL_KEGIATAN_FIELDS_[jenis] || [];
+    const fields = {};
+    configuredFields.forEach(function(label, index) {
+      fields[label] = kegiatanValues[index] || '';
+    });
+
+    let selectedSheet = null;
+    ss.getSheets().some(function(sheet) {
+      const key = String(sheet.getName() || '')
+        .toUpperCase()
+        .replace(/[\s’‘']/g, '');
+      if (key === selectedKey) {
+        selectedSheet = sheet;
+        return true;
+      }
+      return false;
+    });
+
+    let title = '', date = '', a3 = '', rows = [];
+    if (selectedSheet) {
+      title = String(selectedSheet.getRange('A1').getDisplayValue() || '').trim();
+      date = String(selectedSheet.getRange('A2').getDisplayValue() || '')
+        .replace(/^(0)(\d)(\s)/, '$2$3');
+      a3 = String(selectedSheet.getRange('A3').getDisplayValue() || '').trim();
+
+      const lastRow = selectedSheet.getLastRow();
+      if (selectedKey === 'QURBAN') {
+        if (lastRow >= 5) {
+          selectedSheet.getRange(5, 1, lastRow - 4, 1).getDisplayValues()
+            .forEach(function(row) {
+              rows.push([String(row[0] == null ? '' : row[0]).trim(), '']);
+            });
+        }
+      } else if (lastRow >= 4) {
+        selectedSheet.getRange(4, 1, lastRow - 3, 2).getDisplayValues()
+          .forEach(function(row) {
+            rows.push([
+              String(row[0] == null ? '' : row[0]).trim(),
+              String(row[1] == null ? '' : row[1]).trim()
+            ]);
+          });
+      }
+    }
+
+    const panelKeuangan = {
+      selector: selectedKey,
+      title: title,
+      date: date,
+      a3: a3,
+      rows: rows
+    };
+
+    return {
+      success: true,
+      signature: JSON.stringify([selectedKey, title, date, a3, rows, jenis, kegiatanValues]),
+      Kegiatan: { success: true, jenis: jenis, fields: fields },
+      PanelKeuangan: panelKeuangan
+    };
+  } catch (error) {
+    Logger.log('REALTIME PANELS FAST ERROR: ' + error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+
 function getPanelKegiatan() {
   try {
     const ss = getSpreadsheet();
