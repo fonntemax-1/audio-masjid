@@ -1990,15 +1990,22 @@
       width: 100% !important;
       max-width: 100% !important;
       box-sizing: border-box !important;
+
+      /* Setiap item QURBAN wajib satu baris penuh. */
       white-space: nowrap !important;
       word-break: keep-all !important;
       overflow-wrap: normal !important;
       overflow: visible !important;
       text-align: left !important;
       text-overflow: clip !important;
+
+      /* Font diperbesar agar nyaman dibaca dari jarak jauh. */
+      font-size: clamp(0.90rem, 1.80cqw, 1.60rem) !important;
+      line-height: 1.18 !important;
+      font-weight: 500 !important;
+
       padding-left: 0.25rem !important;
       padding-right: 0.25rem !important;
-      font-size: clamp(0.58rem, 1.05cqw, 1.05rem) !important;
     }
 
     .qurban-display .keuangan-table tr {
