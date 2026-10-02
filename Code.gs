@@ -1288,7 +1288,7 @@ function getDataFromSheet() {
 
 
     // =====================================================
-    // PETUGAS SHOLAT - panels!C26:C30
+    // PETUGAS SHOLAT - panels!C28 + C29:C32
     // =====================================================
     try {
       const kegiatanSheet = ss.getSheetByName('panels');
@@ -4255,7 +4255,7 @@ function DIAGNOSTIK_ADZAN_E_Z_20260927() {
 }
 
 // ============================================================
-// FORM KEGIATAN MASJID - PANELS!C26
+// FORM KEGIATAN MASJID - PANELS!C28
 // ============================================================
 // C28 = dropdown JENIS KEGIATAN.
 // B29:B32 = label field.
@@ -4411,7 +4411,7 @@ function updatePanelKegiatanFields_(sheet, kegiatan, resetValues) {
   const labelRange = sheet.getRange("B29:B32");
   const valueRange = sheet.getRange("C29:C32");
 
-  // Label B27:B30 berubah otomatis berdasarkan C26.
+  // Label B29:B32 berubah otomatis berdasarkan C28.
   // Menggunakan formula Sheet sehingga TIDAK membutuhkan onEdit trigger.
   const formulaRows = [
     ['=IF($C$28="SHOLAT JUM\'AT";"Tanggal";IF($C$28="SHOLAT TARAWIH";"Tanggal";IF($C$28="SHOLAT IDUL FITRI";"Tanggal";IF($C$28="SHOLAT IDUL ADHA";"Tanggal";""))))'],
@@ -4422,7 +4422,7 @@ function updatePanelKegiatanFields_(sheet, kegiatan, resetValues) {
 
   labelRange.setFormulas(formulaRows);
 
-  // SEMUA data kegiatan, termasuk tanggal C27, MANUAL.
+  // SEMUA data kegiatan, termasuk tanggal C29, MANUAL.
   // C29:C32 tidak diisi/dihapus ketika C28 berubah.
   valueRange.clearDataValidations();
 
