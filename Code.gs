@@ -1099,13 +1099,14 @@ function getDataFromSheet() {
               .getRange(5, 1, lastRow - 4, 1)
               .getDisplayValues()
               .forEach(function(displayRow) {
+                // JANGAN membuang baris kosong.
+                // Spasi/blank row di spreadsheet harus tetap menjadi
+                // jarak visual antar teks pada panel QUR'BAN.
                 const text = String(
                   displayRow[0] == null ? '' : displayRow[0]
                 ).trim();
 
-                if (text !== '') {
-                  result.Keuangan.push([text, '']);
-                }
+                result.Keuangan.push([text, '']);
               });
           }
         } else if (lastRow >= 4) {
