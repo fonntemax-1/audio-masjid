@@ -6698,8 +6698,11 @@ function updateFridayPrayerDisplay() {
     }
 
     function startFastPanelKeuanganPolling_() {
+      // Perubahan Spreadsheet panels!C49 / KEUANGAN / QURBAN
+      // harus segera tercermin di web. Polling 1 detik.
+      // Tetap memakai request-in-flight agar tidak menumpuk request GAS.
       pollPanelKeuanganFast_();
-      setInterval(pollPanelKeuanganFast_, 2000);
+      setInterval(pollPanelKeuanganFast_, 1000);
     }
 
 
