@@ -1971,14 +1971,16 @@
       overflow-wrap: break-word;
     }
 
-    /* QUR'BAN: kata Kelompok/Sapi/Kambing mengikuti font Khatib,
-       bold, dan warna tema aktif. Font Khatib mengikuti font global Roboto. */
-    .qurban-scroll-text .qurban-keyword {
+    /* QUR'BAN: seluruh baris yang mengandung Kelompok/Sapi/Kambing
+       otomatis KAPITAL, BOLD, font Khatib/Roboto, dan warna tema aktif.
+       Hanya berlaku untuk sheet QUR'BAN. */
+    .qurban-display .qurban-scroll-text.qurban-highlight-row {
       font-family: 'Roboto', sans-serif !important;
-      font-weight: bold !important;
+      font-weight: 900 !important;
       color: var(--theme-accent) !important;
-      text-transform: uppercase !important;
       -webkit-text-fill-color: var(--theme-accent) !important;
+      text-transform: uppercase !important;
+      white-space: nowrap !important;
     }
 
     /* QUR'BAN: setiap item satu baris penuh, tidak wrap ke bawah. */
@@ -7763,12 +7765,16 @@ function updateFridayPrayerDisplay() {
               .replace(/"/g, '&quot;')
               .replace(/'/g, '&#39;');
 
-            td.innerHTML = escapedQurbanText.replace(
-              /(Kelompok|Sapi|Kambing)/gi,
-              '<span class="qurban-keyword">$1</span>'
-            );
+            // Khusus QUR'BAN: jika satu baris mengandung
+            // "Kelompok", "Sapi", atau "Kambing", seluruh baris
+            // otomatis menjadi KAPITAL, BOLD, dan mengikuti tema.
+            const isQurbanHighlight =
+              /(Kelompok|Sapi|Kambing)/i.test(qurbanText);
 
-            td.className = 'qurban-scroll-text';
+            td.innerHTML = escapedQurbanText;
+            td.className =
+              'qurban-scroll-text' +
+              (isQurbanHighlight ? ' qurban-highlight-row' : '');
             tr.appendChild(td);
             table.appendChild(tr);
             return;
