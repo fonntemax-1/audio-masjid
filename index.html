@@ -6625,112 +6625,108 @@ function updateFridayPrayerDisplay() {
 
 
     // =========================================================
-    // PANEL KEUANGAN / QUR'BAN CEPAT - panels!C26
-    // Polling 2 detik. Hanya mengambil data panel melalui API khusus.
-    // Tidak memanggil getDataFromSheet() dan tidak menyentuh scheduler/audio.
+    // REALTIME KHUSUS PANEL - KEUANGAN / QUR'BAN / PETUGAS SHOLAT
+    // Satu request untuk tiga panel, setiap 1 detik.
+    // Tidak membaca scheduler/audio/jadwal sholat.
     // =========================================================
-    let panelKeuanganFastRequestInFlight = false;
-    let panelKeuanganFastLastSignature = '';
+    let realtimePanelsFastRequestInFlight = false;
+    let realtimePanelsFastLastSignature = '';
 
-    function pollPanelKeuanganFast_() {
-      if (panelKeuanganFastRequestInFlight) return;
-      panelKeuanganFastRequestInFlight = true;
+    function applyPanelKeuanganSourceFast_(source) {
+      if (!source || typeof source !== 'object') return;
+      const selector = String(source.selector || 'KEUANGAN').trim().toUpperCase();
+      const title = String(source.title || '');
+      const date = String(source.date || '');
+      const a3 = String(source.a3 || '');
+      const rows = Array.isArray(source.rows) ? source.rows : [];
 
-      gasApiCall('getPanelKeuanganSource')
-        .then(function(source) {
-          if (!source || typeof source !== 'object') return;
+      const finTitle = document.getElementById('fin-title');
+      if (finTitle) {
+        finTitle.innerText = title.trim();
+        finTitle.style.color = '#ffcc00';
+        finTitle.style.webkitTextFillColor = '#ffcc00';
+        finTitle.style.fontFamily = 'inherit';
+        finTitle.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
+        finTitle.style.fontWeight = '900';
+        finTitle.style.lineHeight = 'normal';
+        finTitle.style.textAlign = 'center';
+        finTitle.style.letterSpacing = '0.05vw';
+      }
 
-          const selector = String(source.selector || 'KEUANGAN').trim().toUpperCase();
-          const title = String(source.title || '');
-          const date = String(source.date || '');
-          const a3 = String(source.a3 || '');
-          const rows = Array.isArray(source.rows) ? source.rows : [];
-          const signature = selector + '|' + title + '|' + date + '|' + a3 + '|' + JSON.stringify(rows);
+      const finSub = document.getElementById('fin-sub');
+      if (finSub) {
+        finSub.innerText = selector === 'QURBAN'
+          ? ('MASJID ' + date.trim()).trim()
+          : date;
 
-          if (signature === panelKeuanganFastLastSignature) return;
-          panelKeuanganFastLastSignature = signature;
+        if (selector === 'QURBAN') {
+          finSub.style.color = '#ffcc00';
+          finSub.style.webkitTextFillColor = '#ffcc00';
+          finSub.style.fontFamily = 'inherit';
+          finSub.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
+          finSub.style.fontWeight = '900';
+          finSub.style.lineHeight = 'normal';
+          finSub.style.textAlign = 'center';
+          finSub.style.letterSpacing = '0.05vw';
+        } else {
+          finSub.style.color = '#ffffff';
+          finSub.style.webkitTextFillColor = '#ffffff';
+          finSub.style.fontFamily = 'inherit';
+          finSub.style.fontSize = 'clamp(0.95rem, 5.2cqw, 1.70rem)';
+          finSub.style.fontWeight = 'bold';
+          finSub.style.lineHeight = '1.15';
+          finSub.style.textAlign = 'center';
+          finSub.style.letterSpacing = '';
+        }
+        finSub.style.marginBottom = '1.8vh';
+      }
 
-          console.log('PANEL C26 CEPAT BERUBAH =>', selector);
+      const finExtra = document.getElementById('fin-extra');
+      if (finExtra) {
+        finExtra.innerText = selector === 'QURBAN' ? a3.trim() : '';
+        finExtra.style.display = selector === 'QURBAN' && a3.trim() ? '' : 'none';
+      }
 
-          const finTitle = document.getElementById('fin-title');
-          if (finTitle) {
-            finTitle.innerText = title.trim();
+      const finPanelBox = document.getElementById('fin-panel-box');
+      if (finPanelBox) {
+        finPanelBox.classList.toggle('qurban-display', selector === 'QURBAN');
+      }
 
-            // KEUANGAN A1 = persis model visual QUR'BAN A1.
-            // Inline style dipasang agar tidak kalah oleh style dinamis/polling.
-            finTitle.style.color = '#ffcc00';
-            finTitle.style.webkitTextFillColor = '#ffcc00';
-            finTitle.style.fontFamily = 'inherit';
-            finTitle.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
-            finTitle.style.fontWeight = '900';
-            finTitle.style.lineHeight = 'normal';
-            finTitle.style.textAlign = 'center';
-            finTitle.style.letterSpacing = '0.05vw';
-          }
+      updateKeuangan(rows, date, selector);
+      if (typeof previousKeuanganJson !== 'undefined') {
+        previousKeuanganJson = JSON.stringify(rows) + date + title + selector;
+      }
+    }
 
-          const finSub = document.getElementById('fin-sub');
-          if (finSub) {
-            finSub.innerText =
-              selector === 'QURBAN'
-                ? ('MASJID ' + date.trim()).trim()
-                : date;
+    function pollRealtimePanelsFast_() {
+      if (realtimePanelsFastRequestInFlight) return;
+      realtimePanelsFastRequestInFlight = true;
 
-            if (selector === 'QURBAN') {
-              // QUR'BAN A2 = SAMA dengan A1: ukuran, warna, dan ketebalan.
-              finSub.style.color = '#ffcc00';
-              finSub.style.webkitTextFillColor = '#ffcc00';
-              finSub.style.fontFamily = 'inherit';
-              finSub.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
-              finSub.style.fontWeight = '900';
-              finSub.style.lineHeight = 'normal';
-              finSub.style.textAlign = 'center';
-              finSub.style.letterSpacing = '0.05vw';
-            } else {
-              finSub.style.color = '#ffffff';
-              finSub.style.webkitTextFillColor = '#ffffff';
-              finSub.style.fontFamily = 'inherit';
-              finSub.style.fontSize = 'clamp(0.95rem, 5.2cqw, 1.70rem)';
-              finSub.style.fontWeight = 'bold';
-              finSub.style.lineHeight = '1.15';
-              finSub.style.textAlign = 'center';
-              finSub.style.letterSpacing = '';
-            }
-            finSub.style.marginBottom = '1.8vh';
-          }
+      gasApiCall('getRealtimePanelsFast')
+        .then(function(data) {
+          if (!data || data.success === false) return;
 
-          const finExtra = document.getElementById('fin-extra');
-          if (finExtra) {
-            finExtra.innerText = selector === 'QURBAN' ? a3.trim() : '';
-            finExtra.style.display =
-              selector === 'QURBAN' && a3.trim() ? '' : 'none';
-          }
+          const signature = String(data.signature || '');
+          if (signature === realtimePanelsFastLastSignature) return;
+          realtimePanelsFastLastSignature = signature;
 
-          const finPanelBox = document.getElementById('fin-panel-box');
-          if (finPanelBox) {
-            finPanelBox.classList.toggle('qurban-display', selector === 'QURBAN');
-          }
-
-          updateKeuangan(rows, date, selector);
-
-          // Sinkronkan state agar polling utama tidak langsung mengganti kembali.
-          if (typeof previousKeuanganJson !== 'undefined') {
-            previousKeuanganJson = JSON.stringify(rows) + date + title + selector;
-          }
+          updatePanelKegiatanDisplay_(data.Kegiatan || {});
+          applyPanelKeuanganSourceFast_(data.PanelKeuangan || {});
         })
         .catch(function(error) {
-          console.warn('PANEL C26 CEPAT GAGAL:', error && error.message ? error.message : error);
+          console.warn(
+            'REALTIME PANEL CEPAT GAGAL:',
+            error && error.message ? error.message : error
+          );
         })
         .finally(function() {
-          panelKeuanganFastRequestInFlight = false;
+          realtimePanelsFastRequestInFlight = false;
         });
     }
 
-    function startFastPanelKeuanganPolling_() {
-      // Perubahan Spreadsheet panels!C26 / KEUANGAN / QURBAN
-      // harus segera tercermin di web. Polling ringan 2 detik.
-      // Tetap memakai request-in-flight agar tidak menumpuk request GAS.
-      pollPanelKeuanganFast_();
-      setInterval(pollPanelKeuanganFast_, 2000);
+    function startRealtimePanelsFast_() {
+      pollRealtimePanelsFast_();
+      setInterval(pollRealtimePanelsFast_, 1000);
     }
 
 
@@ -6821,7 +6817,7 @@ function updateFridayPrayerDisplay() {
         data.PanelMode, data.DisplayTheme, data.Youtube, data.YoutubeStatus,
         data.IqomahMode, data.Nama, data.Alamat, data.Kota,
         data['No. Telp'], data.Slogan, data.Website, data.InfoLainnya,
-        data.Kegiatan, data.EventRunningText
+        data.EventRunningText
       ]);
       if (signature === realtimeDisplayLastSignature) return;
       realtimeDisplayLastSignature = signature;
