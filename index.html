@@ -900,65 +900,30 @@
 
 
     function normalizeAudioUrl(url) {
-
       if (!url) return '';
-
-      let value =
-        url.toString().trim();
-
+      const value = String(url).trim();
       if (!value) return '';
 
-      // Semua file audio lokal repository dipusatkan di /audio.
-      // Tetap terima URL lama dari Sheet agar fallback tidak rusak.
-      const localAudioFiles = [
-        'qiroah.mp3',
-        'Shalawat Tarhim.mp3',
-        'sirine.mp3',
-        'beep.mp3',
-        'adzan-subuh.mp3',
-        'adzan-biasa.mp3',
-        'doa.mp3',
-        'doa-puasa.mp3',
-        'doa-buka.mp3',
-        'iqomah.mp3'
-      ];
+      const localByKey =
+        window.getLocalAudioUrl &&
+        window.getLocalAudioUrl(value);
+      if (localByKey) return localByKey;
 
-      for (const file of localAudioFiles) {
+      const files = window.AUDIO_LOCAL_FILES || {};
+      for (const key of Object.keys(files)) {
+        const file = String(files[key] || '');
+        const lower = value.toLowerCase();
         if (
-          value === file ||
-          value.endsWith('/' + file) ||
-          value.endsWith('/' + encodeURIComponent(file))
+          lower === file.toLowerCase() ||
+          lower.endsWith('/' + file.toLowerCase()) ||
+          lower.endsWith('/' + encodeURIComponent(file).toLowerCase())
         ) {
           return './audio/' + encodeURIComponent(file);
         }
       }
 
-      if (
-        value.includes('drive.google.com')
-      ) {
-
-        const idMatch =
-          value.match(/\/d\/([^\/]+)/) ||
-          value.match(/id=([^&]+)/);
-
-        if (
-          idMatch &&
-          idMatch[1]
-        ) {
-
-          return (
-            'https://drive.google.com/uc?export=download&id=' +
-            idMatch[1]
-          );
-
-        }
-
-      }
-
       return value;
-
     }
-
 
     function formatDriveUrl(url) {
       return normalizeAudioUrl(url);
