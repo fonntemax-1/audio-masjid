@@ -6702,7 +6702,7 @@ function updateFridayPrayerDisplay() {
       // harus segera tercermin di web. Polling 1 detik.
       // Tetap memakai request-in-flight agar tidak menumpuk request GAS.
       pollPanelKeuanganFast_();
-      setInterval(pollPanelKeuanganFast_, 1000);
+      setInterval(pollPanelKeuanganFast_, 2000);
     }
 
 
@@ -6868,7 +6868,7 @@ function updateFridayPrayerDisplay() {
     // Polling dibuat 1 detik agar perubahan C26/C28/C29:C32/B35:B39,
     // theme, header, C22, dan kontrol tampilan terasa hampir realtime.
     // Request-in-flight tetap mencegah request bertumpuk bila GAS sedang lambat.
-    setInterval(pollRealtimeDisplayConfig_, 1000);
+    setInterval(pollRealtimeDisplayConfig_, 2000);
 
     // =========================================================
     // IQOMAH / SLEEP SCREEN CONTROL - panels!C22
