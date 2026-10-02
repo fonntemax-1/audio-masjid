@@ -6521,6 +6521,60 @@ function updateFridayPrayerDisplay() {
 
 
     // =========================================================
+    // PANEL KEUANGAN / QUR'BAN CEPAT - panels!C49
+    // Polling 2 detik. Hanya mengambil data panel melalui API khusus.
+    // Tidak memanggil getDataFromSheet() dan tidak menyentuh scheduler/audio.
+    // =========================================================
+    let panelKeuanganFastRequestInFlight = false;
+    let panelKeuanganFastLastSignature = '';
+
+    function pollPanelKeuanganFast_() {
+      if (panelKeuanganFastRequestInFlight) return;
+      panelKeuanganFastRequestInFlight = true;
+
+      gasApiCall('getPanelKeuanganSource')
+        .then(function(source) {
+          if (!source || typeof source !== 'object') return;
+
+          const selector = String(source.selector || 'KEUANGAN').trim().toUpperCase();
+          const title = String(source.title || '');
+          const date = String(source.date || '');
+          const rows = Array.isArray(source.rows) ? source.rows : [];
+          const signature = selector + '|' + title + '|' + date + '|' + JSON.stringify(rows);
+
+          if (signature === panelKeuanganFastLastSignature) return;
+          panelKeuanganFastLastSignature = signature;
+
+          console.log('PANEL C49 CEPAT BERUBAH =>', selector);
+
+          const finTitle = document.getElementById('fin-title');
+          if (finTitle) finTitle.innerText = title.trim();
+
+          const finSub = document.getElementById('fin-sub');
+          if (finSub) finSub.innerText = date;
+
+          updateKeuangan(rows, date);
+
+          // Sinkronkan state agar polling utama tidak langsung mengganti kembali.
+          if (typeof previousKeuanganJson !== 'undefined') {
+            previousKeuanganJson = JSON.stringify(rows) + date + title + selector;
+          }
+        })
+        .catch(function(error) {
+          console.warn('PANEL C49 CEPAT GAGAL:', error && error.message ? error.message : error);
+        })
+        .finally(function() {
+          panelKeuanganFastRequestInFlight = false;
+        });
+    }
+
+    function startFastPanelKeuanganPolling_() {
+      pollPanelKeuanganFast_();
+      setInterval(pollPanelKeuanganFast_, 2000);
+    }
+
+
+    // =========================================================
     // YOUTUBE CONTROL CEPAT - panels!G20
     // Polling khusus selector setiap 1 detik.
     // Tidak memanggil getDataFromSheet sehingga tidak membebani
@@ -16152,6 +16206,7 @@ function setCountdownBlackMode(enabled) {
 
     // Selector panels!G20 harus merespons maksimal sekitar 1-2 detik.\n    // Polling khusus ini tidak mengubah polling data utama 30 detik.\n    startFastYouTubeControlPolling_();
     startFastIqomahBlackModePolling_();
+    startFastPanelKeuanganPolling_();
 
     // panels!C2 tetap diperiksa terpisah, tetapi tidak lagi ikut setiap
     // getDataFromSheet(). 30 detik cukup cepat untuk perubahan AUTO/OFF
