@@ -1061,7 +1061,7 @@ function getDataFromSheet() {
 
       const selectorKey = rawSelector
         .toUpperCase()
-        .replace(/[\\s’‘'\`]/g, '');
+        .replace(/[\s’‘'\`]/g, '');
 
       const selectedKey = selectorKey === 'QURBAN'
         ? 'QURBAN'
@@ -1083,7 +1083,7 @@ function getDataFromSheet() {
         ).trim();
         result.KeuanganTanggal = String(
           selectedSheet.getRange('A2').getDisplayValue() || ''
-        ).replace(/^(0)(\\d)(\\s)/, '$2$3');
+        ).replace(/^(0)(\d)(\s)/, '$2$3');
 
         const lastRow = selectedSheet.getLastRow();
         if (lastRow >= 4) {
