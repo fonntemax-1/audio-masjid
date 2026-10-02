@@ -5902,6 +5902,31 @@ function updateFridayPrayerDisplay() {
 
 
 
+      // FIX: RAMADAN MAGHRIB banner mengikuti ADZAN sampai
+      // 15 menit setelah IQOMAH selesai, berdasarkan computed audio schedule.
+      try {
+        if (isRamadanDisplay()) {
+          const sch = WEB_APP_STATE.prayer && WEB_APP_STATE.prayer.schedule
+            ? WEB_APP_STATE.prayer.schedule : {};
+          const ms = String(sch.maghrib || '').match(/^([01]?\\d|2[0-3]):([0-5]\\d)$/);
+          const magSec = ms ? Number(ms[1])*3600 + Number(ms[2])*60 : null;
+          const map = WEB_APP_STATE.audio && WEB_APP_STATE.audio.computedSchedules;
+          const comp = map instanceof Map ? map.get('MAGHRIB') : null;
+          const evs = comp && Array.isArray(comp.events) ? comp.events : [];
+          const ev = function(n){ return evs.find(function(x){ return String(x.eventName||'').trim().toUpperCase()===n; })||null; };
+          const ad = ev('ADZAN'), iq = ev('IQOMAH');
+          const adSec = ad && Number.isFinite(Number(ad.targetSec)) ? Number(ad.targetSec) : magSec;
+          const iqEnd = iq && Number.isFinite(Number(iq.endSec)) ? Number(iq.endSec) : null;
+          const endSec = iqEnd === null ? null : iqEnd + 900;
+          if (magSec !== null && adSec !== null && nowSeconds >= magSec && nowSeconds < adSec)
+            return 'WAKTU BERBUKA PUASA' + suffix;
+          if (adSec !== null && endSec !== null && nowSeconds >= adSec && nowSeconds < endSec)
+            return 'WAKTU SHOLAT MAGHRIB' + suffix;
+        }
+      } catch (e) {
+        console.warn('EVENT BANNER MAGHRIB OVERRIDE:', e);
+      }
+
       // RAMADAN MAGHRIB: ketika countdown sedang berada pada
       // fase MENUJU WAKTU BERBUKA / WAKTU BERBUKA PUASA,
       // banner Event WAJIB menggunakan teks yang sama.
