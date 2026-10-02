@@ -11188,7 +11188,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       // Setelah sirine IMSAK selesai sampai
       // IQOMAH SUBUH selesai + 15 menit.
       //
-      // Setelah IMSAK, kartu aktif harus kembali ke SUBUH.
+      // Visual SUBUH = data-prayer TERBIT.
       // -----------------------------------------------------
 
       else if (
@@ -11196,7 +11196,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
         nowSeconds < batasSubuh
       ) {
 
-        targetPrayerName = 'SUBUH';
+        targetPrayerName = 'TERBIT';
 
       }
 
@@ -11256,11 +11256,12 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
       // SUBUH SETELAH ISYA
       //
       // Tetap SUBUH sampai 5 menit menjelang IMSAK.
+      // Visual SUBUH = data-prayer TERBIT.
       // -----------------------------------------------------
 
       else {
 
-        targetPrayerName = 'SUBUH';
+        targetPrayerName = 'TERBIT';
 
       }
 
@@ -12557,8 +12558,8 @@ function setCountdownBlackMode(enabled) {
                 String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
-              // Highlight harus mengikuti kartu SUBUH.
-              prayerName: 'SUBUH'
+              // Visual kartu SUBUH = data-prayer TERBIT.
+              prayerName: 'TERBIT'
             };
 
             break;
@@ -12638,8 +12639,8 @@ function setCountdownBlackMode(enabled) {
                 String(h).padStart(2, '0') + ':' +
                 String(m).padStart(2, '0') + ':' +
                 String(s).padStart(2, '0'),
-              // Highlight harus mengikuti kartu SUBUH.
-              prayerName: 'SUBUH'
+              // Visual kartu SUBUH = data-prayer TERBIT.
+              prayerName: 'TERBIT'
             };
 
             break;
@@ -12655,8 +12656,8 @@ function setCountdownBlackMode(enabled) {
             activeState = {
               title: 'ADZAN',
               timer: 'SUBUH',
-              // Highlight harus mengikuti kartu SUBUH.
-              prayerName: 'SUBUH'
+              // Visual kartu SUBUH = data-prayer TERBIT.
+              prayerName: 'TERBIT'
             };
 
             break;
