@@ -126,6 +126,7 @@
       <div class="center-panel">
         <div class="infaq-left-widget" id="infaq-left-widget">
           <div class="infaq-left-title">INFAQ &amp; SHADAQAH</div>
+          <div class="infaq-left-text" id="infaq-left-text" aria-live="polite"></div>
           <div class="infaq-left-content" id="infaq-left-content">
             <img src="./image/QRIS.jpeg" alt="QRIS Infaq dan Shadaqah" loading="lazy" decoding="async">
           </div>
@@ -3993,6 +3994,10 @@ function updateFridayPrayerDisplay() {
           }
           if (typeof applyPanelKeuanganSourceFast_ === 'function') {
             applyPanelKeuanganSourceFast_(data.PanelKeuangan || {});
+          }
+          if (typeof applyInfaqText_ === 'function') {
+            const infaq = data.Infaq || {};
+            applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
           }
         })
         .catch(function(error) {
