@@ -35,6 +35,14 @@ function doGet(e) {
     );
   }
 
+  // Jalur realtime khusus KEUANGAN / QURBAN / PETUGAS SHOLAT.
+  if (String(params.action || '').trim() === 'getRealtimePanelsFast') {
+    return createRealtimePanelsFastJsonpResponse_(
+      params.callback,
+      getRealtimePanelsFast()
+    );
+  }
+
   if (String(params.api || '') === '1' || params.action) {
     return handleGithubApiRequest_(params);
   }
@@ -54,6 +62,25 @@ function doGet(e) {
     .setMimeType(ContentService.MimeType.TEXT);
 }
 
+
+// =========================================================
+// JSONP KHUSUS REALTIME PANEL CEPAT
+// =========================================================
+function createRealtimePanelsFastJsonpResponse_(callback, data) {
+  const cb = String(callback || '').trim();
+
+  if (!/^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$/.test(cb)) {
+    return ContentService
+      .createTextOutput('Invalid JSONP callback.')
+      .setMimeType(ContentService.MimeType.TEXT);
+  }
+
+  return ContentService
+    .createTextOutput(
+      cb + '(' + JSON.stringify(data || { success: false, error: 'Data kosong.' }) + ');'
+    )
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
 
 // =========================================================
 // JSONP KHUSUS THEME DISPLAY
