@@ -2382,15 +2382,16 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 
 .clock-overlay .analog-clock {
   display: flex !important;
-  align-self: flex-end !important;
+  align-self: center !important;
   position: relative !important;
-  width: 100% !important;
-  height: auto !important;
-  aspect-ratio: 1 / 1 !important;
-  max-width: 220px !important;
-  max-height: 220px !important;
+  width: 14vw !important;
+  height: 14vw !important;
+  max-width: 190px !important;
+  max-height: 190px !important;
   min-width: 105px !important;
   min-height: 105px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 .clock-overlay .digital-clock-box {
