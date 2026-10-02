@@ -1,4 +1,4 @@
-const fs = require('node:fs');
+import fs from 'node:fs';
 
 const gasUrl = process.env.GAS_API_URL;
 if (!gasUrl) throw new Error('GAS_API_URL belum diisi.');
@@ -38,7 +38,6 @@ async function callGas(action) {
   return payload.data;
 }
 
-
 function writeJson(path, value) {
   fs.writeFileSync(path, JSON.stringify(value, null, 2) + '\n', 'utf8');
 }
@@ -51,8 +50,6 @@ async function main() {
     updatedAt: new Date().toISOString(),
     enabled: true,
     source: 'Google Sheets via Apps Script sync (sequence + ON/OFF only)',
-    // URL MP3 dari Sheet A:B sengaja tidak disalin.
-    // Playback memakai mapping hardcode di audio.js.
     Audio: {},
     AudioSchedule: data.AudioSchedule || {},
     AudioDurations: {},
