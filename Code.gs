@@ -2946,7 +2946,11 @@ function getPrayerSchedule(dateString) {
       }
     };
 
-    if (!isCompletePrayerSchedule_(result.jadwal)) {
+    // Validasi aman berbasis nilai HH:mm. Beberapa deployment Apps Script
+    // lama dapat menjalankan validator lama/berbeda walaupun hasil normalisasi
+    // sudah lengkap. Gunakan validator unik ini sebagai sumber kebenaran untuk
+    // hasil API yang baru saja diterima.
+    if (!isCompletePrayerScheduleSafe_(result.jadwal)) {
       Logger.log(
         'JADWAL SHOLAT TIDAK LENGKAP SETELAH NORMALISASI = ' +
         JSON.stringify(result.jadwal)
@@ -2987,6 +2991,40 @@ function getPrayerSchedule(dateString) {
 // ============================================================
 // VALIDASI JADWAL SHOLAT LENGKAP
 // ============================================================
+function isValidPrayerTimeSafe_(value) {
+  const time = String(value == null ? '' : value).trim();
+  const parts = time.split(':');
+
+  if (parts.length !== 2) return false;
+
+  const hour = Number(parts[0]);
+  const minute = Number(parts[1]);
+
+  return Number.isInteger(hour) &&
+    Number.isInteger(minute) &&
+    hour >= 0 && hour <= 23 &&
+    minute >= 0 && minute <= 59 &&
+    parts[0] !== '' &&
+    parts[1] !== '';
+}
+
+function isCompletePrayerScheduleSafe_(jadwal) {
+  if (!jadwal || typeof jadwal !== 'object') return false;
+
+  const fields = [
+    'subuh',
+    'terbit',
+    'dzuhur',
+    'ashar',
+    'maghrib',
+    'isya'
+  ];
+
+  return fields.every(function(field) {
+    return isValidPrayerTimeSafe_(jadwal[field]);
+  });
+}
+
 function isCompletePrayerSchedule_(jadwal) {
 
   if (!jadwal || typeof jadwal !== 'object') {
