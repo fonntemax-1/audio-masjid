@@ -3298,6 +3298,16 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       'https://script.google.com/macros/s/AKfycbz363_n9sqVZxwHkyDLYQXor4wtgf7IArCNQwNx23e9JMEbv_bKzXFQGkX5hmA3W9z8/exec';
 
     let gasApiCallbackCounter = 0;
+    // =========================================================
+    // STAGE 1 - GITHUB DATA CACHE
+    // Event + Audio Config dibaca dari GitHub JSON hasil sinkronisasi
+    // Apps Script -> GitHub Actions. Apps Script tetap menjadi fallback
+    // sampai cache GitHub tersedia.
+    // =========================================================
+    let stage1AudioReady = false;
+    let stage1EventReady = false;
+    let stage1EventRows = [];
+
     // Fallback audio schedule cukup dicoba sekali per page load.
     // Jangan biarkan refresh Sheet 30 detik mengulang request GAS yang lambat.
     let audioScheduleFallbackAttempted = false;
@@ -3449,6 +3459,61 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
         document.head.appendChild(script);
       });
+    }
+
+    async function loadGitHubStage1Config_() {
+      const base = './data/';
+      const ts = Date.now();
+
+      try {
+        const results = await Promise.all([
+          fetch(base + 'audio-config.json?ts=' + ts, { cache: 'no-store' }),
+          fetch(base + 'event.json?ts=' + ts, { cache: 'no-store' })
+        ]);
+
+        const audioResponse = results[0];
+        const eventResponse = results[1];
+
+        if (audioResponse.ok) {
+          const audioData = await audioResponse.json();
+
+          if (audioData && audioData.enabled === true) {
+            await setAudioConfig(audioData);
+            stage1AudioReady = true;
+            console.log(
+              'STAGE 1 GITHUB AUDIO CONFIG READY:',
+              audioData.updatedAt || ''
+            );
+          }
+        }
+
+        if (eventResponse.ok) {
+          const eventData = await eventResponse.json();
+
+          if (
+            eventData &&
+            eventData.enabled === true &&
+            Array.isArray(eventData.Event)
+          ) {
+            stage1EventRows = eventData.Event;
+            stage1EventReady = true;
+
+            WEB_APP_STATE.event.rows = stage1EventRows;
+            updateEventCountdown();
+
+            console.log(
+              'STAGE 1 GITHUB EVENT READY:',
+              stage1EventRows.length,
+              eventData.updatedAt || ''
+            );
+          }
+        }
+      } catch (error) {
+        console.warn(
+          'STAGE 1 GITHUB CACHE GAGAL, memakai fallback Apps Script:',
+          error && error.message ? error.message : error
+        );
+      }
     }
 
     let previousKeuanganJson = '';
@@ -7447,7 +7512,9 @@ function updateFridayPrayerDisplay() {
         );
       }
 
-      setAudioConfig(data);
+      if (!stage1AudioReady) {
+        setAudioConfig(data);
+      }
 
       // =======================================================
       // EVENT COUNTDOWN - NORMALISASI DATA DARI APPS SCRIPT
@@ -7467,9 +7534,9 @@ function updateFridayPrayerDisplay() {
       // data.data atau menggunakan huruf kecil. Semua bentuk ini
       // dinormalisasi tanpa menyentuh sistem audio.
       // =======================================================
-      let eventSource = null;
+      let eventSource = stage1EventReady ? stage1EventRows : null;
 
-      if (data && typeof data === 'object') {
+      if (!stage1EventReady && data && typeof data === 'object') {
         if (data.Event !== undefined) {
           eventSource = data.Event;
         } else if (data.event !== undefined) {
@@ -16697,6 +16764,10 @@ function setCountdownBlackMode(enabled) {
           }, 0);
         });
     }
+
+    // Stage 1: Event + Audio Config diprioritaskan dari GitHub.
+    // Apps Script tetap berjalan sebagai fallback untuk data lain.
+    loadGitHubStage1Config_();
 
     // Apps Script/panels berjalan paralel; tidak menghalangi kartu.
     fetchSheetData();
