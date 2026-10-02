@@ -9125,7 +9125,16 @@ function updateFridayPrayerDisplay() {
       const type = String(audioType || '').trim().toLowerCase();
       if (!type) return 0;
 
-      const metadataDuration = await loadAudioMetadataDuration(type);
+      let metadataDuration = 0;
+      try {
+        metadataDuration = await loadAudioMetadataDuration(type);
+      } catch (error) {
+        console.warn(
+          'AUDIO DURASI: metadata probe gagal:',
+          type,
+          error
+        );
+      }
       if (metadataDuration > 0) {
         console.log('AUDIO DURASI FILE:', type, metadataDuration, 'detik');
         return metadataDuration;
@@ -9145,11 +9154,20 @@ function updateFridayPrayerDisplay() {
 
       const result = {};
 
-      // Metadata tetap dibaca untuk menjaga perhitungan timeline audio
-      // tetap akurat. Hasil setiap probe masuk cache sehingga file yang
-      // sama tidak diprobe berulang kali antar-sholat.
+      // Probe metadata tidak boleh menghentikan seluruh scheduler.
+      // Jika satu file gagal dibaca oleh browser, lanjutkan ke file berikutnya
+      // agar audio lain tetap dapat membangun timeline.
       for (const type of types) {
-        result[type] = await getAudioDuration(type);
+        try {
+          result[type] = await getAudioDuration(type);
+        } catch (error) {
+          console.warn(
+            'AUDIO DURASI: probe gagal, lanjut tanpa menghentikan scheduler:',
+            type,
+            error
+          );
+          result[type] = 0;
+        }
       }
 
       console.log('=== AUDIO DURASI METADATA ===', result);
