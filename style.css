@@ -803,6 +803,9 @@
        Tampilan saja — tidak mengubah scheduler, audio atau YouTube.
        ========================================================= */
     .analog-clock {
+      align-self: flex-end;
+      margin-right: 0;
+      margin-left: auto;
       width: 14vw;
       height: 14vw;
       max-width: 190px;
