@@ -2384,10 +2384,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
   display: flex !important;
   align-self: flex-end !important;
   position: relative !important;
-  width: 14vw !important;
-  height: 14vw !important;
-  max-width: 190px !important;
-  max-height: 190px !important;
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1 !important;
+  max-width: 220px !important;
+  max-height: 220px !important;
   min-width: 105px !important;
   min-height: 105px !important;
 }
