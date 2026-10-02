@@ -2551,7 +2551,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 .center-panel { position: relative !important; }
 .infaq-left-widget {
   position: absolute !important;
-  left: 1vw !important;
+  left: 0.6vw !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
   z-index: 25 !important;
