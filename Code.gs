@@ -4468,7 +4468,7 @@ function getRealtimeDisplayConfig() {
     const location = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
       return String(row[0] || '').trim();
     });
-    const kegiatan = panels.getRange('C26:C30').getDisplayValues().map(function(row) {
+    const kegiatan = panels.getRange('C27:C30').getDisplayValues().map(function(row) {
       return String(row[0] || '').trim();
     });
     const event = panels.getRange('B33:B37').getDisplayValues().map(function(row) {
