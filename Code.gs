@@ -1045,6 +1045,85 @@ function getDataFromSheet() {
 
 
     // =====================================================
+    // SUMBER PANEL KEUANGAN DARI PANELS!C49
+    // C49 = KEUANGAN -> sheet Keuangan
+    // C49 = QUR'BAN -> sheet Qurb'an
+    // Hanya mengganti sumber data panel kanan.
+    // Tidak menyentuh scheduler, audio, YouTube, atau data sholat.
+    // Data detail selalu mulai dari A4:B sampai baris terakhir.
+    // A1 = judul, A2 = tanggal.
+    // =====================================================
+    try {
+      const panelsSelectorSheet = ss.getSheetByName('panels');
+      const rawSelector = panelsSelectorSheet
+        ? String(panelsSelectorSheet.getRange('C49').getDisplayValue() || '').trim()
+        : 'KEUANGAN';
+
+      const selectorKey = rawSelector
+        .toUpperCase()
+        .replace(/[\\s’‘'\`]/g, '');
+
+      const selectedKey = selectorKey === 'QURBAN'
+        ? 'QURBAN'
+        : 'KEUANGAN';
+
+      result.KeuanganSelector = selectedKey;
+
+      const selectedSheet = ss.getSheets().find(function(candidate) {
+        const key = String(candidate.getName() || '')
+          .toUpperCase()
+          .replace(/[\\s’‘'\`]/g, '');
+        return key === selectedKey;
+      });
+
+      if (selectedSheet) {
+        result.Keuangan = [];
+        result.KeuanganJudul = String(
+          selectedSheet.getRange('A1').getDisplayValue() || ''
+        ).trim();
+        result.KeuanganTanggal = String(
+          selectedSheet.getRange('A2').getDisplayValue() || ''
+        ).replace(/^(0)(\\d)(\\s)/, '$2$3');
+
+        const lastRow = selectedSheet.getLastRow();
+        if (lastRow >= 4) {
+          const rows = selectedSheet
+            .getRange(4, 1, lastRow - 3, 2)
+            .getDisplayValues();
+
+          rows.forEach(function(displayRow) {
+            const row = [
+              String(displayRow[0] == null ? '' : displayRow[0]).trim(),
+              String(displayRow[1] == null ? '' : displayRow[1]).trim()
+            ];
+
+            if (row[0] !== '' || row[1] !== '') {
+              result.Keuangan.push(row);
+            }
+          });
+        }
+
+        Logger.log(
+          'PANEL KEUANGAN C49 = [' + rawSelector +
+          '] => SHEET [' + selectedSheet.getName() +
+          '] => ROWS [' + result.Keuangan.length + ']'
+        );
+      } else {
+        result.Keuangan = [];
+        result.KeuanganJudul = '';
+        result.KeuanganTanggal = '';
+        Logger.log(
+          'PANEL KEUANGAN: sheet untuk selector [' + rawSelector + '] tidak ditemukan.'
+        );
+      }
+    } catch (selectorError) {
+      Logger.log(
+        'PANEL KEUANGAN C49 ERROR: ' + selectorError.message
+      );
+    }
+
+
+    // =====================================================
     // FINALISASI MODE PANEL DISPLAY
     // =====================================================
     // panels!C2 adalah sumber tunggal kontrol layar hitam.
