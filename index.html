@@ -1954,6 +1954,14 @@
       overflow-wrap: break-word;
     }
 
+    /* QUR'BAN: kata Kelompok/Sapi/Kambing mengikuti font Khatib,
+       bold, dan warna tema aktif. Font Khatib mengikuti font global Roboto. */
+    .qurban-scroll-text .qurban-keyword {
+      font-family: 'Roboto', sans-serif !important;
+      font-weight: bold !important;
+      color: var(--theme-accent) !important;
+    }
+
     /* QUR'BAN: setiap item satu baris penuh, tidak wrap ke bawah. */
     .qurban-display .keuangan-table {
       table-layout: auto;
@@ -7662,6 +7670,33 @@ function updateFridayPrayerDisplay() {
             document.createElement(
               'tr'
             );
+
+          if (isQurban) {
+            const td = document.createElement('td');
+            td.colSpan = 2;
+
+            const qurbanText =
+              row[0] === null || row[0] === undefined
+                ? ''
+                : String(row[0]).trim();
+
+            const escapedQurbanText = qurbanText
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;')
+              .replace(/'/g, '&#39;');
+
+            td.innerHTML = escapedQurbanText.replace(
+              /(Kelompok|Sapi|Kambing)/gi,
+              '<span class="qurban-keyword">$1</span>'
+            );
+
+            td.className = 'qurban-scroll-text';
+            tr.appendChild(td);
+            table.appendChild(tr);
+            return;
+          }
 
           const label =
             row[0] === null ||
