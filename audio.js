@@ -1,0 +1,44 @@
+/* Audio file map — alamat MP3 tidak berasal dari Google Sheet.
+ * Sheet hanya mengatur sequence + ON/OFF.
+ */
+(function () {
+  'use strict';
+
+  const FILES = {
+    'qiroah-1': 'qiroah.mp3',
+    'qiroah-2': 'qiroah.mp3',
+    'qiroah-3': 'qiroah.mp3',
+    'qiroah-4': 'qiroah.mp3',
+    'qiroah-5': 'qiroah.mp3',
+    'qiroah': 'qiroah.mp3',
+    'tarhim': 'Shalawat Tarhim.mp3',
+    'tarhim-subuh': 'Shalawat Tarhim.mp3',
+    'tarhim-biasa': 'Shalawat Tarhim.mp3',
+    'beep': 'beep.mp3',
+    'adzan-subuh': 'adzan-subuh.mp3',
+    'adzan-biasa': 'adzan-biasa.mp3',
+    'adzan': 'adzan-biasa.mp3',
+    'doa': 'doa.mp3',
+    'doa-adzan': 'doa.mp3',
+    'doa-puasa': 'doa-puasa.mp3',
+    'doa-buka': 'doa-buka.mp3',
+    'iqomah': 'iqomah.mp3',
+    'sirine': 'sirine.mp3',
+    'takbiran': 'iqomah.mp3'
+  };
+
+  function localUrl(key) {
+    const name = FILES[String(key || '').trim().toLowerCase()];
+    return name ? './audio/' + encodeURIComponent(name) : '';
+  }
+
+  window.AUDIO_LOCAL_FILES = Object.freeze(FILES);
+  window.getLocalAudioUrl = localUrl;
+  window.getAllLocalAudioUrls = function () {
+    const out = {};
+    Object.keys(FILES).forEach(function (key) {
+      out[key] = localUrl(key);
+    });
+    return out;
+  };
+}());
