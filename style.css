@@ -2552,10 +2552,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 .infaq-left-widget {
   position: absolute !important;
   left: 0.6vw !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
+  bottom: 6.2vh !important;
+  top: auto !important;
+  transform: none !important;
   z-index: 100000 !important;
-  width: clamp(70px, 8vw, 115px) !important;
+  width: clamp(105px, 12vw, 155px) !important;
   margin: 0 !important;
   padding: 0 !important;
   text-align: center;
@@ -2591,7 +2592,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 }
 .infaq-left-content img {
   display: block;
-  width: min(100%, clamp(42px, 4.2vw, 62px));
+  width: min(100%, clamp(90px, 10vw, 140px));
   max-width: 100%;
   height: auto;
   aspect-ratio: 1 / 1;
@@ -2600,11 +2601,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 @media (max-width: 700px) {
   .infaq-left-widget {
     left: .7vw !important;
-    width: 22vw !important;
+    width: 28vw !important;
   }
   .infaq-left-title { font-size: clamp(.55rem, 2.4vw, .8rem); }
   .infaq-left-text { font-size: clamp(.4rem, 1.8vw, .62rem); }
-  .infaq-left-content img { width: min(16vw, 58px); max-width: 100%; }
+  .infaq-left-content img { width: min(24vw, 105px); max-width: 100%; }
 }
 
 /* Pastikan widget INFAQ berada di atas background video/banner tanpa menutupi banner utama. */
