@@ -2565,7 +2565,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
   box-shadow: none !important;
 }
 .infaq-left-title {
-  color: #ffcc00;
+  color: var(--theme-accent) !important;
   font-family: Arial, sans-serif;
   font-weight: 700;
   font-size: clamp(1rem, 1.4vw, 1.5rem);
