@@ -2554,7 +2554,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
   left: 0.6vw !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
-  z-index: 25 !important;
+  z-index: 100000 !important;
   width: clamp(70px, 8vw, 115px) !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -2593,3 +2593,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
   .infaq-left-title { font-size: clamp(.55rem, 2.4vw, .8rem); }
   .infaq-left-content img { width: min(16vw, 58px); max-width: 100%; }
 }
+
+/* Pastikan widget INFAQ berada di atas background video/banner tanpa menutupi banner utama. */
+.infaq-left-widget,
+.infaq-left-widget * { pointer-events: none !important; }
+.infaq-left-widget img { visibility: visible !important; opacity: 1 !important; }
