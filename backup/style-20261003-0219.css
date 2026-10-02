@@ -1,0 +1,2318 @@
+* {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    /* =========================================================
+       TEMA DISPLAY - panels!C18
+       HIJAU = default, MERAH/KUNING = palet global.
+       Tema hanya mengubah warna visual; audio/scheduler tetap utuh.
+       ========================================================= */
+    :root,
+    :root[data-display-theme="hijau"] {
+      --theme-bg: #01130c;
+      --theme-bg-deep: #011910;
+      --theme-panel: #032116;
+      --theme-panel-2: #023320;
+      --theme-border: #00ffaa;
+      --theme-accent: #00ffaa;
+      --theme-highlight: #ffcc00;
+      --theme-active-bg: #211800;
+      --theme-running: #00ff88;
+      --theme-text: #ffffff;
+      --theme-divider: #00ffaa;
+    }
+
+    :root[data-display-theme="merah"] {
+      --theme-bg: #180607;
+      --theme-bg-deep: #22090b;
+      --theme-panel: #321014;
+      --theme-panel-2: #4a1418;
+      --theme-border: #ff5a5f;
+      --theme-accent: #ff7075;
+      --theme-highlight: #ffd166;
+      --theme-active-bg: #3b1710;
+      --theme-running: #ff7b72;
+      --theme-text: #fff7f5;
+      --theme-divider: #ff7075;
+    }
+
+    :root[data-display-theme="kuning"] {
+      --theme-bg: #171204;
+      --theme-bg-deep: #211a06;
+      --theme-panel: #342a0b;
+      --theme-panel-2: #51400e;
+      --theme-border: #f4c542;
+      --theme-accent: #ffd95a;
+      --theme-highlight: #fff0a6;
+      --theme-active-bg: #4a3708;
+      --theme-running: #ffe27a;
+      --theme-text: #fffdf0;
+      --theme-divider: #f4c542;
+    }
+
+    body,
+    .screen-container {
+      background-color: var(--theme-bg) !important;
+      color: var(--theme-text);
+    }
+
+    .screen-container {
+      background: var(--theme-bg-deep) !important;
+      border-color: var(--theme-border) !important;
+    }
+
+    .header {
+      border-color: var(--theme-border) !important;
+      background: radial-gradient(circle, var(--theme-panel-2) 0%, var(--theme-bg) 100%) !important;
+    }
+
+    .header-center .slogan,
+    .date-box .hijri-text {
+      color: var(--theme-accent) !important;
+    }
+
+    .header-divider {
+      background: var(--theme-divider) !important;
+    }
+
+    .prayer-card {
+      background: radial-gradient(circle, var(--theme-panel-2) 0%, var(--theme-bg) 100%) !important;
+      border-color: var(--theme-border) !important;
+    }
+
+    .prayer-card.active-prayer {
+      border-color: var(--theme-highlight) !important;
+      background: var(--theme-active-bg) !important;
+    }
+
+    .event-running.event-prayer-override {
+      color: var(--theme-running) !important;
+    }
+
+    .finance-panel,
+    .infaq-panel,
+    .youtube-panel,
+    .khutbah-panel {
+      border-color: var(--theme-border) !important;
+    }
+
+    .finance-panel .panel-title,
+    .khutbah-panel .panel-title {
+      color: var(--theme-highlight) !important;
+    }
+
+    .main-clock-panel,
+    .countdown-box,
+    .digital-clock-box {
+      border-color: var(--theme-border) !important;
+    }
+
+    body {
+      background-color: #01130c;
+      color: #ffffff;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      padding: 0.8vh 0.8vw;
+    }
+
+    .screen-container {
+      display: grid;
+      grid-template-rows: 16vh 1fr 6vh;
+      gap: 1vh;
+      height: 100%;
+      width: 100%;
+      border: 0.3vh solid #005a36;
+      border-radius: 1vh;
+      padding: 1vh;
+      background: #011910;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 0.2vh solid #00ffaa;
+      border-radius: 0.8vh;
+      padding: 1.6vh 1.5vw;
+      background: radial-gradient(circle, #023320 0%, #01140c 100%);
+      position: relative;
+    }
+
+.header-logo {
+  position: absolute;
+  left: 12.5vw;
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 8vw;
+  height: 12vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 2;
+}
+
+.header-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+    /* HIJAU: teks yang sebelumnya kuning/emas mengikuti warna tema.
+       Teks putih tetap putih. Hanya visual tema HIJAU yang diubah. */
+    :root[data-display-theme="hijau"] .header-center h1,
+    :root[data-display-theme="hijau"] .prayer-time,
+    :root[data-display-theme="hijau"] .event-countdown-number,
+    :root[data-display-theme="hijau"] .event-countdown-line1,
+    :root[data-display-theme="hijau"] .countdown-timer,
+    :root[data-display-theme="hijau"] .infaq-panel .panel-title,
+    :root[data-display-theme="hijau"] .event-running,
+    :root[data-display-theme="hijau"] .right-sidebar .panel-box:first-child .panel-title,
+    :root[data-display-theme="hijau"] .right-sidebar .panel-box:last-child .panel-title,
+    :root[data-display-theme="hijau"] .keuangan-header-row td,
+    :root[data-display-theme="hijau"] .keuangan-saldo-akhir td,
+    :root[data-display-theme="hijau"] .khotbah-role {
+      color: var(--theme-accent) !important;
+      -webkit-text-fill-color: var(--theme-accent) !important;
+    }
+
+    :root[data-display-theme="hijau"] .header-center .latin-name {
+      background: linear-gradient(
+        110deg,
+        var(--theme-accent) 0%,
+        var(--theme-accent) 38%,
+        #d9fff1 48%,
+        #ffffff 50%,
+        #d9fff1 52%,
+        var(--theme-accent) 62%,
+        var(--theme-accent) 100%
+      );
+      background-size: 250% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    :root[data-display-theme="merah"] .header-center h1,
+    :root[data-display-theme="merah"] .prayer-time,
+    :root[data-display-theme="merah"] .event-countdown-number,
+    :root[data-display-theme="merah"] .event-countdown-line1,
+    :root[data-display-theme="merah"] .countdown-timer,
+    :root[data-display-theme="merah"] .infaq-panel .panel-title,
+    :root[data-display-theme="merah"] .event-running,
+    :root[data-display-theme="merah"] .right-sidebar .panel-box:first-child .panel-title,
+    :root[data-display-theme="merah"] .right-sidebar .panel-box:last-child .panel-title,
+    :root[data-display-theme="merah"] .keuangan-header-row td,
+    :root[data-display-theme="merah"] .keuangan-saldo-akhir td,
+    :root[data-display-theme="merah"] .khotbah-role {
+      color: var(--theme-accent) !important;
+      -webkit-text-fill-color: var(--theme-accent) !important;
+    }
+
+    :root[data-display-theme="merah"] .header-center .latin-name {
+      background: linear-gradient(
+        110deg,
+        var(--theme-accent) 0%,
+        var(--theme-accent) 38%,
+        #ffe0e1 48%,
+        #ffffff 50%,
+        #ffe0e1 52%,
+        var(--theme-accent) 62%,
+        var(--theme-accent) 100%
+      );
+      background-size: 250% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* =========================================================
+       HEADER - FORMAT MENGIKUTI CONTOH DISPLAY
+       Data nama, alamat, nomor HP dan slogan tetap dari Spreadsheet.
+       ========================================================= */
+
+    .header-center {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  transform: none;
+  padding: 0 1.2vw 0 10vw;
+}
+
+.header-center h1 {
+  color: #f4c542;
+  font-family: 'ALHAMBRA', serif;
+  font-size: clamp(1.6rem, 2.4vh, 3.2rem);
+  line-height: 0.98;
+  font-weight: 400;
+  letter-spacing: 0;
+  direction: rtl;
+  text-align: center;
+  text-shadow: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-center .latin-name {
+  color: #ffcc00;
+  font-family: 'ALHAMBRA', serif;
+  font-size: clamp(1.85rem, 3.0vh, 3.8rem);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.10vw;
+  text-transform: uppercase;
+  margin-top: 0.15vh;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: none;
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(
+    110deg,
+    #ffcc00 0%,
+    #ffcc00 38%,
+    #fff8c4 48%,
+    #ffffff 50%,
+    #fff8c4 52%,
+    #ffcc00 62%,
+    #ffcc00 100%
+  );
+  background-size: 250% 100%;
+  background-position: 120% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: mosqueNameHighlight 8s ease-in-out infinite;
+}
+
+@keyframes mosqueNameHighlight {
+  0% {
+    background-position: -20% 0;
+  }
+  38.46% {
+    background-position: 120% 0;
+  }
+  76.92% {
+    background-position: -20% 0;
+  }
+  100% {
+    background-position: -20% 0;
+  }
+}
+
+.header-center .sub {
+  color: #ffffff;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.72rem, 1.2vh, 1.2rem);
+  line-height: 1.15;
+  margin-top: 0.35vh;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0.08vh 0.18vh rgba(0,0,0,0.8);
+}
+
+.wa-contact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.32vw;
+  white-space: nowrap;
+
+  /* No. HP harus benar-benar mengikuti font ALAMAT,
+     bukan hanya mengandalkan inherit dari elemen induk. */
+  font-family: 'Cinzel', serif !important;
+  font-size: clamp(0.72rem, 1.2vh, 1.2rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+}
+
+.header-center .sub .wa-contact > span {
+  font-family: 'Cinzel', serif !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+}
+
+    /* Logo WhatsApp model kotak */
+    .wa-icon {
+      width: 1.18em;
+      height: 1.18em;
+      flex: 0 0 auto;
+      padding: 0.12em;
+      border-radius: 0.22em;
+      background: #25D366;
+      fill: #ffffff;
+      vertical-align: middle;
+      box-shadow: 0 0.12vh 0.25vh rgba(0,0,0,0.55);
+    }
+
+    .info-separator {
+      margin: 0 0.28vw;
+    }
+
+    .header-center .slogan {
+      color: #00ffaa;
+      font-family: 'Cinzel', serif;
+      font-style: normal;
+      font-size: clamp(0.68rem, 0.95vw, 1.05rem);
+      font-weight: 600;
+      line-height: 1.05;
+      margin-top: 0.35vh;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: none;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: clamp(0.35vw, 0.8vw, 1vw);
+      flex: 0 0 auto;
+      min-width: 0;
+      max-width: 34vw;
+      padding-right: 0;
+      position: relative;
+    }
+
+    .date-box {
+      text-align: center;
+      min-width: 0;
+      max-width: 11vw;
+      flex: 0 1 auto;
+      overflow: hidden;
+    }
+
+    .date-box .hijri-num {
+      font-size: clamp(1.2rem, 2vw, 2.2rem);
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .date-box .hijri-text {
+      color: #00ffaa;
+      font-size: clamp(0.8rem, 1.3vw, 1.4rem);
+      font-weight: bold;
+    }
+
+    .date-box .greg-day {
+      background: #ffffff;
+      color: #000;
+      font-weight: 900;
+      padding: 0.2vh 0.6vw;
+      border-radius: 0.5vh;
+      font-size: clamp(0.8rem, 1.45vw, 1.55rem);
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .date-box .greg-text {
+      color: #ffffff;
+      font-size: clamp(0.68rem, 1.05vw, 1.2rem);
+      font-weight: bold;
+      line-height: 1.08;
+      margin-top: 0.2vh;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .header-divider {
+      width: 0.15vw;
+      height: 5vh;
+      background: #00ffaa;
+    }
+
+    /* =========================================================
+       ICON BULAN - paling kanan frame header
+       Hanya visual; tidak mengubah tanggal/scheduler/audio.
+       ========================================================= */
+    .hijri-date-box {
+      position: relative;
+      padding-left: clamp(2.6rem, 4.5vw, 4.2rem);
+      width: max-content;
+      min-width: max-content;
+      max-width: none;
+      white-space: nowrap;
+      overflow: visible;
+    }
+
+    .hijri-date-box .hijri-text {
+      white-space: nowrap;
+      display: block;
+    }
+
+    .header-moon {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: clamp(2.2rem, 3.8vw, 3.8rem);
+      height: clamp(2.2rem, 3.8vw, 3.8rem);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      pointer-events: none;
+      color: var(--theme-accent) !important;
+      font-family: Arial, sans-serif;
+      font-size: clamp(2rem, 3.4vw, 3.5rem);
+      line-height: 1;
+      font-weight: 400;
+      text-shadow:
+        0 0 0.18rem #fff,
+        0 0 0.38rem #fff,
+        0 0 0.65rem rgba(255,255,255,0.9);
+    }
+
+    .header-moon::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 82%;
+      height: 82%;
+      transform: translate(-50%, -50%);
+      border: 0.11rem solid rgba(255,255,255,0.92);
+      border-radius: 50%;
+      box-shadow:
+        0 0 0.28rem rgba(255,255,255,0.95),
+        0 0 0.55rem rgba(255,255,255,0.72);
+      z-index: 0;
+      pointer-events: none;
+    }
+    .header-moon::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 68%;
+      height: 68%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: var(--theme-accent);
+      box-shadow: inset 0 0 0.35rem rgba(0,0,0,0.28);
+      z-index: 1;
+      pointer-events: none;
+      clip-path: circle(50%);
+    }
+    .header-moon.moon-new::after {
+      background: transparent;
+      box-shadow: none;
+    }
+    .header-moon.moon-waxing-crescent::after {
+      background: radial-gradient(circle at 72% 50%, transparent 0 47%, var(--theme-accent) 48%);
+    }
+    .header-moon.moon-first-quarter::after {
+      clip-path: inset(0 50% 0 0);
+    }
+    .header-moon.moon-waxing-gibbous::after {
+      background: radial-gradient(circle at 63% 50%, transparent 0 45%, var(--theme-accent) 46%);
+    }
+    .header-moon.moon-full::after {
+      background: var(--theme-accent);
+    }
+    .header-moon.moon-waning-gibbous::after {
+      background: radial-gradient(circle at 37% 50%, transparent 0 45%, var(--theme-accent) 46%);
+    }
+    .header-moon.moon-last-quarter::after {
+      clip-path: inset(0 0 0 50%);
+      background: var(--theme-accent);
+    }
+    .header-moon.moon-waning-crescent::after {
+      background: radial-gradient(circle at 28% 50%, transparent 0 47%, var(--theme-accent) 48%);
+    }
+
+    @media (max-width: 700px) {
+      .header-moon {
+        right: 1.2vw;
+        width: clamp(2rem, 9vw, 3rem);
+        height: clamp(2rem, 9vw, 3rem);
+        font-size: clamp(1.9rem, 8vw, 2.8rem);
+      }
+    }
+
+
+    .main-body {
+      display: grid;
+      grid-template-columns: 16vw 1fr 24vw;
+      gap: 1vw;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .prayer-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8vh;
+      height: 100%;
+    }
+
+    .prayer-card {
+      background: #032116;
+      contain: layout paint;
+      backface-visibility: hidden;
+      border: 0.2vh solid #00ffaa;
+      border-radius: 0.8vh;
+      display: flex;
+      align-items: center;
+      padding: 0 0.8vw;
+      flex: 1;
+      transition: none;
+    }
+
+    .prayer-card.active-prayer {
+      border-color: #ffaa00 !important;
+      background: #211800 !important;
+    }
+
+    /* Ikon SUBUH dan ASHAR mengikuti warna asli PNG,
+       sama seperti ikon DZUHUR. */
+    .prayer-card[data-prayer="SUBUH"] .prayer-icon img,
+    .prayer-card[data-prayer="ASHAR"] .prayer-icon img {
+      filter: none;
+    }
+
+    /* Saat kartu SUBUH dipakai sebagai tampilan IMSAK pada Ramadan,
+       ikon tetap menggunakan warna asli PNG. */
+    .prayer-card.ramadan-imsak[data-prayer="SUBUH"] .prayer-icon img {
+      filter: none;
+    }
+
+    /* Kartu kedua menampilkan SUBUH pada Ramadan.
+       Ikonnya juga mengikuti warna asli PNG seperti DZUHUR. */
+    .prayer-card.ramadan-subuh-display .prayer-icon img {
+      filter: none;
+    }
+
+    /* Semua ikon sholat lainnya menggunakan warna asli PNG. */
+    .prayer-card .prayer-icon img {
+      filter: none;
+    }
+
+    /* Prioritas kondisi highlight: ikon tetap hijau mengikuti frame. */
+    .prayer-card.active-prayer .prayer-icon img {
+      filter: brightness(0) saturate(100%) invert(59%) sepia(98%) saturate(850%) hue-rotate(105deg) brightness(95%) contrast(105%);
+    }
+
+    .prayer-icon {
+      width: 7.2vw;
+      height: 7.2vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 0.6vw;
+      flex-shrink: 0;
+    }
+
+    .prayer-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .prayer-details {
+      flex: 1;
+    }
+
+    .prayer-name {
+      font-size: clamp(0.8rem, 1.2vw, 1.3rem);
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 0.05vw;
+    }
+
+    .prayer-time {
+      font-size: clamp(1.2rem, 2.2vw, 2.4rem);
+      font-weight: 900;
+      color: #ffcc00;
+      line-height: 1;
+    }
+
+    .center-panel {
+      position: relative;
+      border: 0.2vh solid var(--theme-border) !important;
+      border-radius: 0.8vh;
+      overflow: hidden;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .youtube-background {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+      background: #000;
+    }
+
+    .youtube-background iframe {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 177.78%;
+      height: 100%;
+      min-width: 100%;
+      min-height: 56.25vw;
+      transform: translate(-50%, -50%);
+      border: 0;
+      pointer-events: none;
+    }
+
+    .clock-overlay {
+      position: absolute;
+      top: 1.5vh;
+      right: 1.5vw;
+      bottom: 6vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1vh;
+      z-index: 2;
+    }
+
+    .countdown-box {
+      background: #032116;
+      /* Blur is expensive on TCL 32S5400 and can cause repaint/flicker. */
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      contain: layout paint;
+      backface-visibility: hidden;
+      border: 0.2vh solid #00ffaa;
+      border-radius: 0.6vh;
+      padding: 0.5vh 1vw;
+      text-align: center;
+      width: 100%;
+      box-shadow: 0 0.6vh 1.6vh rgba(0, 0, 0, 0.8);
+    }
+
+    /* =========================================================
+       EVENT COUNTDOWN
+       B8:B11 = jumlah hari
+       C8:C11 = ON/OFF
+       ========================================================= */
+
+    .event-countdown-display {
+      position: absolute;
+      top: 1.5vh;
+      left: 1vw;
+      right: 8vw;
+      height: 12vh;
+      z-index: 4;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: left;
+      pointer-events: none;
+      padding: 0;
+      background: transparent;
+    }
+
+    .event-countdown-display.active {
+      display: flex;
+    }
+
+    .event-countdown-inner {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 1vw;
+      min-width: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .event-countdown-number {
+      color: #ffcc00;
+      font-family: 'Cinzel', serif;
+      font-size: clamp(3.2rem, 6.2vw, 6.8rem);
+      font-weight: 600;
+      line-height: 0.9;
+      font-variant-numeric: tabular-nums;
+      text-shadow:
+        0 0.18vh 0 rgba(0,0,0,0.98),
+        0 0.38vh 0.45vh rgba(0,0,0,0.92),
+        0 0.75vh 1.10vh rgba(0,0,0,0.72);
+      flex: 0 0 auto;
+    }
+
+    .event-countdown-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-start;
+      min-width: 0;
+    }
+
+    .event-countdown-line1 {
+      color: #ffcc00;
+      font-family: 'Cinzel', serif;
+      font-size: clamp(0.95rem, 1.65vw, 1.85rem);
+      font-weight: 600;
+      letter-spacing: 0.08vw;
+      line-height: 1.05;
+      text-transform: uppercase;
+      white-space: nowrap;
+      text-shadow:
+        0 0.16vh 0 rgba(0,0,0,0.98),
+        0 0.32vh 0.42vh rgba(0,0,0,0.92),
+        0 0.62vh 0.90vh rgba(0,0,0,0.68);
+    }
+
+    .event-countdown-line2 {
+      color: #ffffff;
+      font-family: 'Cinzel', serif;
+      font-size: clamp(0.85rem, 1.45vw, 1.55rem);
+      font-weight: 600;
+      letter-spacing: 0.02vw;
+      line-height: 1.10;
+      margin-top: 0.25vh;
+      white-space: nowrap;
+      text-shadow: 0 0.18vh 0.35vh rgba(0,0,0,0.95);
+    }
+
+    /* WAKTU IMSAK menggunakan style ADZAN SUBUH
+       secara langsung: title=WAKTU, timer=IMSAK. */
+
+    .countdown-timer {
+      color: #ffcc00;
+      font-size: clamp(1.2rem, 2vw, 2.2rem);
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    /* =========================================================
+       JAM ANALOG EMAS REALISTIS / ELEGAN
+       Tampilan saja — tidak mengubah scheduler, audio atau YouTube.
+       ========================================================= */
+    .analog-clock {
+      align-self: flex-end;
+      margin-right: 0;
+      margin-left: auto;
+      width: 14vw;
+      height: 14vw;
+      max-width: 190px;
+      max-height: 190px;
+      min-width: 105px;
+      min-height: 105px;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      /* Dial ivory hangat seperti jam premium. */
+      background:
+        radial-gradient(circle at 36% 28%,
+          rgba(255,255,255,0.98) 0 7%,
+          rgba(255,255,255,0.18) 8% 17%,
+          transparent 18%),
+        radial-gradient(circle at 50% 48%,
+          #fffdf3 0%,
+          #f5edcf 63%,
+          #d8c58d 91%,
+          #a88943 100%);
+
+      /* Bezel emas berlapis agar terlihat metalik, bukan flat. */
+      border: 0.48vh solid #d8b45a;
+      box-shadow:
+        0 1.1vh 2.8vh rgba(0,0,0,0.88),
+        0 0.25vh 0.5vh rgba(255,225,135,0.35),
+        inset 0 0 0 0.24vh #fff0ad,
+        inset 0 0 0 0.55vh #9a7125,
+        inset 0 0 0 0.82vh #f3d477,
+        inset 0 0 1.5vh rgba(80,48,8,0.55);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    /* Kilau logam halus pada bezel. */
+    .analog-clock::before {
+      content: "";
+      position: absolute;
+      inset: 0.45vh;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        conic-gradient(
+          from 215deg,
+          rgba(255,255,255,0.62),
+          rgba(255,255,255,0.04) 14%,
+          rgba(120,78,15,0.28) 31%,
+          rgba(255,239,170,0.72) 48%,
+          rgba(135,89,18,0.20) 65%,
+          rgba(255,255,255,0.48) 82%,
+          rgba(120,78,15,0.22)
+        );
+      -webkit-mask: radial-gradient(circle, transparent 0 91%, #000 92% 100%);
+      mask: radial-gradient(circle, transparent 0 91%, #000 92% 100%);
+    }
+
+    /* Cincin bagian dalam dial. */
+    .analog-clock::after {
+      content: "";
+      position: absolute;
+      inset: 1.65vh;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      border: 0.18vh solid rgba(141,101,30,0.72);
+      box-shadow:
+        inset 0 0 0 0.10vh rgba(255,255,255,0.72),
+        inset 0 0 1.1vh rgba(105,73,16,0.25);
+    }
+
+    .clock-face-svg {
+      width: 84%;
+      height: 84%;
+      position: absolute;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Semua marker mengikuti warna emas dial. */
+    .clock-face-svg g {
+      stroke: #9a7125;
+    }
+
+    .clock-face-svg g[stroke-width="1.5"] {
+      stroke: #b28a3c;
+      opacity: 0.72;
+    }
+
+    .analog-clock .hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: bottom center;
+      border-radius: 999px;
+      filter:
+        drop-shadow(0.12vh 0.22vh 0.22vh rgba(45,28,5,0.72));
+    }
+
+    /* Jarum jam emas, lebih pendek dan tebal. */
+    .analog-clock .hour {
+      width: 0.62vw;
+      height: 21%;
+      min-width: 3px;
+      background:
+        linear-gradient(90deg,
+          #8a611b 0%,
+          #f7dc82 35%,
+          #fff1aa 50%,
+          #c09235 68%,
+          #704b13 100%);
+      clip-path: polygon(24% 100%, 76% 100%, 68% 18%, 50% 0%, 32% 18%);
+      z-index: 2;
+    }
+
+    /* Jarum menit emas lebih panjang dan ramping. */
+    .analog-clock .minute {
+      width: 0.43vw;
+      height: 32%;
+      min-width: 2.5px;
+      background:
+        linear-gradient(90deg,
+          #805714 0%,
+          #e8c55d 34%,
+          #fff2b0 50%,
+          #b78328 69%,
+          #704a12 100%);
+      clip-path: polygon(25% 100%, 75% 100%, 67% 13%, 50% 0%, 33% 13%);
+      z-index: 3;
+    }
+
+    /* Jarum detik tetap merah sebagai aksen jam klasik. */
+    .analog-clock .second {
+      width: 0.15vw;
+      height: 38%;
+      min-width: 1.2px;
+      background:
+        linear-gradient(180deg,
+          #6e0000 0%,
+          #e30000 35%,
+          #ff4b4b 50%,
+          #8c0000 100%);
+      border-radius: 999px;
+      z-index: 4;
+      filter: drop-shadow(0.1vh 0.18vh 0.2vh rgba(0,0,0,0.7));
+    }
+
+    /* Hub tengah emas berlapis. */
+    .analog-clock .center-dot {
+      width: 1.45vh;
+      height: 1.45vh;
+      min-width: 7px;
+      min-height: 7px;
+      background:
+        radial-gradient(circle at 35% 30%,
+          #fff2ad 0 12%,
+          #e0b84e 25%,
+          #a06f1c 63%,
+          #5d3c0c 100%);
+      border: 0.22vh solid #fff0a5;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow:
+        0 0.18vh 0.35vh rgba(0,0,0,0.65),
+        inset 0 0 0 0.12vh rgba(255,255,255,0.55);
+      z-index: 5;
+    }
+
+    .digital-clock-box {
+      background: #032116;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      contain: layout paint;
+      backface-visibility: hidden;
+      border: 0.2vh solid #00ffaa;
+      border-radius: 0.6vh;
+      padding: 0.5vh 1vw;
+      text-align: center;
+      width: 100%;
+      box-shadow: 0 0.6vh 1.6vh rgba(0, 0, 0, 0.8);
+    }
+
+    .digital-time {
+      font-size: clamp(1.2rem, 2vw, 2.2rem);
+      font-weight: 900;
+      color: #00ffaa;
+      line-height: 1.1;
+    }
+
+    .tz-text {
+      font-size: clamp(0.8rem, 1.3vw, 1.4rem);
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    /* =========================================================
+       FRAME INFAQ & SHADAQAH
+       ========================================================= */
+
+    .infaq-panel {
+      /*
+       * Optimasi TV 1366x768:
+       * QRIS diberi ruang vertikal lebih besar tanpa mengubah
+       * lebar frame dan tanpa menyentuh sistem audio.
+       */
+      flex: 0 1 auto;
+      min-height: 0;
+      max-height: min(22vh, 220px);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+
+      /* Static background is much lighter than backdrop-filter on TCL 32S5400. */
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: #032116;
+      contain: layout paint;
+      backface-visibility: hidden;
+      border: 0.2vh solid #ff9900;
+      border-radius: 0.8vh;
+      padding: 0.35vh 1vw;
+      margin-top: 0.35vh;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      box-shadow: 0 0.6vh 1.6vh rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+    }
+
+    .infaq-panel .panel-title {
+      font-size: clamp(0.9rem, 1.2vw, 1.3rem);
+      font-weight: 900;
+      color: #ffcc00;
+      letter-spacing: 0.05vw;
+      margin-bottom: 0.2vh;
+      }
+
+    .infaq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15vh;
+      width: 100%;
+      min-height: 0;
+      overflow: visible;
+      flex: 1 1 auto;
+    }
+
+    .infaq-item {
+      color: #ffffff;
+      font-size: clamp(0.58rem, 0.70vw, 0.78rem);
+      font-weight: 700;
+      line-height: 1.0;
+      white-space: normal;
+      overflow-wrap: break-word;
+    }
+
+    /* Ukuran QRIS B3 otomatis menyesuaikan frame */
+      .infaq-item img {
+      display: block;
+
+      /*
+       * QRIS harus tetap 1:1 agar pola QR tidak berubah.
+       * Ukuran dibatasi berdasarkan tinggi, bukan dipaksa
+       * memenuhi lebar frame.
+       */
+      width: auto !important;
+      height: auto !important;
+      max-width: min(12vh, 100%) !important;
+      max-height: 12vh !important;
+      aspect-ratio: auto !important;
+      object-fit: contain;
+      margin: 0.15vh auto;
+      flex-shrink: 0;
+    }
+
+    .infaq-empty {
+      color: #ffffff;
+      font-size: clamp(0.75rem, 1vw, 1.1rem);
+      font-weight: 700;
+    }
+
+
+    .event-banner {
+      position: relative;
+      z-index: 2;
+      background: var(--theme-panel) !important;
+      border-top: 0.2vh solid var(--theme-border) !important;
+      padding: 0.8vh 0;
+      text-align: left;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .event-running {
+      display: inline-block;
+      white-space: nowrap;
+      color: #ffcc00;
+      font-size: clamp(1rem, 1.6vw, 1.8rem);
+      font-weight: 900;
+      will-change: transform;
+      transform: translate3d(100%, 0, 0);
+    }
+
+    /* =========================================================
+       CONTINUOUS RUNNING TEXT
+       Dua salinan teks selalu bergerak dalam satu rangkaian.
+       Saat salinan pertama keluar dari kiri, salinan kedua
+       sudah berada di kanan sehingga banner tidak pernah kosong.
+       Hanya visual running text; tidak menyentuh audio/scheduler.
+       ========================================================= */
+    .event-running::after {
+      content: attr(data-marquee-text);
+      display: inline-block;
+      margin-left: 80px;
+      white-space: nowrap;
+    }
+
+    .event-running.event-prayer-override {
+      color: #00ff88;
+    }
+
+    .right-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1vh;
+    }
+
+    .panel-box {
+      background: #011c13;
+      contain: layout paint;
+      backface-visibility: hidden;
+      border: 0.2vh solid #00ffaa;
+      border-radius: 0.8vh;
+      padding: 1vh 1vw;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .right-sidebar .panel-box:first-child {
+      flex: 1.30;
+
+      /*
+       * Container query:
+       * ukuran tabel keuangan mengikuti ukuran
+       * frame laporan keuangan, bukan seluruh layar.
+       */
+      container-type: inline-size;
+      container-name: keuangan-panel;
+    }
+
+    .right-sidebar .panel-box:last-child {
+      flex: 0.70;
+    }
+
+    .panel-title {
+      text-align: center;
+      font-size: clamp(0.9rem, 1.2vw, 1.3rem);
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 0.05vw;
+    }
+
+    .right-sidebar .panel-box:first-child .panel-title {
+      color: #ffcc00 !important;
+      font-size: clamp(1rem, 1.4vw, 1.5rem);
+      margin-bottom: 0.5vh;
+    }
+
+    /* KEUANGAN A1: mengikuti tampilan QUR'BAN A1 */
+    #fin-panel-box #fin-title {
+      color: var(--theme-accent) !important;
+      -webkit-text-fill-color: var(--theme-accent) !important;
+      font-family: inherit !important;
+      font-size: clamp(1rem, 1.4vw, 1.5rem) !important;
+      font-weight: 900 !important;
+      line-height: normal !important;
+      text-align: center !important;
+      letter-spacing: 0.05vw !important;
+    }
+
+    /* QUR'BAN A2: samakan PERSIS dengan QUR'BAN A1.
+       Untuk KEUANGAN biasa, format A2 tetap seperti sebelumnya. */
+    #fin-panel-box.qurban-display #fin-sub {
+      color: var(--theme-accent) !important;
+      -webkit-text-fill-color: var(--theme-accent) !important;
+      font-family: inherit !important;
+      font-size: clamp(1rem, 1.4vw, 1.5rem) !important;
+      font-weight: 900 !important;
+      line-height: normal !important;
+      text-align: center !important;
+      letter-spacing: 0.05vw !important;
+      margin-bottom: 1.8vh !important;
+    }
+
+    #fin-panel-box:not(.qurban-display) #fin-sub {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      font-family: inherit !important;
+      font-size: clamp(0.95rem, 5.2cqw, 1.70rem) !important;
+      font-weight: bold !important;
+      line-height: 1.15 !important;
+      text-align: center !important;
+      margin-bottom: 1.8vh !important;
+    }
+
+    /* QUR'BAN A3: ukuran sama dengan label "Tanggal" PETUGAS SHOLAT, warna putih */
+    #fin-panel-box #fin-extra {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      font-family: inherit !important;
+      /* Ukuran tanggal A3 sedikit diperbesar agar lebih nyaman dibaca. */
+      font-size: clamp(0.95rem, 5.2cqw, 1.70rem) !important;
+      font-weight: bold !important;
+      line-height: 1.15 !important;
+      text-align: center !important;
+      /* Jarak tanggal A3 ke teks scrolling diperlebar. */
+      margin-bottom: 1.8vh !important;
+    }
+
+    .right-sidebar .panel-box:last-child .panel-title {
+      color: #ffcc00 !important;
+    }
+
+    .panel-sub {
+      text-align: center;
+      color: #ff9900;
+      font-size: clamp(0.9rem, 1.2vw, 1.3rem);
+      font-weight: 900;
+      margin-bottom: 0.5vh;
+    }
+
+    #tgl-khotbah {
+      color: #fff;
+      font-weight: 900;
+      font-size: clamp(0.7rem, 0.9vw, 0.95rem);
+      text-align: center;
+    }
+
+    /* =========================================================
+       LAPORAN KEUANGAN - RESPONSIVE TERHADAP FRAME
+       ========================================================= */
+
+    .keuangan-scroll-area {
+      position: relative;
+      height: calc(100% - 6vh);
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .keuangan-content {
+      position: absolute;
+      contain: layout paint;
+      backface-visibility: hidden;
+      left: 0;
+      right: 0;
+      top: 0;
+      width: 100%;
+      transform: translateY(0px);
+      will-change: transform;
+    }
+
+    .keuangan-table {
+      width: 100%;
+      max-width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+
+      /*
+       * Ukuran font mengikuti lebar FRAME
+       * laporan keuangan.
+       */
+      font-size: clamp(0.68rem, 1.05cqw, 1.05rem);
+      line-height: 1.15;
+    }
+
+    .keuangan-table td {
+      padding:
+        clamp(0.20rem, 0.45cqh, 0.45rem)
+        clamp(0.15rem, 0.35cqw, 0.45rem);
+
+      vertical-align: middle;
+
+      color: #ffffff;
+      font-weight: 400;
+
+      /*
+       * Teks boleh turun baris untuk kolom keterangan,
+       * tetapi tidak boleh memecah karakter menjadi vertikal.
+       */
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: break-word;
+
+      min-width: 0;
+    }
+
+    .keuangan-table td:first-child {
+      width: 55%;
+      text-align: left;
+
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: break-word;
+    }
+
+    /* QUR'BAN: seluruh baris yang mengandung Kelompok/Sapi/Kambing
+       otomatis KAPITAL, BOLD, font Khatib/Roboto, dan warna tema aktif.
+       Hanya berlaku untuk sheet QUR'BAN. */
+    .qurban-display .qurban-scroll-text.qurban-highlight-row,
+    .qurban-display .qurban-scroll-text.qurban-highlight-row * {
+      font-family: 'Roboto', sans-serif !important;
+      font-weight: 900 !important;
+      color: var(--theme-accent) !important;
+      -webkit-text-fill-color: var(--theme-accent) !important;
+      text-transform: uppercase !important;
+      white-space: nowrap !important;
+    }
+
+    /* QUR'BAN: setiap item satu baris penuh, tidak wrap ke bawah. */
+    .qurban-display .keuangan-table {
+      table-layout: fixed !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+    }
+
+    .qurban-display .keuangan-table td {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+
+      /* Setiap item QURBAN wajib satu baris penuh. */
+      white-space: nowrap !important;
+      word-break: keep-all !important;
+      overflow-wrap: normal !important;
+      overflow: visible !important;
+      text-align: left !important;
+      text-overflow: clip !important;
+
+      /* Font diperbesar agar nyaman dibaca dari jarak jauh. */
+      font-size: clamp(0.90rem, 1.80cqw, 1.60rem) !important;
+      line-height: 1.18 !important;
+      font-weight: 500 !important;
+
+      padding-left: 0.25rem !important;
+      padding-right: 0.25rem !important;
+    }
+
+    .qurban-display .keuangan-table tr {
+      height: auto !important;
+    }
+
+    .qurban-display .keuangan-scroll-area {
+      overflow: hidden;
+    }
+
+    /* Jarak awal scrolling QURBAN dibuat lebih lega dari tanggal A3. */
+    .qurban-display .keuangan-content {
+      padding-top: 1.2vh !important;
+      box-sizing: border-box !important;
+    }
+
+    .keuangan-table td:last-child {
+      width: 45%;
+      text-align: right;
+
+      /*
+       * NOMINAL SELALU HORIZONTAL
+       */
+      white-space: nowrap;
+      word-break: keep-all;
+      overflow-wrap: normal;
+
+      font-variant-numeric: tabular-nums;
+    }
+
+    .keuangan-header-row td {
+      color: #ffcc00 !important;
+
+      font-size: clamp(
+        0.70rem,
+        1.15cqw,
+        1.15rem
+      );
+
+      font-weight: 900 !important;
+
+      padding-top:
+        clamp(0.35rem, 0.7cqh, 0.7rem);
+
+      padding-bottom:
+        clamp(0.20rem, 0.45cqh, 0.45rem);
+
+      border-bottom: 0.2vh solid #00ffaa;
+
+      /*
+       * Nama section tidak dipotong menjadi vertikal.
+       */
+      white-space: nowrap;
+    }
+
+    .keuangan-subtotal-row td {
+      color: #00ffaa !important;
+
+      font-size: clamp(
+        0.68rem,
+        1.05cqw,
+        1.05rem
+      ) !important;
+
+      font-weight: 900 !important;
+
+      padding-top:
+        clamp(0.25rem, 0.55cqh, 0.55rem);
+
+      padding-bottom:
+        clamp(0.25rem, 0.55cqh, 0.55rem);
+
+      border-top: 0.1vh dashed #00ffaa;
+      border-bottom: 0.2vh solid #00ffaa;
+    }
+
+    .keuangan-saldo-akhir td {
+      color: #ffcc00 !important;
+
+      font-size: clamp(
+        0.75rem,
+        1.25cqw,
+        1.25rem
+      ) !important;
+
+      font-weight: 900 !important;
+
+      /* SALDO AKHIR tetap rapat dengan TOTAL PENGELUARAN. */
+      padding-top:
+        clamp(0.25rem, 0.55cqh, 0.55rem);
+
+      padding-bottom:
+        clamp(0.25rem, 0.55cqh, 0.55rem);
+
+      border-top: 0.2vh solid #00ffaa;
+
+      /*
+       * SALDO AKHIR tetap horizontal.
+       */
+      white-space: nowrap;
+    }
+
+    .keuangan-saldo-akhir td:first-child {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .keuangan-saldo-akhir td:last-child {
+      white-space: nowrap;
+      overflow: visible;
+      text-overflow: clip;
+      text-align: right;
+    }
+
+    .keuangan-empty {
+      text-align: center;
+      color: #ffffff;
+
+      font-size: clamp(
+        0.70rem,
+        1.05cqw,
+        1rem
+      );
+
+      padding:
+        clamp(0.7rem, 1.5cqh, 1.5rem)
+        clamp(0.25rem, 0.5cqw, 0.5rem);
+    }
+
+    /* =========================================================
+       FRAME SANGAT KECIL
+       ========================================================= */
+
+    @container keuangan-panel (max-width: 260px) {
+
+      .keuangan-table {
+        font-size: 0.68rem;
+      }
+
+      .keuangan-table td {
+        padding: 0.18rem 0.15rem;
+      }
+
+      .keuangan-header-row td {
+        font-size: 0.70rem !important;
+      }
+
+      .keuangan-subtotal-row td {
+        font-size: 0.68rem !important;
+      }
+
+      .keuangan-saldo-akhir td {
+        font-size: 0.72rem !important;
+      }
+    }
+
+    /* =========================================================
+       FRAME SEDANG
+       ========================================================= */
+
+    @container keuangan-panel (min-width: 261px) and (max-width: 380px) {
+
+      .keuangan-table {
+        font-size: 0.78rem;
+      }
+
+      .keuangan-table td {
+        padding: 0.25rem 0.20rem;
+      }
+
+      .keuangan-header-row td {
+        font-size: 0.80rem !important;
+      }
+
+      .keuangan-subtotal-row td {
+        font-size: 0.76rem !important;
+      }
+
+      .keuangan-saldo-akhir td {
+        font-size: 0.82rem !important;
+      }
+    }
+
+    /* =========================================================
+       FRAME BESAR
+       ========================================================= */
+
+    @container keuangan-panel (min-width: 381px) {
+
+      .keuangan-table {
+        font-size: 0.95rem;
+      }
+
+      .keuangan-table td {
+        padding: 0.35rem 0.30rem;
+      }
+
+      .keuangan-header-row td {
+        font-size: 1rem !important;
+      }
+
+      .keuangan-subtotal-row td {
+        font-size: 0.95rem !important;
+      }
+
+      .keuangan-saldo-akhir td {
+        font-size: 1.05rem !important;
+      }
+    }
+
+    .right-sidebar .panel-box:last-child {
+      flex: 0.55;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    /* =====================================================
+       PETUGAS SHOLAT - RESPONSIVE TERHADAP UKURAN FRAME
+       Ukuran mengikuti lebar panel, bukan angka tetap.
+       Cocok untuk TV, PC, dan layar yang lebih kecil.
+       ===================================================== */
+    .right-sidebar .panel-box:last-child {
+      container-type: inline-size;
+      container-name: petugas-panel;
+    }
+
+    .khotbah-list {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(0.45vh, 0.8cqw, 0.8vh);
+      margin-top: clamp(0.6vh, 1cqw, 1vh);
+      /* Font PETUGAS SHOLAT diperbesar sedikit. */
+      font-size: clamp(0.90rem, 4.5cqw, 1.55rem);
+      line-height: 1.15;
+    }
+
+    .khotbah-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-width: 0;
+      gap: clamp(0.4rem, 1.5cqw, 1rem);
+    }
+
+    .khotbah-role {
+      color: #ffcc00;
+      font-weight: bold;
+      width: 25%;
+      min-width: 4.2em;
+      flex: 0 0 25%;
+      font-size: inherit;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+
+    .khotbah-name {
+      color: #00ffaa;
+      font-weight: bold;
+      text-align: right;
+      flex: 1 1 auto;
+      min-width: 0;
+      font-size: inherit;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    /* Saat panel sangat sempit, teks tetap terbaca tanpa
+       membuat frame melebar atau keluar dari batas panel. */
+    @container petugas-panel (max-width: 260px) {
+      .khotbah-list {
+        font-size: clamp(0.78rem, 4.6cqw, 1.05rem);
+        gap: 0.5vh;
+      }
+
+      .khotbah-role {
+        min-width: 3.8em;
+      }
+    }
+
+    .footer {
+      background: var(--theme-panel) !important;
+      border: 0.2vh solid var(--theme-border) !important;
+      border-radius: 0.8vh;
+      display: flex;
+      align-items: center;
+      padding: 0 1vw;
+      overflow: hidden;
+    }
+
+    /* FRAME FOOTER - mengikuti panels!C18.
+       Hanya visual; tidak menyentuh audio/scheduler/YouTube. */
+    :root[data-display-theme="hijau"] .footer {
+      border-color: #00ffaa !important;
+    }
+
+    :root[data-display-theme="merah"] .footer {
+      border-color: #ff5a5f !important;
+    }
+
+    :root[data-display-theme="kuning"] .footer {
+      border-color: #f4c542 !important;
+    }
+
+    marquee {
+      font-size: clamp(0.8rem, 1.1vw, 1.2rem);
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+/* ===== EXTRACTED STYLE BLOCK ===== */
+
+body.panel-countdown-auto .clock-overlay .countdown-title,body.panel-countdown-auto .countdown-title{display:none!important;visibility:hidden!important}body.panel-countdown-auto .clock-overlay .panel-black-message{display:flex!important;visibility:visible!important;opacity:1!important;z-index:100001!important}body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-title,body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-prayer,body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{display:block!important;visibility:visible!important}
+
+/* ===== EXTRACTED STYLE BLOCK ===== */
+
+/* FINAL: panel hitam wajib 3 baris vertikal */
+body.panel-countdown-auto .clock-overlay .panel-black-message{
+  display:flex!important;
+  flex-direction:column!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:1.0vh!important;
+  white-space:normal!important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-line{
+  display:block!important;
+  flex:0 0 auto!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  float:none!important;
+  position:relative!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-title{
+  order:1!important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-prayer{
+  order:2!important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
+  order:3!important;
+}
+
+/* ===== EXTRACTED STYLE BLOCK ===== */
+
+/* =========================================================
+     FINAL THEME OVERRIDE
+     Mengikat seluruh garis/frame yang sebelumnya masih memakai
+     warna hijau hard-coded agar mengikuti panels!C18.
+     Tidak menyentuh audio, scheduler, countdown, atau YouTube.
+     ========================================================= */
+  body {
+    background-color: var(--theme-bg) !important;
+  }
+
+  .screen-container {
+    background: var(--theme-bg-deep) !important;
+    border-color: var(--theme-border) !important;
+  }
+
+  .header {
+    border-color: var(--theme-border) !important;
+    background: radial-gradient(
+      circle,
+      var(--theme-panel-2) 0%,
+      var(--theme-bg) 100%
+    ) !important;
+  }
+
+  .header-divider {
+    background: var(--theme-divider) !important;
+  }
+
+  .header-center .slogan,
+  .date-box .hijri-text {
+    color: var(--theme-accent) !important;
+  }
+
+  .prayer-card {
+    background: var(--theme-panel) !important;
+    border-color: var(--theme-border) !important;
+  }
+
+  .center-panel {
+    border-color: var(--theme-border) !important;
+  }
+
+  .countdown-box,
+  .digital-clock-box {
+    background: var(--theme-panel) !important;
+    border-color: var(--theme-border) !important;
+  }
+
+  .digital-time {
+    color: var(--theme-accent) !important;
+  }
+
+  .infaq-panel,
+  .panel-box {
+    background: var(--theme-panel) !important;
+    border-color: var(--theme-border) !important;
+  }
+
+  /* KUNING: blok countdown, jam digital, dan Infaq & Shadaqah
+     dibuat transparan 50% agar latar belakang tetap terlihat,
+     mengikuti tampilan transparan tema hijau. */
+  :root[data-display-theme="kuning"] .countdown-box,
+  body[data-display-theme="kuning"] .countdown-box,
+  :root[data-display-theme="kuning"] .digital-clock-box,
+  body[data-display-theme="kuning"] .digital-clock-box,
+  :root[data-display-theme="kuning"] .infaq-panel,
+  body[data-display-theme="kuning"] .infaq-panel {
+    background: rgba(52, 42, 11, 0.90) !important;
+  }
+
+  :root[data-display-theme="merah"] .countdown-box,
+  body[data-display-theme="merah"] .countdown-box,
+  :root[data-display-theme="merah"] .digital-clock-box,
+  body[data-display-theme="merah"] .digital-clock-box,
+  :root[data-display-theme="merah"] .infaq-panel,
+  body[data-display-theme="merah"] .infaq-panel {
+    background: rgba(50, 16, 20, 0.90) !important;
+  }
+
+  /* FRAME RUNNING TEXT + GARIS RUNNING TEXT
+     harus mengikuti tema aktif, termasuk KUNING. */
+  .center-panel,
+  body .center-panel {
+    border: 0.2vh solid var(--theme-border) !important;
+    border-color: var(--theme-border) !important;
+  }
+
+  .event-banner,
+  body .event-banner {
+    border-top: 0.2vh solid var(--theme-border) !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    border-left: 0 !important;
+    background: var(--theme-panel) !important;
+  }
+
+  :root[data-display-theme="hijau"] .center-panel,
+  body[data-display-theme="hijau"] .center-panel {
+    border-color: #00ffaa !important;
+  }
+
+  :root[data-display-theme="merah"] .center-panel,
+  body[data-display-theme="merah"] .center-panel {
+    border-color: #ff5a5f !important;
+  }
+
+  :root[data-display-theme="kuning"] .center-panel,
+  body[data-display-theme="kuning"] .center-panel {
+    border-color: #f4c542 !important;
+  }
+
+  :root[data-display-theme="hijau"] .event-banner,
+  body[data-display-theme="hijau"] .event-banner {
+    border-top-color: #00ffaa !important;
+  }
+
+  :root[data-display-theme="merah"] .event-banner,
+  body[data-display-theme="merah"] .event-banner {
+    border-top-color: #ff5a5f !important;
+  }
+
+  :root[data-display-theme="kuning"] .event-banner,
+  body[data-display-theme="kuning"] .event-banner {
+    border-top-color: #f4c542 !important;
+  }
+
+  /* KUNCI FRAME AREA RUNNING TEXT.
+     Frame yang terlihat mengelilingi running text adalah .center-panel
+     dan bingkai luarnya .screen-container. Keduanya harus KUNING. */
+  :root[data-display-theme="kuning"] .center-panel,
+  body[data-display-theme="kuning"] .center-panel {
+    border: 0.2vh solid #f4c542 !important;
+    border-color: #f4c542 !important;
+  }
+
+  :root[data-display-theme="kuning"] .event-banner {
+    border-top: 0.2vh solid #f4c542 !important;
+    border-top-color: #f4c542 !important;
+  }
+
+  :root[data-display-theme="kuning"] .screen-container,
+  body[data-display-theme="kuning"] .screen-container {
+    border-color: #f4c542 !important;
+  }
+
+  .event-running {
+    color: var(--theme-running) !important;
+  }
+
+  .khotbah-name {
+    color: #ffffff !important;
+  }
+
+  .keuangan-header-row td {
+    border-bottom-color: var(--theme-border) !important;
+  }
+
+  .keuangan-subtotal-row td {
+    border-top-color: var(--theme-border) !important;
+    border-bottom-color: var(--theme-border) !important;
+    color: var(--theme-accent) !important;
+  }
+
+  .keuangan-saldo-akhir td {
+    border-top-color: var(--theme-border) !important;
+  }
+
+  /* Garis/frame tambahan yang mungkin berasal dari komponen lama. */
+  .main-clock-panel,
+  .youtube-panel,
+  .finance-panel,
+  .khutbah-panel {
+    border-color: var(--theme-border) !important;
+  }
+  /* FINAL LOCK: FRAME AREA RUNNING TEXT HARUS MENGIKUTI TEMA.
+     Tidak ada lagi fallback hijau untuk frame .center-panel/event-banner.
+     Selector ini sengaja sangat spesifik dan diletakkan paling akhir. */
+  :root[data-display-theme="kuning"] .screen-container .main-body .center-panel,
+  body[data-display-theme="kuning"] .screen-container .main-body .center-panel {
+    border: 0.2vh solid #f4c542 !important;
+    border-top-color: #f4c542 !important;
+    border-right-color: #f4c542 !important;
+    border-bottom-color: #f4c542 !important;
+    border-left-color: #f4c542 !important;
+  }
+
+  :root[data-display-theme="kuning"] .screen-container .main-body .center-panel .event-banner,
+  body[data-display-theme="kuning"] .screen-container .main-body .center-panel .event-banner {
+    border-top: 0.2vh solid #f4c542 !important;
+    border-top-color: #f4c542 !important;
+  }
+
+  :root[data-display-theme="merah"] .screen-container .main-body .center-panel,
+  body[data-display-theme="merah"] .screen-container .main-body .center-panel {
+    border-color: #ff5a5f !important;
+  }
+
+  :root[data-display-theme="merah"] .screen-container .main-body .center-panel .event-banner,
+  body[data-display-theme="merah"] .screen-container .main-body .center-panel .event-banner {
+    border-top-color: #ff5a5f !important;
+  }
+
+  :root[data-display-theme="hijau"] .screen-container .main-body .center-panel,
+  body[data-display-theme="hijau"] .screen-container .main-body .center-panel {
+    border-color: #00ffaa !important;
+  }
+
+  :root[data-display-theme="hijau"] .screen-container .main-body .center-panel .event-banner,
+  body[data-display-theme="hijau"] .screen-container .main-body .center-panel .event-banner {
+    border-top-color: #00ffaa !important;
+  }
+
+
+  /* =========================================================
+     FINAL DISPLAY THEME LOCK - panels!C18
+     Hanya mengatur warna visual. Tidak menyentuh audio/scheduler.
+     ========================================================= */
+  :root[data-display-theme="hijau"],
+  body[data-display-theme="hijau"] {
+    --theme-border: #00ffaa !important;
+    --theme-accent: #00ffaa !important;
+    --theme-divider: #00ffaa !important;
+    --theme-running: #00ff88 !important;
+  }
+
+  :root[data-display-theme="merah"],
+  body[data-display-theme="merah"] {
+    --theme-border: #ff5a5f !important;
+    --theme-accent: #ff7075 !important;
+    --theme-divider: #ff7075 !important;
+    --theme-running: #ff7b72 !important;
+  }
+
+  :root[data-display-theme="kuning"],
+  body[data-display-theme="kuning"] {
+    --theme-border: #f4c542 !important;
+    --theme-accent: #ffd95a !important;
+    --theme-divider: #f4c542 !important;
+    --theme-running: #ffe27a !important;
+  }
+
+  :root[data-display-theme="hijau"] .screen-container,
+  body[data-display-theme="hijau"] .screen-container,
+  :root[data-display-theme="merah"] .screen-container,
+  body[data-display-theme="merah"] .screen-container,
+  :root[data-display-theme="kuning"] .screen-container,
+  body[data-display-theme="kuning"] .screen-container,
+  :root[data-display-theme="hijau"] .header,
+  body[data-display-theme="hijau"] .header,
+  :root[data-display-theme="merah"] .header,
+  body[data-display-theme="merah"] .header,
+  :root[data-display-theme="kuning"] .header,
+  body[data-display-theme="kuning"] .header,
+  :root[data-display-theme="hijau"] .center-panel,
+  body[data-display-theme="hijau"] .center-panel,
+  :root[data-display-theme="merah"] .center-panel,
+  body[data-display-theme="merah"] .center-panel,
+  :root[data-display-theme="kuning"] .center-panel,
+  body[data-display-theme="kuning"] .center-panel,
+  :root[data-display-theme="hijau"] .prayer-card,
+  body[data-display-theme="hijau"] .prayer-card,
+  :root[data-display-theme="merah"] .prayer-card,
+  body[data-display-theme="merah"] .prayer-card,
+  :root[data-display-theme="kuning"] .prayer-card,
+  body[data-display-theme="kuning"] .prayer-card,
+  :root[data-display-theme="hijau"] .main-clock-panel,
+  body[data-display-theme="hijau"] .main-clock-panel,
+  :root[data-display-theme="merah"] .main-clock-panel,
+  body[data-display-theme="merah"] .main-clock-panel,
+  :root[data-display-theme="kuning"] .main-clock-panel,
+  body[data-display-theme="kuning"] .main-clock-panel,
+  :root[data-display-theme="hijau"] .youtube-panel,
+  body[data-display-theme="hijau"] .youtube-panel,
+  :root[data-display-theme="merah"] .youtube-panel,
+  body[data-display-theme="merah"] .youtube-panel,
+  :root[data-display-theme="kuning"] .youtube-panel,
+  body[data-display-theme="kuning"] .youtube-panel,
+  :root[data-display-theme="hijau"] .finance-panel,
+  body[data-display-theme="hijau"] .finance-panel,
+  :root[data-display-theme="merah"] .finance-panel,
+  body[data-display-theme="merah"] .finance-panel,
+  :root[data-display-theme="kuning"] .finance-panel,
+  body[data-display-theme="kuning"] .finance-panel,
+  :root[data-display-theme="hijau"] .khutbah-panel,
+  body[data-display-theme="hijau"] .khutbah-panel,
+  :root[data-display-theme="merah"] .khutbah-panel,
+  body[data-display-theme="merah"] .khutbah-panel,
+  :root[data-display-theme="kuning"] .khutbah-panel,
+  body[data-display-theme="kuning"] .khutbah-panel {
+    border-color: var(--theme-border) !important;
+  }
+
+  :root[data-display-theme="hijau"] .center-panel .event-banner,
+  body[data-display-theme="hijau"] .center-panel .event-banner,
+  :root[data-display-theme="merah"] .center-panel .event-banner,
+  body[data-display-theme="merah"] .center-panel .event-banner,
+  :root[data-display-theme="kuning"] .center-panel .event-banner,
+  body[data-display-theme="kuning"] .center-panel .event-banner {
+    border-top-color: var(--theme-border) !important;
+  }
+
+  :root[data-display-theme="hijau"] .header-divider,
+  body[data-display-theme="hijau"] .header-divider,
+  :root[data-display-theme="merah"] .header-divider,
+  body[data-display-theme="merah"] .header-divider,
+  :root[data-display-theme="kuning"] .header-divider,
+  body[data-display-theme="kuning"] .header-divider,
+  :root[data-display-theme="hijau"] .header-center .slogan,
+  body[data-display-theme="hijau"] .header-center .slogan,
+  :root[data-display-theme="merah"] .header-center .slogan,
+  body[data-display-theme="merah"] .header-center .slogan,
+  :root[data-display-theme="kuning"] .header-center .slogan,
+  body[data-display-theme="kuning"] .header-center .slogan,
+  :root[data-display-theme="hijau"] .date-box .hijri-text,
+  body[data-display-theme="hijau"] .date-box .hijri-text,
+  :root[data-display-theme="merah"] .date-box .hijri-text,
+  body[data-display-theme="merah"] .date-box .hijri-text,
+  :root[data-display-theme="kuning"] .date-box .hijri-text,
+  body[data-display-theme="kuning"] .date-box .hijri-text {
+    color: var(--theme-accent) !important;
+  }
+
+  :root[data-display-theme="hijau"] .event-running,
+  body[data-display-theme="hijau"] .event-running,
+  :root[data-display-theme="merah"] .event-running,
+  body[data-display-theme="merah"] .event-running,
+  :root[data-display-theme="kuning"] .event-running,
+  body[data-display-theme="kuning"] .event-running {
+    color: var(--theme-running) !important;
+  }
+
+  :root[data-display-theme="hijau"] .keuangan-header-row td,
+  body[data-display-theme="hijau"] .keuangan-header-row td,
+  :root[data-display-theme="merah"] .keuangan-header-row td,
+  body[data-display-theme="merah"] .keuangan-header-row td,
+  :root[data-display-theme="kuning"] .keuangan-header-row td,
+  body[data-display-theme="kuning"] .keuangan-header-row td,
+  :root[data-display-theme="hijau"] .keuangan-subtotal-row td,
+  body[data-display-theme="hijau"] .keuangan-subtotal-row td,
+  :root[data-display-theme="merah"] .keuangan-subtotal-row td,
+  body[data-display-theme="merah"] .keuangan-subtotal-row td,
+  :root[data-display-theme="kuning"] .keuangan-subtotal-row td,
+  body[data-display-theme="kuning"] .keuangan-subtotal-row td,
+  :root[data-display-theme="hijau"] .keuangan-saldo-akhir td,
+  body[data-display-theme="hijau"] .keuangan-saldo-akhir td,
+  :root[data-display-theme="merah"] .keuangan-saldo-akhir td,
+  body[data-display-theme="merah"] .keuangan-saldo-akhir td,
+  :root[data-display-theme="kuning"] .keuangan-saldo-akhir td,
+  body[data-display-theme="kuning"] .keuangan-saldo-akhir td {
+    border-color: var(--theme-border) !important;
+  }
+
+  /* Nilai absolut khusus KUNING sebagai lapisan terakhir. */
+  :root[data-display-theme="kuning"] .screen-container,
+  body[data-display-theme="kuning"] .screen-container,
+  :root[data-display-theme="kuning"] .header,
+  body[data-display-theme="kuning"] .header,
+  :root[data-display-theme="kuning"] .center-panel,
+  body[data-display-theme="kuning"] .center-panel,
+  :root[data-display-theme="kuning"] .prayer-card,
+  body[data-display-theme="kuning"] .prayer-card,
+  :root[data-display-theme="kuning"] .main-clock-panel,
+  body[data-display-theme="kuning"] .main-clock-panel,
+  :root[data-display-theme="kuning"] .youtube-panel,
+  body[data-display-theme="kuning"] .youtube-panel,
+  :root[data-display-theme="kuning"] .finance-panel,
+  body[data-display-theme="kuning"] .finance-panel,
+  :root[data-display-theme="kuning"] .khutbah-panel,
+  body[data-display-theme="kuning"] .khutbah-panel {
+    border-color: #f4c542 !important;
+  }
+
+  :root[data-display-theme="kuning"] .center-panel .event-banner,
+  body[data-display-theme="kuning"] .center-panel .event-banner {
+    border-top-color: #f4c542 !important;
+  }
+
+  /* KUNING: panel utama tetap terbuka/transparan seperti tampilan hijau.
+     Hanya latar tiga frame ini yang dibuat transparan; border, teks,
+     audio, scheduler, YouTube, dan layout tidak diubah. */
+  :root[data-display-theme="kuning"] .countdown-box,
+  body[data-display-theme="kuning"] .countdown-box,
+  :root[data-display-theme="kuning"] .digital-clock-box,
+  body[data-display-theme="kuning"] .digital-clock-box,
+  :root[data-display-theme="kuning"] .infaq-panel,
+  body[data-display-theme="kuning"] .infaq-panel {
+    background: rgba(52, 42, 11, 0.90) !important;
+  }
+
+
+  /* HIJAU: Countdown, Jam Digital, dan Infaq & Shadaqah transparan 5%. */
+  :root[data-display-theme="hijau"] .countdown-box,
+  body[data-display-theme="hijau"] .countdown-box,
+  :root[data-display-theme="hijau"] .digital-clock-box,
+  body[data-display-theme="hijau"] .digital-clock-box,
+  :root[data-display-theme="hijau"] .infaq-panel,
+  body[data-display-theme="hijau"] .infaq-panel {
+    background: rgba(3, 33, 22, 0.90) !important;
+  }
+  /* =========================================================
+     ANALOG CLOCK — TEMA HIJAU
+     Bezel hijau tua doff dengan kilau metalik halus.
+     Jarum jam & menit mengikuti warna hijau tema.
+     ========================================================= */
+  :root[data-display-theme="hijau"] .analog-clock,
+  body[data-display-theme="hijau"] .analog-clock {
+    border-color: #174d38 !important;
+    box-shadow:
+      0 1.1vh 2.8vh rgba(0,0,0,0.88),
+      0 0.25vh 0.5vh rgba(0,255,170,0.18),
+      inset 0 0 0 0.24vh #3a8063,
+      inset 0 0 0 0.55vh #0b3526,
+      inset 0 0 0 0.82vh #245e47,
+      inset 0 0 1.5vh rgba(0,20,13,0.72) !important;
+  }
+
+  :root[data-display-theme="hijau"] .analog-clock::before,
+  body[data-display-theme="hijau"] .analog-clock::before {
+    background:
+      conic-gradient(
+        from 215deg,
+        rgba(190,255,225,0.42),
+        rgba(190,255,225,0.04) 14%,
+        rgba(0,35,22,0.42) 31%,
+        rgba(95,190,145,0.48) 48%,
+        rgba(0,45,28,0.34) 65%,
+        rgba(210,255,235,0.30) 82%,
+        rgba(0,35,22,0.36)
+      ) !important;
+  }
+
+  :root[data-display-theme="hijau"] .analog-clock .hour,
+  body[data-display-theme="hijau"] .analog-clock .hour {
+    background:
+      linear-gradient(90deg,
+        #09291d 0%,
+        #17633f 30%,
+        #35a56d 50%,
+        #237a50 68%,
+        #071e15 100%) !important;
+    filter: drop-shadow(0.12vh 0.22vh 0.22vh rgba(0,25,15,0.78));
+  }
+
+  :root[data-display-theme="hijau"] .analog-clock .minute,
+  body[data-display-theme="hijau"] .analog-clock .minute {
+    background:
+      linear-gradient(90deg,
+        #071f16 0%,
+        #12613d 32%,
+        #32a86d 50%,
+        #1d774b 68%,
+        #061a11 100%) !important;
+    filter: drop-shadow(0.12vh 0.22vh 0.22vh rgba(0,25,15,0.78));
+  }
+
+  /* HIJAU: angka dan garis menit hijau tua. */
+  :root[data-display-theme="hijau"] .analog-clock .clock-face-svg g,
+  body[data-display-theme="hijau"] .analog-clock .clock-face-svg g {
+    stroke: #174d38 !important;
+  }
+
+  :root[data-display-theme="hijau"] .analog-clock .clock-face-svg g[stroke-width="1.5"],
+  body[data-display-theme="hijau"] .analog-clock .clock-face-svg g[stroke-width="1.5"] {
+    stroke: #245e47 !important;
+    opacity: 0.88 !important;
+  }
+
+  :root[data-display-theme="hijau"] .analog-clock .clock-face-svg text,
+  body[data-display-theme="hijau"] .analog-clock .clock-face-svg text {
+    fill: #174d38 !important;
+  }
+
+  /* HIJAU: pin tengah jarum jam hijau tua dengan efek metalik. */
+  :root[data-display-theme="hijau"] .analog-clock .center-dot,
+  body[data-display-theme="hijau"] .analog-clock .center-dot {
+    background:
+      radial-gradient(circle at 34% 28%,
+        #6fba8f 0%,
+        #2f7954 20%,
+        #174d38 45%,
+        #0b3021 70%,
+        #04150d 100%) !important;
+    border-color: #0a2b1d !important;
+    box-shadow:
+      inset 0.12vh 0.12vh 0.18vh rgba(126,206,159,0.45),
+      inset -0.10vh -0.12vh 0.18vh rgba(0,15,9,0.85),
+      0 0.10vh 0.20vh rgba(0,20,13,0.75),
+      0 0 0.20vh rgba(71,157,108,0.25) !important;
+  }
+
+  /* HIJAU: jarum detik hijau tua dengan efek metalik halus. */
+  :root[data-display-theme="hijau"] .analog-clock .second,
+  body[data-display-theme="hijau"] .analog-clock .second {
+    background:
+      linear-gradient(90deg,
+        #061a11 0%,
+        #0d4b32 25%,
+        #2d8a5d 46%,
+        #66c998 50%,
+        #247b50 56%,
+        #0b3a27 76%,
+        #04130c 100%) !important;
+    filter:
+      drop-shadow(0.10vh 0.18vh 0.20vh rgba(0,20,13,0.82))
+      drop-shadow(0 0 0.18vh rgba(78,180,125,0.22)) !important;
+  }
+
+  /* KUNING: angka dan garis menit kuning emas tua. */
+  :root[data-display-theme="kuning"] .analog-clock .clock-face-svg g,
+  body[data-display-theme="kuning"] .analog-clock .clock-face-svg g {
+    stroke: #8a6410 !important;
+  }
+
+  :root[data-display-theme="kuning"] .analog-clock .clock-face-svg g[stroke-width="1.5"],
+  body[data-display-theme="kuning"] .analog-clock .clock-face-svg g[stroke-width="1.5"] {
+    stroke: #a87816 !important;
+    opacity: 0.9 !important;
+  }
+
+  :root[data-display-theme="kuning"] .analog-clock .clock-face-svg text,
+  body[data-display-theme="kuning"] .analog-clock .clock-face-svg text {
+    fill: #8a6410 !important;
+  }
+
+  /* KUNING: jarum detik kuning dengan efek bayangan halus. */
+  :root[data-display-theme="kuning"] .analog-clock .second,
+  body[data-display-theme="kuning"] .analog-clock .second {
+    background: #f4c542 !important;
+    filter: drop-shadow(0.10vh 0.18vh 0.20vh rgba(70,52,5,0.72)) !important;
+  }
+
+  /* =========================================================
+     ANALOG CLOCK — TEMA MERAH
+     Bezel merah tua doff dengan kilau metalik halus.
+     Jarum jam & menit mengikuti warna merah tema.
+     ========================================================= */
+  :root[data-display-theme="merah"] .analog-clock,
+  body[data-display-theme="merah"] .analog-clock {
+    border-color: #5b171d !important;
+    box-shadow:
+      0 1.1vh 2.8vh rgba(0,0,0,0.88),
+      0 0.25vh 0.5vh rgba(255,90,95,0.18),
+      inset 0 0 0 0.24vh #9a3a40,
+      inset 0 0 0 0.55vh #3d0b10,
+      inset 0 0 0 0.82vh #702127,
+      inset 0 0 1.5vh rgba(35,0,4,0.72) !important;
+  }
+
+  :root[data-display-theme="merah"] .analog-clock::before,
+  body[data-display-theme="merah"] .analog-clock::before {
+    background:
+      conic-gradient(
+        from 215deg,
+        rgba(255,215,218,0.40),
+        rgba(255,215,218,0.04) 14%,
+        rgba(55,0,6,0.44) 31%,
+        rgba(190,65,72,0.50) 48%,
+        rgba(65,0,7,0.34) 65%,
+        rgba(255,225,228,0.30) 82%,
+        rgba(55,0,6,0.38)
+      ) !important;
+  }
+
+  :root[data-display-theme="merah"] .analog-clock .hour,
+  body[data-display-theme="merah"] .analog-clock .hour {
+    background:
+      linear-gradient(90deg,
+        #2a060a 0%,
+        #70151d 30%,
+        #c34a52 50%,
+        #8e252d 68%,
+        #210407 100%) !important;
+    filter: drop-shadow(0.12vh 0.22vh 0.22vh rgba(35,0,4,0.78));
+  }
+
+  :root[data-display-theme="merah"] .analog-clock .minute,
+  body[data-display-theme="merah"] .analog-clock .minute {
+    background:
+      linear-gradient(90deg,
+        #240507 0%,
+        #68151c 32%,
+        #c44750 50%,
+        #86242c 68%,
+        #1c0305 100%) !important;
+    filter: drop-shadow(0.12vh 0.22vh 0.22vh rgba(35,0,4,0.78));
+  }
+
+  /* MERAH: pin tengah jarum jam merah dengan efek metalik. */
+  :root[data-display-theme="merah"] .analog-clock .center-dot,
+  body[data-display-theme="merah"] .analog-clock .center-dot {
+    background:
+      radial-gradient(circle at 34% 28%,
+        #ff8b8f 0%,
+        #c9474f 20%,
+        #8f252e 45%,
+        #4b0b11 70%,
+        #210306 100%) !important;
+    border-color: #3a080d !important;
+    box-shadow:
+      inset 0.12vh 0.12vh 0.18vh rgba(255,180,184,0.48),
+      inset -0.10vh -0.12vh 0.18vh rgba(25,0,4,0.88),
+      0 0.10vh 0.20vh rgba(35,0,4,0.78),
+      0 0 0.20vh rgba(210,62,72,0.28) !important;
+  }
