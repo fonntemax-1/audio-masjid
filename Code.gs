@@ -4474,6 +4474,11 @@ function getRealtimePanelsFast() {
     const panels = ss.getSheetByName('panels');
     if (!panels) return { success: false, error: 'Sheet panels tidak ditemukan.' };
 
+    // INFAQ & SHADAQAH: panels!C42:C43
+    const infaqValues = panels.getRange('C42:C43').getDisplayValues();
+    const infaqText1 = String((infaqValues[0] || [])[0] || '').trim();
+    const infaqText2 = String((infaqValues[1] || [])[0] || '').trim();
+
     const panelValues = panels.getRange('C26:C32').getDisplayValues();
     const selectorRaw = String((panelValues[0] || [])[0] || 'KEUANGAN').trim();
     const selectorKey = selectorRaw.toUpperCase().replace(/[\s’‘']/g, '');
@@ -4541,7 +4546,8 @@ function getRealtimePanelsFast() {
 
     return {
       success: true,
-      signature: JSON.stringify([selectedKey, title, date, a3, rows, jenis, kegiatanValues]),
+      signature: JSON.stringify([selectedKey, title, date, a3, rows, jenis, kegiatanValues, infaqText1, infaqText2]),
+      Infaq: { text1: infaqText1, text2: infaqText2 },
       Kegiatan: { success: true, jenis: jenis, fields: fields },
       PanelKeuangan: panelKeuangan
     };
