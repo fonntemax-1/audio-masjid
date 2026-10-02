@@ -4508,7 +4508,7 @@ function getPanelKeuanganSource() {
 
   const selectorKey = rawSelector
     .toUpperCase()
-    .replace(/[\\s’‘'\`]/g, '');
+    .replace(/[\\s’‘']/g, '');
 
   const selectedKey = selectorKey === 'QURBAN'
     ? 'QURBAN'
@@ -4518,7 +4518,7 @@ function getPanelKeuanganSource() {
   ss.getSheets().some(function(sheet) {
     const key = String(sheet.getName() || '')
       .toUpperCase()
-      .replace(/[\\s’‘'\`]/g, '');
+      .replace(/[\\s’‘']/g, '');
     if (key === selectedKey) {
       selectedSheet = sheet;
       return true;
@@ -4527,21 +4527,27 @@ function getPanelKeuanganSource() {
   });
 
   if (!selectedSheet) {
-    return {
-      selector: selectedKey,
-      title: '',
-      date: '',
-      rows: []
-    };
+    return { selector: selectedKey, title: '', date: '', a3: '', rows: [] };
   }
 
+  const title = String(selectedSheet.getRange('A1').getDisplayValue() || '').trim();
+  const date = String(selectedSheet.getRange('A2').getDisplayValue() || '')
+    .replace(/^(0)(\\d)(\\s)/, '$2$3');
+  const a3 = String(selectedSheet.getRange('A3').getDisplayValue() || '').trim();
   const rows = [];
   const lastRow = selectedSheet.getLastRow();
 
-  if (lastRow >= 4) {
-    selectedSheet
-      .getRange(4, 1, lastRow - 3, 2)
-      .getDisplayValues()
+  if (selectedKey === 'QURBAN') {
+    // A1 judul, A2 masjid/tanggal, A3 header, A4 dilewati, A5:A scrolling.
+    // Baris kosong dipertahankan agar spasi mengikuti spreadsheet.
+    if (lastRow >= 5) {
+      selectedSheet.getRange(5, 1, lastRow - 4, 1).getDisplayValues()
+        .forEach(function(displayRow) {
+          rows.push([String(displayRow[0] == null ? '' : displayRow[0]).trim(), '']);
+        });
+    }
+  } else if (lastRow >= 4) {
+    selectedSheet.getRange(4, 1, lastRow - 3, 2).getDisplayValues()
       .forEach(function(displayRow) {
         const row = [
           String(displayRow[0] == null ? '' : displayRow[0]).trim(),
@@ -4551,11 +4557,5 @@ function getPanelKeuanganSource() {
       });
   }
 
-  return {
-    selector: selectedKey,
-    title: String(selectedSheet.getRange('A1').getDisplayValue() || '').trim(),
-    date: String(selectedSheet.getRange('A2').getDisplayValue() || '')
-      .replace(/^(0)(\\d)(\\s)/, '$2$3'),
-    rows: rows
-  };
+  return { selector: selectedKey, title: title, date: date, a3: a3, rows: rows };
 }
