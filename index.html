@@ -16330,7 +16330,15 @@ function setCountdownBlackMode(enabled) {
       const startupLocalLoaded = loadPrayerCardCache();
 
       if (startupLocalLoaded) {
-        updatePrayerCountdown();
+        // Tunda jalur countdown/audio saat startup agar timer realtime
+        // sudah terpasang dan tidak ikut tertahan oleh persiapan scheduler.
+        setTimeout(function() {
+          try {
+            updatePrayerCountdown();
+          } catch (startupCountdownError) {
+            console.warn('STARTUP COUNTDOWN DITUNDA:', startupCountdownError);
+          }
+        }, 0);
       }
 
       // GitHub cache menjadi refresh cepat setelah cache lokal.
@@ -16374,15 +16382,23 @@ function setCountdownBlackMode(enabled) {
     // INTERVAL
     // =========================================================
 
-    setInterval(
-      updateClock,
-      1000
-    );
+    // Timer realtime dipasang sebagai jalur ringan dan terisolasi.
+    // Error/pekerjaan scheduler tidak boleh mematikan tick jam.
+    setInterval(function() {
+      try {
+        updateClock();
+      } catch (clockError) {
+        console.warn('REALTIME CLOCK ERROR:', clockError);
+      }
+    }, 1000);
 
-    setInterval(
-      updatePrayerCountdown,
-      1000
-    );
+    setInterval(function() {
+      try {
+        updatePrayerCountdown();
+      } catch (prayerTickError) {
+        console.warn('REALTIME COUNTDOWN ERROR:', prayerTickError);
+      }
+    }, 1000);
 
     // =========================================================
     // AUDIO CATCH-UP LIVE MONITOR
