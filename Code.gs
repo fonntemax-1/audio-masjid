@@ -2571,10 +2571,15 @@ function formatTanggalIndonesia(
   ];
 
   const tanggal =
-    Utilities.formatDate(
-      date,
-      timezone,
-      'dd'
+    String(
+      parseInt(
+        Utilities.formatDate(
+          date,
+          timezone,
+          'dd'
+        ),
+        10
+      )
     );
 
   const bulanIndex =
