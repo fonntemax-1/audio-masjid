@@ -104,21 +104,63 @@ jobs:
               )
 
               try:
-                  with urllib.request.urlopen(req, timeout=30) as response:
-                      raw = response.read().decode("utf-8", "replace")
+                  last_error = None
+                  for attempt in range(1, 4):
+                      try:
+                          with urllib.request.urlopen(req, timeout=30) as response:
+                              raw = response.read().decode("utf-8", "replace")
+                          data = json.loads(raw)
+                          break
+                      except Exception as attempt_error:
+                          last_error = attempt_error
+                          if attempt < 3:
+                              import time
+                              time.sleep(attempt * 2)
+                          else:
+                              raise last_error
 
-                  data = json.loads(raw)
-                  jadwal = data.get("jadwal") or {}
+                  # MuslimKita dapat mengembalikan jadwal langsung,
+                  # atau membungkusnya di dalam data.jadwal / data.
+                  jadwal = (
+                      data.get("jadwal")
+                      or (
+                          data.get("data", {}).get("jadwal")
+                          if isinstance(data.get("data"), dict)
+                          else None
+                      )
+                      or (
+                          data.get("data")
+                          if isinstance(data.get("data"), dict)
+                          else None
+                      )
+                      or {}
+                  )
 
-                  normalized = {
-                      k: normalize_time(jadwal.get(k, ""))
-                      for k in required
+                  aliases = {
+                      "subuh": ["subuh", "fajr"],
+                      "terbit": ["terbit", "sunrise", "syuruq"],
+                      "dzuhur": ["dzuhur", "dhuhur", "dhuhr", "zuhur"],
+                      "ashar": ["ashar", "asr"],
+                      "maghrib": ["maghrib", "magrib"],
+                      "isya": ["isya", "isha"],
                   }
+
+                  normalized = {}
+                  for field in required:
+                      value = ""
+                      for key in aliases[field]:
+                          if key in jadwal and str(jadwal.get(key) or "").strip():
+                              value = normalize_time(jadwal.get(key))
+                              if value:
+                                  break
+                      normalized[field] = value
 
                   if not valid_schedule(normalized):
                       raise RuntimeError(
-                          "jadwal tidak lengkap: " +
-                          json.dumps(jadwal, ensure_ascii=False)
+                          "jadwal tidak lengkap setelah normalisasi: " +
+                          json.dumps(normalized, ensure_ascii=False) +
+                          " RAW_KEYS=" +
+                          json.dumps(list(data.keys()) if isinstance(data, dict) else [], ensure_ascii=False)
                       )
 
                   return {
