@@ -934,47 +934,47 @@
 
       if (!data) return;
 
+      // URL A:B dari Sheet sengaja tidak dipakai.
+      // Sheet hanya menjadi sumber sequence + ON/OFF.
       const source =
         data.Audio ||
         data.KeyAudio ||
         {};
 
-      // PENTING: key A:B Sheet Adzan dipertahankan apa adanya.
-      // Tidak lagi mengubah qiroah-1..5 menjadi satu key qiroah.
-      const nextConfig = {};
+      const nextConfig =
+        window.getAllLocalAudioUrls
+          ? window.getAllLocalAudioUrls()
+          : {};
 
+      // Key dari Sheet tetap diterima untuk kompatibilitas, tetapi
+      // nilainya tidak pernah menjadi URL playback.
       Object.keys(source).forEach(function(key) {
         const normalizedKey =
           String(key || '').trim().toLowerCase();
+
         if (!normalizedKey) return;
-        nextConfig[normalizedKey] =
-          normalizeAudioUrl(source[key]);
+
+        if (!nextConfig[normalizedKey] &&
+            window.getLocalAudioUrl) {
+          nextConfig[normalizedKey] =
+            window.getLocalAudioUrl(normalizedKey);
+        }
       });
 
-      // Alias lama hanya sebagai kompatibilitas. Scheduler baru
-      // selalu menggunakan key event dari Sheet secara langsung.
       nextConfig.qiroah =
-        nextConfig.qiroah || nextConfig['qiroah-1'] || '';
+        nextConfig.qiroah || './audio/qiroah.mp3';
       nextConfig['tarhim-subuh'] =
-        nextConfig['tarhim-subuh'] || nextConfig.tarhim || '';
+        nextConfig['tarhim-subuh'] || './audio/Shalawat%20Tarhim.mp3';
       nextConfig['tarhim-biasa'] =
-        nextConfig['tarhim-biasa'] || nextConfig.tarhim || '';
-
-      // Sequence Sheet memakai event "doa", sedangkan tabel URL
-      // memakai key "doa-adzan". Gunakan URL Sheet yang sama.
+        nextConfig['tarhim-biasa'] || './audio/Shalawat%20Tarhim.mp3';
       nextConfig.doa =
-        nextConfig.doa || nextConfig['doa-adzan'] || '';
-
-      // Kompatibilitas Sheet Adzan lama: jika hanya ada satu URL "doa",
-      // semua variasi doa memakai file yang sama. Variasi tetap mengikuti
-      // sequence Sheet (doa-adzan / doa-puasa / doa-buka), tetapi tidak
-      // boleh membuat seluruh scheduler audio dianggap BELUM SIAP.
+        nextConfig.doa || './audio/doa.mp3';
       nextConfig['doa-adzan'] =
-        nextConfig['doa-adzan'] || nextConfig.doa || '';
+        nextConfig['doa-adzan'] || './audio/doa.mp3';
       nextConfig['doa-puasa'] =
-        nextConfig['doa-puasa'] || nextConfig.doa || '';
+        nextConfig['doa-puasa'] || './audio/doa-puasa.mp3';
       nextConfig['doa-buka'] =
-        nextConfig['doa-buka'] || nextConfig.doa || '';
+        nextConfig['doa-buka'] || './audio/doa-buka.mp3';
 
       audioConfig = nextConfig;
 
