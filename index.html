@@ -1860,8 +1860,8 @@
       margin-bottom: 0.5vh;
     }
 
-    /* QUR'BAN A2: SAMA PERSIS dengan A1 */
-    #fin-panel-box #fin-sub {
+    /* KEUANGAN A1: mengikuti tampilan QUR'BAN A1 */
+    #fin-panel-box #fin-title {
       color: #ffcc00 !important;
       -webkit-text-fill-color: #ffcc00 !important;
       font-family: inherit !important;
@@ -1869,7 +1869,20 @@
       font-weight: 900 !important;
       line-height: normal !important;
       text-align: center !important;
-      margin-bottom: 0.5vh !important;
+      letter-spacing: 0.05vw !important;
+    }
+
+    /* KEUANGAN A2: mengikuti format QUR'BAN A3
+       (model font, ukuran, warna, dan ketebalan). */
+    #fin-panel-box #fin-sub {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      font-family: inherit !important;
+      font-size: clamp(0.95rem, 5.2cqw, 1.70rem) !important;
+      font-weight: bold !important;
+      line-height: 1.15 !important;
+      text-align: center !important;
+      margin-bottom: 1.8vh !important;
     }
 
     /* QUR'BAN A3: ukuran sama dengan label "Tanggal" PETUGAS SHOLAT, warna putih */
