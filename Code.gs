@@ -2952,25 +2952,31 @@ function getPrayerSchedule(dateString) {
       };
     }
 
-    const json =
-      JSON.parse(
-        response.getContentText()
-      );
+    const responseText = response.getContentText();
+    let json;
 
-    if (
-      !json ||
-      !json.jadwal
-    ) {
-      return {
-        success: false,
-        error:
-          'Data jadwal sholat tidak tersedia untuk ' +
-          kota
-      };
+    try {
+      json = JSON.parse(responseText);
+    } catch (parseError) {
+      Logger.log('JADWAL SHOLAT API JSON INVALID: ' + parseError.message);
+      return { success: false, error: 'Respons API MuslimKita bukan JSON valid untuk ' + kota };
     }
 
+    // Terima format normal json.jadwal maupun wrapper json.data.jadwal.
     const jadwalApi =
-      json.jadwal;
+      json && json.jadwal
+        ? json.jadwal
+        : json && json.data && json.data.jadwal
+          ? json.data.jadwal
+          : null;
+
+    if (!jadwalApi || typeof jadwalApi !== 'object') {
+      Logger.log('JADWAL SHOLAT API TANPA JADWAL: ' + responseText.substring(0, 1000));
+      return {
+        success: false,
+        error: 'Data jadwal sholat tidak tersedia untuk ' + kota
+      };
+    }
 
     const result = {
       success: true,
@@ -3026,19 +3032,19 @@ function getPrayerSchedule(dateString) {
           ),
         dzuhur:
           normalizePrayerTime(
-            jadwalApi.dzuhur
+            (jadwalApi.dzuhur || jadwalApi.dhuhur || jadwalApi.dhuhr)
           ),
         ashar:
           normalizePrayerTime(
-            jadwalApi.ashar
+            (jadwalApi.ashar || jadwalApi.asr)
           ),
         maghrib:
           normalizePrayerTime(
-            jadwalApi.maghrib
+            (jadwalApi.maghrib || jadwalApi.magrib)
           ),
         isya:
           normalizePrayerTime(
-            jadwalApi.isya
+            (jadwalApi.isya || jadwalApi.isha)
           )
       }
     };
