@@ -7,16 +7,17 @@ on:
   push:
     paths:
       - ".github/workflows/sync-stage1.yml"
+      - "scripts/sync-stage1.mjs"
 
 permissions:
   contents: write
 
 jobs:
   sync:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Sync Apps Script data to GitHub JSON
         env:
