@@ -1964,17 +1964,29 @@
 
     /* QUR'BAN: setiap item satu baris penuh, tidak wrap ke bawah. */
     .qurban-display .keuangan-table {
-      table-layout: auto;
-      width: max-content;
-      min-width: 100%;
+      table-layout: fixed !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
     }
 
     .qurban-display .keuangan-table td {
-      width: auto !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
       white-space: nowrap !important;
       word-break: keep-all !important;
       overflow-wrap: normal !important;
+      overflow: visible !important;
       text-align: left !important;
+      text-overflow: clip !important;
+      padding-left: 0.25rem !important;
+      padding-right: 0.25rem !important;
+      font-size: clamp(0.58rem, 1.05cqw, 1.05rem) !important;
+    }
+
+    .qurban-display .keuangan-table tr {
+      height: auto !important;
     }
 
     .qurban-display .keuangan-scroll-area {
@@ -3173,9 +3185,10 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       </div>
 
       <div class="right-sidebar">
-        <div class="panel-box">
+        <div class="panel-box" id="fin-panel-box">
           <div class="panel-title" id="fin-title">-</div>
           <div class="panel-sub" id="fin-sub">-</div>
+          <div class="panel-sub fin-extra" id="fin-extra" style="display:none;">-</div>
 
           <div class="keuangan-scroll-area" id="keuangan-scroll-area">
             <div class="keuangan-content" id="keuangan-content">
@@ -7260,12 +7273,44 @@ function updateFridayPrayerDisplay() {
           'fin-sub'
         );
 
+      const keuanganSelector =
+        String(
+          data.KeuanganSelector ||
+          'KEUANGAN'
+        )
+          .trim()
+          .toUpperCase();
+
       if (finSub) {
-
         finSub.innerText =
-          data.KeuanganTanggal ||
-          '';
+          keuanganSelector === 'QURBAN'
+            ? ('MASJID ' + String(data.KeuanganTanggal || '').trim()).trim()
+            : (data.KeuanganTanggal || '');
+      }
 
+      const finExtra =
+        document.getElementById('fin-extra');
+
+      if (finExtra) {
+        const a3 = String(data.KeuanganA3 || '').trim();
+        finExtra.innerText =
+          keuanganSelector === 'QURBAN'
+            ? a3
+            : '';
+        finExtra.style.display =
+          keuanganSelector === 'QURBAN' && a3
+            ? ''
+            : 'none';
+      }
+
+      const finPanelBox =
+        document.getElementById('fin-panel-box');
+
+      if (finPanelBox) {
+        finPanelBox.classList.toggle(
+          'qurban-display',
+          keuanganSelector === 'QURBAN'
+        );
       }
 
       if (
@@ -7287,10 +7332,8 @@ function updateFridayPrayerDisplay() {
             data.KeuanganJudul ||
             ''
           ) +
-          (
-            data.KeuanganSelector ||
-            'KEUANGAN'
-          );
+          keuanganSelector +
+          String(data.KeuanganA3 || '');
 
         if (
           currentJson !==
@@ -7302,7 +7345,8 @@ function updateFridayPrayerDisplay() {
 
           updateKeuangan(
             data.Keuangan,
-            data.KeuanganTanggal
+            data.KeuanganTanggal,
+            keuanganSelector
           );
 
         }
