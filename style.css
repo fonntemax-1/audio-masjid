@@ -2579,7 +2579,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 }
 .infaq-left-content img {
   display: block;
-  width: clamp(55px, 5.5vw, 82px);
+  width: min(100%, clamp(42px, 4.2vw, 62px));
+  max-width: 100%;
   height: auto;
   aspect-ratio: 1 / 1;
   object-fit: contain;
@@ -2590,5 +2591,5 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
     width: 22vw !important;
   }
   .infaq-left-title { font-size: clamp(.55rem, 2.4vw, .8rem); }
-  .infaq-left-content img { width: min(18vw, 78px); }
+  .infaq-left-content img { width: min(16vw, 58px); max-width: 100%; }
 }
