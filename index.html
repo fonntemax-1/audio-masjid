@@ -6946,14 +6946,38 @@ function updateFridayPrayerDisplay() {
         if (typeof updatePanelKegiatanDisplay_ === 'function') updatePanelKegiatanDisplay_(k);
       }
 
-      if (data.EventRunningText !== undefined && !eventPrayerOverrideText) {
-        const el = document.getElementById('event-running');
-        const txt = String(data.EventRunningText || '');
-        if (el && txt !== previousEventText) {
-          previousEventText = txt;
-          el.classList.remove('event-prayer-override');
-          el.innerText = txt;
-          requestAnimationFrame(function() { startEventRunning(); });
+      if (data.EventRunningText !== undefined) {
+        // Jangan pernah biarkan polling Event Sheet mengambil alih
+        // banner khusus waktu sholat. Hitung kondisi live terlebih dahulu
+        // agar aman terhadap race condition saat pergantian detik/fase.
+        const currentCountdownState =
+          WEB_APP_STATE &&
+          WEB_APP_STATE.countdown
+            ? WEB_APP_STATE.countdown.active
+            : null;
+        const livePrayerOverride =
+          getEventPrayerOverrideText_(currentCountdownState);
+
+        if (livePrayerOverride) {
+          eventPrayerOverrideText = livePrayerOverride;
+          const el = document.getElementById('event-running');
+          if (el) {
+            el.classList.add('event-prayer-override');
+            if (el.innerText !== livePrayerOverride) {
+              el.innerText = livePrayerOverride;
+              previousEventText = '';
+              requestAnimationFrame(function() { startEventRunning(); });
+            }
+          }
+        } else if (!eventPrayerOverrideText) {
+          const el = document.getElementById('event-running');
+          const txt = String(data.EventRunningText || '');
+          if (el && txt !== previousEventText) {
+            previousEventText = txt;
+            el.classList.remove('event-prayer-override');
+            el.innerText = txt;
+            requestAnimationFrame(function() { startEventRunning(); });
+          }
         }
       }
     }
