@@ -1872,9 +1872,21 @@
       letter-spacing: 0.05vw !important;
     }
 
-    /* KEUANGAN A2: mengikuti format QUR'BAN A3
-       (model font, ukuran, warna, dan ketebalan). */
-    #fin-panel-box #fin-sub {
+    /* QUR'BAN A2: samakan PERSIS dengan QUR'BAN A1.
+       Untuk KEUANGAN biasa, format A2 tetap seperti sebelumnya. */
+    #fin-panel-box.qurban-display #fin-sub {
+      color: #ffcc00 !important;
+      -webkit-text-fill-color: #ffcc00 !important;
+      font-family: inherit !important;
+      font-size: clamp(1rem, 1.4vw, 1.5rem) !important;
+      font-weight: 900 !important;
+      line-height: normal !important;
+      text-align: center !important;
+      letter-spacing: 0.05vw !important;
+      margin-bottom: 1.8vh !important;
+    }
+
+    #fin-panel-box:not(.qurban-display) #fin-sub {
       color: #ffffff !important;
       -webkit-text-fill-color: #ffffff !important;
       font-family: inherit !important;
@@ -6663,14 +6675,26 @@ function updateFridayPrayerDisplay() {
                 ? ('MASJID ' + date.trim()).trim()
                 : date;
 
-            // KEUANGAN A2 = persis model visual QUR'BAN A3.
-            finSub.style.color = '#ffffff';
-            finSub.style.webkitTextFillColor = '#ffffff';
-            finSub.style.fontFamily = 'inherit';
-            finSub.style.fontSize = 'clamp(0.95rem, 5.2cqw, 1.70rem)';
-            finSub.style.fontWeight = 'bold';
-            finSub.style.lineHeight = '1.15';
-            finSub.style.textAlign = 'center';
+            if (selector === 'QURBAN') {
+              // QUR'BAN A2 = SAMA dengan A1: ukuran, warna, dan ketebalan.
+              finSub.style.color = '#ffcc00';
+              finSub.style.webkitTextFillColor = '#ffcc00';
+              finSub.style.fontFamily = 'inherit';
+              finSub.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
+              finSub.style.fontWeight = '900';
+              finSub.style.lineHeight = 'normal';
+              finSub.style.textAlign = 'center';
+              finSub.style.letterSpacing = '0.05vw';
+            } else {
+              finSub.style.color = '#ffffff';
+              finSub.style.webkitTextFillColor = '#ffffff';
+              finSub.style.fontFamily = 'inherit';
+              finSub.style.fontSize = 'clamp(0.95rem, 5.2cqw, 1.70rem)';
+              finSub.style.fontWeight = 'bold';
+              finSub.style.lineHeight = '1.15';
+              finSub.style.textAlign = 'center';
+              finSub.style.letterSpacing = '';
+            }
             finSub.style.marginBottom = '1.8vh';
           }
 
