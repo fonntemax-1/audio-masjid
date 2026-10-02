@@ -6864,9 +6864,11 @@ function updateFridayPrayerDisplay() {
     }
 
     pollRealtimeDisplayConfig_();
-    // Snapshot realtime dibuat satu-satunya jalur sinkronisasi C2/C18/C20/G20/C22,
-    // petugas, kegiatan, dan event. 1.5 detik tanpa request paralel.
-    setInterval(pollRealtimeDisplayConfig_, 1500);
+    // Snapshot realtime adalah jalur utama sinkronisasi kontrol Spreadsheet.
+    // Polling dibuat 1 detik agar perubahan C26/C28/C29:C32/B35:B39,
+    // theme, header, C22, dan kontrol tampilan terasa hampir realtime.
+    // Request-in-flight tetap mencegah request bertumpuk bila GAS sedang lambat.
+    setInterval(pollRealtimeDisplayConfig_, 1000);
 
     // =========================================================
     // IQOMAH / SLEEP SCREEN CONTROL - panels!C22
