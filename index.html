@@ -6696,6 +6696,73 @@ function updateFridayPrayerDisplay() {
       }
     }
 
+    // PETUGAS SHOLAT — GLOBAL REALTIME RENDERER
+    // Didefinisikan di scope global agar jalur realtime cepat dapat
+    // memperbarui panel tanpa menunggu updateUI().
+    function formatPanelKegiatanDate_(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '-';
+      const m = raw.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})$/);
+      if (!m) return raw;
+      const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+      return months[Number(m[2]) - 1] ? Number(m[1]) + ' ' + months[Number(m[2]) - 1] + ' ' + m[3] : raw;
+    }
+
+    function updatePanelKegiatanDisplay_(data) {
+      const titleEl = document.getElementById('petugas-title');
+      const listEl = document.getElementById('petugas-sholat-list');
+      if (!titleEl || !listEl) return;
+
+      const jenis = String(data && data.jenis || '').trim().toUpperCase();
+      titleEl.textContent = jenis
+        ? (jenis.indexOf('SHOLAT ') === 0 ? 'PETUGAS ' + jenis : 'PETUGAS SHOLAT ' + jenis)
+        : 'PETUGAS SHOLAT';
+      listEl.style.display = jenis ? 'flex' : 'none';
+
+      const fields = data && data.fields && typeof data.fields === 'object' ? data.fields : {};
+      const dateRow = Object.keys(fields).find(function(label) {
+        return String(label || '').trim().toUpperCase() === 'TANGGAL';
+      });
+      const dateValue = dateRow ? String(fields[dateRow] || '').trim() : '';
+
+      let dateEl = document.getElementById('petugas-tanggal');
+      if (!dateEl) {
+        dateEl = document.createElement('div');
+        dateEl.id = 'petugas-tanggal';
+        titleEl.insertAdjacentElement('afterend', dateEl);
+      }
+      dateEl.textContent = dateValue ? formatPanelKegiatanDate_(dateValue) : '';
+      dateEl.style.cssText = 'text-align:center;color:#ffffff;font-weight:700;line-height:1.2;margin-top:0.35vh;margin-bottom:0.8vh;font-size:clamp(0.95rem, 5.2cqw, 1.70rem);';
+      dateEl.style.display = dateValue ? 'block' : 'none';
+
+      const entries = Object.keys(fields).map(function(label) {
+        return { label: String(label || '').trim(), value: String(fields[label] == null ? '' : fields[label]).trim() };
+      }).filter(function(item) {
+        return item.label && item.label.toUpperCase() !== 'TANGGAL' && item.value;
+      });
+
+      for (let i = 1; i <= 4; i++) {
+        const row = document.getElementById('k-label-' + i);
+        const valueEl = document.getElementById('k-value-' + i);
+        if (!row || !valueEl) continue;
+        const item = entries[i - 1];
+        if (item) {
+          row.textContent = item.label.toUpperCase();
+          row.style.textTransform = 'uppercase';
+          row.style.fontSize = 'clamp(0.95rem, 2.15cqw, 1.55rem)';
+          row.style.fontWeight = '800';
+          valueEl.textContent = item.value;
+          valueEl.style.fontSize = 'clamp(0.95rem, 2.15cqw, 1.55rem)';
+          valueEl.style.fontWeight = '800';
+          row.parentElement.style.display = 'flex';
+        } else {
+          row.textContent = '';
+          valueEl.textContent = '';
+          row.parentElement.style.display = 'none';
+        }
+      }
+    }
+
     function pollRealtimePanelsFast_() {
       if (realtimePanelsFastRequestInFlight) return;
       realtimePanelsFastRequestInFlight = true;
@@ -6716,10 +6783,25 @@ function updateFridayPrayerDisplay() {
           }
         })
         .catch(function(error) {
-          console.warn(
-            'REALTIME PANEL CEPAT GAGAL:',
-            error && error.message ? error.message : error
-          );
+          // Deployment Apps Script lama mungkin belum mengenal
+          // getRealtimePanelsFast. Gunakan endpoint lama sebagai
+          // fallback agar panel tetap realtime tanpa menyentuh audio.
+          const msg = error && error.message ? error.message : String(error || '');
+          if (/API action tidak dikenal: getRealtimePanelsFast/i.test(msg)) {
+            return Promise.all([
+              gasApiCall('getPanelKegiatan'),
+              gasApiCall('getPanelKeuanganSource')
+            ]).then(function(parts) {
+              const kegiatan = parts[0] || {};
+              const source = parts[1] || {};
+              const fallbackSignature = JSON.stringify([kegiatan.jenis, kegiatan.fields, source.selector, source.title, source.date, source.a3, source.rows]);
+              if (fallbackSignature === realtimePanelsFastLastSignature) return;
+              realtimePanelsFastLastSignature = fallbackSignature;
+              updatePanelKegiatanDisplay_(kegiatan);
+              applyPanelKeuanganSourceFast_(source);
+            });
+          }
+          console.warn('REALTIME PANEL CEPAT GAGAL:', msg);
         })
         .finally(function() {
           realtimePanelsFastRequestInFlight = false;
