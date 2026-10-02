@@ -6777,6 +6777,95 @@ function updateFridayPrayerDisplay() {
     }
 
 
+
+    // =========================================================
+    // REALTIME DISPLAY CONFIG - satu request ringan / 2 detik
+    // Hanya sinkronisasi tampilan Spreadsheet.
+    // Tidak menyentuh scheduler/audio.
+    // =========================================================
+    let realtimeDisplayRequestInFlight = false;
+    let realtimeDisplayLastSignature = '';
+
+    function applyRealtimeDisplayConfig_(data) {
+      if (!data || data.success === false) return;
+
+      const signature = JSON.stringify([
+        data.PanelMode, data.DisplayTheme, data.Youtube, data.YoutubeStatus,
+        data.IqomahMode, data.Nama, data.Alamat, data.Kota,
+        data['No. Telp'], data.Slogan, data.Website, data.InfoLainnya,
+        data.Kegiatan, data.EventRunningText
+      ]);
+      if (signature === realtimeDisplayLastSignature) return;
+      realtimeDisplayLastSignature = signature;
+
+      if (data.PanelMode !== undefined) setPanelDisplayMode(String(data.PanelMode).toUpperCase());
+      if (data.DisplayTheme !== undefined) applyDisplayTheme(data.DisplayTheme);
+
+      if (data.Youtube !== undefined && data.YoutubeStatus !== undefined) {
+        setYouTubeVideo(String(data.Youtube || '').trim(), String(data.YoutubeStatus || 'AUTO').toUpperCase());
+      }
+
+      if (data.IqomahMode !== undefined) setPanelIqomahBlackMode(String(data.IqomahMode).toUpperCase());
+
+      const nameEl = document.getElementById('nama_masjid');
+      if (nameEl && data.Nama !== undefined) {
+        const nama = String(data.Nama || '').trim();
+        nameEl.innerText = nama ? (/^MASJID\b/i.test(nama) ? nama : 'MASJID ' + nama) : '';
+        updateLogoPositionResponsive_();
+      }
+
+      const nomor = String(data['No. Telp'] || '').trim();
+      const alamat = String(data.Alamat || '').trim();
+      const kota = String(data.Kota || '').trim();
+      const website = String(data.Website || '').trim();
+      const info = String(data.InfoLainnya || '').trim();
+      const parts = [];
+      if (alamat) parts.push(alamat);
+      if (kota) parts.push(kota);
+      if (nomor) parts.push('<span class="wa-contact"><span>' + nomor + '</span></span>');
+      if (website) parts.push(website);
+      if (info) parts.push(info);
+      const alamatEl = document.getElementById('alamat_masjid');
+      if (alamatEl) {
+        alamatEl.innerHTML = parts.length ? parts.join(' <span class="info-separator">|</span> ') : '';
+        alamatEl.style.display = parts.length ? '' : 'none';
+      }
+
+      if (data.Kegiatan && Array.isArray(data.Kegiatan.values)) {
+        const k = { jenis: data.Kegiatan.jenis || '', fields: {} };
+        const labels = (typeof PANEL_KEGIATAN_FIELDS_ !== 'undefined' && PANEL_KEGIATAN_FIELDS_[k.jenis]) || [];
+        labels.forEach(function(label, i) { k.fields[label] = String(data.Kegiatan.values[i] || '').trim(); });
+        if (typeof updatePanelKegiatanDisplay_ === 'function') updatePanelKegiatanDisplay_(k);
+      }
+
+      if (data.EventRunningText !== undefined && !eventPrayerOverrideText) {
+        const el = document.getElementById('event-running');
+        const txt = String(data.EventRunningText || '');
+        if (el && txt !== previousEventText) {
+          previousEventText = txt;
+          el.classList.remove('event-prayer-override');
+          el.innerText = txt;
+          requestAnimationFrame(function() { startEventRunning(); });
+        }
+      }
+    }
+
+    function pollRealtimeDisplayConfig_() {
+      if (realtimeDisplayRequestInFlight) return;
+      realtimeDisplayRequestInFlight = true;
+      gasApiCall('getRealtimeDisplayConfig')
+        .then(applyRealtimeDisplayConfig_)
+        .catch(function(error) {
+          console.warn('REALTIME DISPLAY CONFIG GAGAL:', error && error.message ? error.message : error);
+        })
+        .finally(function() {
+          realtimeDisplayRequestInFlight = false;
+        });
+    }
+
+    pollRealtimeDisplayConfig_();
+    setInterval(pollRealtimeDisplayConfig_, 2000);
+
     // =========================================================
     // IQOMAH / SLEEP SCREEN CONTROL - panels!C22
     // AUTO = black window sampai +15 menit setelah IQOMAH.
@@ -16419,11 +16508,7 @@ function setCountdownBlackMode(enabled) {
       30000
     );
 
-    // Refresh ringan Petugas Sholat tanpa menunggu reload halaman.
-    setInterval(
-      fetchPanelKegiatan_,
-      30000
-    );
+    // Petugas Sholat disinkronkan oleh realtime display config.
 
     // Selector panels!G20 harus merespons maksimal sekitar 1-2 detik.\n    // Polling khusus ini tidak mengubah polling data utama 30 detik.\n    startFastYouTubeControlPolling_();
     startFastIqomahBlackModePolling_();
@@ -16459,25 +16544,13 @@ function setCountdownBlackMode(enabled) {
         });
     }
 
-    pollPanelDisplayMode_();
-    setInterval(pollPanelDisplayMode_, 30000);
+    // C2 disinkronkan oleh realtime display config.
 
     // Tema panels!C18 diperiksa terpisah agar perubahan HIJAU/MERAH/KUNING
     // tidak menunggu reload halaman. Hanya visual, tidak menyentuh audio.
-    setInterval(
-      function() {
-        const themeRefreshResult = refreshDisplayTheme();
-        if (themeRefreshResult && typeof themeRefreshResult.catch === 'function') {
-          themeRefreshResult.catch(function() {});
-        }
-      },
-      60000
-    );
+    // C18 disinkronkan oleh realtime display config.
 
-    setInterval(
-      loadEventRunningText,
-      60000
-    );
+    // Event running text disinkronkan oleh realtime display config.
 
     setInterval(
       function() {
