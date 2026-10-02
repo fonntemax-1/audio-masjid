@@ -14795,7 +14795,11 @@ function setCountdownBlackMode(enabled) {
         );
       }
 
-      processAudioQueue();
+      // AUDIO QUEUE TIDAK lagi diproses dari tick countdown.
+      // Queue mempunyai wake-timer/callback sendiri. Menjalankan
+      // processAudioQueue() setiap detik membuat jalur audio ikut
+      // mengambil main-thread tepat bersamaan dengan jam/countdown.
+      // Ini tidak mengubah timeline, urutan, GAP, atau durasi audio.
 
       // =========================================================
       // STYLE KHUSUS COUNTDOWN
