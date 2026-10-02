@@ -42,6 +42,10 @@ function handleGithubApiRequest_(params) {
         result = getDataFromSheet();
         break;
 
+      case 'getRealtimeDisplayConfig':
+        result = getRealtimeDisplayConfig();
+        break;
+
       case 'getPanelDisplayMode':
         result = getPanelDisplayMode();
         break;
