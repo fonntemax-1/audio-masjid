@@ -3245,7 +3245,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           </div>
         </div>
         <div class="panel-box">
-          <!-- PETUGAS SHOLAT diisi setelah data PANELS!C26:C30 berhasil dimuat. -->
+          <!-- PETUGAS SHOLAT diisi setelah data PANELS!C28:C32 berhasil dimuat. -->
           <div class="panel-title" id="petugas-title"></div>
 
           <div class="khotbah-list" id="petugas-sholat-list" style="display:none;">
@@ -6609,7 +6609,7 @@ function updateFridayPrayerDisplay() {
 
 
     // =========================================================
-    // PANEL KEUANGAN / QUR'BAN CEPAT - panels!C49
+    // PANEL KEUANGAN / QUR'BAN CEPAT - panels!C26
     // Polling 2 detik. Hanya mengambil data panel melalui API khusus.
     // Tidak memanggil getDataFromSheet() dan tidak menyentuh scheduler/audio.
     // =========================================================
@@ -6634,7 +6634,7 @@ function updateFridayPrayerDisplay() {
           if (signature === panelKeuanganFastLastSignature) return;
           panelKeuanganFastLastSignature = signature;
 
-          console.log('PANEL C49 CEPAT BERUBAH =>', selector);
+          console.log('PANEL C26 CEPAT BERUBAH =>', selector);
 
           const finTitle = document.getElementById('fin-title');
           if (finTitle) {
@@ -6690,7 +6690,7 @@ function updateFridayPrayerDisplay() {
           }
         })
         .catch(function(error) {
-          console.warn('PANEL C49 CEPAT GAGAL:', error && error.message ? error.message : error);
+          console.warn('PANEL C26 CEPAT GAGAL:', error && error.message ? error.message : error);
         })
         .finally(function() {
           panelKeuanganFastRequestInFlight = false;
@@ -6698,7 +6698,7 @@ function updateFridayPrayerDisplay() {
     }
 
     function startFastPanelKeuanganPolling_() {
-      // Perubahan Spreadsheet panels!C49 / KEUANGAN / QURBAN
+      // Perubahan Spreadsheet panels!C26 / KEUANGAN / QURBAN
       // harus segera tercermin di web. Polling 1 detik.
       // Tetap memakai request-in-flight agar tidak menumpuk request GAS.
       pollPanelKeuanganFast_();
@@ -7619,7 +7619,7 @@ function updateFridayPrayerDisplay() {
 
       // =======================================================
           // =======================================================
-    // PETUGAS SHOLAT - PANELS!C26:C30
+    // PETUGAS SHOLAT - PANELS!C28:C32
     // =======================================================
     function formatPanelKegiatanDate_(value) {
       const raw = String(value || '').trim();
@@ -16447,7 +16447,7 @@ function setCountdownBlackMode(enabled) {
     loadEventRunningText();
     updateHijriDate();
 
-    // PETUGAS SHOLAT: tampilkan data PANELS!C26:C30 di FRONT-END.
+    // PETUGAS SHOLAT: tampilkan data PANELS!C28:C32 di FRONT-END.
     // Tidak mengubah scheduler/audio.
     fetchPanelKegiatan_();
 
