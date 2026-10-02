@@ -4139,13 +4139,13 @@ function updateFridayPrayerDisplay() {
         alamatEl.style.display = text ? '' : 'none';
       }
 
-      if (data.Kegiatan && Array.isArray(data.Kegiatan.values)) {
-        const k = { jenis: data.Kegiatan.jenis || '', fields: {} };
-        const labels = (typeof PANEL_KEGIATAN_FIELDS_ !== 'undefined' && PANEL_KEGIATAN_FIELDS_[k.jenis]) || [];
-        labels.forEach(function(label, i) { k.fields[label] = String(data.Kegiatan.values[i] || '').trim(); });
-        if (typeof updatePanelKegiatanDisplay_ === 'function') updatePanelKegiatanDisplay_(k);
-      }
-
+      // PETUGAS SHOLAT / TANGGAL BUKAN bagian dari jalur theme.
+      // Jangan render ulang panel kegiatan dari snapshot theme.
+      // Jika panels!C18 berubah, snapshot realtime tetap hanya mengubah
+      // warna/header/event. Panel Petugas Sholat dipelihara oleh
+      // getRealtimePanelsFast() agar perubahan theme tidak pernah
+      // mengosongkan tanggal/nama petugas walau Spreadsheet sedang
+      // melakukan recalculate sesaat.
       if (data.EventRunningText !== undefined) {
         // Jangan pernah biarkan polling Event Sheet mengambil alih
         // banner khusus waktu sholat. Hitung kondisi live terlebih dahulu
