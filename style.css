@@ -2403,32 +2403,31 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
   text-align: center !important;
 }
 
+/* HANDPHONE: HANYA DI SCREEN HITAM AKTIF */
+.clock-overlay .panel-black-message {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
 
-/* FIX POSISI HANDPHONE — IKUT STACK KANAN, JANGAN DI TENGAH FRAME */
 body.panel-countdown-auto .clock-overlay .panel-black-message {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
   position: absolute !important;
   top: 0 !important;
   right: 0 !important;
   left: auto !important;
   width: 100% !important;
   max-width: 100% !important;
-  align-items: flex-end !important;
-  justify-content: flex-start !important;
-  text-align: right !important;
   margin: 0 !important;
   transform: none !important;
 }
 
-body.panel-countdown-auto .clock-overlay .panel-black-icon {
-  width: 100% !important;
-  display: flex !important;
-  justify-content: flex-end !important;
-  align-items: center !important;
-  margin: 0 !important;
-}
-
+body.panel-countdown-auto .clock-overlay .panel-black-icon,
 body.panel-countdown-auto .clock-overlay .panel-black-icon img {
-  display: block !important;
-  margin-left: auto !important;
-  margin-right: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
