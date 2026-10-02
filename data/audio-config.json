@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "enabled": false,
+  "source": "pending-first-sync",
+  "Audio": {},
+  "AudioSchedule": {},
+  "AudioDurations": {},
+  "AudioFriday": {},
+  "AudioStatus": {}
+}
