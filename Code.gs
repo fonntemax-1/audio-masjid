@@ -4469,3 +4469,69 @@ function getPanelKegiatan() {
   }
 }
 
+
+// =====================================================
+// PANEL KEUANGAN / QUR'BAN CEPAT - panels!C49
+// Hanya membaca selector + data panel. Tidak menjalankan
+// getDataFromSheet(), scheduler, audio, atau jadwal sholat.
+// =====================================================
+function getPanelKeuanganSource() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const panels = ss.getSheetByName('panels');
+  const rawSelector = panels
+    ? String(panels.getRange('C49').getDisplayValue() || '').trim()
+    : 'KEUANGAN';
+
+  const selectorKey = rawSelector
+    .toUpperCase()
+    .replace(/[\\s’‘'\`]/g, '');
+
+  const selectedKey = selectorKey === 'QURBAN'
+    ? 'QURBAN'
+    : 'KEUANGAN';
+
+  let selectedSheet = null;
+  ss.getSheets().some(function(sheet) {
+    const key = String(sheet.getName() || '')
+      .toUpperCase()
+      .replace(/[\\s’‘'\`]/g, '');
+    if (key === selectedKey) {
+      selectedSheet = sheet;
+      return true;
+    }
+    return false;
+  });
+
+  if (!selectedSheet) {
+    return {
+      selector: selectedKey,
+      title: '',
+      date: '',
+      rows: []
+    };
+  }
+
+  const rows = [];
+  const lastRow = selectedSheet.getLastRow();
+
+  if (lastRow >= 4) {
+    selectedSheet
+      .getRange(4, 1, lastRow - 3, 2)
+      .getDisplayValues()
+      .forEach(function(displayRow) {
+        const row = [
+          String(displayRow[0] == null ? '' : displayRow[0]).trim(),
+          String(displayRow[1] == null ? '' : displayRow[1]).trim()
+        ];
+        if (row[0] !== '' || row[1] !== '') rows.push(row);
+      });
+  }
+
+  return {
+    selector: selectedKey,
+    title: String(selectedSheet.getRange('A1').getDisplayValue() || '').trim(),
+    date: String(selectedSheet.getRange('A2').getDisplayValue() || '')
+      .replace(/^(0)(\\d)(\\s)/, '$2$3'),
+    rows: rows
+  };
+}
