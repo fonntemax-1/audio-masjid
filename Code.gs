@@ -1045,9 +1045,9 @@ function getDataFromSheet() {
 
 
     // =====================================================
-    // SUMBER PANEL KEUANGAN DARI PANELS!C49
-    // C49 = KEUANGAN -> sheet Keuangan
-    // C49 = QUR'BAN -> sheet Qurb'an
+    // SUMBER PANEL KEUANGAN DARI PANELS!C26
+    // C26 = KEUANGAN -> sheet Keuangan
+    // C26 = QUR'BAN -> sheet Qurb'an
     // Hanya mengganti sumber data panel kanan.
     // Tidak menyentuh scheduler, audio, YouTube, atau data sholat.
     // KEUANGAN: data detail A4:B sampai baris terakhir.
@@ -1057,7 +1057,7 @@ function getDataFromSheet() {
     try {
       const panelsSelectorSheet = ss.getSheetByName('panels');
       const rawSelector = panelsSelectorSheet
-        ? String(panelsSelectorSheet.getRange('C49').getDisplayValue() || '').trim()
+        ? String(panelsSelectorSheet.getRange('C26').getDisplayValue() || '').trim()
         : 'KEUANGAN';
 
       const selectorKey = rawSelector
@@ -1127,7 +1127,7 @@ function getDataFromSheet() {
         }
 
         Logger.log(
-          'PANEL KEUANGAN C49 = [' + rawSelector +
+          'PANEL KEUANGAN C26 = [' + rawSelector +
           '] => SHEET [' + selectedSheet.getName() +
           '] => ROWS [' + result.Keuangan.length + ']'
         );
@@ -1142,7 +1142,7 @@ function getDataFromSheet() {
       }
     } catch (selectorError) {
       Logger.log(
-        'PANEL KEUANGAN C49 ERROR: ' + selectorError.message
+        'PANEL KEUANGAN C26 ERROR: ' + selectorError.message
       );
     }
 
@@ -4398,10 +4398,10 @@ function setTanggalJumatMingguBerjalan_(sheet) {
 }
 
 /**
- * Membentuk B29:B32 sesuai C28 dan mengatur C27:C30.
+ * Membentuk B29:B32 sesuai C28 dan mengatur C29:C32.
  *
  * resetValues=true dipakai saat setup awal.
- * Saat C26 berubah melalui onEdit, data lama selalu dibersihkan
+ * Saat C28 berubah melalui onEdit, data lama selalu dibersihkan
  * agar Khatib/Imam/Muadzin/Bilal/Kultum tidak tertukar.
  */
 function updatePanelKegiatanFields_(sheet, kegiatan, resetValues) {
@@ -4423,7 +4423,7 @@ function updatePanelKegiatanFields_(sheet, kegiatan, resetValues) {
   labelRange.setFormulas(formulaRows);
 
   // SEMUA data kegiatan, termasuk tanggal C27, MANUAL.
-  // C27:C30 tidak diisi/dihapus ketika C26 berubah.
+  // C29:C32 tidak diisi/dihapus ketika C28 berubah.
   valueRange.clearDataValidations();
 
   if (fields.length > 0 && fields[0] === "Tanggal") {
@@ -4579,7 +4579,7 @@ function getPanelKeuanganSource() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const panels = ss.getSheetByName('panels');
   const rawSelector = panels
-    ? String(panels.getRange('C49').getDisplayValue() || '').trim()
+    ? String(panels.getRange('C26').getDisplayValue() || '').trim()
     : 'KEUANGAN';
 
   const selectorKey = rawSelector
