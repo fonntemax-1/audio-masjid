@@ -2568,7 +2568,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
   color: #ffcc00;
   font-family: Arial, sans-serif;
   font-weight: 700;
-  font-size: clamp(.72rem, 1.05vw, 1.05rem);
+  font-size: clamp(1rem, 1.4vw, 1.5rem);
   line-height: 1.08;
   white-space: normal;
 }
