@@ -8788,8 +8788,8 @@ function updateFridayPrayerDisplay() {
 
       }
 
-      // EVENT COUNTDOWN dipisahkan dari jalur jam utama agar
-      // pekerjaan Moment/DOM event tidak dapat menghentikan update jam.
+      updateEventCountdown();
+
     }
 
 
@@ -16370,38 +16370,13 @@ function setCountdownBlackMode(enabled) {
     // INTERVAL
     // =========================================================
 
-    // JAM UTAMA: ticker ringan dan terpisah dari countdown/event.
-    // Timeout berantai mencegah antrean callback interval jika UI sedang sibuk.
-    (function startClockTicker_() {
-      let timer = null;
-
-      function tick() {
-        try {
-          updateClock();
-        } catch (error) {
-          console.error('CLOCK TICK ERROR:', error);
-        }
-        timer = setTimeout(tick, 1000);
-      }
-
-      tick();
-    })();
-
-    // Countdown/scheduler tetap berjalan pada jalur terpisah.
     setInterval(
-      updatePrayerCountdown,
+      updateClock,
       1000
     );
 
-    // Event countdown juga dipisahkan dari jalur jam.
     setInterval(
-      function() {
-        try {
-          updateEventCountdown();
-        } catch (error) {
-          console.error('EVENT COUNTDOWN TICK ERROR:', error);
-        }
-      },
+      updatePrayerCountdown,
       1000
     );
 
