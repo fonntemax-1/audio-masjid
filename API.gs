@@ -46,6 +46,10 @@ function handleGithubApiRequest_(params) {
         result = getPanelDisplayMode();
         break;
 
+      case 'getPanelKeuanganSource':
+        result = getPanelKeuanganSource();
+        break;
+
       case 'getYoutubeControl':
         result = getYoutubeControl();
         break;
