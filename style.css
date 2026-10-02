@@ -1,7 +1,9 @@
 @font-face {
       font-family: 'AlhambraC12';
-      src: url('./font/alhambra/ALHAMBRA.TTF?v=20261003') format('truetype');
-      font-weight: 400 900;
+      src:
+        url('./font/alhambra/ALHAMBRA.TTF?v=20261003') format('truetype'),
+        url('./font/alhambra/ALHAD___.TTF?v=20261003') format('truetype');
+      font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
