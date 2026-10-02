@@ -410,31 +410,54 @@ function getDataFromSheet() {
     Logger.log('LOKASI API = ' + JSON.stringify(result.Lokasi));
 
     // =====================================================
-    // HEADER MASJID
-    // NAMA dibaca LANGSUNG dari panels!C12.
-    // Field lain tetap mengikuti pasangan label B13:C16.
+    // HEADER MASJID - SUMBER LANGSUNG SPREADSHEET
+    // Field dikenali berdasarkan label kolom B pada sheet panels.
+    // Nilai kosong selalu dikembalikan sebagai ''.
+    // Tidak menyentuh scheduler/audio.
     // =====================================================
     const headerSheet = ss.getSheetByName('panels');
     if (headerSheet) {
-      result.Nama = String(
-        headerSheet.getRange('C12').getDisplayValue() || ''
-      ).trim();
-
-      const headerValues = headerSheet.getRange('B13:C16').getDisplayValues();
+      const headerValues = headerSheet.getRange('B12:C30').getDisplayValues();
       const headerData = {};
 
       headerValues.forEach(function(row) {
         const key = String(row[0] || '').trim().toUpperCase();
         const value = String(row[1] || '').trim();
-        if (key) headerData[key] = value;
+
+        if (
+          key === 'NAMA' ||
+          key === 'ALAMAT' ||
+          key === 'KOTA' ||
+          key === 'NO HP' ||
+          key === 'SLOGAN' ||
+          key === 'WEBSITE' ||
+          key === 'INFO LAINNYA'
+        ) {
+          headerData[key] = value;
+        }
       });
+
+      // NAMA tetap kompatibel dengan panels!C12.
+      result.Nama =
+        headerData.NAMA ||
+        String(headerSheet.getRange('C12').getDisplayValue() || '').trim();
 
       result.Alamat = headerData.ALAMAT || '';
       result.Kota = headerData.KOTA || '';
       result['No. Telp'] = headerData['NO HP'] || '';
       result.Slogan = headerData.SLOGAN || '';
+      result.Website = headerData.WEBSITE || '';
+      result.InfoLainnya = headerData['INFO LAINNYA'] || '';
 
-      Logger.log('PANELS HEADER: Nama=panels!C12 = ' + result.Nama);
+      Logger.log('PANELS HEADER = ' + JSON.stringify({
+        Nama: result.Nama,
+        Alamat: result.Alamat,
+        Kota: result.Kota,
+        NoTelp: result['No. Telp'],
+        Website: result.Website,
+        InfoLainnya: result.InfoLainnya,
+        Slogan: result.Slogan
+      }));
     }
 
     // =====================================================
@@ -1244,7 +1267,7 @@ function getDataFromSheet() {
 
       if (headerSheetFinal) {
         const headerValuesFinal =
-          headerSheetFinal.getRange('B12:C16').getDisplayValues();
+          headerSheetFinal.getRange('B12:C30').getDisplayValues();
 
         const headerFinal = {};
 
@@ -1252,15 +1275,25 @@ function getDataFromSheet() {
           const key = String(row[0] || '').trim().toUpperCase();
           const value = String(row[1] || '').trim();
 
-          if (key) {
+          if (
+            key === 'NAMA' ||
+            key === 'ALAMAT' ||
+            key === 'KOTA' ||
+            key === 'NO HP' ||
+            key === 'SLOGAN' ||
+            key === 'WEBSITE' ||
+            key === 'INFO LAINNYA'
+          ) {
             headerFinal[key] = value;
           }
         });
 
-        result.Nama = headerFinal.NAMA || '';
+        result.Nama = headerFinal.NAMA || result.Nama || '';
         result.Alamat = headerFinal.ALAMAT || '';
         result.Kota = headerFinal.KOTA || '';
         result['No. Telp'] = headerFinal['NO HP'] || '';
+        result.Website = headerFinal.WEBSITE || '';
+        result.InfoLainnya = headerFinal['INFO LAINNYA'] || '';
         result.Slogan = headerFinal.SLOGAN || '';
 
         Logger.log(
@@ -1295,6 +1328,8 @@ function getDataFromSheet() {
         Alamat: result.Alamat,
         Kota: result.Kota,
         'No. Telp': result['No. Telp'],
+        Website: result.Website,
+        InfoLainnya: result.InfoLainnya,
         Slogan: result.Slogan
       })
     );
