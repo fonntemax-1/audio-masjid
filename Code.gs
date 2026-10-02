@@ -799,8 +799,12 @@ function getDataFromSheet() {
             );
 
 
+          // DATA SCROLL LAPORAN KEUANGAN HANYA DARI A4:B TAK TERHINGGA.
+          // A1 = judul, A2 = tanggal, A3 = pemisah/header dan TIDAK ikut scroll.
+          // Hanya kolom A dan B yang dikirim ke website.
+          // Tidak mengubah sumber judul/tanggal maupun scheduler/audio.
           for (
-            let r = 0;
+            let r = 3;
             r < data.length;
             r++
           ) {
@@ -809,7 +813,7 @@ function getDataFromSheet() {
 
             for (
               let c = 0;
-              c < data[r].length;
+              c < Math.min(2, data[r].length);
               c++
             ) {
 
