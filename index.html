@@ -6708,8 +6708,12 @@ function updateFridayPrayerDisplay() {
           if (signature === realtimePanelsFastLastSignature) return;
           realtimePanelsFastLastSignature = signature;
 
-          updatePanelKegiatanDisplay_(data.Kegiatan || {});
-          applyPanelKeuanganSourceFast_(data.PanelKeuangan || {});
+          if (typeof updatePanelKegiatanDisplay_ === 'function') {
+            updatePanelKegiatanDisplay_(data.Kegiatan || {});
+          }
+          if (typeof applyPanelKeuanganSourceFast_ === 'function') {
+            applyPanelKeuanganSourceFast_(data.PanelKeuangan || {});
+          }
         })
         .catch(function(error) {
           console.warn(
@@ -6836,16 +6840,21 @@ function updateFridayPrayerDisplay() {
         updateLogoPositionResponsive_();
       }
 
-      const nomor = String(data['No. Telp'] || '').trim();
+      // Header mengambil langsung panels!C13:C15:
+      // C13 = ALAMAT, C14 = KOTA, C15 = NO. TELP.
+      // Format tampilan: ALAMAT - KOTA | NO. TELP.
       const alamat = String(data.Alamat || '').trim();
       const kota = String(data.Kota || '').trim();
+      const nomor = String(data['No. Telp'] || '').trim();
       const alamatEl = document.getElementById('alamat_masjid');
       if (alamatEl) {
-        const hasHeaderData = alamat || kota || nomor;
-        alamatEl.innerHTML = hasHeaderData
-          ? (alamat + ' - ' + kota + ' | ' + nomor)
-          : '';
-        alamatEl.style.display = hasHeaderData ? '' : 'none';
+        const parts = [];
+        if (alamat) parts.push(alamat);
+        if (kota) parts.push(kota);
+        const left = parts.join(' - ');
+        const text = left && nomor ? left + ' | ' + nomor : (left || nomor);
+        alamatEl.textContent = text;
+        alamatEl.style.display = text ? '' : 'none';
       }
 
       if (data.Kegiatan && Array.isArray(data.Kegiatan.values)) {
