@@ -3821,6 +3821,20 @@ function updateFridayPrayerDisplay() {
     }
 
 
+    function applyInfaqText_(text1, text2) {
+      const el = document.getElementById('infaq-left-text');
+      if (!el) return;
+      const values = [text1, text2].map(function(v) {
+        return String(v == null ? '' : v).trim();
+      }).filter(Boolean);
+      el.innerHTML = values.map(function(v) {
+        const safe = v.replace(/[&<>]/g, function(ch) {
+          return {'&':'&amp;','<':'&lt;','>':'&gt;'}[ch];
+        });
+        return '<div>' + safe + '</div>';
+      }).join('');
+    }
+
     // =========================================================
     // REALTIME KHUSUS PANEL - KEUANGAN / QUR'BAN / PETUGAS SHOLAT
     // Satu request untuk tiga panel, setiap 1 detik.
