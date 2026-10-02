@@ -2320,21 +2320,48 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       0 0 0.20vh rgba(210,62,72,0.28) !important;
   }
 
-
-/* CLOCK RIGHT ALIGNMENT - reference screenshot */
+/* CLOCK COMPOSITION — RIGHT ALIGNED */
 .clock-overlay {
+  width: 16vw;
+  max-width: 220px;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
   align-items: flex-end !important;
+  gap: 1vh;
 }
 
 .clock-overlay .countdown-box,
-.clock-overlay .digital-clock-box,
-.clock-overlay .infaq-panel {
+.clock-overlay .digital-clock-box {
+  width: 100%;
+  flex: 0 0 auto;
   margin-left: auto !important;
   margin-right: 0 !important;
 }
 
 .clock-overlay .analog-clock {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
   align-self: flex-end !important;
+  flex: 0 0 auto;
   margin-left: auto !important;
   margin-right: 0 !important;
+  width: 14vw;
+  height: 14vw;
+  max-width: 190px;
+  max-height: 190px;
+  min-width: 105px;
+  min-height: 105px;
+}
+
+.clock-overlay .digital-clock-box {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.clock-overlay .digital-time,
+.clock-overlay .tz-text {
+  text-align: center;
 }
