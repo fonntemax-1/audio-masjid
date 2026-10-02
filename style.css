@@ -2654,3 +2654,31 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 .center-panel {
   box-sizing: border-box !important;
 }
+
+
+/* FIX FULLSCREEN: semua frame kanan harus utuh */
+/* Fullscreen memakai width:100vw + padding + border. Tanpa border-box,
+   total lebar melebihi viewport dan sisi kanan laporan/petugas terklip. */
+body,
+.screen-container,
+.main-body,
+.right-sidebar,
+.right-sidebar .panel-box {
+  box-sizing: border-box !important;
+}
+.screen-container {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+.main-body {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.right-sidebar {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+.right-sidebar .panel-box {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
