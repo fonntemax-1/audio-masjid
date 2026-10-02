@@ -801,10 +801,19 @@ function getDataFromSheet() {
             keuanganTanggalRaw !== undefined
           ) {
 
-            result.KeuanganTanggal =
+            // A2 kadang tersimpan sebagai TEXT, misalnya
+            // "02 Oktober 2026". Normalisasi tanggal di depan
+            // agar tetap menjadi "2 Oktober 2026".
+            const tanggalText =
               keuanganTanggalRaw
                 .toString()
                 .trim();
+
+            result.KeuanganTanggal =
+              tanggalText.replace(
+                /^(0+)(\\d{1,2})(\\s+)/,
+                '$2$3'
+              );
 
           } else {
 
