@@ -7728,7 +7728,9 @@ function updateFridayPrayerDisplay() {
           row.style.textTransform = 'uppercase';
           row.style.fontSize = 'clamp(0.95rem, 2.15cqw, 1.55rem)';
           row.style.fontWeight = '800';
+          // Nama petugas menggunakan ukuran font yang sama dengan label.
           valueEl.textContent = item.value;
+          valueEl.style.fontSize = 'clamp(0.95rem, 2.15cqw, 1.55rem)';
           row.parentElement.style.display = 'flex';
         } else {
           row.textContent = '';
