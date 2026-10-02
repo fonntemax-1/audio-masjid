@@ -7833,6 +7833,8 @@ function updateFridayPrayerDisplay() {
     let prayerScheduleRetryTimer = null;
     let prayerScheduleRetryCount = 0;
     let prayerGitHubCacheRequestInFlight = false;
+    let prayerGitHubCacheLastAttemptMs = 0;
+    const PRAYER_GITHUB_CACHE_RETRY_MS = 60000;
 
     function fetchPrayerSchedule() {
 
@@ -8142,7 +8144,19 @@ function updateFridayPrayerDisplay() {
     }
 
 
-    function loadGitHubPrayerCache() {
+    function loadGitHubPrayerCache(force) {
+
+      const nowMs = Date.now();
+      if (!force && prayerGitHubCacheRequestInFlight) {
+        return Promise.resolve(false);
+      }
+      if (!force && prayerGitHubCacheLastAttemptMs &&
+          nowMs - prayerGitHubCacheLastAttemptMs < PRAYER_GITHUB_CACHE_RETRY_MS) {
+        return Promise.resolve(false);
+      }
+
+      prayerGitHubCacheRequestInFlight = true;
+      prayerGitHubCacheLastAttemptMs = nowMs;
 
       const url =
         window.location.origin +
