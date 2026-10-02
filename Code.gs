@@ -607,6 +607,7 @@ function getDataFromSheet() {
 
     result.Keuangan = [];
     result.KeuanganTanggal = '';
+    result.KeuanganJudul = '';
 
     // =====================================================
     // INFAQ & SHADAQAH
@@ -771,13 +772,19 @@ function getDataFromSheet() {
           // RESET DATA KEUANGAN
           result.Keuangan = [];
 
+          // Judul laporan langsung dari Keuangan!A1, tanpa hardcode.
+          result.KeuanganJudul =
+            String(
+              sheet.getRange('A1').getDisplayValue() || ''
+            ).trim();
+
           // ---------------------------------------------------
-          // AMBIL TANGGAL LAPORAN DARI KEUANGAN!E1
+          // JUDUL + TANGGAL LAPORAN LANGSUNG DARI SHEET KEUANGAN
           // ---------------------------------------------------
 
           const keuanganTanggalRaw =
             sheet
-              .getRange('E1')
+              .getRange('A2')
               .getValue();
 
           if (
