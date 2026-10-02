@@ -2571,6 +2571,18 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
   line-height: 1.1;
   white-space: normal;
 }
+.infaq-left-text {
+  margin-top: .18vh;
+  color: #fff;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: clamp(.42rem, .62vw, .62rem);
+  line-height: 1.12;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.infaq-left-text div { margin: 0; }
 .infaq-left-content {
   display: flex;
   justify-content: center;
@@ -2591,6 +2603,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
     width: 22vw !important;
   }
   .infaq-left-title { font-size: clamp(.55rem, 2.4vw, .8rem); }
+  .infaq-left-text { font-size: clamp(.4rem, 1.8vw, .62rem); }
   .infaq-left-content img { width: min(16vw, 58px); max-width: 100%; }
 }
 
