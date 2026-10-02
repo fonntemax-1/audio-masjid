@@ -3346,11 +3346,15 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         let finished = false;
         let timeoutId = null;
 
-        function cleanup() {
-          try {
-            delete window[callbackName];
-          } catch (e) {
-            window[callbackName] = undefined;
+        let lateCallbackCleanupTimer = null;
+
+        function cleanup(removeCallback) {
+          if (removeCallback) {
+            try {
+              delete window[callbackName];
+            } catch (e) {
+              window[callbackName] = undefined;
+            }
           }
 
           if (script.parentNode) {
@@ -3360,12 +3364,29 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           if (timeoutId) {
             clearTimeout(timeoutId);
           }
+
+          if (lateCallbackCleanupTimer) {
+            clearTimeout(lateCallbackCleanupTimer);
+            lateCallbackCleanupTimer = null;
+          }
         }
 
         window[callbackName] = function(payload) {
-          if (finished) return;
+          // Jika respons JSONP datang setelah timeout, jangan sampai
+          // browser memanggil callback yang sudah dihapus. Callback
+          // sengaja dipertahankan sementara setelah timeout dan dibuang
+          // setelah respons terlambat masuk atau grace period berakhir.
+          if (finished) {
+            try {
+              delete window[callbackName];
+            } catch (e) {
+              window[callbackName] = undefined;
+            }
+            return;
+          }
+
           finished = true;
-          cleanup();
+          cleanup(true);
 
           if (!payload || payload.success !== true) {
             reject(new Error(
@@ -3382,7 +3403,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
         script.onerror = function() {
           if (finished) return;
           finished = true;
-          cleanup();
+          cleanup(true);
           reject(new Error(
             'Gagal memuat Apps Script API.'
           ));
@@ -3402,12 +3423,21 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           if (finished) return;
           finished = true;
 
-          // Timeout harus melakukan cleanup penuh. Callback JSONP
-          // yang dibiarkan di window akan mempertahankan closure Promise
-          // dan referensi request lebih lama dari yang diperlukan.
-          // Respons Apps Script yang datang setelah timeout diabaikan
-          // karena callback sudah dihapus dan request dianggap selesai.
-          cleanup();
+          // Apps Script dapat mengirim respons setelah timeout lokal.
+          // Jangan hapus callback JSONP seketika: respons terlambat
+          // akan memanggil callback yang masih hidup dan langsung
+          // membersihkan dirinya sendiri. Script tag tetap dibuang agar
+          // DOM tidak menumpuk.
+          cleanup(false);
+
+          lateCallbackCleanupTimer = setTimeout(function() {
+            try {
+              delete window[callbackName];
+            } catch (e) {
+              window[callbackName] = undefined;
+            }
+            lateCallbackCleanupTimer = null;
+          }, 60000);
 
           reject(new Error(
             'Timeout menghubungi Apps Script API.'
@@ -12484,6 +12514,18 @@ function updateFridayPrayerDisplay() {
           i++
         ) {
           const item = items[i];
+
+          // SIRINE setelah IQOMAH tidak boleh pernah dijadwalkan.
+          // Beberapa konfigurasi Sheet lama masih memiliki SIRINE
+          // tambahan di bagian akhir sequence. Jangan masukkan event
+          // tersebut ke computed schedule.
+          if (item.event === 'sirine') {
+            console.warn(
+              'AUDIO SUBUH RAMADHAN: SIRINE setelah ADZAN/IQOMAH diabaikan.'
+            );
+            continue;
+          }
+
           const previous = items[i - 1];
 
           cursorAfterAdzan += getSystemGapSeconds(
