@@ -2630,3 +2630,27 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
 @media (max-width: 700px) {
   .infaq-left-text { font-size: clamp(.42rem, 1.7vw, .6rem); }
 }
+
+
+/* FIX FULLSCREEN: jangan potong sisi kanan frame countdown/jam */
+/* Pada fullscreen, clock-overlay sebelumnya memakai overflow:hidden.
+   Countdown memiliki width:100% + padding + border sehingga lebar nyata
+   melebihi kolom dan sisi kanan frame terklip. */
+.clock-overlay {
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+.clock-overlay .countdown-box,
+.clock-overlay .analog-clock,
+.clock-overlay .digital-clock-box {
+  box-sizing: border-box !important;
+}
+.clock-overlay .countdown-box {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Pastikan garis/frame tetap berada di dalam area tengah pada fullscreen. */
+.center-panel {
+  box-sizing: border-box !important;
+}
