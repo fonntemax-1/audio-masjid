@@ -5130,7 +5130,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
           !activeAudio.ended
         ) {
 
-          state.processing = true;
+          // Event ini sudah sedang diputar. Lepaskan lock processing
+          // agar callback ended / wake timer berikutnya dapat melanjutkan
+          // antrean. Sebelumnya flag tetap TRUE di sini dan dapat membuat
+          // antrean audio terlihat macet.
+          state.processing = false;
           return;
 
         }
@@ -6699,7 +6703,7 @@ function updateFridayPrayerDisplay() {
 
     function startFastPanelKeuanganPolling_() {
       // Perubahan Spreadsheet panels!C26 / KEUANGAN / QURBAN
-      // harus segera tercermin di web. Polling 1 detik.
+      // harus segera tercermin di web. Polling ringan 2 detik.
       // Tetap memakai request-in-flight agar tidak menumpuk request GAS.
       pollPanelKeuanganFast_();
       setInterval(pollPanelKeuanganFast_, 2000);
@@ -12880,24 +12884,6 @@ function updateFridayPrayerDisplay() {
             !alreadyPlayedInMemory &&
             hasAudioEventPlayed(key);
 
-          console.log(
-            'AUDIO CATCH-UP CHECK:',
-            prayerName,
-            eventName,
-            'targetSec=',
-            targetSec,
-            'endSec=',
-            endSec,
-            'nowSec=',
-            nowSeconds,
-            'alreadyQueued=',
-            alreadyQueued,
-            'playedInMemory=',
-            alreadyPlayedInMemory,
-            'persistentPlayed=',
-            persistentPlayed
-          );
-
           // Marker localStorage dari reload sebelumnya tidak boleh
           // menghalangi event yang SEDANG AKTIF. Tetapi event yang sudah
           // dimainkan pada sesi halaman ini tetap tidak boleh di-replay.
@@ -14573,16 +14559,6 @@ function setCountdownBlackMode(enabled) {
         Number(wita.minute) * 60 +
         Number(wita.second);
 
-      // Kontrol YouTube harus dievaluasi pada tick countdown yang sama
-      // dengan waktu audio. Tanpa pemanggilan ini, fungsi AUTO memang
-      // tersedia tetapi tidak pernah mengevaluasi saat Qiroah dimulai.
-      // Ini hanya mengubah MUTE/UNMUTE YouTube; tidak menyentuh scheduler
-      // audio, durasi, urutan, GAP, atau playback audio yang sedang jalan.
-      updateYouTubeAudioStop(
-        nowSeconds,
-        nowDate
-      );
-
       const rawPrayers = [
 
         {
@@ -14820,27 +14796,6 @@ function setCountdownBlackMode(enabled) {
       }
 
       processAudioQueue();
-
-      // Pada tick biasa, kontrol YouTube sudah dijalankan di awal
-      // updatePrayerCountdown(). Jalankan pemeriksaan kedua hanya ketika
-      // schedule baru saja dibangun, karena pemeriksaan pertama dapat
-      // terjadi sebelum metadata/schedule tersedia.
-      if (!audioScheduleWasReady) {
-        try {
-          updateYouTubeAudioStop(
-            nowSeconds,
-            nowDate
-          );
-        } catch (youtubeError) {
-          console.error(
-            'YOUTUBE AUTO TICK ERROR:',
-            youtubeError
-          );
-        }
-      }
-
-      // YouTube AUTO hanya diperiksa saat schedule audio siap.
-      // Tidak ada kontrol YouTube dari countdown/audio scheduler.
 
       // =========================================================
       // STYLE KHUSUS COUNTDOWN
@@ -16461,10 +16416,17 @@ function setCountdownBlackMode(enabled) {
       30000
     );
 
-    // Petugas Sholat, YouTube G20, C22, theme, C2, kegiatan, dan event
-    // disinkronkan oleh realtime display config.
-    // Hanya panel Keuangan/Qur'ban yang tetap memakai polling khusus 1 detik.
+    // Petugas Sholat, theme, header, kegiatan, event, YouTube, dan C22
+    // disinkronkan lewat jalur polling ringan terpisah.
     startFastPanelKeuanganPolling_();
+
+    // Kontrol YouTube G20 dipisahkan dari tick countdown 1 detik.
+    // Ini mencegah evaluasi iframe/jadwal YouTube ikut membebani jalur
+    // jam + countdown. Timeline audio/scheduler tidak diubah.
+    startFastYouTubeControlPolling_();
+
+    // C22 juga disinkronkan lewat jalur ringan terpisah.
+    startFastIqomahBlackModePolling_();
 
     // panels!C2 tetap diperiksa terpisah, tetapi tidak lagi ikut setiap
     // getDataFromSheet(). 30 detik cukup cepat untuk perubahan AUTO/OFF
