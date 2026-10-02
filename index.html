@@ -7900,6 +7900,48 @@ function updateFridayPrayerDisplay() {
             prayerResult
           );
 
+          // Kompatibilitas dengan deployment Apps Script yang sudah
+          // mendapatkan jadwal lengkap tetapi masih mengirim success:false
+          // beserta jadwalDebug. Jika keenam waktu valid, gunakan data itu.
+          if (
+            prayerResult &&
+            prayerResult.success !== true &&
+            prayerResult.jadwalDebug &&
+            typeof prayerResult.jadwalDebug === 'object'
+          ) {
+            const debugSchedule = prayerResult.jadwalDebug;
+            const requiredPrayerKeys = [
+              'subuh',
+              'terbit',
+              'dzuhur',
+              'ashar',
+              'maghrib',
+              'isya'
+            ];
+
+            const debugScheduleReady =
+              requiredPrayerKeys.every(function(key) {
+                return /^([01]?\d|2[0-3]):[0-5]\d$/.test(
+                  String(debugSchedule[key] || '').trim()
+                );
+              });
+
+            if (debugScheduleReady) {
+              prayerResult = Object.assign(
+                {},
+                prayerResult,
+                {
+                  success: true,
+                  jadwal: debugSchedule
+                }
+              );
+
+              console.warn(
+                'JADWAL SHOLAT: success:false tetapi jadwalDebug lengkap; dipakai sebagai fallback.'
+              );
+            }
+          }
+
           if (
             !prayerResult ||
             prayerResult.success !== true ||
@@ -12056,7 +12098,14 @@ function setCountdownBlackMode(enabled) {
                 'COUNTDOWN: cache GitHub/local belum tersedia; refresh API di background.'
               );
 
-              fetchPrayerSchedule();
+              // Jangan membuat request API baru setiap tick countdown.
+              // fetchPrayerSchedule() sendiri menjadwalkan retry bertahap.
+              if (
+                !prayerScheduleRequestInFlight &&
+                !prayerScheduleRetryTimer
+              ) {
+                fetchPrayerSchedule();
+              }
             })
             .catch(function(error) {
               prayerGitHubCacheRequestInFlight = false;
@@ -12070,7 +12119,13 @@ function setCountdownBlackMode(enabled) {
                 return updatePrayerCountdown();
               }
 
-              fetchPrayerSchedule();
+              // Retry API tetap dikendalikan oleh timer backoff.
+              if (
+                !prayerScheduleRequestInFlight &&
+                !prayerScheduleRetryTimer
+              ) {
+                fetchPrayerSchedule();
+              }
             });
         }
 
