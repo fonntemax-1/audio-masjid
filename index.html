@@ -5708,6 +5708,22 @@ function updateFridayPrayerDisplay() {
 
 
     // Nama fungsi dipertahankan agar kode lama tetap kompatibel.
+    // Waktu saat ini dalam detik sejak 00:00:00 pada timezone display.
+    // Dipakai oleh Event Banner dan countdown agar seluruh jalur waktu
+    // menggunakan sumber waktu yang sama dengan jam digital/kartu sholat.
+    function getCurrentTimeSeconds() {
+
+      const wita = getWitaTime();
+
+      return (
+        Number(wita.hour || 0) * 3600 +
+        Number(wita.minute || 0) * 60 +
+        Number(wita.second || 0)
+      );
+
+    }
+
+
     function getWitaTime() {
 
       // Formatter Intl cukup mahal jika dibuat ulang setiap detik.
