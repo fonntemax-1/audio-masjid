@@ -1,3 +1,11 @@
+@font-face {
+      font-family: 'AlhambraC12';
+      src: url('./font/alhambra/ALHAMBRA.TTF') format('truetype');
+      font-weight: 400 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
 * {
       box-sizing: border-box;
       margin: 0;
@@ -263,7 +271,7 @@
 
 .header-center .latin-name {
   color: #ffcc00;
-  font-family: 'ALHAMBRA', serif;
+  font-family: 'AlhambraC12', serif;
   font-size: clamp(1.85rem, 3.0vh, 3.8rem);
   line-height: 1;
   font-weight: 700;
