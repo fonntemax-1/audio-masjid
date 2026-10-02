@@ -284,16 +284,21 @@
             <div class="keuangan-content" id="keuangan-content"></div>
           </div>
         </div>
-        <div class="panel-box">
-          <!-- PETUGAS SHOLAT diisi setelah data PANELS!C28:C32 berhasil dimuat. -->
-          <div class="panel-title" id="petugas-title"></div>
-
-          <div class="khotbah-list" id="petugas-sholat-list" style="display:none;">
-            <div class="khotbah-item"><span class="khotbah-role" id="k-label-1"></span><span class="khotbah-name" id="k-value-1"></span></div>
-            <div class="khotbah-item"><span class="khotbah-role" id="k-label-2"></span><span class="khotbah-name" id="k-value-2"></span></div>
-            <div class="khotbah-item"><span class="khotbah-role" id="k-label-3"></span><span class="khotbah-name" id="k-value-3"></span></div>
-            <div class="khotbah-item"><span class="khotbah-role" id="k-label-4"></span><span class="khotbah-name" id="k-value-4"></span></div>
+        <div class="panel-box petugas-qris-panel" id="petugas-qris-panel">
+          <div class="petugas-view petugas-view-sholat" id="petugas-view-sholat">
+            <!-- PETUGAS SHOLAT diisi setelah data PANELS!C28:C32 berhasil dimuat. -->
+            <div class="panel-title" id="petugas-title"></div>
+            <div class="khotbah-list" id="petugas-sholat-list" style="display:none;">
+              <div class="khotbah-item"><span class="khotbah-role" id="k-label-1"></span><span class="khotbah-name" id="k-value-1"></span></div>
+              <div class="khotbah-item"><span class="khotbah-role" id="k-label-2"></span><span class="khotbah-name" id="k-value-2"></span></div>
+              <div class="khotbah-item"><span class="khotbah-role" id="k-label-3"></span><span class="khotbah-name" id="k-value-3"></span></div>
+            </div>
           </div>
+          <div class="petugas-view petugas-view-qris" id="petugas-view-qris" aria-hidden="true">
+            <div class="panel-title">INFAQ &amp; SHADAQAH</div>
+            <img class="petugas-qris-image" src="./image/QRIS.jpeg" alt="QRIS Infaq dan Shadaqah" loading="lazy" decoding="async">
+          </div>
+          <div class="petugas-qris-flash" id="petugas-qris-flash" aria-hidden="true"></div>
         </div>
       </div>
     </div>
@@ -14038,6 +14043,60 @@ function setCountdownBlackMode(enabled) {
     );
 
   </script>
+
+<script>
+(function(){
+  var intervalMs = 12000;
+  var visibleMs = 6000;
+  var flashMs = 320;
+  var panel, sholat, qris, flash, timer;
+
+  function showPetugas_(){
+    if(!panel||!sholat||!qris) return;
+    qris.classList.remove('is-visible');
+    qris.setAttribute('aria-hidden','true');
+    sholat.classList.add('is-visible');
+    sholat.setAttribute('aria-hidden','false');
+  }
+  function showQris_(){
+    if(!panel||!sholat||!qris) return;
+    flash.classList.add('is-flashing');
+    setTimeout(function(){
+      sholat.classList.remove('is-visible');
+      sholat.setAttribute('aria-hidden','true');
+      qris.classList.add('is-visible');
+      qris.setAttribute('aria-hidden','false');
+      setTimeout(function(){ flash.classList.remove('is-flashing'); }, Math.max(0, flashMs-40));
+    }, flashMs);
+  }
+  function cycle_(){
+    if(document.hidden) return;
+    showQris_();
+    clearTimeout(timer);
+    timer=setTimeout(function(){
+      if(document.hidden) return;
+      flash.classList.add('is-flashing');
+      setTimeout(function(){
+        showPetugas_();
+        flash.classList.remove('is-flashing');
+        timer=setTimeout(cycle_, visibleMs);
+      }, flashMs);
+    }, visibleMs);
+  }
+  function init_(){
+    panel=document.getElementById('petugas-qris-panel');
+    sholat=document.getElementById('petugas-view-sholat');
+    qris=document.getElementById('petugas-view-qris');
+    flash=document.getElementById('petugas-qris-flash');
+    if(!panel||!sholat||!qris||!flash) return;
+    showPetugas_();
+    clearTimeout(timer);
+    timer=setTimeout(cycle_, intervalMs);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init_,{once:true});
+  else init_();
+})();
+</script>
 
 </body>
 </html>
