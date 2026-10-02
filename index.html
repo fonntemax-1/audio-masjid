@@ -8788,7 +8788,10 @@ function updateFridayPrayerDisplay() {
 
       }
 
-      updateEventCountdown();
+      // Event countdown tidak boleh berada di jalur jam 1 detik.
+      // Jika konfigurasi event/cache sedang berat, jalur ini dapat
+      // menahan updateClock dan membuat jam terlihat hang.
+      // Event countdown diperbarui oleh timer terpisah di bawah.
 
     }
 
@@ -16399,6 +16402,17 @@ function setCountdownBlackMode(enabled) {
         console.warn('REALTIME COUNTDOWN ERROR:', prayerTickError);
       }
     }, 1000);
+
+    // Event countdown hanya berubah berdasarkan hari/slot 5 menit,
+    // bukan setiap detik. Pisahkan dari ticker jam agar pekerjaan event
+    // tidak pernah menahan analog/digital clock.
+    setInterval(function() {
+      try {
+        updateEventCountdown();
+      } catch (eventCountdownError) {
+        console.warn('EVENT COUNTDOWN ERROR:', eventCountdownError);
+      }
+    }, 60000);
 
     // =========================================================
     // AUDIO CATCH-UP LIVE MONITOR
