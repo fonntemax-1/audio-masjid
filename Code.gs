@@ -1072,7 +1072,7 @@ function getDataFromSheet() {
       const selectedSheet = ss.getSheets().find(function(candidate) {
         const key = String(candidate.getName() || '')
           .toUpperCase()
-          .replace(/[\\s’‘'\`]/g, '');
+          .replace(/[\s’‘'\`]/g, '');
         return key === selectedKey;
       });
 
