@@ -5925,9 +5925,21 @@ function updateFridayPrayerDisplay() {
 
       // Setelah iqomah selesai, countdown dapat masuk fase
       // "WAKTU SHOLAT". Fase ini juga harus mengunci banner khusus.
+      // Setelah IQOMAH selesai, countdown utama memakai format
+      // "WAKTU" + timer nama sholat (contoh: WAKTU / MAGHRIB).
+      // Ini adalah state yang sama dengan fase "WAKTU SHOLAT"
+      // sampai tepat batas +15 menit setelah IQOMAH.
+      // Banner WAJIB mengikuti state ini agar tidak selesai lebih dulu.
+      const isWaktuPrayerState =
+        stateTitleUpper === 'WAKTU' &&
+        ['SUBUH','DZUHUR','ASHAR','MAGHRIB','ISYA',"JUM'AT"].indexOf(
+          String(state.timer || '').trim().toUpperCase()
+        ) >= 0;
+
       const isWaktuSholatState =
         stateTitleUpper === 'WAKTU SHOLAT' ||
-        stateTitleUpper.indexOf('WAKTU SHOLAT ') === 0;
+        stateTitleUpper.indexOf('WAKTU SHOLAT ') === 0 ||
+        isWaktuPrayerState;
 
       const isPrayerState =
         prayerStateTitles.indexOf(stateTitleUpper) >= 0 ||
