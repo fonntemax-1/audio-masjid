@@ -6191,6 +6191,23 @@ function updateFridayPrayerDisplay() {
         nextOverride ===
         eventPrayerOverrideText
       ) {
+        // Guard: walaupun nilai override tidak berubah, DOM bisa saja
+        // sempat ditimpa polling Event Sheet. Pulihkan banner khusus
+        // tanpa me-reset animasi bila teksnya masih sama.
+        if (nextOverride) {
+          element.classList.add('event-prayer-override');
+          if (element.innerText !== nextOverride) {
+            element.innerText = nextOverride;
+            previousEventText = '';
+            requestAnimationFrame(function() {
+              startEventRunning();
+            });
+          } else if (!eventRunningAnimation) {
+            requestAnimationFrame(function() {
+              startEventRunning();
+            });
+          }
+        }
         return;
       }
 
