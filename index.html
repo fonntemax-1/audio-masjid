@@ -2910,8 +2910,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
       <div class="header-center">
     <div class="latin-name" id="nama_masjid"></div>
-        <div class="sub" id="alamat_masjid">Alamat / Kontak / Website / Info Lainnya</div>
-        <div class="slogan" id="slogan_masjid">Slogan / Info Lainnya</div>
+        <div class="sub" id="alamat_masjid"></div>
+        <div class="slogan" id="slogan_masjid" style="display:none"></div>
       </div>
 
       <div class="header-right">
@@ -7087,73 +7087,60 @@ function updateFridayPrayerDisplay() {
         );
       }
 
-      const nomorTelp =
+      // =======================================================
+      // HEADER MASJID - 100% DARI SPREADSHEET
+      // Tidak ada placeholder/default text.
+      // Field kosong => elemen dikosongkan/dihilangkan.
+      // =======================================================
+      const nomorTelp = String(
         data['No. Telp'] ||
         data.Telp ||
         data.No_Telp ||
-        '';
+        ''
+      ).trim();
 
-      // Header diambil dari panels!B12:C16 melalui Code.gs:
-      // NAMA, ALAMAT, KOTA, NO HP, SLOGAN.
-      // Kota ditampilkan bersama alamat dan nomor HP.
-      let infoAlamat = [];
+      const alamat = String(data.Alamat || '').trim();
+      const kota = String(data.Kota || '').trim();
+      const website = String(data.Website || '').trim();
+      const infoLainnya = String(
+        data.InfoLainnya ||
+        data['Info Lainnya'] ||
+        ''
+      ).trim();
+      const slogan = String(data.Slogan || '').trim();
 
-      if (data.Alamat) {
-        infoAlamat.push(
-          String(data.Alamat)
-        );
-      }
-
-      if (data.Kota) {
-        infoAlamat.push(
-          String(data.Kota)
-        );
-      }
-
+      const alamatParts = [];
+      if (alamat) alamatParts.push(alamat);
+      if (kota) alamatParts.push(kota);
       if (nomorTelp) {
-        infoAlamat.push(
-          '<span class="wa-contact">' +
-          '<span>' +
-          String(nomorTelp) +
-          '</span>' +
-          '</span>'
+        alamatParts.push(
+          '<span class="wa-contact"><span>' +
+          nomorTelp +
+          '</span></span>'
         );
       }
+      if (website) alamatParts.push(website);
+      if (infoLainnya) alamatParts.push(infoLainnya);
 
-      if (
-        infoAlamat.length > 0
-      ) {
+      const alamatElement =
+        document.getElementById('alamat_masjid');
 
-        const element =
-          document.getElementById(
-            'alamat_masjid'
-          );
-
-        if (element) {
-
-          element.innerHTML =
-            infoAlamat.length === 3
-              ? infoAlamat[0] + ' <span class="info-separator">-</span> ' + infoAlamat[1] + ' <span class="info-separator">|</span> ' + infoAlamat[2]
-              : infoAlamat.join(' <span class="info-separator">|</span> ');
-
-        }
-
+      if (alamatElement) {
+        alamatElement.innerHTML =
+          alamatParts.length
+            ? alamatParts.join(' <span class="info-separator">|</span> ')
+            : '';
+        alamatElement.style.display =
+          alamatParts.length ? '' : 'none';
       }
 
-      if (data.Slogan) {
+      const sloganElement =
+        document.getElementById('slogan_masjid');
 
-        const element =
-          document.getElementById(
-            'slogan_masjid'
-          );
-
-        if (element) {
-
-          element.innerText =
-            data.Slogan;
-
-        }
-
+      if (sloganElement) {
+        sloganElement.innerText = slogan;
+        sloganElement.style.display =
+          slogan ? '' : 'none';
       }
 
 
