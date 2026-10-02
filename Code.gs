@@ -799,83 +799,32 @@ function getDataFromSheet() {
             );
 
 
-          // DATA SCROLL LAPORAN KEUANGAN HANYA DARI A4:B TAK TERHINGGA.
-          // A1 = judul, A2 = tanggal, A3 = pemisah/header dan TIDAK ikut scroll.
+          // DATA SCROLL LAPORAN KEUANGAN: HANYA Keuangan!A4:B∞.
+          // Ambil langsung mulai baris 4 agar A1:B3 MUSTAHIL masuk payload.
+          // A1 = judul, A2 = tanggal, A3 = header/pemisah.
           // Hanya kolom A dan B yang dikirim ke website.
           // Tidak mengubah sumber judul/tanggal maupun scheduler/audio.
-          for (
-            let r = 3;
-            r < data.length;
-            r++
-          ) {
+          const keuanganLastRow = sheet.getLastRow();
 
-            const row = [];
+          if (keuanganLastRow >= 4) {
+            const keuanganRows = sheet
+              .getRange(4, 1, keuanganLastRow - 3, 2)
+              .getDisplayValues();
 
-            for (
-              let c = 0;
-              c < Math.min(2, data[r].length);
-              c++
-            ) {
+            keuanganRows.forEach(function(displayRow) {
+              const row = [
+                String(displayRow[0] == null ? '' : displayRow[0]).trim(),
+                String(displayRow[1] == null ? '' : displayRow[1]).trim()
+              ];
 
-              let value =
-                data[r][c];
+              const hasContent = row.some(function(cell) {
+                return cell !== '';
+              });
 
-              // FORMAT DATE
-              if (
-                value instanceof Date
-              ) {
-
-                value =
-                  Utilities.formatDate(
-                    value,
-                    Session.getScriptTimeZone(),
-                    'dd MMM yyyy'
-                  );
+              if (hasContent) {
+                result.Keuangan.push(row);
               }
-
-              // KONVERSI KE STRING
-              if (
-                value !== null &&
-                value !== undefined
-              ) {
-
-                value =
-                  value
-                    .toString();
-
-              } else {
-
-                value = '';
-              }
-
-              row.push(
-                value
-              );
-            }
-
-
-            // CEK BARIS MEMILIKI ISI
-            const hasContent =
-              row.some(
-                function(cell) {
-
-                  return (
-                    cell !== null &&
-                    cell !== undefined &&
-                    cell
-                      .toString()
-                      .trim() !== ''
-                  );
-
-                }
-              );
-
-            if (hasContent) {
-
-              result.Keuangan.push(
-                row
-              );
-            }
+            });
           }
 
           return;
