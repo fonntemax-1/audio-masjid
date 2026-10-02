@@ -3,19 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <title>TV Display Masjid Al Sobirin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Cinzel:wght@500;600;700;800&family=Great+Vibes&family=Montserrat:wght@400;500;600;700;800&family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css">
-  <script src="./audio.js"></script>
+  <script src="./audio.js" defer></script>
   
   <link rel="icon" type="image/png" href="./image/favicon.png">
   <!-- Preload ikon mode hitam agar tidak terlambat saat C22 AUTO aktif. -->
-  <link rel="preload" as="image" href="./image/handphone.png" fetchpriority="high">
 
   <!-- MOMENT -->
-  <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js" defer></script>
 
   <!-- MOMENT HIJRI -->
-  <script src="https://cdn.jsdelivr.net/npm/moment-hijri@3.0.0/moment-hijri.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment-hijri@3.0.0/moment-hijri.js" defer></script>
 
   
 
@@ -498,8 +499,8 @@
 
       try {
         const results = await Promise.all([
-          fetch(base + 'audio-config.json?ts=' + ts, { cache: 'no-store' }),
-          fetch(base + 'event.json?ts=' + ts, { cache: 'no-store' })
+          fetch(base + 'audio-config.json?ts=' + ts, { cache: 'force-cache' }),
+          fetch(base + 'event.json?ts=' + ts, { cache: 'force-cache' })
         ]);
 
         const audioResponse = results[0];
@@ -4028,7 +4029,7 @@ function updateFridayPrayerDisplay() {
 
     function startRealtimePanelsFast_() {
       pollRealtimePanelsFast_();
-      setInterval(pollRealtimePanelsFast_, 1000);
+      setInterval(pollRealtimePanelsFast_, 5000);
     }
 
 
@@ -4098,7 +4099,7 @@ function updateFridayPrayerDisplay() {
       // untuk perubahan kontrol YouTube.
       setInterval(
         pollYouTubeControlFast_,
-        3000
+        5000
       );
     }
 
@@ -4218,7 +4219,7 @@ function updateFridayPrayerDisplay() {
     // Polling dibuat 1 detik agar perubahan C26/C28/C29:C32/B35:B39,
     // theme, header, C22, dan kontrol tampilan terasa hampir realtime.
     // Request-in-flight tetap mencegah request bertumpuk bila GAS sedang lambat.
-    setInterval(pollRealtimeDisplayConfig_, 2000);
+    setInterval(pollRealtimeDisplayConfig_, 5000);
 
     // =========================================================
     // IQOMAH / SLEEP SCREEN CONTROL - panels!C22
@@ -13912,26 +13913,33 @@ function setCountdownBlackMode(enabled) {
         });
     }
 
-    // Stage 1: GitHub JSON disimpan sebagai cache/backup.
-    // Sumber aktif Event + Audio tetap Apps Script/Sheet sampai
-    // struktur dan sequence GitHub dinyatakan identik dengan versi stabil.
+    // STARTUP RINGAN:
+    // Jalur yang diperlukan untuk menampilkan jadwal/kartu dijalankan lebih dulu.
+    // Request sekunder ditunda agar browser segera menyelesaikan first paint.
     loadGitHubStage1Config_();
-
-    // Apps Script/panels berjalan paralel; tidak menghalangi kartu.
     fetchSheetData();
-    loadEventRunningText();
-    updateHijriDate();
 
-    // PETUGAS SHOLAT + KEUANGAN/QUR'BAN memakai satu jalur realtime khusus.
-    // Tidak mengubah scheduler/audio.
-    startRealtimePanelsFast_();
+    // Event banner dan Hijri bukan blocker untuk tampilan awal.
+    setTimeout(function() {
+      loadEventRunningText();
+      updateHijriDate();
+    }, 800);
 
-    // Sinkronisasi internet hanya informasi tambahan.
-    syncInternetTime();
+    // Panel kanan cukup disinkronkan setelah first paint.
+    // Interval tetap menjaga data realtime tanpa membebani startup.
+    setTimeout(function() {
+      startRealtimePanelsFast_();
+    }, 1500);
 
+    // Sinkronisasi waktu internet adalah data tambahan.
+    setTimeout(function() {
+      syncInternetTime();
+    }, 2500);
+
+    // Unlock audio tetap ditunda; tidak boleh menghambat first paint.
     setTimeout(
       initAudioPermission,
-      1000
+      1200
     );
 
 
