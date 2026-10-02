@@ -4457,10 +4457,10 @@ function getRealtimeDisplayConfig() {
 
     // Satu pembacaan blok untuk seluruh kontrol realtime.
     // Menghindari banyak getRange() terpisah yang membuat Apps Script lambat.
-    const grid = panels.getRange('B5:G37').getDisplayValues();
+    const grid = panels.getRange('B2:G37').getDisplayValues();
 
     const cell = function(row, col) {
-      return String((grid[row - 5] || [])[col - 2] || '').trim();
+      return String((grid[row - 2] || [])[col - 2] || '').trim();
     };
 
     const location = [cell(5,3), cell(6,3), cell(7,3), cell(8,3), cell(9,3), cell(10,3)];
