@@ -16319,6 +16319,33 @@ function setCountdownBlackMode(enabled) {
 
     installAudioInteractionUnlock();
 
+    // REALTIME TICKER HARUS DIPASANG SEBELUM SEMUA PROSES STARTUP.
+    // Jika salah satu startup/API/audio melempar error atau bekerja lama,
+    // jam tetap memiliki jalur interval sendiri. Scheduler/audio tidak diubah.
+    setInterval(function() {
+      try {
+        updateClock();
+      } catch (clockError) {
+        console.warn('REALTIME CLOCK ERROR:', clockError);
+      }
+    }, 1000);
+
+    setInterval(function() {
+      try {
+        updatePrayerCountdown();
+      } catch (prayerTickError) {
+        console.warn('REALTIME COUNTDOWN ERROR:', prayerTickError);
+      }
+    }, 1000);
+
+    setInterval(function() {
+      try {
+        updateEventCountdown();
+      } catch (eventCountdownError) {
+        console.warn('EVENT COUNTDOWN ERROR:', eventCountdownError);
+      }
+    }, 60000);
+
     // STARTUP: JANGAN menunggu internet/server untuk menampilkan kartu.
     // Lokasi terakhir + cache kartu dipakai terlebih dahulu.
     startAutoRefresh();
@@ -16381,38 +16408,7 @@ function setCountdownBlackMode(enabled) {
     );
 
 
-    // =========================================================
-    // INTERVAL
-    // =========================================================
-
-    // Timer realtime dipasang sebagai jalur ringan dan terisolasi.
-    // Error/pekerjaan scheduler tidak boleh mematikan tick jam.
-    setInterval(function() {
-      try {
-        updateClock();
-      } catch (clockError) {
-        console.warn('REALTIME CLOCK ERROR:', clockError);
-      }
-    }, 1000);
-
-    setInterval(function() {
-      try {
-        updatePrayerCountdown();
-      } catch (prayerTickError) {
-        console.warn('REALTIME COUNTDOWN ERROR:', prayerTickError);
-      }
-    }, 1000);
-
-    // Event countdown hanya berubah berdasarkan hari/slot 5 menit,
-    // bukan setiap detik. Pisahkan dari ticker jam agar pekerjaan event
-    // tidak pernah menahan analog/digital clock.
-    setInterval(function() {
-      try {
-        updateEventCountdown();
-      } catch (eventCountdownError) {
-        console.warn('EVENT COUNTDOWN ERROR:', eventCountdownError);
-      }
-    }, 60000);
+    // INTERVAL realtime sudah dipasang sebelum startup di atas.
 
     // =========================================================
     // AUDIO CATCH-UP LIVE MONITOR
