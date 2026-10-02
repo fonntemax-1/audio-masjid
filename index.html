@@ -8364,6 +8364,10 @@ function updateFridayPrayerDisplay() {
               : error
           );
           return false;
+        })
+        .then(function(result) {
+          prayerGitHubCacheRequestInFlight = false;
+          return result;
         });
 
     }
