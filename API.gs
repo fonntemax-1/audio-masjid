@@ -54,6 +54,10 @@ function handleGithubApiRequest_(params) {
         result = getPanelKeuanganSource();
         break;
 
+      case 'getRealtimePanelsFast':
+        result = getRealtimePanelsFast();
+        break;
+
       case 'getYoutubeControl':
         result = getYoutubeControl();
         break;
