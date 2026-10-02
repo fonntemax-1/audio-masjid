@@ -1,10 +1,320 @@
 {
   "version": 1,
-  "enabled": false,
-  "source": "pending-first-sync",
+  "updatedAt": "2026-10-02T11:26:38.091Z",
+  "enabled": true,
+  "source": "Google Sheets via Apps Script sync (sequence + ON/OFF only)",
   "Audio": {},
-  "AudioSchedule": {},
+  "AudioSchedule": {
+    "SUBUH_RAMADHAN": [
+      {
+        "event": "qiroah-1",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "tarhim",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "sirine",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "doa-puasa",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "tarhim",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "adzan-subuh",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "doa-adzan",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "iqomah",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "sirine",
+        "duration": 0,
+        "status": "ON"
+      }
+    ],
+    "SUBUH_BIASA": [
+      {
+        "event": "qiroah-2",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "tarhim",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "adzan-subuh",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "doa-adzan",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "iqomah",
+        "duration": 0,
+        "status": "ON"
+      }
+    ],
+    "DZUHUR": [
+      {
+        "event": "qiroah-3",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "tarhim",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "adzan-biasa",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "doa-adzan",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "iqomah",
+        "duration": 0,
+        "status": "ON"
+      }
+    ],
+    "ASHAR": [
+      {
+        "event": "qiroah-3",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "tarhim",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "adzan-biasa",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "doa-adzan",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "iqomah",
+        "duration": 0,
+        "status": "ON"
+      }
+    ],
+    "MAGHRIB_RAMADHAN": [
+      {
+        "event": "qiroah-4",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "tarhim",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "sirine",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "doa-buka",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "adzan-biasa",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "doa-adzan",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "iqomah",
+        "duration": 0,
+        "status": "ON"
+      }
+    ],
+    "MAGHRIB_BIASA": [
+      {
+        "event": "qiroah-5",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "tarhim",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "adzan-biasa",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "doa-adzan",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "iqomah",
+        "duration": 0,
+        "status": "ON"
+      }
+    ],
+    "ISYA": [
+      {
+        "event": "qiroah-4",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "tarhim",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "adzan-biasa",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "doa-adzan",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "beep",
+        "duration": 0,
+        "status": "ON"
+      },
+      {
+        "event": "iqomah",
+        "duration": 0,
+        "status": "ON"
+      }
+    ]
+  },
   "AudioDurations": {},
-  "AudioFriday": {},
-  "AudioStatus": {}
+  "AudioFriday": [
+    {
+      "event": "qiroah-4",
+      "duration": 0,
+      "status": "ON"
+    },
+    {
+      "event": "adzan-biasa",
+      "duration": 0,
+      "status": "OFF"
+    }
+  ],
+  "AudioStatus": {
+    "qiroah": "ON",
+    "tarhim": "ON",
+    "beep": "ON",
+    "adzan": "OFF",
+    "doa": "ON",
+    "iqomah": "ON",
+    "sirine": "ON"
+  }
 }
