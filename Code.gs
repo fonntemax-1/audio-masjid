@@ -442,9 +442,10 @@ function getDataFromSheet() {
         headerData.NAMA ||
         String(headerSheet.getRange('C12').getDisplayValue() || '').trim();
 
-      result.Alamat = headerData.ALAMAT || '';
-      result.Kota = headerData.KOTA || '';
-      result['No. Telp'] = headerData['NO HP'] || '';
+      // Header utama selalu mengambil langsung dari panels!C13:C15.
+      result.Alamat = String(headerSheet.getRange('C13').getDisplayValue() || '').trim();
+      result.Kota = String(headerSheet.getRange('C14').getDisplayValue() || '').trim();
+      result['No. Telp'] = String(headerSheet.getRange('C15').getDisplayValue() || '').trim();
       result.Slogan = headerData.SLOGAN || '';
       result.Website = headerData.WEBSITE || '';
       result.InfoLainnya = headerData['INFO LAINNYA'] || '';
