@@ -1860,22 +1860,28 @@
       margin-bottom: 0.5vh;
     }
 
-    /* QUR'BAN A2: sama persis dengan judul A1 */
-    #fin-sub {
+    /* QUR'BAN A2: SAMA PERSIS dengan A1 */
+    #fin-panel-box #fin-sub {
       color: #ffcc00 !important;
+      -webkit-text-fill-color: #ffcc00 !important;
+      font-family: inherit !important;
       font-size: clamp(1rem, 1.4vw, 1.5rem) !important;
       font-weight: 900 !important;
-      text-align: center;
-      margin-bottom: 0.5vh;
+      line-height: normal !important;
+      text-align: center !important;
+      margin-bottom: 0.5vh !important;
     }
 
-    /* QUR'BAN A3: sama dengan ukuran/warna tanggal PETUGAS SHOLAT */
-    #fin-extra {
-      color: #fff !important;
-      font-weight: 900 !important;
-      font-size: clamp(0.7rem, 0.9vw, 0.95rem) !important;
-      text-align: center;
-      margin-bottom: 0.5vh;
+    /* QUR'BAN A3: SAMA dengan label "Tanggal" PETUGAS SHOLAT */
+    #fin-panel-box #fin-extra {
+      color: #ffcc00 !important;
+      -webkit-text-fill-color: #ffcc00 !important;
+      font-family: inherit !important;
+      font-size: clamp(0.85rem, 4.2cqw, 1.45rem) !important;
+      font-weight: bold !important;
+      line-height: 1.15 !important;
+      text-align: center !important;
+      margin-bottom: 0.5vh !important;
     }
 
     .right-sidebar .panel-box:last-child .panel-title {
@@ -3195,7 +3201,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
       </div>
 
       <div class="right-sidebar">
-        <div class="panel-box" id="fin-panel-box">
+        <div class="panel-box" id="fin-panel-box" style="container-type:inline-size;container-name:keuangan-panel;">
           <div class="panel-title" id="fin-title">-</div>
           <div class="panel-sub" id="fin-sub">-</div>
           <div class="panel-sub fin-extra" id="fin-extra" style="display:none;">-</div>
