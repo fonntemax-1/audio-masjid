@@ -1881,7 +1881,8 @@
       font-weight: bold !important;
       line-height: 1.15 !important;
       text-align: center !important;
-      margin-bottom: 0.5vh !important;
+      /* Jarak tanggal A3 ke teks scrolling diperlebar. */
+      margin-bottom: 1.8vh !important;
     }
 
     .right-sidebar .panel-box:last-child .panel-title {
@@ -2014,6 +2015,12 @@
 
     .qurban-display .keuangan-scroll-area {
       overflow: hidden;
+    }
+
+    /* Jarak awal scrolling QURBAN dibuat lebih lega dari tanggal A3. */
+    .qurban-display .keuangan-content {
+      padding-top: 1.2vh !important;
+      box-sizing: border-box !important;
     }
 
     .keuangan-table td:last-child {
