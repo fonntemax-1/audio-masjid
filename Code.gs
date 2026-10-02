@@ -2978,6 +2978,18 @@ function getPrayerSchedule(dateString) {
       };
     }
 
+    // Beberapa deployment/API mengembalikan jadwal dengan nama field
+    // yang sedikit berbeda. Ambil juga alias umum sebelum validasi.
+    const pickPrayerField_ = function(obj, keys) {
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        if (obj && obj[key] !== undefined && obj[key] !== null && String(obj[key]).trim() !== '') {
+          return obj[key];
+        }
+      }
+      return '';
+    };
+
     const result = {
       success: true,
       kota:
@@ -3020,31 +3032,31 @@ function getPrayerSchedule(dateString) {
       jadwal: {
         imsak:
           normalizePrayerTime(
-            jadwalApi.imsak
+            pickPrayerField_(jadwalApi, ['imsak','imsakiyah'])
           ),
         subuh:
           normalizePrayerTime(
-            jadwalApi.subuh
+            pickPrayerField_(jadwalApi, ['subuh','fajr'])
           ),
         terbit:
           normalizePrayerTime(
-            jadwalApi.terbit
+            pickPrayerField_(jadwalApi, ['terbit','sunrise','syuruq'])
           ),
         dzuhur:
           normalizePrayerTime(
-            (jadwalApi.dzuhur || jadwalApi.dhuhur || jadwalApi.dhuhr)
+            pickPrayerField_(jadwalApi, ['dzuhur','dhuhur','dhuhr','zuhur'])
           ),
         ashar:
           normalizePrayerTime(
-            (jadwalApi.ashar || jadwalApi.asr)
+            pickPrayerField_(jadwalApi, ['ashar','asr'])
           ),
         maghrib:
           normalizePrayerTime(
-            (jadwalApi.maghrib || jadwalApi.magrib)
+            pickPrayerField_(jadwalApi, ['maghrib','magrib'])
           ),
         isya:
           normalizePrayerTime(
-            (jadwalApi.isya || jadwalApi.isha)
+            pickPrayerField_(jadwalApi, ['isya','isha'])
           )
       }
     };
