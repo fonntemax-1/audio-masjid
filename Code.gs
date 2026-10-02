@@ -1050,8 +1050,9 @@ function getDataFromSheet() {
     // C49 = QUR'BAN -> sheet Qurb'an
     // Hanya mengganti sumber data panel kanan.
     // Tidak menyentuh scheduler, audio, YouTube, atau data sholat.
-    // Data detail selalu mulai dari A4:B sampai baris terakhir.
-    // A1 = judul, A2 = tanggal.
+    // KEUANGAN: data detail A4:B sampai baris terakhir.
+    // QUR'BAN: A1 header, A2 nama masjid, A3 header, A4 kosong,
+    // scrolling A5:A sampai baris terakhir.
     // =====================================================
     try {
       const panelsSelectorSheet = ss.getSheetByName('panels');
@@ -1084,9 +1085,30 @@ function getDataFromSheet() {
         result.KeuanganTanggal = String(
           selectedSheet.getRange('A2').getDisplayValue() || ''
         ).replace(/^(0)(\d)(\s)/, '$2$3');
+        result.KeuanganA3 = String(
+          selectedSheet.getRange('A3').getDisplayValue() || ''
+        ).trim();
 
         const lastRow = selectedSheet.getLastRow();
-        if (lastRow >= 4) {
+
+        if (selectedKey === 'QURBAN') {
+          // QUR'BAN: A1, "MASJID " + A2, A3 adalah header tetap.
+          // A4 sengaja dilewati. Scrolling dimulai dari A5 saja.
+          if (lastRow >= 5) {
+            selectedSheet
+              .getRange(5, 1, lastRow - 4, 1)
+              .getDisplayValues()
+              .forEach(function(displayRow) {
+                const text = String(
+                  displayRow[0] == null ? '' : displayRow[0]
+                ).trim();
+
+                if (text !== '') {
+                  result.Keuangan.push([text, '']);
+                }
+              });
+          }
+        } else if (lastRow >= 4) {
           const rows = selectedSheet
             .getRange(4, 1, lastRow - 3, 2)
             .getDisplayValues();
@@ -1112,6 +1134,7 @@ function getDataFromSheet() {
         result.Keuangan = [];
         result.KeuanganJudul = '';
         result.KeuanganTanggal = '';
+        result.KeuanganA3 = '';
         Logger.log(
           'PANEL KEUANGAN: sheet untuk selector [' + rawSelector + '] tidak ditemukan.'
         );
