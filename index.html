@@ -1189,35 +1189,32 @@
       box-shadow: inset 0 0 0.35rem rgba(0,0,0,0.28);
       z-index: 1;
       pointer-events: none;
+      clip-path: circle(50%);
     }
     .header-moon.moon-new::after {
       background: transparent;
       box-shadow: none;
     }
     .header-moon.moon-waxing-crescent::after {
-      clip-path: ellipse(50% 50% at 50% 50%);
-      transform: translate(-50%, -50%) scaleX(0.42);
-      transform-origin: 0% 50%;
+      background: radial-gradient(circle at 72% 50%, transparent 0 47%, var(--theme-accent) 48%);
     }
     .header-moon.moon-first-quarter::after {
       clip-path: inset(0 50% 0 0);
     }
     .header-moon.moon-waxing-gibbous::after {
-      clip-path: inset(0 15% 0 0 round 50%);
+      background: radial-gradient(circle at 63% 50%, transparent 0 45%, var(--theme-accent) 46%);
     }
     .header-moon.moon-full::after {
-      clip-path: circle(50%);
+      background: var(--theme-accent);
     }
     .header-moon.moon-waning-gibbous::after {
-      clip-path: inset(0 0 0 15% round 50%);
+      background: radial-gradient(circle at 37% 50%, transparent 0 45%, var(--theme-accent) 46%);
     }
     .header-moon.moon-last-quarter::after {
       clip-path: inset(0 0 0 50%);
     }
     .header-moon.moon-waning-crescent::after {
-      clip-path: ellipse(50% 50% at 50% 50%);
-      transform: translate(-50%, -50%) scaleX(0.42);
-      transform-origin: 100% 50%;
+      background: radial-gradient(circle at 28% 50%, transparent 0 47%, var(--theme-accent) 48%);
     }
 
     @media (max-width: 700px) {
@@ -8274,6 +8271,9 @@ function updateFridayPrayerDisplay() {
               numElement.innerText =
                 match[1];
             }
+
+            // Sinkronkan fase bulan segera setelah tanggal Hijriah berubah.
+            updateHijriMoonPhase();
 
             if (textElement) {
               textElement.innerText =
