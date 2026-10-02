@@ -1862,8 +1862,8 @@
 
     /* KEUANGAN A1: mengikuti tampilan QUR'BAN A1 */
     #fin-panel-box #fin-title {
-      color: #ffcc00 !important;
-      -webkit-text-fill-color: #ffcc00 !important;
+      color: var(--theme-accent) !important;
+      -webkit-text-fill-color: var(--theme-accent) !important;
       font-family: inherit !important;
       font-size: clamp(1rem, 1.4vw, 1.5rem) !important;
       font-weight: 900 !important;
@@ -6641,8 +6641,8 @@ function updateFridayPrayerDisplay() {
       const finTitle = document.getElementById('fin-title');
       if (finTitle) {
         finTitle.innerText = title.trim();
-        finTitle.style.color = '#ffcc00';
-        finTitle.style.webkitTextFillColor = '#ffcc00';
+        finTitle.style.color = 'var(--theme-accent)';
+        finTitle.style.webkitTextFillColor = 'var(--theme-accent)';
         finTitle.style.fontFamily = 'inherit';
         finTitle.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
         finTitle.style.fontWeight = '900';
@@ -7459,8 +7459,8 @@ function updateFridayPrayerDisplay() {
           String(data.KeuanganJudul || '').trim();
 
         // KEUANGAN A1 = persis model visual QUR'BAN A1.
-        finTitle.style.color = '#ffcc00';
-        finTitle.style.webkitTextFillColor = '#ffcc00';
+        finTitle.style.color = 'var(--theme-accent)';
+        finTitle.style.webkitTextFillColor = 'var(--theme-accent)';
         finTitle.style.fontFamily = 'inherit';
         finTitle.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
         finTitle.style.fontWeight = '900';
