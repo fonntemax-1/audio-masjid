@@ -3937,6 +3937,135 @@ function updateFridayPrayerDisplay() {
     }
 
     // =========================================================
+    // =======================================================
+    // QUR'BAN A1:A3: ikuti FORMAT SPREADSHEET
+    // Font, ukuran, warna, alignment, wrap, dan tinggi baris
+    // diambil langsung dari QUR'BAN!A1:A3.
+    // =======================================================
+    function applyQurbanSpreadsheetHeaderStyle_(styles) {
+      const panel = document.getElementById('fin-panel-box');
+      if (!panel || !panel.classList.contains('qurban-display')) return;
+
+      const map = {
+        A1: document.getElementById('fin-title'),
+        A2: document.getElementById('fin-sub'),
+        A3: document.getElementById('fin-extra')
+      };
+
+      const toCssAlign = function(value) {
+        const key = String(value || '').trim().toUpperCase();
+        if (key === 'CENTER') return 'center';
+        if (key === 'RIGHT') return 'right';
+        return 'left';
+      };
+
+      const toCssVertical = function(value) {
+        const key = String(value || '').trim().toUpperCase();
+        if (key === 'TOP') return 'flex-start';
+        if (key === 'BOTTOM') return 'flex-end';
+        return 'center';
+      };
+
+      Object.keys(map).forEach(function(key) {
+        const el = map[key];
+        const style = styles && styles[key];
+        if (!el || !style) return;
+
+        if (style.fontFamily) {
+          el.style.setProperty(
+            'font-family',
+            '"' + String(style.fontFamily).replace(/"/g, '') + '"',
+            'important'
+          );
+        }
+        if (style.fontSizePt != null && !isNaN(Number(style.fontSizePt))) {
+          el.style.setProperty(
+            'font-size',
+            Number(style.fontSizePt) + 'pt',
+            'important'
+          );
+        }
+        if (style.fontWeight) {
+          el.style.setProperty(
+            'font-weight',
+            String(style.fontWeight),
+            'important'
+          );
+        }
+        if (style.fontStyle) {
+          el.style.setProperty(
+            'font-style',
+            String(style.fontStyle),
+            'important'
+          );
+        }
+        if (style.fontColor) {
+          el.style.setProperty(
+            'color',
+            String(style.fontColor),
+            'important'
+          );
+          el.style.setProperty(
+            '-webkit-text-fill-color',
+            String(style.fontColor),
+            'important'
+          );
+        }
+
+        el.style.setProperty(
+          'text-align',
+          toCssAlign(style.horizontalAlignment),
+          'important'
+        );
+        el.style.setProperty('display', 'flex', 'important');
+        el.style.setProperty(
+          'align-items',
+          toCssVertical(style.verticalAlignment),
+          'important'
+        );
+        el.style.setProperty(
+          'justify-content',
+          toCssAlign(style.horizontalAlignment),
+          'important'
+        );
+
+        // Tinggi baris spreadsheet menjadi acuan spasi vertikal.
+        el.style.setProperty('margin-top', '0', 'important');
+        el.style.setProperty('margin-bottom', '0', 'important');
+        el.style.setProperty('padding-top', '0', 'important');
+        el.style.setProperty('padding-bottom', '0', 'important');
+
+        if (style.wrap === true) {
+          el.style.setProperty('white-space', 'normal', 'important');
+          el.style.setProperty(
+            'overflow-wrap',
+            'break-word',
+            'important'
+          );
+        } else {
+          el.style.setProperty('white-space', 'nowrap', 'important');
+          el.style.setProperty(
+            'overflow-wrap',
+            'normal',
+            'important'
+          );
+        }
+
+        if (style.rowHeightPx != null && !isNaN(Number(style.rowHeightPx))) {
+          el.style.setProperty(
+            'min-height',
+            Number(style.rowHeightPx) + 'px',
+            'important'
+          );
+          el.style.setProperty(
+            'box-sizing',
+            'border-box',
+            'important'
+          );
+        }
+      });
+    }
+
     // REALTIME KHUSUS PANEL - KEUANGAN / QUR'BAN / PETUGAS SHOLAT
     // Satu request untuk tiga panel, setiap 1 detik.
     // Tidak membaca scheduler/audio/jadwal sholat.
