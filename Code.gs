@@ -4538,12 +4538,15 @@ function getRealtimePanelsFast() {
       return false;
     });
 
-    let title = '', date = '', a3 = '', rows = [];
+    let title = '', date = '', a3 = '', rows = [], headerStyles = null;
     if (selectedSheet) {
       title = String(selectedSheet.getRange('A1').getDisplayValue() || '').trim();
       date = String(selectedSheet.getRange('A2').getDisplayValue() || '')
         .replace(/^(0)(\d)(\s)/, '$2$3');
       a3 = String(selectedSheet.getRange('A3').getDisplayValue() || '').trim();
+      headerStyles = selectedKey === 'QURBAN'
+        ? getQurbanHeaderStyles_(selectedSheet)
+        : null;
 
       const lastRow = selectedSheet.getLastRow();
       if (selectedKey === 'QURBAN') {
@@ -4569,7 +4572,8 @@ function getRealtimePanelsFast() {
       title: title,
       date: date,
       a3: a3,
-      rows: rows
+      rows: rows,
+      headerStyles: headerStyles
     };
 
     return {
@@ -4637,6 +4641,36 @@ function getPanelKegiatan() {
 }
 
 
+
+// =====================================================
+// FORMAT QUR'BAN A1:A3 DARI SPREADSHEET
+// Membaca format sel langsung agar frontend mudah diubah
+// hanya dari Google Sheets.
+// =====================================================
+function getQurbanHeaderStyles_(sheet) {
+  if (!sheet) return null;
+
+  const styles = {};
+  ['A1', 'A2', 'A3'].forEach(function(a1) {
+    const range = sheet.getRange(a1);
+    const row = range.getRow();
+
+    styles[a1] = {
+      fontFamily: range.getFontFamily() || '',
+      fontSizePt: range.getFontSize(),
+      fontWeight: range.getFontWeight() || '',
+      fontStyle: range.getFontStyle() || '',
+      fontColor: range.getFontColor() || '',
+      horizontalAlignment: range.getHorizontalAlignment() || '',
+      verticalAlignment: range.getVerticalAlignment() || '',
+      wrap: range.getWrap(),
+      rowHeightPx: sheet.getRowHeight(row)
+    };
+  });
+
+  return styles;
+}
+
 // =====================================================
 // PANEL KEUANGAN / QUR'BAN CEPAT - panels!C26
 // Hanya membaca selector + data panel. Tidak menjalankan
@@ -4670,13 +4704,16 @@ function getPanelKeuanganSource() {
   });
 
   if (!selectedSheet) {
-    return { selector: selectedKey, title: '', date: '', a3: '', rows: [] };
+    return { selector: selectedKey, title: '', date: '', a3: '', rows: [], headerStyles: null };
   }
 
   const title = String(selectedSheet.getRange('A1').getDisplayValue() || '').trim();
   const date = String(selectedSheet.getRange('A2').getDisplayValue() || '')
     .replace(/^(0)(\\d)(\\s)/, '$2$3');
   const a3 = String(selectedSheet.getRange('A3').getDisplayValue() || '').trim();
+  const headerStyles = selectedKey === 'QURBAN'
+    ? getQurbanHeaderStyles_(selectedSheet)
+    : null;
   const rows = [];
   const lastRow = selectedSheet.getLastRow();
 
@@ -4700,6 +4737,6 @@ function getPanelKeuanganSource() {
       });
   }
 
-  return { selector: selectedKey, title: title, date: date, a3: a3, rows: rows };
+  return { selector: selectedKey, title: title, date: date, a3: a3, rows: rows, headerStyles: headerStyles };
 }
 
