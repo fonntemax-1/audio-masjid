@@ -4660,7 +4660,6 @@ function getQurbanHeaderStyles_(sheet) {
       fontSizePt: range.getFontSize(),
       fontWeight: range.getFontWeight() || '',
       fontStyle: range.getFontStyle() || '',
-      fontColor: range.getFontColor() || '',
       horizontalAlignment: range.getHorizontalAlignment() || '',
       verticalAlignment: range.getVerticalAlignment() || '',
       wrap: range.getWrap(),
