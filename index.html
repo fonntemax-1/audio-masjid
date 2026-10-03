@@ -4002,6 +4002,9 @@ function updateFridayPrayerDisplay() {
       const finPanelBox = document.getElementById('fin-panel-box');
       if (finPanelBox) {
         finPanelBox.classList.toggle('qurban-display', selector === 'QURBAN');
+        if (selector === 'QURBAN') {
+          applyQurbanSpreadsheetHeaderStyle_(source && source.headerStyles ? source.headerStyles : null);
+        }
       }
 
       updateKeuangan(rows, date, selector);
@@ -5046,6 +5049,11 @@ function updateFridayPrayerDisplay() {
           'qurban-display',
           keuanganSelector === 'QURBAN'
         );
+        if (keuanganSelector === 'QURBAN') {
+          applyQurbanSpreadsheetHeaderStyle_(data && data.PanelKeuangan && data.PanelKeuangan.headerStyles
+            ? data.PanelKeuangan.headerStyles
+            : null);
+        }
       }
 
       if (
