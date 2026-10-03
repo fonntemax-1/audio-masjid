@@ -2877,3 +2877,73 @@ body[data-display-theme="kuning"] .header-moon.moon-new::after {
     max-width:82% !important;
   }
 }
+
+
+/* INFAQ: beri jarak judul -> C42+C43 dan QRIS responsive.
+   QRIS mengecil saat ruang sempit sehingga tidak menabrak teks. */
+.infaq-left-title{
+  margin-bottom:.55vh !important;
+  line-height:1.05 !important;
+}
+.infaq-left-text{
+  margin-top:0 !important;
+  margin-bottom:.7vh !important;
+  line-height:1.12 !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+}
+.infaq-left-content{
+  margin-top:0 !important;
+  padding-top:.15vh !important;
+}
+.infaq-left-content img{
+  width:clamp(58px, 6.7vw, 94px) !important;
+  max-width:100% !important;
+  height:auto !important;
+  aspect-ratio:1 / 1 !important;
+  object-fit:contain !important;
+}
+
+.petugas-infaq-title{
+  margin-bottom:.55vh !important;
+  line-height:1.05 !important;
+}
+.petugas-infaq-text{
+  margin-top:0 !important;
+  margin-bottom:.7vh !important;
+  line-height:1.12 !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+}
+.petugas-infaq-content{
+  margin-top:0 !important;
+  padding-top:.15vh !important;
+}
+.petugas-infaq-content img{
+  width:clamp(68px, 8vw, 108px) !important;
+  max-width:82% !important;
+  max-height:100% !important;
+  height:auto !important;
+  aspect-ratio:1 / 1 !important;
+  object-fit:contain !important;
+}
+
+@media (max-width:700px){
+  .infaq-left-title,
+  .petugas-infaq-title{
+    margin-bottom:.65vh !important;
+  }
+  .infaq-left-text,
+  .petugas-infaq-text{
+    margin-bottom:.8vh !important;
+    font-size:clamp(.38rem, 1.55vw, .58rem) !important;
+  }
+  .infaq-left-content img{
+    width:min(18vw,78px) !important;
+  }
+  .petugas-infaq-content img{
+    width:min(20vw,92px) !important;
+  }
+}
