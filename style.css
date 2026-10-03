@@ -1657,8 +1657,8 @@
       gap: clamp(0.45vh, 0.8cqw, 0.8vh);
       margin-top: clamp(0.6vh, 1cqw, 1vh);
       /* Font PETUGAS SHOLAT diperbesar sedikit. */
-      font-size: clamp(0.90rem, 4.5cqw, 1.55rem);
-      line-height: 1.15;
+      font-size: clamp(0.78rem, 3.8cqw, 1.30rem);
+      line-height: 1.12;
     }
 
     .khotbah-item {
@@ -1696,7 +1696,7 @@
        membuat frame melebar atau keluar dari batas panel. */
     @container petugas-panel (max-width: 260px) {
       .khotbah-list {
-        font-size: clamp(0.78rem, 4.6cqw, 1.05rem);
+        font-size: clamp(0.70rem, 3.9cqw, 0.95rem);
         gap: 0.5vh;
       }
 
