@@ -6207,24 +6207,27 @@ function updateFridayPrayerDisplay() {
         !!finPanelBox &&
         finPanelBox.classList.contains('qurban-display');
 
-      // Jarak visual tambahan khusus QUR'BAN.
-      // Tidak mengubah font/ukuran/spacing tabel standard.
+      // Jarak visual khusus QUR'BAN harus dihitung dari FONT TANGGAL A3,
+      // bukan dari font isi tabel.
+      // Target: baris pertama berjarak 2 ukuran font tanggal
+      // dari batas awal area scrolling.
       let qurbanStartGapPx = 0;
 
       if (isQurbanScroll) {
-        const sampleCell =
-          content.querySelector('.qurban-scroll-text');
+        const qurbanDateEl =
+          document.getElementById('fin-extra');
 
-        const sampleFontPx = sampleCell
-          ? parseFloat(window.getComputedStyle(sampleCell).fontSize) || 16
+        const dateFontPx = qurbanDateEl
+          ? parseFloat(window.getComputedStyle(qurbanDateEl).fontSize) || 16
           : 16;
 
         qurbanStartGapPx = Math.max(
           1,
-          Math.round(sampleFontPx * 2)
+          Math.round(dateFontPx * 2)
         );
 
-        // Baris pertama mulai setelah jarak 2 ukuran font dari tanggal A3.
+        // Batas atas isi scrolling QUR'BAN:
+        // 2 ukuran font tanggal.
         content.style.top = qurbanStartGapPx + 'px';
       } else {
         content.style.top = '0px';
