@@ -4159,36 +4159,127 @@ function updateFridayPrayerDisplay() {
     let realtimePanelsFastLastSignature = '';
 
     let currentQurbanGregorianDate_ = '';
+    let qurbanDateConversionToken_ = 0;
 
-    function getCurrentHijriHeaderText_() {
-      const numEl = document.getElementById('hijri-num');
-      const textEl = document.getElementById('hijri-text');
-      const day = String(numEl ? numEl.textContent || '' : '').trim();
-      const monthYear = String(textEl ? textEl.textContent || '' : '').trim();
+    function parseQurbanDateToIso_(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
 
-      if (!day || !monthYear || day === '--' || monthYear === '--') {
-        return '';
+      // Format numerik: DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY
+      let m = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
+      if (m) {
+        const day = Number(m[1]);
+        const month = Number(m[2]);
+        const year = Number(m[3]);
+
+        if (
+          Number.isInteger(day) &&
+          Number.isInteger(month) &&
+          Number.isInteger(year) &&
+          day >= 1 && day <= 31 &&
+          month >= 1 && month <= 12 &&
+          year >= 1900
+        ) {
+          return String(year) + '-' +
+            String(month).padStart(2, '0') + '-' +
+            String(day).padStart(2, '0');
+        }
       }
 
-      return (day + ' ' + monthYear).trim();
+      // Format Indonesia: DD NamaBulan YYYY [M].
+      const monthMap = {
+        januari:1, februari:2, maret:3, april:4, mei:5, juni:6,
+        juli:7, agustus:8, september:9, oktober:10, november:11, desember:12
+      };
+
+      m = raw.toLowerCase().match(
+        /^(\d{1,2})\s+([a-zà-ÿ]+)\s+(\d{4})/
+      );
+
+      if (m) {
+        const day = Number(m[1]);
+        const month = monthMap[m[2]];
+        const year = Number(m[3]);
+
+        if (
+          Number.isInteger(day) &&
+          Number.isInteger(month) &&
+          Number.isInteger(year) &&
+          day >= 1 && day <= 31 &&
+          year >= 1900
+        ) {
+          return String(year) + '-' +
+            String(month).padStart(2, '0') + '-' +
+            String(day).padStart(2, '0');
+        }
+      }
+
+      // Fallback untuk nilai yang masih dikenali browser sebagai tanggal.
+      const parsed = new Date(raw);
+      if (!Number.isNaN(parsed.getTime())) {
+        return String(parsed.getFullYear()) + '-' +
+          String(parsed.getMonth() + 1).padStart(2, '0') + '-' +
+          String(parsed.getDate()).padStart(2, '0');
+      }
+
+      return '';
     }
 
-    function renderQurbanDateHeader_() {
+    function renderQurbanDateHeader_(gregorianValue) {
       const dateEl = document.getElementById('fin-extra');
       if (!dateEl) return;
 
-      const gregorian = String(currentQurbanGregorianDate_ || '').trim();
+      const gregorian = String(
+        gregorianValue !== undefined
+          ? gregorianValue
+          : currentQurbanGregorianDate_
+      ).trim();
+
+      currentQurbanGregorianDate_ = gregorian;
+
       if (!gregorian) {
         dateEl.innerText = '';
         dateEl.style.display = 'none';
         return;
       }
 
-      const hijri = getCurrentHijriHeaderText_();
-      dateEl.innerText = hijri
-        ? (hijri + ' | ' + gregorian)
-        : gregorian;
+      // Tampilkan tanggal Masehi lebih dahulu; hasil Hijriah akan
+      // menggantikannya setelah konversi tanggal A3 selesai.
+      dateEl.innerText = gregorian;
       dateEl.style.display = 'block';
+
+      const isoDate = parseQurbanDateToIso_(gregorian);
+      if (!isoDate) {
+        return;
+      }
+
+      const token = ++qurbanDateConversionToken_;
+
+      gasApiCall('getHijriDateFromApi', { date: isoDate })
+        .then(function(result) {
+          if (token !== qurbanDateConversionToken_) return;
+
+          if (
+            !result ||
+            result.success !== true ||
+            result.found !== true ||
+            !result.hijri
+          ) {
+            return;
+          }
+
+          const hijri = String(result.hijri).trim();
+          if (!hijri) return;
+
+          dateEl.innerText = hijri + ' | ' + gregorian;
+          dateEl.style.display = 'block';
+        })
+        .catch(function(error) {
+          console.warn(
+            'KONVERSI TANGGAL QURBAN KE HIJRIAH GAGAL:',
+            error && error.message ? error.message : error
+          );
+        });
     }
 
     function applyPanelKeuanganSourceFast_(source) {
@@ -4247,7 +4338,7 @@ function updateFridayPrayerDisplay() {
           selector === 'QURBAN' ? a3.trim() : '';
 
         if (selector === 'QURBAN') {
-          renderQurbanDateHeader_();
+          renderQurbanDateHeader_(currentQurbanGregorianDate_);
         } else {
           finExtra.innerText = '';
           finExtra.style.display = 'none';
@@ -5334,7 +5425,7 @@ function updateFridayPrayerDisplay() {
             : '';
 
         if (keuanganSelector === 'QURBAN' && a3) {
-          renderQurbanDateHeader_();
+          renderQurbanDateHeader_(currentQurbanGregorianDate_);
         } else {
           finExtra.innerText = '';
           finExtra.style.display = 'none';
