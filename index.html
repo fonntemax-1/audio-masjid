@@ -6293,10 +6293,12 @@ function updateFridayPrayerDisplay() {
           Math.round(area.clientHeight * 0.5)
         );
 
-        // QUR'BAN: tambahkan 2 ukuran font pada jarak END.
+        // QUR'BAN: beri ruang END scrolling lebih longgar.
+        // Tambahkan 4 ukuran font tanggal agar baris terakhir
+        // tidak terlalu mepet dengan batas atas saat siklus selesai.
         // Jeda standar laporan keuangan tetap dipertahankan.
         if (isQurbanScroll) {
-          spacerHeight += qurbanStartGapPx;
+          spacerHeight += qurbanStartGapPx * 2;
         }
         spacer.style.height = spacerHeight + 'px';
         spacer.setAttribute('aria-hidden', 'true');
