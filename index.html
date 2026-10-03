@@ -5921,13 +5921,6 @@ function updateFridayPrayerDisplay() {
        * dahulu setengah frame. Baru salinan tabel berikutnya masuk.
        * Ini membuat pergantian lebih nyaman dibaca tanpa refresh.
        */
-      const finPanelBox =
-        document.getElementById('fin-panel-box');
-
-      const isQurbanScroll =
-        !!finPanelBox &&
-        finPanelBox.classList.contains('qurban-display');
-
       let firstBlock = content.firstElementChild;
 
       if (
@@ -5941,39 +5934,10 @@ function updateFridayPrayerDisplay() {
         const spacer = document.createElement('div');
         spacer.className = 'keuangan-scroll-spacer';
 
-        let spacerHeight =
-          Math.max(
-            1,
-            Math.round(area.clientHeight * 0.5)
-          );
-
-        // =====================================================
-        // QUR'BAN — JARAK START & END YANG BENAR
-        // =====================================================
-        if (isQurbanScroll) {
-          const sampleCell =
-            firstBlock.querySelector('.qurban-scroll-text');
-
-          const sampleFontPx = sampleCell
-            ? parseFloat(window.getComputedStyle(sampleCell).fontSize) || 16
-            : 16;
-
-          const qurbanGapHeight =
-            Math.max(1, Math.round(sampleFontPx * 2));
-
-          // START:
-          // Seluruh content dimulai 2 ukuran font di bawah
-          // batas atas area scrolling (tepat di bawah tanggal A3).
-          content.style.paddingTop = '0px';
-          content.style.paddingBottom = '0px';
-          content.style.top = qurbanGapHeight + 'px';
-
-          // END:
-          // Setelah baris terakhir selesai, beri ruang kosong
-          // 2 ukuran font sebelum data berikutnya masuk.
-          spacerHeight = qurbanGapHeight;
-        }
-
+        const spacerHeight = Math.max(
+          1,
+          Math.round(area.clientHeight * 0.5)
+        );
         spacer.style.height = spacerHeight + 'px';
         spacer.setAttribute('aria-hidden', 'true');
 
@@ -5981,20 +5945,16 @@ function updateFridayPrayerDisplay() {
         content.appendChild(clone);
       }
 
-      firstBlock = content.querySelector('table.keuangan-table');
+      firstBlock = content.firstElementChild;
 
-      if (!firstBlock) return;
+      if (!firstBlock || firstBlock.tagName !== 'TABLE') return;
 
-      const loopSpacer =
-        Array.from(content.children).find(function(el) {
-          return el.classList.contains('keuangan-scroll-spacer');
-        });
-
+      const loopSpacer = content.children[1];
       const loopHeight =
         firstBlock.getBoundingClientRect().height;
 
       const gapHeight =
-        loopSpacer && loopSpacer.getBoundingClientRect
+        loopSpacer && loopSpacer.classList.contains('keuangan-scroll-spacer')
           ? loopSpacer.getBoundingClientRect().height
           : Math.round(area.clientHeight * 0.5);
 
@@ -6003,9 +5963,7 @@ function updateFridayPrayerDisplay() {
         return;
       }
 
-      const loopDistance =
-        loopHeight +
-        gapHeight;
+      const loopDistance = loopHeight + gapHeight;
       const speed = 0.2;
       let lastFrame = 0;
 

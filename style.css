@@ -3307,4 +3307,13 @@ body[data-display-theme="kuning"] .prayer-time {
 }
 
 
-/* QUR'BAN: jarak awal/akhir diatur langsung oleh spacer scrolling. */
+/* QUR'BAN: beri ruang 1 ukuran font di AWAL dan AKHIR scrolling.
+   Start: sebelum baris pertama masuk.
+   End: setelah baris terakhir keluar, agar tidak mepet dengan tanggal A3. */
+#fin-panel-box.qurban-display .keuangan-table tr:first-child td.qurban-scroll-text{
+  padding-top:1em !important;
+}
+
+#fin-panel-box.qurban-display .keuangan-table tr:last-child td.qurban-scroll-text{
+  padding-bottom:1em !important;
+}
