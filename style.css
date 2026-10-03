@@ -3125,3 +3125,52 @@ body[data-display-theme="kuning"] .prayer-time {
   line-height:1.08 !important;
   letter-spacing:0 !important;
 }
+
+
+/* FINAL RESPONSIVE TITLE LOCK
+   DAFTAR PESERTA QURBAN + PETUGAS SHOLAT mengikuti LEBAР FRAME.
+   Ukuran dihitung dari lebar panel masing-masing (container query),
+   bukan dari ukuran layar TV. Tetap satu baris selama masih muat. */
+#fin-panel-box.qurban-display{
+  container-type:inline-size !important;
+  container-name:qurban-panel !important;
+}
+
+#fin-panel-box.qurban-display #fin-title,
+#fin-panel-box.qurban-display #fin-sub,
+#petugas-panel-box > #petugas-title{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  text-align:center !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:clip !important;
+  letter-spacing:0 !important;
+  line-height:1.05 !important;
+}
+
+#fin-panel-box.qurban-display #fin-title,
+#petugas-panel-box > #petugas-title{
+  font-size:clamp(.85rem,5.2cqw,1.70rem) !important;
+  font-weight:900 !important;
+}
+
+#fin-panel-box.qurban-display #fin-sub{
+  font-size:clamp(.82rem,4.7cqw,1.55rem) !important;
+  font-weight:900 !important;
+}
+
+@container qurban-panel (max-width:260px){
+  #fin-panel-box.qurban-display #fin-title,
+  #petugas-panel-box > #petugas-title{
+    font-size:clamp(.82rem,5.4cqw,1.25rem) !important;
+  }
+}
+
+@container petugas-panel (max-width:260px){
+  #petugas-panel-box > #petugas-title{
+    font-size:clamp(.82rem,5.4cqw,1.25rem) !important;
+  }
+}
