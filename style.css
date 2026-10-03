@@ -3195,3 +3195,26 @@ body[data-display-theme="kuning"] .prayer-time {
   font-size:clamp(.85rem,5.2cqw,1.70rem) !important;
   white-space:nowrap !important;
 }
+
+
+/* FINAL COLOR LOCK - NAMA MASJID harus sama persis dengan DAFTAR PESERTA QURBAN.
+   Hilangkan gradient/highlight putih agar warna teks solid mengikuti warna judul QURBAN. */
+.header-center .latin-name,
+#nama_masjid{
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+  background:none !important;
+  background-image:none !important;
+  -webkit-background-clip:border-box !important;
+  background-clip:border-box !important;
+  animation:none !important;
+}
+
+#fin-panel-box.qurban-display #fin-title{
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+  background:none !important;
+  background-image:none !important;
+  -webkit-background-clip:border-box !important;
+  background-clip:border-box !important;
+}
