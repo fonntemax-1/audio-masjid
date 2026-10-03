@@ -3954,72 +3954,71 @@ function updateFridayPrayerDisplay() {
 
       const available = Math.max(40, panel.clientWidth - 20);
 
-      // A1: paling besar dan menyesuaikan LEbar frame.
-      const titleMaxPx = Math.max(
+      // QUR'BAN:
+      // A1 dan A2 HARUS IDENTIK: font, ukuran, warna, ketebalan dan
+      // alignment. Ukuran bersama otomatis mengikuti lebar frame.
+      const maxFontPx = Math.max(
         22,
         Math.min(46, panel.clientWidth * 0.085)
       );
-      const titleMinPx = 16;
+      const minFontPx = 16;
 
-      title.style.setProperty('font-size', titleMaxPx + 'px', 'important');
-      title.style.setProperty('width', '100%', 'important');
-      title.style.setProperty('max-width', '100%', 'important');
-      title.style.setProperty('box-sizing', 'border-box', 'important');
-      title.style.setProperty('white-space', 'nowrap', 'important');
-      title.style.setProperty('overflow', 'hidden', 'important');
-      title.style.setProperty('text-overflow', 'clip', 'important');
-      title.style.setProperty('letter-spacing', '0', 'important');
-      title.style.setProperty('line-height', '1.02', 'important');
+      // Samakan font A1/A2 secara eksplisit.
+      const titleFontFamily =
+        window.getComputedStyle(title).fontFamily || 'Arial, sans-serif';
+
+      [title, sub].forEach(function(el) {
+        el.style.setProperty('font-family', titleFontFamily, 'important');
+        el.style.setProperty('font-weight', '900', 'important');
+        el.style.setProperty('font-style', 'normal', 'important');
+        el.style.setProperty('width', '100%', 'important');
+        el.style.setProperty('max-width', '100%', 'important');
+        el.style.setProperty('box-sizing', 'border-box', 'important');
+        el.style.setProperty('white-space', 'nowrap', 'important');
+        el.style.setProperty('overflow', 'hidden', 'important');
+        el.style.setProperty('text-overflow', 'clip', 'important');
+        el.style.setProperty('letter-spacing', '0', 'important');
+        el.style.setProperty('line-height', '1.02', 'important');
+        el.style.setProperty('text-align', 'center', 'important');
+        el.style.setProperty('color', 'var(--theme-accent)', 'important');
+        el.style.setProperty(
+          '-webkit-text-fill-color',
+          'var(--theme-accent)',
+          'important'
+        );
+      });
+
+      // Ukur A1 dan A2 dengan ukuran yang sama, lalu gunakan ukuran
+      // terbesar yang masih membuat KEDUANYA muat dalam frame.
+      title.style.setProperty('font-size', maxFontPx + 'px', 'important');
+      sub.style.setProperty('font-size', maxFontPx + 'px', 'important');
 
       const titleNaturalWidth = title.scrollWidth;
-      let titleFontPx = titleMaxPx;
-
-      if (titleNaturalWidth > available) {
-        titleFontPx = Math.max(
-          titleMinPx,
-          titleMaxPx * (available / titleNaturalWidth)
-        );
-        title.style.setProperty(
-          'font-size',
-          titleFontPx.toFixed(2) + 'px',
-          'important'
-        );
-      }
-
-      // A2: sekitar 78% dari ukuran A1, lalu diperkecil lagi hanya
-      // bila teks A2 masih tidak muat pada lebar frame.
-      const subMinPx = 13;
-      let subFontPx = Math.max(
-        subMinPx,
-        titleFontPx * 0.78
+      const subNaturalWidth = sub.scrollWidth;
+      const widestNaturalWidth = Math.max(
+        titleNaturalWidth,
+        subNaturalWidth,
+        1
       );
 
-      sub.style.setProperty(
+      const fittedFontPx = Math.max(
+        minFontPx,
+        Math.min(
+          maxFontPx,
+          maxFontPx * (available / widestNaturalWidth)
+        )
+      );
+
+      title.style.setProperty(
         'font-size',
-        subFontPx.toFixed(2) + 'px',
+        fittedFontPx.toFixed(2) + 'px',
         'important'
       );
-      sub.style.setProperty('width', '100%', 'important');
-      sub.style.setProperty('max-width', '100%', 'important');
-      sub.style.setProperty('box-sizing', 'border-box', 'important');
-      sub.style.setProperty('white-space', 'nowrap', 'important');
-      sub.style.setProperty('overflow', 'hidden', 'important');
-      sub.style.setProperty('text-overflow', 'clip', 'important');
-      sub.style.setProperty('letter-spacing', '0', 'important');
-      sub.style.setProperty('line-height', '1.02', 'important');
-
-      const subNaturalWidth = sub.scrollWidth;
-      if (subNaturalWidth > available) {
-        const fittedSub = Math.max(
-          subMinPx,
-          subFontPx * (available / subNaturalWidth)
-        );
-        sub.style.setProperty(
-          'font-size',
-          fittedSub.toFixed(2) + 'px',
-          'important'
-        );
-      }
+      sub.style.setProperty(
+        'font-size',
+        fittedFontPx.toFixed(2) + 'px',
+        'important'
+      );
     }
 
     function startQurbanHeaderAutoFit_() {
