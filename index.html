@@ -4021,6 +4021,117 @@ function updateFridayPrayerDisplay() {
       );
     }
 
+    function fitPetugasHeaderText_() {
+      const panel = document.getElementById('petugas-panel-box');
+      const title = document.getElementById('petugas-title');
+
+      if (!panel || !title || title.style.display === 'none') return;
+
+      const available = Math.max(40, panel.clientWidth - 20);
+
+      // PETUGAS SHOLAT mengikuti pattern A1 QUR'BAN:
+      // ukuran dasar 75% dan auto-fit terhadap lebar frame.
+      const maxFontPx = Math.max(
+        16.5,
+        Math.min(34.5, panel.clientWidth * 0.085 * 0.75)
+      );
+      const minFontPx = 12;
+
+      title.style.setProperty('font-family', 'inherit', 'important');
+      title.style.setProperty('font-weight', '900', 'important');
+      title.style.setProperty('font-style', 'normal', 'important');
+      title.style.setProperty('width', '100%', 'important');
+      title.style.setProperty('max-width', '100%', 'important');
+      title.style.setProperty('box-sizing', 'border-box', 'important');
+      title.style.setProperty('white-space', 'nowrap', 'important');
+      title.style.setProperty('overflow', 'hidden', 'important');
+      title.style.setProperty('text-overflow', 'clip', 'important');
+      title.style.setProperty('letter-spacing', '0', 'important');
+      title.style.setProperty('line-height', '1.02', 'important');
+      title.style.setProperty('text-align', 'center', 'important');
+      title.style.setProperty('color', 'var(--theme-accent)', 'important');
+      title.style.setProperty(
+        '-webkit-text-fill-color',
+        'var(--theme-accent)',
+        'important'
+      );
+      title.style.setProperty(
+        'font-size',
+        maxFontPx.toFixed(2) + 'px',
+        'important'
+      );
+
+      const naturalWidth = Math.max(title.scrollWidth, 1);
+      const fittedFontPx = Math.max(
+        minFontPx,
+        Math.min(maxFontPx, maxFontPx * (available / naturalWidth))
+      );
+
+      title.style.setProperty(
+        'font-size',
+        fittedFontPx.toFixed(2) + 'px',
+        'important'
+      );
+    }
+
+    function applyPetugasDatePattern_() {
+      const panel = document.getElementById('petugas-panel-box');
+      const dateEl = document.getElementById('petugas-tanggal');
+      if (!panel || !dateEl) return;
+
+      // Sama persis dengan pattern tanggal A3 QUR'BAN:
+      // putih, bold 700, responsif terhadap lebar frame.
+      dateEl.style.setProperty('width', '100%', 'important');
+      dateEl.style.setProperty('max-width', '100%', 'important');
+      dateEl.style.setProperty('box-sizing', 'border-box', 'important');
+      dateEl.style.setProperty('text-align', 'center', 'important');
+      dateEl.style.setProperty('white-space', 'nowrap', 'important');
+      dateEl.style.setProperty('overflow', 'hidden', 'important');
+      dateEl.style.setProperty('text-overflow', 'clip', 'important');
+      dateEl.style.setProperty('color', '#ffffff', 'important');
+      dateEl.style.setProperty(
+        '-webkit-text-fill-color',
+        '#ffffff',
+        'important'
+      );
+      dateEl.style.setProperty('font-weight', '700', 'important');
+      dateEl.style.setProperty('line-height', '1.15', 'important');
+      dateEl.style.setProperty(
+        'font-size',
+        'clamp(.95rem,5.2cqw,1.70rem)',
+        'important'
+      );
+      dateEl.style.setProperty('margin-top', '.12vh', 'important');
+      dateEl.style.setProperty('margin-bottom', '.45vh', 'important');
+      dateEl.style.setProperty('padding-top', '0', 'important');
+      dateEl.style.setProperty('padding-bottom', '0', 'important');
+    }
+
+    function startPetugasHeaderAutoFit_() {
+      const panel = document.getElementById('petugas-panel-box');
+      if (!panel) return;
+
+      if (window.__petugasHeaderFitObserver) {
+        try { window.__petugasHeaderFitObserver.disconnect(); } catch (e) {}
+      }
+
+      if (window.__petugasDateFitObserver) {
+        try { window.__petugasDateFitObserver.disconnect(); } catch (e) {}
+      }
+
+      if (window.ResizeObserver) {
+        const observer = new ResizeObserver(function() {
+          fitPetugasHeaderText_();
+          applyPetugasDatePattern_();
+        });
+        observer.observe(panel);
+        window.__petugasHeaderFitObserver = observer;
+      }
+
+      fitPetugasHeaderText_();
+      applyPetugasDatePattern_();
+    }
+
     function startQurbanHeaderAutoFit_() {
       const panel = document.getElementById('fin-panel-box');
       if (!panel) return;
@@ -4168,6 +4279,8 @@ function updateFridayPrayerDisplay() {
       dateEl.textContent = dateValue ? formatPanelKegiatanDate_(dateValue) : '';
       dateEl.style.cssText = 'text-align:center;color:#ffffff;font-weight:700;line-height:1.2;margin-top:0.35vh;margin-bottom:0.8vh;font-size:clamp(0.95rem, 5.2cqw, 1.70rem);';
       dateEl.style.display = showPetugas && dateValue ? 'block' : 'none';
+      fitPetugasHeaderText_();
+      applyPetugasDatePattern_();
 
       const entries = Object.keys(fields).map(function(label) {
         return { label: String(label || '').trim(), value: String(fields[label] == null ? '' : fields[label]).trim() };
@@ -4350,6 +4463,7 @@ function updateFridayPrayerDisplay() {
 
     function startRealtimePanelsFast_() {
       startQurbanHeaderAutoFit_();
+      startPetugasHeaderAutoFit_();
       pollRealtimePanelsFast_();
       setInterval(pollRealtimePanelsFast_, 5000);
     }
