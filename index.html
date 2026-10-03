@@ -4077,6 +4077,19 @@ function updateFridayPrayerDisplay() {
         .then(function(data) {
           if (!data || data.success === false) return;
 
+          // Placement INFAQ harus diproses setiap polling.
+          // Jangan terikat pada signature, karena DOM bisa berubah
+          // akibat render panel lain walaupun data spreadsheet sama.
+          if (typeof applyInfaqText_ === 'function') {
+            const infaq = data.Infaq || {};
+            applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
+            applyInfaqFramePlacement_(
+              data.InfaqMode || 'OFF',
+              infaq.text1 || '',
+              infaq.text2 || ''
+            );
+          }
+
           const signature = String(data.signature || '');
           if (signature === realtimePanelsFastLastSignature) return;
           realtimePanelsFastLastSignature = signature;
@@ -4087,15 +4100,7 @@ function updateFridayPrayerDisplay() {
           if (typeof applyPanelKeuanganSourceFast_ === 'function') {
             applyPanelKeuanganSourceFast_(data.PanelKeuangan || {});
           }
-          if (typeof applyInfaqText_ === 'function') {
-            const infaq = data.Infaq || {};
-            applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
-            applyInfaqFramePlacement_(
-              data.InfaqMode || 'OFF',
-              infaq.text1 || '',
-              infaq.text2 || ''
-            );
-          }
+
         })
         .catch(function(error) {
           // Deployment Apps Script lama mungkin belum mengenal
