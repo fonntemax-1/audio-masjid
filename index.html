@@ -4301,6 +4301,18 @@ function updateFridayPrayerDisplay() {
             if (typeof applyPanelKeuanganSourceFast_ === 'function') {
               applyPanelKeuanganSourceFast_(data.PanelKeuangan || {});
             }
+          } else {
+            // Panel tetap dapat memastikan format Spreadsheet terbaru
+            // tanpa harus menunggu perubahan signature lain.
+            const panelSource = data.PanelKeuangan || {};
+            if (
+              String(panelSource.selector || '').trim().toUpperCase() === 'QURBAN' &&
+              typeof applyQurbanSpreadsheetHeaderStyle_ === 'function'
+            ) {
+              const box = document.getElementById('fin-panel-box');
+              if (box) box.classList.add('qurban-display');
+              applyQurbanSpreadsheetHeaderStyle_(panelSource.headerStyles || null);
+            }
           }
 
           // Placement selalu terakhir agar AUTO tidak ditimpa renderer
