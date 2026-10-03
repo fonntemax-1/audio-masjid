@@ -3938,151 +3938,61 @@ function updateFridayPrayerDisplay() {
 
     // =========================================================
     // =======================================================
-    // QUR'BAN A1:A3: ikuti FORMAT SPREADSHEET
-    // Font, ukuran, warna, alignment, wrap, dan tinggi baris
-    // diambil langsung dari QUR'BAN!A1:A3.
+    // QUR'BAN A1:A2 - AUTO FIT TERHADAP LEBAR FRAME
+    // Ukuran font dihitung dari lebar frame QUR'BAN.
+    // Tidak bergantung pada format/font Spreadsheet.
+    // Warna tetap mengikuti tema.
     // =======================================================
-    function applyQurbanSpreadsheetHeaderStyle_(styles) {
+    function fitQurbanHeaderText_() {
       const panel = document.getElementById('fin-panel-box');
-      if (!panel || !panel.classList.contains('qurban-display')) return;
+      const title = document.getElementById('fin-title');
+      const sub = document.getElementById('fin-sub');
 
-      const map = {
-        A1: document.getElementById('fin-title'),
-        A2: document.getElementById('fin-sub'),
-        A3: document.getElementById('fin-extra')
-      };
+      if (!panel || !title || !sub || !panel.classList.contains('qurban-display')) return;
 
-      const toCssAlign = function(value) {
-        const key = String(value || '').trim().toUpperCase();
-        if (key === 'CENTER') return 'center';
-        if (key === 'RIGHT') return 'right';
-        return 'left';
-      };
+      const available = Math.max(40, panel.clientWidth - 20);
 
-      const toCssVertical = function(value) {
-        const key = String(value || '').trim().toUpperCase();
-        if (key === 'TOP') return 'flex-start';
-        if (key === 'BOTTOM') return 'flex-end';
-        return 'center';
-      };
+      [title, sub].forEach(function(el) {
+        if (!el.textContent.trim()) return;
 
-      Object.keys(map).forEach(function(key) {
-        const el = map[key];
-        const style = styles && styles[key];
-        if (!el || !style) return;
+        const maxPx = Math.max(22, Math.min(46, panel.clientWidth * 0.085));
+        const minPx = 16;
 
-        if (style.fontFamily) {
-          el.style.setProperty(
-            'font-family',
-            '"' + String(style.fontFamily).replace(/"/g, '') + '"',
-            'important'
-          );
-        }
-        if (style.fontSizePt != null && !isNaN(Number(style.fontSizePt))) {
-          el.style.setProperty(
-            'font-size',
-            Number(style.fontSizePt) + 'pt',
-            'important'
-          );
-        }
-        if (style.fontWeight) {
-          el.style.setProperty(
-            'font-weight',
-            String(style.fontWeight),
-            'important'
-          );
-        }
-        if (style.fontStyle) {
-          el.style.setProperty(
-            'font-style',
-            String(style.fontStyle),
-            'important'
-          );
-        }
-        // WARNA TIDAK DIAMBIL DARI SPREADSHEET.
-        // A1/A2 mengikuti warna tema display, A3 tetap putih.
-        if (key === 'A3') {
-          el.style.setProperty('color', '#ffffff', 'important');
-          el.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
-        } else {
-          el.style.setProperty('color', 'var(--theme-accent)', 'important');
-          el.style.setProperty('-webkit-text-fill-color', 'var(--theme-accent)', 'important');
-        }
+        el.style.setProperty('font-size', maxPx + 'px', 'important');
+        el.style.setProperty('width', '100%', 'important');
+        el.style.setProperty('max-width', '100%', 'important');
+        el.style.setProperty('box-sizing', 'border-box', 'important');
+        el.style.setProperty('white-space', 'nowrap', 'important');
+        el.style.setProperty('overflow', 'hidden', 'important');
+        el.style.setProperty('text-overflow', 'clip', 'important');
+        el.style.setProperty('letter-spacing', '0', 'important');
+        el.style.setProperty('line-height', '1.02', 'important');
 
-        el.style.setProperty(
-          'text-align',
-          toCssAlign(style.horizontalAlignment),
-          'important'
-        );
-        el.style.setProperty('display', 'flex', 'important');
-        el.style.setProperty(
-          'align-items',
-          toCssVertical(style.verticalAlignment),
-          'important'
-        );
-        el.style.setProperty(
-          'justify-content',
-          toCssAlign(style.horizontalAlignment),
-          'important'
-        );
-
-        // Tinggi baris spreadsheet menjadi acuan spasi vertikal.
-        el.style.setProperty('margin-top', '0', 'important');
-        el.style.setProperty('margin-bottom', '0', 'important');
-        el.style.setProperty('padding-top', '0', 'important');
-        el.style.setProperty('padding-bottom', '0', 'important');
-
-        if (style.wrap === true) {
-          el.style.setProperty('white-space', 'normal', 'important');
-          el.style.setProperty(
-            'overflow-wrap',
-            'break-word',
-            'important'
-          );
-        } else {
-          el.style.setProperty('white-space', 'nowrap', 'important');
-          el.style.setProperty(
-            'overflow-wrap',
-            'normal',
-            'important'
-          );
-        }
-
-        if (style.rowHeightPx != null && !isNaN(Number(style.rowHeightPx))) {
-          el.style.setProperty(
-            'min-height',
-            Number(style.rowHeightPx) + 'px',
-            'important'
-          );
-          el.style.setProperty(
-            'box-sizing',
-            'border-box',
-            'important'
-          );
+        const naturalWidth = el.scrollWidth;
+        if (naturalWidth > available) {
+          const fitted = Math.max(minPx, maxPx * (available / naturalWidth));
+          el.style.setProperty('font-size', fitted.toFixed(2) + 'px', 'important');
         }
       });
     }
 
-
-    // =======================================================
-    // QUR'BAN FORMAT LOCK
-    // Simpan format terakhir dari Spreadsheet dan terapkan ulang
-    // setelah renderer panel selesai, sehingga CSS/renderer lain
-    // tidak dapat menimpa ukuran/font A1:A3.
-    // Warna tetap dikunci ke tema (A1/A2) dan putih (A3).
-    // =======================================================
-    window.__QURBAN_HEADER_STYLES__ = null;
-
-    function applyQurbanSpreadsheetHeaderStyleFinal_() {
+    function startQurbanHeaderAutoFit_() {
       const panel = document.getElementById('fin-panel-box');
-      if (!panel || !panel.classList.contains('qurban-display')) return;
+      if (!panel) return;
 
-      const styles = window.__QURBAN_HEADER_STYLES__;
-      if (!styles) return;
-
-      if (typeof applyQurbanSpreadsheetHeaderStyle_ === 'function') {
-        applyQurbanSpreadsheetHeaderStyle_(styles);
+      if (window.__qurbanHeaderFitObserver) {
+        try { window.__qurbanHeaderFitObserver.disconnect(); } catch (e) {}
       }
+
+      if (window.ResizeObserver) {
+        const observer = new ResizeObserver(function() {
+          fitQurbanHeaderText_();
+        });
+        observer.observe(panel);
+        window.__qurbanHeaderFitObserver = observer;
+      }
+
+      fitQurbanHeaderText_();
     }
 
     // REALTIME KHUSUS PANEL - KEUANGAN / QUR'BAN / PETUGAS SHOLAT
@@ -4152,20 +4062,18 @@ function updateFridayPrayerDisplay() {
       if (finPanelBox) {
         finPanelBox.classList.toggle('qurban-display', selector === 'QURBAN');
         if (selector === 'QURBAN') {
-          window.__QURBAN_HEADER_STYLES__ =
-            source && source.headerStyles
-              ? source.headerStyles
-              : null;
-          applyQurbanSpreadsheetHeaderStyleFinal_();
-        }
+}
       }
 
       updateKeuangan(rows, date, selector);
+      if (selector === 'QURBAN') {
+        requestAnimationFrame(function() { fitQurbanHeaderText_(); });
+      }
+
 
       if (selector === 'QURBAN') {
         window.requestAnimationFrame(function() {
-          applyQurbanSpreadsheetHeaderStyleFinal_();
-        });
+});
       }
 
       if (typeof previousKeuanganJson !== 'undefined') {
@@ -4344,10 +4252,7 @@ function updateFridayPrayerDisplay() {
             ) {
               const box = document.getElementById('fin-panel-box');
               if (box) box.classList.add('qurban-display');
-              window.__QURBAN_HEADER_STYLES__ =
-                panelSource.headerStyles || null;
-              applyQurbanSpreadsheetHeaderStyleFinal_();
-            }
+}
           }
 
           // Placement selalu terakhir agar AUTO tidak ditimpa renderer
@@ -4397,6 +4302,7 @@ function updateFridayPrayerDisplay() {
     }
 
     function startRealtimePanelsFast_() {
+      startQurbanHeaderAutoFit_();
       pollRealtimePanelsFast_();
       setInterval(pollRealtimePanelsFast_, 5000);
     }
@@ -5188,6 +5094,10 @@ function updateFridayPrayerDisplay() {
           'fin-sub'
         );
 
+      if (keuanganSelector === 'QURBAN') {
+        requestAnimationFrame(function() { fitQurbanHeaderText_(); });
+      }
+
       if (finSub) {
         finSub.innerText =
           keuanganSelector === 'QURBAN'
@@ -5235,18 +5145,12 @@ function updateFridayPrayerDisplay() {
           keuanganSelector === 'QURBAN'
         );
         if (keuanganSelector === 'QURBAN') {
-          window.__QURBAN_HEADER_STYLES__ =
-            data && data.PanelKeuangan && data.PanelKeuangan.headerStyles
-              ? data.PanelKeuangan.headerStyles
-              : null;
-          applyQurbanSpreadsheetHeaderStyleFinal_();
-        }
+}
       }
 
       if (keuanganSelector === 'QURBAN') {
         window.requestAnimationFrame(function() {
-          applyQurbanSpreadsheetHeaderStyleFinal_();
-        });
+});
       }
 
       if (
