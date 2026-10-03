@@ -2585,7 +2585,15 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
   white-space: normal;
   overflow-wrap: anywhere;
 }
-.infaq-left-text div { margin: 0; }
+.infaq-left-text div { margin: 0; display: inline; }
+.infaq-left-text div + div::before { content: "  "; }
+
+/* INFAQ & SHADAQAH mengikuti warna judul LAPORAN KEUANGAN. */
+.infaq-left-title,
+.petugas-infaq-title {
+  color: var(--theme-accent) !important;
+  -webkit-text-fill-color: var(--theme-accent) !important;
+}
 .infaq-left-content {
   display: flex;
   justify-content: center;
