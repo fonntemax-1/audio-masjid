@@ -2961,7 +2961,16 @@ body[data-display-theme="kuning"] #infaq-left-widget .infaq-left-title,
 body[data-display-theme="kuning"] .petugas-infaq-title{
   color:#ffcc00 !important;
   -webkit-text-fill-color:#ffcc00 !important;
-  text-shadow:none !important;
+}
+
+/* INFAQ & SHADAQAH: shadow hitam tetap aktif pada tema KUNING. */
+:root[data-display-theme="kuning"] #infaq-left-widget .infaq-left-title,
+body[data-display-theme="kuning"] #infaq-left-widget .infaq-left-title{
+  text-shadow:
+    1px 1px 2px #000,
+    -1px -1px 2px #000,
+    1px -1px 2px #000,
+    -1px 1px 2px #000 !important;
 }
 
 
