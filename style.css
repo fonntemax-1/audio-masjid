@@ -2948,9 +2948,13 @@ body[data-display-theme="kuning"] .header-moon.moon-new::after {
   }
 }
 
-/* Warna judul INFAQ sama dengan judul LAPORAN KEUANGAN. */
-.infaq-left-title,
-.petugas-infaq-title{
+
+/* INFAQ: tema KUNING harus mengikuti warna judul LAPORAN KEUANGAN. */
+:root[data-display-theme="kuning"] #infaq-left-widget .infaq-left-title,
+body[data-display-theme="kuning"] #infaq-left-widget .infaq-left-title,
+:root[data-display-theme="kuning"] .petugas-infaq-title,
+body[data-display-theme="kuning"] .petugas-infaq-title{
   color:#ffcc00 !important;
   -webkit-text-fill-color:#ffcc00 !important;
+  text-shadow:none !important;
 }
