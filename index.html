@@ -12556,7 +12556,7 @@ function setCountdownBlackMode(enabled) {
         const safe = prayer.replace(/[&<>"]/g, function(ch) {
           return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch];
         });
-        return 'MENUJU SHOLAT<br>' + safe;
+        return '<span class="countdown-title-prefix">MENUJU SHOLAT</span><br><span class="countdown-title-prayer">' + safe + '</span>';
       }
 
       function updateCountdownTitleStyle(title) {
