@@ -4091,7 +4091,7 @@ function updateFridayPrayerDisplay() {
           if (typeof applyInfaqText_ === 'function') {
             const infaq = data.Infaq || {};
             applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
-            applyInfaqFramePlacement_(data.InfaqMode || 'OFF', infaq.text1 || '', infaq.text2 || '');
+            // Jangan mengubah placement dari jalur realtime lain.
           }
         })
         .catch(function(error) {
@@ -4215,7 +4215,8 @@ function updateFridayPrayerDisplay() {
       if (typeof applyInfaqText_ === 'function' && data.Infaq) {
         const infaq = data.Infaq || {};
         applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
-        applyInfaqFramePlacement_(data.InfaqMode || 'OFF', infaq.text1 || '', infaq.text2 || '');
+        // Placement INFAQ hanya dikendalikan oleh polling realtime ringan
+        // agar snapshot lama tidak mengembalikan tampilan ke mode berbeda.
       }
 
       const signature = JSON.stringify([
