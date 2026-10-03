@@ -3251,3 +3251,12 @@ body[data-display-theme="kuning"] .prayer-time {
   padding-top:0 !important;
   padding-bottom:0 !important;
 }
+
+
+/* JARAK MASJID -> TANGGAL QURBAN disamakan dengan JUDUL -> TANGGAL PETUGAS SHOLAT. */
+#fin-panel-box.qurban-display #fin-sub{
+  margin-bottom:.35vh !important;
+}
+#fin-panel-box.qurban-display #fin-extra{
+  margin-top:.35vh !important;
+}
