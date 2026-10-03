@@ -4400,7 +4400,7 @@ function getRealtimeDisplayConfig() {
 
     // Satu pembacaan blok untuk seluruh kontrol realtime.
     // Menghindari banyak getRange() terpisah yang membuat Apps Script lambat.
-    const grid = panels.getRange('B2:G39').getDisplayValues();
+    const grid = panels.getRange('B2:G43').getDisplayValues();
 
     const cell = function(row, col) {
       return String((grid[row - 2] || [])[col - 2] || '').trim();
@@ -4430,6 +4430,17 @@ function getRealtimeDisplayConfig() {
       if (value) event.push(value);
     }
 
+    const infaqModeRealtime = cell(41,3).toUpperCase() === 'AUTO' ? 'AUTO' : 'OFF';
+    const infaqText1Realtime = cell(42,3);
+    const infaqText2Realtime = cell(43,3);
+
+    Logger.log(
+      'REALTIME INFAQ C41/C42/C43 = [' +
+      infaqModeRealtime + '] [' +
+      infaqText1Realtime + '] [' +
+      infaqText2Realtime + ']'
+    );
+
     let theme = String(c18 || '').trim().toUpperCase();
     if (theme !== 'HIJAU' && theme !== 'MERAH' && theme !== 'KUNING') theme = 'KUNING';
 
@@ -4451,6 +4462,16 @@ function getRealtimeDisplayConfig() {
       Slogan: header.SLOGAN || '',
       Website: header.WEBSITE || '',
       InfoLainnya: header['INFO LAINNYA'] || '',
+
+      // INFAQ & SHADAQAH realtime: panels!C41:C43.
+      // Dibaca dalam snapshot ringan yang sama agar perubahan C41/C42/C43
+      // tetap tampil walaupun endpoint panel cepat sedang terlambat.
+      InfaqMode: cell(41,3).toUpperCase() === 'AUTO' ? 'AUTO' : 'OFF',
+      Infaq: {
+        text1: cell(42,3),
+        text2: cell(43,3)
+      },
+
       Kegiatan: {
         jenis: cell(28,3).toUpperCase(),
         values: kegiatan
@@ -4479,7 +4500,12 @@ function getRealtimePanelsFast() {
     const infaqText1 = String((infaqValues[0] || [])[0] || '').trim();
     const infaqText2 = String((infaqValues[1] || [])[0] || '').trim();
 
-    const infaqMode = String(panels.getRange('C' + 41).getDisplayValue() || '').trim().toUpperCase();
+    const infaqMode = String(panels.getRange('C41').getDisplayValue() || '').trim().toUpperCase();
+
+    Logger.log(
+      'REALTIME PANELS INFAQ C41/C42/C43 = [' +
+      infaqMode + '] [' + infaqText1 + '] [' + infaqText2 + ']'
+    );
 
     const panelValues = panels.getRange('C26:C32').getDisplayValues();
     const selectorRaw = String((panelValues[0] || [])[0] || 'KEUANGAN').trim();
