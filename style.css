@@ -3371,3 +3371,11 @@ body[data-display-theme="kuning"] .prayer-time {
   overflow-wrap:break-word !important;
   letter-spacing:normal !important;
 }
+
+/* Baris yang mengandung KELOMPOK / SAPI / KAMBING
+   otomatis memakai warna tema aktif untuk seluruh baris. */
+#fin-panel-box.qurban-display .keuangan-table .qurban-scroll-text.qurban-highlight-row,
+#fin-panel-box.qurban-display .keuangan-table .qurban-scroll-text.qurban-highlight-row *{
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+}
