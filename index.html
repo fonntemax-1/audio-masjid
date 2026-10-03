@@ -3914,12 +3914,11 @@ function updateFridayPrayerDisplay() {
 
       // C42 + spasi + C43 dibuat satu baris agar terbaca sebagai
       // satu pesan utuh. CSS mengatur ukuran responsif terhadap panel.
-      el.innerHTML = values.map(function(v) {
-        const safe = v.replace(/[&<>]/g, function(ch) {
-          return {'&':'&amp;','<':'&lt;','>':'&gt;'}[ch];
-        });
-        return '<div>' + safe + '</div>';
-      }).join(' ');
+      const combined = values.join(' ');
+      const safe = combined.replace(/[&<>]/g, function(ch) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;'}[ch];
+      });
+      el.innerHTML = safe;
     }
 
     function applyInfaqText_(text1, text2) {
