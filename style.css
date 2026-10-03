@@ -2947,3 +2947,10 @@ body[data-display-theme="kuning"] .header-moon.moon-new::after {
     width:min(20vw,92px) !important;
   }
 }
+
+/* Warna judul INFAQ sama dengan judul LAPORAN KEUANGAN. */
+.infaq-left-title,
+.petugas-infaq-title{
+  color:#ffcc00 !important;
+  -webkit-text-fill-color:#ffcc00 !important;
+}
