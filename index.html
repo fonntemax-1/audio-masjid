@@ -4164,6 +4164,7 @@ function updateFridayPrayerDisplay() {
     let petugasDateConversionToken_ = 0;
     let currentKeuanganGregorianDate_ = '';
     let keuanganDateConversionToken_ = 0;
+    const hijriDateConversionCache_ = Object.create(null);
 
     function parseQurbanDateToIso_(value) {
       const raw = String(value || '').trim();
@@ -4246,12 +4247,27 @@ function updateFridayPrayerDisplay() {
         return;
       }
 
-      // Tampilkan Masehi terlebih dahulu, lalu ganti menjadi:
-      // HIJRIAH | MASEHI setelah konversi selesai.
-      dateEl.innerText = rawGregorian;
-
       const isoDate = parseQurbanDateToIso_(rawGregorian);
-      if (!isoDate) return;
+      if (!isoDate) {
+        dateEl.innerText = rawGregorian;
+        return;
+      }
+
+      // Simpan hasil konversi di memory. fetchSheetData() berjalan tiap
+      // 30 detik, sehingga render ulang tidak boleh mengembalikan tanggal
+      // ke Masehi hanya karena request konversi baru sedang berlangsung.
+      const cachedHijri = hijriDateConversionCache_[isoDate];
+      if (cachedHijri) {
+        dateEl.innerText = cachedHijri + ' | ' + rawGregorian;
+        dateEl.dataset.hijriDateKey = isoDate;
+        return;
+      }
+
+      // Pertahankan hasil yang sudah tampil untuk tanggal yang sama.
+      // Masehi hanya dipakai sebagai fallback pertama sebelum konversi.
+      if (dateEl.dataset.hijriDateKey !== isoDate) {
+        dateEl.innerText = rawGregorian;
+      }
 
       const token = ++keuanganDateConversionToken_;
 
@@ -4271,6 +4287,8 @@ function updateFridayPrayerDisplay() {
           const hijri = String(result.hijri).trim();
           if (!hijri) return;
 
+          hijriDateConversionCache_[isoDate] = hijri;
+          dateEl.dataset.hijriDateKey = isoDate;
           dateEl.innerText = hijri + ' | ' + rawGregorian;
         })
         .catch(function(error) {
