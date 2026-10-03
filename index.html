@@ -4081,6 +4081,79 @@ function updateFridayPrayerDisplay() {
       }
     }
 
+    // =========================================================
+    // CACHE STARTUP PANEL CEPAT
+    // Menampilkan snapshot panel terakhir tanpa menunggu Apps Script.
+    // Hanya data visual panel yang disimpan; tidak menyentuh audio/scheduler.
+    // =========================================================
+    const REALTIME_PANELS_CACHE_KEY = 'MASJID_REALTIME_PANELS_CACHE_V1';
+
+    function saveRealtimePanelsFastCache_(data) {
+      try {
+        if (!data || data.success === false) return;
+        const snapshot = {
+          Infaq: data.Infaq || {},
+          InfaqMode: data.InfaqMode || '',
+          Kegiatan: data.Kegiatan || {},
+          PanelKeuangan: data.PanelKeuangan || {},
+          signature: String(data.signature || ''),
+          savedAt: Date.now()
+        };
+        localStorage.setItem(
+          REALTIME_PANELS_CACHE_KEY,
+          JSON.stringify(snapshot)
+        );
+      } catch (e) {
+        console.warn('CACHE PANEL CEPAT GAGAL DISIMPAN:', e);
+      }
+    }
+
+    function loadRealtimePanelsFastCache_() {
+      try {
+        const raw = localStorage.getItem(REALTIME_PANELS_CACHE_KEY);
+        if (!raw) return false;
+
+        const data = JSON.parse(raw);
+        if (!data || typeof data !== 'object') return false;
+
+        const infaq = data.Infaq || {};
+        if (typeof applyInfaqText_ === 'function') {
+          applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
+        }
+
+        // Cache hanya dipakai sebagai first paint. Endpoint realtime
+        // tetap menjadi sumber kebenaran setelah startup.
+        if (typeof updatePanelKegiatanDisplay_ === 'function') {
+          updatePanelKegiatanDisplay_(data.Kegiatan || {});
+        }
+        if (typeof applyPanelKeuanganSourceFast_ === 'function') {
+          applyPanelKeuanganSourceFast_(data.PanelKeuangan || {});
+        }
+
+        // Jangan menampilkan PETUGAS/INFAQ sebelum mode C41 diketahui.
+        // Placement akan dikunci ulang oleh realtime display config.
+        const mode = String(data.InfaqMode || '').trim().toUpperCase();
+        if (mode === 'AUTO' || mode === 'OFF') {
+          window.__infaqModeFromDisplay = mode;
+          applyInfaqFramePlacement_(
+            mode,
+            infaq.text1 || '',
+            infaq.text2 || ''
+          );
+        }
+
+        if (data.signature) {
+          realtimePanelsFastLastSignature = String(data.signature);
+        }
+
+        console.log('CACHE PANEL STARTUP: snapshot lokal dipakai');
+        return true;
+      } catch (e) {
+        console.warn('CACHE PANEL STARTUP GAGAL:', e);
+        return false;
+      }
+    }
+
     function pollRealtimePanelsFast_() {
       if (realtimePanelsFastRequestInFlight) return;
       realtimePanelsFastRequestInFlight = true;
@@ -4090,6 +4163,7 @@ function updateFridayPrayerDisplay() {
           if (!data || data.success === false) return;
 
           const infaq = data.Infaq || {};
+          saveRealtimePanelsFastCache_(data);
           const signature = String(data.signature || '');
           const signatureChanged = signature !== realtimePanelsFastLastSignature;
 
@@ -14061,6 +14135,10 @@ function setCountdownBlackMode(enabled) {
           }, 0);
         });
     }
+
+    // Panel visual memakai snapshot lokal terlebih dahulu agar first paint
+    // tidak menunggu Apps Script. Data realtime tetap menyusul di background.
+    loadRealtimePanelsFastCache_();
 
     // STARTUP RINGAN:
     // Jalur yang diperlukan untuk menampilkan jadwal/kartu dijalankan lebih dulu.
