@@ -4077,28 +4077,33 @@ function updateFridayPrayerDisplay() {
         .then(function(data) {
           if (!data || data.success === false) return;
 
-          // Placement INFAQ harus diproses setiap polling.
-          // Jangan terikat pada signature, karena DOM bisa berubah
-          // akibat render panel lain walaupun data spreadsheet sama.
+          const infaq = data.Infaq || {};
+          const signature = String(data.signature || '');
+          const signatureChanged = signature !== realtimePanelsFastLastSignature;
+
+          // Render panel Petugas/Kegiatan terlebih dahulu. Renderer ini
+          // mengubah display list/title, sehingga placement INFAQ harus
+          // dilakukan SETELAH renderer agar tidak terjadi flip-flop.
+          if (signatureChanged) {
+            realtimePanelsFastLastSignature = signature;
+
+            if (typeof updatePanelKegiatanDisplay_ === 'function') {
+              updatePanelKegiatanDisplay_(data.Kegiatan || {});
+            }
+            if (typeof applyPanelKeuanganSourceFast_ === 'function') {
+              applyPanelKeuanganSourceFast_(data.PanelKeuangan || {});
+            }
+          }
+
+          // Placement selalu terakhir agar AUTO tidak ditimpa renderer
+          // Petugas pada polling berikutnya.
           if (typeof applyInfaqText_ === 'function') {
-            const infaq = data.Infaq || {};
             applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
             applyInfaqFramePlacement_(
               data.InfaqMode || 'OFF',
               infaq.text1 || '',
               infaq.text2 || ''
             );
-          }
-
-          const signature = String(data.signature || '');
-          if (signature === realtimePanelsFastLastSignature) return;
-          realtimePanelsFastLastSignature = signature;
-
-          if (typeof updatePanelKegiatanDisplay_ === 'function') {
-            updatePanelKegiatanDisplay_(data.Kegiatan || {});
-          }
-          if (typeof applyPanelKeuanganSourceFast_ === 'function') {
-            applyPanelKeuanganSourceFast_(data.PanelKeuangan || {});
           }
 
         })
