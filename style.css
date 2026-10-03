@@ -3056,14 +3056,22 @@ body[data-display-theme="kuning"] .prayer-time {
 }
 
 
-/* INFAQ frame utama: beri bayangan hitam pada seluruh elemen agar tetap terbaca. */
-#infaq-left-widget .infaq-left-title,
-#infaq-left-widget .infaq-left-text{
+/* INFAQ frame utama: BLACK SHADOW TEGAS.
+   Gunakan outline/halo hitam berlapis agar benar-benar terlihat
+   pada background video, termasuk tema KUNING. */
+#infaq-left-widget .infaq-left-title{
+  color:#ffcc00 !important;
+  -webkit-text-fill-color:#ffcc00 !important;
+  background:none !important;
+  -webkit-background-clip:border-box !important;
+  background-clip:border-box !important;
   text-shadow:
-    1px 1px 2px #000,
-    -1px -1px 2px #000,
-    1px -1px 2px #000,
-    -1px 1px 2px #000 !important;
+    -0.18vh -0.18vh 0 #000,
+     0.18vh -0.18vh 0 #000,
+    -0.18vh  0.18vh 0 #000,
+     0.18vh  0.18vh 0 #000,
+     0 0 0.35vh #000,
+     0 0 0.65vh rgba(0,0,0,1) !important;
 }
 #infaq-left-widget .infaq-left-content img{
   filter:drop-shadow(2px 2px 2px #000) !important;
