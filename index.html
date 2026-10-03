@@ -286,15 +286,24 @@
             <div class="keuangan-content" id="keuangan-content"></div>
           </div>
         </div>
-        <div class="panel-box">
-          <!-- PETUGAS SHOLAT diisi setelah data PANELS!C28:C32 berhasil dimuat. -->
+        <div class="panel-box" id="petugas-panel-box">
+          <!-- PETUGAS SHOLAT / INFAQ & SHADAQAH mengikuti panels!C28:C32 + panels!C41. -->
           <div class="panel-title" id="petugas-title"></div>
+          <div id="petugas-tanggal"></div>
 
           <div class="khotbah-list" id="petugas-sholat-list" style="display:none;">
             <div class="khotbah-item"><span class="khotbah-role" id="k-label-1"></span><span class="khotbah-name" id="k-value-1"></span></div>
             <div class="khotbah-item"><span class="khotbah-role" id="k-label-2"></span><span class="khotbah-name" id="k-value-2"></span></div>
             <div class="khotbah-item"><span class="khotbah-role" id="k-label-3"></span><span class="khotbah-name" id="k-value-3"></span></div>
             <div class="khotbah-item"><span class="khotbah-role" id="k-label-4"></span><span class="khotbah-name" id="k-value-4"></span></div>
+          </div>
+
+          <div class="petugas-infaq-display" id="petugas-infaq-display" style="display:none;">
+            <div class="petugas-infaq-title">INFAQ &amp; SHADAQAH</div>
+            <div class="petugas-infaq-text" id="petugas-infaq-text"></div>
+            <div class="petugas-infaq-content">
+              <img src="./image/QRIS.jpeg" alt="QRIS Infaq dan Shadaqah" loading="lazy" decoding="async">
+            </div>
           </div>
         </div>      </div>
     </div>
@@ -3823,8 +3832,60 @@ function updateFridayPrayerDisplay() {
     }
 
 
-    function applyInfaqText_(text1, text2) {
-      const el = document.getElementById('infaq-left-text');
+    function isSpecialInfaqFrameDay_() {
+      // Prioritas hari khusus: Jumat Masehi, 1 Syawal, 10 Dzulhijjah.
+      if (isFridayWita()) return true;
+
+      const hijriNumEl = document.getElementById('hijri-num');
+      const hijriTextEl = document.getElementById('hijri-text');
+      const day = parseInt(String(hijriNumEl ? hijriNumEl.textContent : '').replace(/\D/g, ''), 10);
+      const monthText = String(hijriTextEl ? hijriTextEl.textContent : '').trim().toLowerCase();
+
+      if (day === 1 && /syawal/.test(monthText)) return true;
+      if (day === 10 && /dzulhijjah|zulhijjah|dzulhijah|zulhijah/.test(monthText)) return true;
+
+      // Fallback ketika teks Hijriah dari API belum selesai dimuat.
+      try {
+        if (typeof moment === 'function' && moment.iConvert) {
+          const m = moment(getApiDate(), 'YYYY-MM-DD');
+          const hDay = typeof m.iDate === 'function' ? m.iDate() : 0;
+          const hMonth = typeof m.iMonth === 'function' ? m.iMonth() : -1;
+          if (hDay === 1 && hMonth === 9) return true;
+          if (hDay === 10 && hMonth === 11) return true;
+        }
+      } catch (e) {}
+
+      return false;
+    }
+
+    function applyInfaqFramePlacement_(mode, text1, text2) {
+      const left = document.getElementById('infaq-left-widget');
+      const right = document.getElementById('petugas-infaq-display');
+      const title = document.getElementById('petugas-title');
+      const date = document.getElementById('petugas-tanggal');
+      const list = document.getElementById('petugas-sholat-list');
+
+      if (!left || !right) return;
+
+      const auto = String(mode || '').trim().toUpperCase() === 'AUTO';
+      const specialDay = isSpecialInfaqFrameDay_();
+      const moveToPetugas = auto && !specialDay;
+
+      left.style.display = moveToPetugas ? 'none' : '';
+      right.style.display = moveToPetugas ? 'block' : 'none';
+
+      if (moveToPetugas) {
+        if (title) title.style.display = 'none';
+        if (date) date.style.display = 'none';
+        if (list) list.style.display = 'none';
+        applyInfaqTextToElement_(document.getElementById('petugas-infaq-text'), text1, text2);
+      } else {
+        if (title) title.style.display = '';
+        if (date) date.style.display = '';
+      }
+    }
+
+    function applyInfaqTextToElement_(el, text1, text2) {
       if (!el) return;
       const values = [text1, text2].map(function(v) {
         return String(v == null ? '' : v).trim();
@@ -3835,6 +3896,13 @@ function updateFridayPrayerDisplay() {
         });
         return '<div>' + safe + '</div>';
       }).join('');
+    }
+
+    function applyInfaqText_(text1, text2) {
+      const leftEl = document.getElementById('infaq-left-text');
+      const rightEl = document.getElementById('petugas-infaq-text');
+      applyInfaqTextToElement_(leftEl, text1, text2);
+      applyInfaqTextToElement_(rightEl, text1, text2);
     }
 
     // =========================================================
@@ -3999,6 +4067,7 @@ function updateFridayPrayerDisplay() {
           if (typeof applyInfaqText_ === 'function') {
             const infaq = data.Infaq || {};
             applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
+            applyInfaqFramePlacement_(data.InfaqMode || 'OFF', infaq.text1 || '', infaq.text2 || '');
           }
         })
         .catch(function(error) {
@@ -4018,6 +4087,7 @@ function updateFridayPrayerDisplay() {
               realtimePanelsFastLastSignature = fallbackSignature;
               updatePanelKegiatanDisplay_(kegiatan);
               applyPanelKeuanganSourceFast_(source);
+              applyInfaqFramePlacement_('OFF', '', '');
             });
           }
           console.warn('REALTIME PANEL CEPAT GAGAL:', msg);
