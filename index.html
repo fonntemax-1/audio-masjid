@@ -4130,17 +4130,9 @@ function updateFridayPrayerDisplay() {
           applyPanelKeuanganSourceFast_(data.PanelKeuangan || {});
         }
 
-        // Jangan menampilkan PETUGAS/INFAQ sebelum mode C41 diketahui.
-        // Placement akan dikunci ulang oleh realtime display config.
-        const mode = String(data.InfaqMode || '').trim().toUpperCase();
-        if (mode === 'AUTO' || mode === 'OFF') {
-          window.__infaqModeFromDisplay = mode;
-          applyInfaqFramePlacement_(
-            mode,
-            infaq.text1 || '',
-            infaq.text2 || ''
-          );
-        }
+        // Jangan menentukan placement dari cache. C41 harus dibaca dari
+        // snapshot realtime saat ini agar AUTO/OFF tidak memakai status lama.
+        // Cache hanya mengisi isi panel tersembunyi untuk mempercepat first paint.
 
         if (data.signature) {
           realtimePanelsFastLastSignature = String(data.signature);
