@@ -6298,7 +6298,14 @@ function updateFridayPrayerDisplay() {
         // tidak terlalu mepet dengan batas atas saat siklus selesai.
         // Jeda standar laporan keuangan tetap dipertahankan.
         if (isQurbanScroll) {
-          spacerHeight += qurbanStartGapPx * 2;
+          // QUR'BAN: END scrolling harus memiliki jarak 1 frame penuh
+          // sebelum blok pertama masuk kembali. Ini sengaja dibuat
+          // independen dari ukuran font agar perubahan font tidak
+          // membuat jarak END kembali terlalu rapat.
+          spacerHeight = Math.max(
+            1,
+            Math.round(area.clientHeight)
+          );
         }
         spacer.style.height = spacerHeight + 'px';
         spacer.setAttribute('aria-hidden', 'true');
