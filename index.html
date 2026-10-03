@@ -3876,6 +3876,10 @@ function updateFridayPrayerDisplay() {
 
       if (!left || !right || !title || !date || !list) return;
 
+      // Jangan izinkan renderer PETUGAS menampilkan frame sesaat sebelum
+      // status C41 diketahui. Ini mencegah flash PETUGAS saat reload.
+      window.__infaqPlacementReady = true;
+
       const auto = String(mode || '').trim().toUpperCase() === 'AUTO';
       const specialDay = isSpecialInfaqFrameDay_();
       const moveToPetugas = auto && !specialDay;
@@ -4020,10 +4024,12 @@ function updateFridayPrayerDisplay() {
       if (!titleEl || !listEl) return;
 
       const jenis = String(data && data.jenis || '').trim().toUpperCase();
+      const placementReady = window.__infaqPlacementReady === true;
       titleEl.textContent = jenis
         ? (jenis.indexOf('SHOLAT ') === 0 ? 'PETUGAS ' + jenis : 'PETUGAS SHOLAT ' + jenis)
         : 'PETUGAS SHOLAT';
-      listEl.style.display = jenis ? 'flex' : 'none';
+      titleEl.style.display = placementReady && jenis ? '' : 'none';
+      listEl.style.display = placementReady && jenis ? 'flex' : 'none';
 
       const fields = data && data.fields && typeof data.fields === 'object' ? data.fields : {};
       const dateRow = Object.keys(fields).find(function(label) {
@@ -4039,7 +4045,7 @@ function updateFridayPrayerDisplay() {
       }
       dateEl.textContent = dateValue ? formatPanelKegiatanDate_(dateValue) : '';
       dateEl.style.cssText = 'text-align:center;color:#ffffff;font-weight:700;line-height:1.2;margin-top:0.35vh;margin-bottom:0.8vh;font-size:clamp(0.95rem, 5.2cqw, 1.70rem);';
-      dateEl.style.display = dateValue ? 'block' : 'none';
+      dateEl.style.display = placementReady && dateValue ? 'block' : 'none';
 
       const entries = Object.keys(fields).map(function(label) {
         return { label: String(label || '').trim(), value: String(fields[label] == null ? '' : fields[label]).trim() };
@@ -5132,7 +5138,7 @@ function updateFridayPrayerDisplay() {
       // harus sama dengan font QUR'BAN!A3 (#fin-extra).
       // Gunakan formula responsive yang sama persis.
       dateEl.style.fontSize = 'clamp(0.95rem, 5.2cqw, 1.70rem)';
-      dateEl.style.display = dateValue ? 'block' : 'none';
+      dateEl.style.display = placementReady && dateValue ? 'block' : 'none';
 
       // Field lain tetap mengikuti urutan B27:B30.
       // Tanggal dikeluarkan dari daftar agar tidak tampil dua kali.
