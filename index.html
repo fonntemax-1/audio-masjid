@@ -6257,10 +6257,10 @@ function updateFridayPrayerDisplay() {
           Math.round(dateFontPx)
         );
 
-        // Batas atas isi scrolling QUR'BAN:
-        // beri jarak tepat 1 ukuran font Tanggal dari batas TOP.
-        // Ini hanya mengatur posisi TOP scrolling, bukan jeda antar-loop.
-        content.style.top = qurbanStartGapPx + 'px';
+        // Batas atas isi scrolling QUR'BAN tetap mengikuti area scroll.
+        // Jarak 1 font Tanggal diterapkan saat siklus RESET di TOP,
+        // bukan sebagai padding/jeda scrolling.
+        content.style.top = '0px';
         content.style.paddingTop = '0px';
         content.style.boxSizing = 'border-box';
       } else {
@@ -6354,7 +6354,13 @@ function updateFridayPrayerDisplay() {
          * berada tepat di posisi awal tabel pertama.
          */
         if (Math.abs(keuanganPos) >= loopDistance) {
-          keuanganPos += loopDistance;
+          if (isQurbanScroll) {
+            // Setelah siklus putus di TOP, mulai kembali 1 ukuran
+            // font Tanggal di bawah batas TOP scrolling.
+            keuanganPos = qurbanStartGapPx;
+          } else {
+            keuanganPos += loopDistance;
+          }
         }
 
         content.style.transform =
