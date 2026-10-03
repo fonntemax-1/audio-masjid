@@ -286,7 +286,7 @@
             <div class="keuangan-content" id="keuangan-content"></div>
           </div>
         </div>
-        <div class="panel-box" id="petugas-panel-box">
+        <div class="panel-box" id="petugas-panel-box" style="container-type:inline-size;container-name:petugas-panel;">
           <!-- PETUGAS SHOLAT / INFAQ & SHADAQAH mengikuti panels!C28:C32 + panels!C41. -->
           <div class="panel-title" id="petugas-title" style="display:none;"></div>
           <div id="petugas-tanggal" style="display:none;"></div>
@@ -4098,7 +4098,7 @@ function updateFridayPrayerDisplay() {
       dateEl.style.setProperty('line-height', '1.15', 'important');
       dateEl.style.setProperty(
         'font-size',
-        'clamp(.95rem,5.2cqw,1.70rem)',
+        'clamp(.86rem,4.7cqw,1.55rem)',
         'important'
       );
       dateEl.style.setProperty('margin-top', '.12vh', 'important');
@@ -4314,17 +4314,32 @@ function updateFridayPrayerDisplay() {
       if (!gregorian) {
         dateEl.innerText = '';
         dateEl.style.display = 'none';
+        dateEl.dataset.hijriDateKey = '';
         return;
       }
 
-      // Tampilkan tanggal Masehi lebih dahulu; hasil Hijriah akan
-      // menggantikannya setelah konversi tanggal A3 selesai.
-      dateEl.innerText = gregorian;
       dateEl.style.display = 'block';
 
       const isoDate = parseQurbanDateToIso_(gregorian);
       if (!isoDate) {
+        dateEl.innerText = gregorian;
         return;
+      }
+
+      // Hasil konversi disimpan. Polling 30 detik tidak boleh
+      // mengembalikan tanggal ke Masehi setelah Hijriah sudah tersedia.
+      const cachedHijri = hijriDateConversionCache_[isoDate];
+      if (cachedHijri) {
+        dateEl.innerText = cachedHijri + ' | ' + gregorian;
+        dateEl.dataset.hijriDateKey = isoDate;
+        return;
+      }
+
+      // Jangan menimpa teks Hijriah yang sudah tampil untuk tanggal yang sama
+      // hanya karena request Sheet berikutnya datang lebih cepat dari API.
+      if (dateEl.dataset.hijriDateKey !== isoDate) {
+        dateEl.innerText = gregorian;
+        dateEl.dataset.hijriDateKey = isoDate;
       }
 
       const token = ++qurbanDateConversionToken_;
@@ -4345,8 +4360,9 @@ function updateFridayPrayerDisplay() {
           const hijri = String(result.hijri).trim();
           if (!hijri) return;
 
+          hijriDateConversionCache_[isoDate] = hijri;
+          dateEl.dataset.hijriDateKey = isoDate;
           dateEl.innerText = hijri + ' | ' + gregorian;
-          dateEl.style.display = 'block';
         })
         .catch(function(error) {
           console.warn(
@@ -4371,16 +4387,30 @@ function updateFridayPrayerDisplay() {
       if (!rawGregorian) {
         dateEl.innerText = '';
         dateEl.style.display = 'none';
+        dateEl.dataset.hijriDateKey = '';
         return;
       }
 
       const gregorian = formatPanelKegiatanDate_(rawGregorian);
-      dateEl.innerText = gregorian;
       dateEl.style.display = 'block';
 
       const isoDate = parseQurbanDateToIso_(rawGregorian);
       if (!isoDate) {
+        dateEl.innerText = gregorian;
         return;
+      }
+
+      const cachedHijri = hijriDateConversionCache_[isoDate];
+      if (cachedHijri) {
+        dateEl.innerText = cachedHijri + ' | ' + gregorian;
+        dateEl.dataset.hijriDateKey = isoDate;
+        return;
+      }
+
+      // Pertahankan hasil Hijriah yang sudah tampil untuk tanggal yang sama.
+      if (dateEl.dataset.hijriDateKey !== isoDate) {
+        dateEl.innerText = gregorian;
+        dateEl.dataset.hijriDateKey = isoDate;
       }
 
       const token = ++petugasDateConversionToken_;
@@ -4401,8 +4431,9 @@ function updateFridayPrayerDisplay() {
           const hijri = String(result.hijri).trim();
           if (!hijri) return;
 
+          hijriDateConversionCache_[isoDate] = hijri;
+          dateEl.dataset.hijriDateKey = isoDate;
           dateEl.innerText = hijri + ' | ' + gregorian;
-          dateEl.style.display = 'block';
         })
         .catch(function(error) {
           console.warn(
@@ -5764,7 +5795,7 @@ function updateFridayPrayerDisplay() {
       // Ukuran font PANELS!C27 (Tanggal Petugas Sholat)
       // harus sama dengan font QUR'BAN!A3 (#fin-extra).
       // Gunakan formula responsive yang sama persis.
-      dateEl.style.fontSize = 'clamp(0.95rem, 5.2cqw, 1.70rem)';
+      dateEl.style.fontSize = 'clamp(0.86rem, 4.7cqw, 1.55rem)';
       dateEl.style.display = showPetugas && dateValue ? 'block' : 'none';
 
       // Pola tanggal sama dengan QUR'BAN A3:
