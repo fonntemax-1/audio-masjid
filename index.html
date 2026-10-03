@@ -12569,14 +12569,29 @@ function setCountdownBlackMode(enabled) {
 
         countdownTitle.classList.remove(
           'iqomah-title',
-          'imsak-time-title'
+          'imsak-time-title',
+          'waktu-sholat-title'
         );
+
+        const countdownTimer =
+          document.getElementById('countdown');
+
+        if (countdownTimer) {
+          countdownTimer.classList.remove('waktu-sholat-prayer');
+        }
 
         const normalizedTitle =
           String(title || '')
             .replace(/\s+/g, ' ')
             .trim()
             .toUpperCase();
+
+        if (normalizedTitle === 'WAKTU') {
+          countdownTitle.classList.add('waktu-sholat-title');
+          if (countdownTimer) {
+            countdownTimer.classList.add('waktu-sholat-prayer');
+          }
+        }
 
         // IQOMAH menggunakan style default countdown,
         // sama persis dengan baris atas ADZAN.
