@@ -3867,7 +3867,15 @@ function updateFridayPrayerDisplay() {
     // Hari biasa + C41=OFF: INFAQ + QRIS tetap di frame utama,
     // PETUGAS tetap tampil.
     // =========================================================
+    let infaqPlacementMode_ = 'OFF';
+    let infaqPlacementText1_ = '';
+    let infaqPlacementText2_ = '';
+
     function applyInfaqFramePlacement_(mode, text1, text2) {
+      infaqPlacementMode_ = String(mode || '').trim().toUpperCase() === 'AUTO' ? 'AUTO' : 'OFF';
+      infaqPlacementText1_ = String(text1 == null ? '' : text1).trim();
+      infaqPlacementText2_ = String(text2 == null ? '' : text2).trim();
+
       const left = document.getElementById('infaq-left-widget');
       const right = document.getElementById('petugas-infaq-display');
       const title = document.getElementById('petugas-title');
@@ -4068,9 +4076,20 @@ function updateFridayPrayerDisplay() {
           row.parentElement.style.display = 'none';
         }
       }
+
+      // Render Petugas dapat berjalan setelah sinkronisasi INFAQ.
+      // Terapkan kembali placement terakhir agar C41=AUTO tidak dibatalkan
+      // oleh render list Petugas.
+      if (typeof applyInfaqFramePlacement_ === 'function') {
+        applyInfaqFramePlacement_(
+          infaqPlacementMode_,
+          infaqPlacementText1_,
+          infaqPlacementText2_
+        );
+      }
     }
 
-    function pollRealtimePanelsFast_() {
+    function pollRealtimePanelsFast_    function pollRealtimePanelsFast_() {
       if (realtimePanelsFastRequestInFlight) return;
       realtimePanelsFastRequestInFlight = true;
 
@@ -4111,7 +4130,7 @@ function updateFridayPrayerDisplay() {
               realtimePanelsFastLastSignature = fallbackSignature;
               updatePanelKegiatanDisplay_(kegiatan);
               applyPanelKeuanganSourceFast_(source);
-              applyInfaqFramePlacement_('OFF', '', '');
+              // Fallback endpoint tidak boleh mengubah mode INFAQ yang sudah aktif.
             });
           }
           console.warn('REALTIME PANEL CEPAT GAGAL:', msg);
