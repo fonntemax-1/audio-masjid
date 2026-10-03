@@ -3126,3 +3126,55 @@ body[data-display-theme="kuning"] .header-moon.moon-new::after {
     max-height:32vh !important;
   }
 }
+
+
+/* FINAL CENTER AXIS — INFAQ, C42, C43, dan QRIS harus tepat pada satu sumbu tengah */
+#infaq-left-widget .infaq-left-title,
+#infaq-left-widget .infaq-left-text,
+#infaq-left-widget .infaq-left-content {
+  align-self: center !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+#infaq-left-widget .infaq-left-title {
+  width: max-content !important;
+  max-width: 100% !important;
+  text-align: center !important;
+}
+
+#infaq-left-widget .infaq-left-title span {
+  display: block !important;
+  width: max-content !important;
+  max-width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center !important;
+}
+
+#infaq-left-widget .infaq-left-text {
+  width: max-content !important;
+  max-width: 100% !important;
+  text-align: center !important;
+}
+
+#infaq-left-widget .infaq-left-text > div {
+  width: 100% !important;
+  display: block !important;
+  text-align: center !important;
+}
+
+#infaq-left-widget .infaq-left-content {
+  width: max-content !important;
+  max-width: 100% !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+#infaq-left-widget .infaq-left-content img {
+  margin: 0 auto !important;
+  display: block !important;
+}
