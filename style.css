@@ -3339,7 +3339,7 @@ body[data-display-theme="kuning"] .prayer-time {
   white-space:nowrap !important;
   overflow:hidden !important;
   text-overflow:clip !important;
-  font-size:clamp(.86rem,4.7cqw,1.55rem) !important;
+  font-size:clamp(.70rem,3.8cqw,1.35rem) !important;
   margin-top:.12vh !important;
   margin-bottom:.45vh !important;
   padding-top:0 !important;
