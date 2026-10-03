@@ -3243,12 +3243,14 @@ body[data-display-theme="kuning"] .prayer-time {
 }
 
 
-/* TANGGAL QURBAN + PETUGAS SHOLAT: ukuran sama persis dengan tanggal LAPORAN KEUANGAN. */
+/* TANGGAL QURBAN + PETUGAS SHOLAT: ukuran sedikit diperkecil,
+   tetap sama dengan tanggal LAPORAN KEUANGAN. */
 #fin-panel-box.qurban-display #fin-extra,
-#petugas-panel-box #petugas-tanggal{
+#petugas-panel-box #petugas-tanggal,
+#fin-panel-box:not(.qurban-display) #fin-sub{
   color:#ffffff !important;
   -webkit-text-fill-color:#ffffff !important;
-  font-size:clamp(.95rem,5.2cqw,1.70rem) !important;
+  font-size:clamp(.86rem,4.7cqw,1.55rem) !important;
   font-weight:700 !important;
   line-height:1.15 !important;
   text-align:center !important;
@@ -3299,7 +3301,7 @@ body[data-display-theme="kuning"] .prayer-time {
   white-space:nowrap !important;
   overflow:hidden !important;
   text-overflow:clip !important;
-  font-size:clamp(.95rem,5.2cqw,1.70rem) !important;
+  font-size:clamp(.86rem,4.7cqw,1.55rem) !important;
   margin-top:.12vh !important;
   margin-bottom:.45vh !important;
   padding-top:0 !important;
