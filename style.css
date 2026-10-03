@@ -3070,3 +3070,36 @@ body[data-display-theme="kuning"] .prayer-time {
   color:var(--theme-accent) !important;
   -webkit-text-fill-color:var(--theme-accent) !important;
 }
+
+
+/* JUDUL QUR'BAN & PETUGAS SHOLAT: responsif terhadap lebar frame,
+   bukan terhadap ukuran seluruh layar TV. */
+#fin-panel-box.qurban-display #fin-title,
+#fin-panel-box.qurban-display #fin-sub,
+#fin-panel-box.qurban-display #fin-extra{
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  text-align:center !important;
+  overflow:hidden !important;
+  white-space:nowrap !important;
+}
+#fin-panel-box.qurban-display #fin-title,
+#fin-panel-box.qurban-display #fin-sub{
+  font-size:clamp(.68rem,4.2cqw,1.5rem) !important;
+}
+
+#petugas-panel-box{
+  container-type:inline-size !important;
+  container-name:petugas-panel !important;
+}
+#petugas-panel-box > #petugas-title{
+  width:100% !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  text-align:center !important;
+  overflow:hidden !important;
+  white-space:nowrap !important;
+  font-size:clamp(.68rem,4.2cqw,1.3rem) !important;
+  line-height:1.08 !important;
+  letter-spacing:0 !important;
+}
