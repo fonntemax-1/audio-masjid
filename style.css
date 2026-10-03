@@ -3379,3 +3379,19 @@ body[data-display-theme="kuning"] .prayer-time {
   color:var(--theme-accent) !important;
   -webkit-text-fill-color:var(--theme-accent) !important;
 }
+
+
+/* QUR'BAN HIGHLIGHT OTOMATIS
+   Bila isi satu baris mengandung KELOMPOK, SAPI, atau KAMBING,
+   seluruh baris mengikuti warna tema dan menjadi BOLD.
+   Ukuran/font dasar tabel tetap mengikuti standard tabel QUR'BAN. */
+#fin-panel-box.qurban-display .keuangan-table tr:has(td.qurban-highlight-row) td,
+#fin-panel-box.qurban-display .keuangan-table td.qurban-highlight-row{
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+  font-weight:700 !important;
+  font-family:inherit !important;
+  font-size:inherit !important;
+  line-height:inherit !important;
+  text-transform:none !important;
+}
