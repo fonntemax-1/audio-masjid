@@ -5921,6 +5921,10 @@ function updateFridayPrayerDisplay() {
        * dahulu setengah frame. Baru salinan tabel berikutnya masuk.
        * Ini membuat pergantian lebih nyaman dibaca tanpa refresh.
        */
+      const isQurbanScroll =
+        document.getElementById('fin-panel-box') &&
+        document.getElementById('fin-panel-box').classList.contains('qurban-display');
+
       let firstBlock = content.firstElementChild;
 
       if (
@@ -5941,29 +5945,84 @@ function updateFridayPrayerDisplay() {
         spacer.style.height = spacerHeight + 'px';
         spacer.setAttribute('aria-hidden', 'true');
 
-        content.appendChild(spacer);
-        content.appendChild(clone);
+        if (isQurbanScroll) {
+          // Jarak start/end QUR'BAN dihitung nyata dari 2 ukuran font,
+          // lalu ikut masuk ke jalur transform dan loop distance.
+          const sampleCell =
+            firstBlock.querySelector('.qurban-scroll-text');
+          const sampleFontPx = sampleCell
+            ? parseFloat(window.getComputedStyle(sampleCell).fontSize) || 16
+            : 16;
+          const qurbanGapHeight =
+            Math.max(1, Math.round(sampleFontPx * 2));
+
+          const startSpacer = document.createElement('div');
+          startSpacer.className = 'qurban-scroll-start-spacer';
+          startSpacer.style.height = qurbanGapHeight + 'px';
+          startSpacer.setAttribute('aria-hidden', 'true');
+
+          const endSpacer = document.createElement('div');
+          endSpacer.className = 'qurban-scroll-end-spacer';
+          endSpacer.style.height = qurbanGapHeight + 'px';
+          endSpacer.setAttribute('aria-hidden', 'true');
+
+          const cloneStartSpacer = startSpacer.cloneNode(false);
+          const cloneEndSpacer = endSpacer.cloneNode(false);
+
+          content.appendChild(startSpacer);
+          content.appendChild(firstBlock);
+          content.appendChild(endSpacer);
+          content.appendChild(spacer);
+          content.appendChild(cloneStartSpacer);
+          content.appendChild(clone);
+          content.appendChild(cloneEndSpacer);
+        } else {
+          content.appendChild(spacer);
+          content.appendChild(clone);
+        }
       }
 
-      firstBlock = content.firstElementChild;
+      firstBlock = content.querySelector('table.keuangan-table');
 
-      if (!firstBlock || firstBlock.tagName !== 'TABLE') return;
+      if (!firstBlock) return;
 
-      const loopSpacer = content.children[1];
+      const loopSpacer = Array.from(content.children).find(function(el) {
+        return el.classList.contains('keuangan-scroll-spacer');
+      });
+
       const loopHeight =
         firstBlock.getBoundingClientRect().height;
 
       const gapHeight =
-        loopSpacer && loopSpacer.classList.contains('keuangan-scroll-spacer')
+        loopSpacer && loopSpacer.getBoundingClientRect
           ? loopSpacer.getBoundingClientRect().height
           : Math.round(area.clientHeight * 0.5);
+
+      let startGapHeight = 0;
+      let endGapHeight = 0;
+
+      if (isQurbanScroll) {
+        const startGapEl =
+          content.querySelector('.qurban-scroll-start-spacer');
+        const endGapEl =
+          content.querySelector('.qurban-scroll-end-spacer');
+
+        startGapHeight =
+          startGapEl ? startGapEl.getBoundingClientRect().height : 0;
+        endGapHeight =
+          endGapEl ? endGapEl.getBoundingClientRect().height : 0;
+      }
 
       if (loopHeight <= area.clientHeight) {
         content.style.transform = 'translateY(0px)';
         return;
       }
 
-      const loopDistance = loopHeight + gapHeight;
+      const loopDistance =
+        loopHeight +
+        gapHeight +
+        startGapHeight +
+        endGapHeight;
       const speed = 0.2;
       let lastFrame = 0;
 
