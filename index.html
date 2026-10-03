@@ -4489,7 +4489,7 @@ function updateFridayPrayerDisplay() {
           finSub.style.color = '#ffffff';
           finSub.style.webkitTextFillColor = '#ffffff';
           finSub.style.fontFamily = 'inherit';
-          finSub.style.fontSize = 'clamp(0.86rem, 4.7cqw, 1.55rem)';
+          finSub.style.fontSize = 'clamp(0.70rem, 3.8cqw, 1.35rem)';
           finSub.style.fontWeight = 'bold';
           finSub.style.lineHeight = '1.15';
           finSub.style.textAlign = 'center';
@@ -4546,6 +4546,30 @@ function updateFridayPrayerDisplay() {
       return months[Number(m[2]) - 1] ? Number(m[1]) + ' ' + months[Number(m[2]) - 1] + ' ' + m[3] : raw;
     }
 
+    function fitPetugasTitle_(titleEl) {
+      if (!titleEl) return;
+      titleEl.style.whiteSpace = 'nowrap';
+      titleEl.style.overflow = 'hidden';
+      titleEl.style.textOverflow = 'clip';
+      titleEl.style.width = '100%';
+      titleEl.style.maxWidth = '100%';
+      titleEl.style.boxSizing = 'border-box';
+
+      const baseSize = Math.min(
+        1.30 * 16,
+        Math.max(0.70 * 16, titleEl.clientWidth * 0.055)
+      );
+      let size = baseSize;
+      titleEl.style.fontSize = size + 'px';
+
+      let guard = 0;
+      while (titleEl.scrollWidth > titleEl.clientWidth && size > 10 && guard < 30) {
+        size *= 0.94;
+        titleEl.style.fontSize = size + 'px';
+        guard++;
+      }
+    }
+
     function updatePanelKegiatanDisplay_(data) {
       const titleEl = document.getElementById('petugas-title');
       const listEl = document.getElementById('petugas-sholat-list');
@@ -4579,7 +4603,7 @@ function updateFridayPrayerDisplay() {
         titleEl.insertAdjacentElement('afterend', dateEl);
       }
       dateEl.textContent = dateValue ? formatPanelKegiatanDate_(dateValue) : '';
-      dateEl.style.cssText = 'text-align:center;color:#ffffff;font-weight:700;line-height:1.2;margin-top:0.35vh;margin-bottom:0.8vh;font-size:clamp(0.86rem, 4.7cqw, 1.55rem);';
+      dateEl.style.cssText = 'text-align:center;color:#ffffff;font-weight:700;line-height:1.2;margin-top:0.35vh;margin-bottom:0.8vh;font-size:clamp(0.70rem, 3.8cqw, 1.35rem);';
       dateEl.style.display = showPetugas && dateValue ? 'block' : 'none';
       fitPetugasHeaderText_();
       applyPetugasDatePattern_();
@@ -5582,7 +5606,7 @@ function updateFridayPrayerDisplay() {
           finSub.style.color = '#ffffff';
           finSub.style.webkitTextFillColor = '#ffffff';
           finSub.style.fontFamily = 'inherit';
-          finSub.style.fontSize = 'clamp(0.86rem, 4.7cqw, 1.55rem)';
+          finSub.style.fontSize = 'clamp(0.70rem, 3.8cqw, 1.35rem)';
           finSub.style.fontWeight = 'bold';
           finSub.style.lineHeight = '1.15';
           finSub.style.textAlign = 'center';
