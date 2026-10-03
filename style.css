@@ -3235,3 +3235,19 @@ body[data-display-theme="kuning"] .prayer-time {
   padding-top:0 !important;
   padding-bottom:0 !important;
 }
+
+
+/* TANGGAL QURBAN + PETUGAS SHOLAT: ukuran sama persis dengan tanggal LAPORAN KEUANGAN. */
+#fin-panel-box.qurban-display #fin-extra,
+#petugas-panel-box #petugas-tanggal{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+  font-size:clamp(.95rem,5.2cqw,1.70rem) !important;
+  font-weight:700 !important;
+  line-height:1.15 !important;
+  text-align:center !important;
+  margin-top:.12vh !important;
+  margin-bottom:.45vh !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+}
