@@ -4063,6 +4063,28 @@ function updateFridayPrayerDisplay() {
       });
     }
 
+
+    // =======================================================
+    // QUR'BAN FORMAT LOCK
+    // Simpan format terakhir dari Spreadsheet dan terapkan ulang
+    // setelah renderer panel selesai, sehingga CSS/renderer lain
+    // tidak dapat menimpa ukuran/font A1:A3.
+    // Warna tetap dikunci ke tema (A1/A2) dan putih (A3).
+    // =======================================================
+    window.__QURBAN_HEADER_STYLES__ = null;
+
+    function applyQurbanSpreadsheetHeaderStyleFinal_() {
+      const panel = document.getElementById('fin-panel-box');
+      if (!panel || !panel.classList.contains('qurban-display')) return;
+
+      const styles = window.__QURBAN_HEADER_STYLES__;
+      if (!styles) return;
+
+      if (typeof applyQurbanSpreadsheetHeaderStyle_ === 'function') {
+        applyQurbanSpreadsheetHeaderStyle_(styles);
+      }
+    }
+
     // REALTIME KHUSUS PANEL - KEUANGAN / QUR'BAN / PETUGAS SHOLAT
     // Satu request untuk tiga panel, setiap 1 detik.
     // Tidak membaca scheduler/audio/jadwal sholat.
@@ -4130,11 +4152,22 @@ function updateFridayPrayerDisplay() {
       if (finPanelBox) {
         finPanelBox.classList.toggle('qurban-display', selector === 'QURBAN');
         if (selector === 'QURBAN') {
-          applyQurbanSpreadsheetHeaderStyle_(source && source.headerStyles ? source.headerStyles : null);
+          window.__QURBAN_HEADER_STYLES__ =
+            source && source.headerStyles
+              ? source.headerStyles
+              : null;
+          applyQurbanSpreadsheetHeaderStyleFinal_();
         }
       }
 
       updateKeuangan(rows, date, selector);
+
+      if (selector === 'QURBAN') {
+        window.requestAnimationFrame(function() {
+          applyQurbanSpreadsheetHeaderStyleFinal_();
+        });
+      }
+
       if (typeof previousKeuanganJson !== 'undefined') {
         previousKeuanganJson = JSON.stringify(rows) + date + title + selector;
       }
@@ -4311,7 +4344,9 @@ function updateFridayPrayerDisplay() {
             ) {
               const box = document.getElementById('fin-panel-box');
               if (box) box.classList.add('qurban-display');
-              applyQurbanSpreadsheetHeaderStyle_(panelSource.headerStyles || null);
+              window.__QURBAN_HEADER_STYLES__ =
+                panelSource.headerStyles || null;
+              applyQurbanSpreadsheetHeaderStyleFinal_();
             }
           }
 
@@ -5200,10 +5235,18 @@ function updateFridayPrayerDisplay() {
           keuanganSelector === 'QURBAN'
         );
         if (keuanganSelector === 'QURBAN') {
-          applyQurbanSpreadsheetHeaderStyle_(data && data.PanelKeuangan && data.PanelKeuangan.headerStyles
-            ? data.PanelKeuangan.headerStyles
-            : null);
+          window.__QURBAN_HEADER_STYLES__ =
+            data && data.PanelKeuangan && data.PanelKeuangan.headerStyles
+              ? data.PanelKeuangan.headerStyles
+              : null;
+          applyQurbanSpreadsheetHeaderStyleFinal_();
         }
+      }
+
+      if (keuanganSelector === 'QURBAN') {
+        window.requestAnimationFrame(function() {
+          applyQurbanSpreadsheetHeaderStyleFinal_();
+        });
       }
 
       if (
