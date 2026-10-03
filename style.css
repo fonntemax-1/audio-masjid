@@ -2947,3 +2947,40 @@ body[data-display-theme="kuning"] .header-moon.moon-new::after {
     width:min(20vw,92px) !important;
   }
 }
+
+
+/* INFAQ FRAME UTAMA — susunan vertikal center dan proporsional.
+   Hanya berlaku untuk widget INFAQ utama, bukan INFAQ di frame PETUGAS. */
+#infaq-left-widget{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center !important;
+  box-sizing:border-box !important;
+}
+#infaq-left-widget .infaq-left-title,
+#infaq-left-widget .infaq-left-text,
+#infaq-left-widget .infaq-left-content{
+  width:100% !important;
+  text-align:center !important;
+  box-sizing:border-box !important;
+}
+#infaq-left-widget .infaq-left-text{
+  text-shadow:
+    1px 1px 2px #000,
+    -1px -1px 2px #000,
+    1px -1px 2px #000,
+    -1px 1px 2px #000 !important;
+}
+#infaq-left-widget .infaq-left-content{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex:0 0 auto !important;
+}
+#infaq-left-widget .infaq-left-content img{
+  display:block !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
