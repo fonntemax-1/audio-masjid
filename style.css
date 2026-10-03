@@ -2817,3 +2817,63 @@ body[data-display-theme="kuning"] .header-moon.moon-new::after {
     max-width:82%;
   }
 }
+
+
+/* QRIS RESPONSIVE - jaga rasio asli dan beri ruang penuh untuk teks INFAQ */
+.infaq-left-widget{
+  box-sizing:border-box !important;
+}
+.infaq-left-text{
+  width:100% !important;
+  box-sizing:border-box !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  overflow-wrap:normal !important;
+  word-break:normal !important;
+}
+.infaq-left-content{
+  width:100% !important;
+  box-sizing:border-box !important;
+  min-height:0 !important;
+}
+.infaq-left-content img{
+  width:min(100%, 7.4vw, 102px) !important;
+  max-width:100% !important;
+  height:auto !important;
+  aspect-ratio:1 / 1 !important;
+  object-fit:contain !important;
+  flex:0 0 auto !important;
+}
+
+.petugas-infaq-text{
+  width:100% !important;
+  box-sizing:border-box !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+}
+.petugas-infaq-content{
+  box-sizing:border-box !important;
+  min-height:0 !important;
+}
+.petugas-infaq-content img{
+  width:min(100%, 9vw, 120px) !important;
+  max-width:82% !important;
+  max-height:100% !important;
+  height:auto !important;
+  aspect-ratio:1 / 1 !important;
+  object-fit:contain !important;
+  flex:0 0 auto !important;
+}
+
+@media (max-width:700px){
+  .infaq-left-content img{
+    width:min(20vw, 84px) !important;
+    max-width:100% !important;
+  }
+  .petugas-infaq-content img{
+    width:min(22vw, 100px) !important;
+    max-width:82% !important;
+  }
+}
