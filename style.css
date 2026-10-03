@@ -3174,3 +3174,24 @@ body[data-display-theme="kuning"] .prayer-time {
     font-size:clamp(.82rem,5.4cqw,1.25rem) !important;
   }
 }
+
+
+/* FINAL RESPONSIVE QURBAN TITLE + MASJID NAME
+   Warna NAMA MASJID disamakan dengan DAFTAR PESERTA QURBAN.
+   Ukuran NAMA MASJID mengikuti lebar frame QURBAN. */
+#fin-panel-box.qurban-display #fin-title,
+#header-masjid-name,
+.header-center .latin-name{
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+}
+
+#fin-panel-box.qurban-display #fin-title{
+  font-size:clamp(.85rem,5.2cqw,1.70rem) !important;
+}
+
+#header-masjid-name,
+.header-center .latin-name{
+  font-size:clamp(.85rem,5.2cqw,1.70rem) !important;
+  white-space:nowrap !important;
+}
