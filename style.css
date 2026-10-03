@@ -1294,8 +1294,8 @@
       font-weight: bold !important;
       line-height: 1.15 !important;
       text-align: center !important;
-      /* Jarak Tanggal A3 ke TOP scrolling = tepat 1 ukuran font Tanggal. */
-      margin-bottom: 1em !important;
+      /* Jarak Tanggal A3 ke TOP scrolling = 2 ukuran font Tanggal. */
+      margin-bottom: 2em !important;
     }
 
     .right-sidebar .panel-box:last-child .panel-title {
