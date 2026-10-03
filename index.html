@@ -4223,8 +4223,15 @@ function updateFridayPrayerDisplay() {
       if (typeof applyInfaqText_ === 'function' && data.Infaq) {
         const infaq = data.Infaq || {};
         applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
-        // Placement INFAQ hanya dikendalikan oleh polling realtime ringan
-        // agar snapshot lama tidak mengembalikan tampilan ke mode berbeda.
+        // Sinkronkan placement dari endpoint display juga. Ini penting
+        // bila deployment Apps Script belum menjalankan endpoint fast.
+        if (data.InfaqMode !== undefined) {
+          applyInfaqFramePlacement_(
+            data.InfaqMode || 'OFF',
+            infaq.text1 || '',
+            infaq.text2 || ''
+          );
+        }
       }
 
       const signature = JSON.stringify([
