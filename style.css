@@ -1435,9 +1435,11 @@
       overflow: hidden;
     }
 
-    /* Jarak awal scrolling QURBAN dibuat lebih lega dari tanggal A3. */
+    /* Batas awal QUR'BAN dihitung dinamis oleh JavaScript
+       berdasarkan 2x ukuran font tanggal A3. Padding tambahan dimatikan
+       agar jarak tidak dobel. */
     .qurban-display .keuangan-content {
-      padding-top: 1.2vh !important;
+      padding-top: 0 !important;
       box-sizing: border-box !important;
     }
 
