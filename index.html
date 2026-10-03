@@ -4186,6 +4186,14 @@ function updateFridayPrayerDisplay() {
     function applyRealtimeDisplayConfig_(data) {
       if (!data || data.success === false) return;
 
+      // INFAQ/QRIS ditempelkan juga dari snapshot realtime ringan.
+      // Ini menjadi jalur fallback apabila getRealtimePanelsFast terlambat/gagal.
+      if (typeof applyInfaqText_ === 'function' && data.Infaq) {
+        const infaq = data.Infaq || {};
+        applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
+        applyInfaqFramePlacement_(data.InfaqMode || 'OFF', infaq.text1 || '', infaq.text2 || '');
+      }
+
       const signature = JSON.stringify([
         data.PanelMode, data.DisplayTheme, data.Youtube, data.YoutubeStatus,
         data.IqomahMode, data.Nama, data.Alamat, data.Kota,
