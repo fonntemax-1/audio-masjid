@@ -4162,6 +4162,8 @@ function updateFridayPrayerDisplay() {
     let qurbanDateConversionToken_ = 0;
     let currentPetugasGregorianDate_ = '';
     let petugasDateConversionToken_ = 0;
+    let currentKeuanganGregorianDate_ = '';
+    let keuanganDateConversionToken_ = 0;
 
     function parseQurbanDateToIso_(value) {
       const raw = String(value || '').trim();
@@ -4225,6 +4227,58 @@ function updateFridayPrayerDisplay() {
       }
 
       return '';
+    }
+
+    function renderKeuanganDateHeader_(gregorianValue) {
+      const dateEl = document.getElementById('fin-sub');
+      if (!dateEl) return;
+
+      const rawGregorian = String(
+        gregorianValue !== undefined
+          ? gregorianValue
+          : currentKeuanganGregorianDate_
+      ).trim();
+
+      currentKeuanganGregorianDate_ = rawGregorian;
+
+      if (!rawGregorian) {
+        dateEl.innerText = '';
+        return;
+      }
+
+      // Tampilkan Masehi terlebih dahulu, lalu ganti menjadi:
+      // HIJRIAH | MASEHI setelah konversi selesai.
+      dateEl.innerText = rawGregorian;
+
+      const isoDate = parseQurbanDateToIso_(rawGregorian);
+      if (!isoDate) return;
+
+      const token = ++keuanganDateConversionToken_;
+
+      gasApiCall('getHijriDateFromApi', { date: isoDate })
+        .then(function(result) {
+          if (token !== keuanganDateConversionToken_) return;
+
+          if (
+            !result ||
+            result.success !== true ||
+            result.found !== true ||
+            !result.hijri
+          ) {
+            return;
+          }
+
+          const hijri = String(result.hijri).trim();
+          if (!hijri) return;
+
+          dateEl.innerText = hijri + ' | ' + rawGregorian;
+        })
+        .catch(function(error) {
+          console.warn(
+            'KONVERSI TANGGAL KEUANGAN KE HIJRIAH GAGAL:',
+            error && error.message ? error.message : error
+          );
+        });
     }
 
     function renderQurbanDateHeader_(gregorianValue) {
@@ -4369,9 +4423,14 @@ function updateFridayPrayerDisplay() {
 
       const finSub = document.getElementById('fin-sub');
       if (finSub) {
-        finSub.innerText = selector === 'QURBAN'
-          ? ('MASJID ' + date.trim()).trim()
-          : date;
+        if (selector === 'QURBAN') {
+          currentKeuanganGregorianDate_ = '';
+          keuanganDateConversionToken_++;
+          finSub.innerText = ('MASJID ' + date.trim()).trim();
+        } else {
+          currentKeuanganGregorianDate_ = date.trim();
+          renderKeuanganDateHeader_(currentKeuanganGregorianDate_);
+        }
 
         if (selector === 'QURBAN') {
           // Font/layout A2 diambil dari QURBAN!A2.
