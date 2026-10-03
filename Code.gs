@@ -4578,7 +4578,7 @@ function getRealtimePanelsFast() {
 
     return {
       success: true,
-      signature: JSON.stringify([selectedKey, title, date, a3, rows, jenis, kegiatanValues, infaqText1, infaqText2, infaqMode]),
+      signature: JSON.stringify([selectedKey, title, date, a3, rows, headerStyles, jenis, kegiatanValues, infaqText1, infaqText2, infaqMode]),
       Infaq: { text1: infaqText1, text2: infaqText2 },
       InfaqMode: infaqMode === 'AUTO' ? 'AUTO' : 'OFF',
       Kegiatan: { success: true, jenis: jenis, fields: fields },
