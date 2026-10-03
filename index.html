@@ -3859,71 +3859,14 @@ function updateFridayPrayerDisplay() {
     }
 
     // =========================================================
-    // PETUGAS SHOLAT <-> INFAQ & SHADAQAH FLIP-FLOP
-    // C41=AUTO pada hari biasa:
-    //   - frame utama tetap tanpa INFAQ
-    //   - frame PETUGAS bergantian PETUGAS SHOLAT / INFAQ & SHADAQAH
-    // Hari khusus (Jumat, 1 Syawal, 10 Dzulhijjah) tetap mengikuti
-    // aturan khusus: INFAQ di frame utama, PETUGAS di frame kanan.
-    // C41=OFF tetap: INFAQ frame utama + PETUGAS frame kanan.
     // =========================================================
-    let petugasInfaqFlipTimer_ = null;
-    let petugasInfaqFlipMode_ = '';
-    let petugasInfaqFlipShowingInfaq_ = false;
-    let petugasInfaqFlipText1_ = '';
-    let petugasInfaqFlipText2_ = '';
-
-    function setPetugasInfaqRightView_(showInfaq) {
-      const right = document.getElementById('petugas-infaq-display');
-      const title = document.getElementById('petugas-title');
-      const date = document.getElementById('petugas-tanggal');
-      const list = document.getElementById('petugas-sholat-list');
-      if (!right || !title || !date || !list) return;
-
-      if (showInfaq) {
-        title.style.display = 'none';
-        date.style.display = 'none';
-        list.style.display = 'none';
-        right.style.display = 'flex';
-        applyInfaqTextToElement_(
-          document.getElementById('petugas-infaq-text'),
-          petugasInfaqFlipText1_,
-          petugasInfaqFlipText2_
-        );
-      } else {
-        right.style.display = 'none';
-        title.style.display = '';
-        date.style.display = '';
-        list.style.display = '';
-      }
-    }
-
-    function stopPetugasInfaqFlip_() {
-      if (petugasInfaqFlipTimer_) {
-        clearInterval(petugasInfaqFlipTimer_);
-        petugasInfaqFlipTimer_ = null;
-      }
-      petugasInfaqFlipMode_ = '';
-      petugasInfaqFlipShowingInfaq_ = false;
-    }
-
-    function startPetugasInfaqFlip_(text1, text2) {
-      petugasInfaqFlipText1_ = String(text1 == null ? '' : text1).trim();
-      petugasInfaqFlipText2_ = String(text2 == null ? '' : text2).trim();
-
-      if (petugasInfaqFlipTimer_) return;
-
-      petugasInfaqFlipMode_ = 'AUTO';
-      // Mulai dari PETUGAS SHOLAT, lalu berganti setiap 10 detik.
-      petugasInfaqFlipShowingInfaq_ = false;
-      setPetugasInfaqRightView_(false);
-
-      petugasInfaqFlipTimer_ = setInterval(function() {
-        petugasInfaqFlipShowingInfaq_ = !petugasInfaqFlipShowingInfaq_;
-        setPetugasInfaqRightView_(petugasInfaqFlipShowingInfaq_);
-      }, 10000);
-    }
-
+    // PENEMPATAN INFAQ & SHADAQAH
+    // Hari khusus: INFAQ + QRIS tetap di frame utama, PETUGAS tetap tampil.
+    // Hari biasa + C41=AUTO: INFAQ + QRIS pindah ke frame PETUGAS
+    // dan menggantikan tampilan PETUGAS.
+    // Hari biasa + C41=OFF: INFAQ + QRIS tetap di frame utama,
+    // PETUGAS tetap tampil.
+    // =========================================================
     function applyInfaqFramePlacement_(mode, text1, text2) {
       const left = document.getElementById('infaq-left-widget');
       const right = document.getElementById('petugas-infaq-display');
@@ -3935,33 +3878,27 @@ function updateFridayPrayerDisplay() {
 
       const auto = String(mode || '').trim().toUpperCase() === 'AUTO';
       const specialDay = isSpecialInfaqFrameDay_();
+      const moveToPetugas = auto && !specialDay;
 
-      petugasInfaqFlipText1_ = String(text1 == null ? '' : text1).trim();
-      petugasInfaqFlipText2_ = String(text2 == null ? '' : text2).trim();
-
-      if (auto && !specialDay) {
-        // Pada AUTO hari biasa, INFAQ tidak lagi menggantikan PETUGAS
-        // secara permanen. Keduanya bergantian pada frame yang sama.
+      if (moveToPetugas) {
+        // Hari biasa + C41=AUTO:
+        // INFAQ/QRIS pindah ke frame Petugas dan menggantikan Petugas.
         left.style.display = 'none';
-        startPetugasInfaqFlip_(text1, text2);
+        title.style.display = 'none';
+        date.style.display = 'none';
+        list.style.display = 'none';
+        right.style.display = 'flex';
+
+        applyInfaqTextToElement_(
+          document.getElementById('petugas-infaq-text'),
+          text1,
+          text2
+        );
         return;
       }
 
-      // OFF atau hari khusus: tidak ada flip-flop.
-      stopPetugasInfaqFlip_();
-
-      if (specialDay) {
-        // Hari Jumat/Idul Fitri/Idul Adha:
-        // INFAQ tetap di frame utama, PETUGAS tetap di frame kanan.
-        left.style.display = '';
-        right.style.display = 'none';
-        title.style.display = '';
-        date.style.display = '';
-        list.style.display = '';
-        return;
-      }
-
-      // C41=OFF: INFAQ di frame utama, PETUGAS di frame kanan.
+      // Jumat / 1 Syawal / 10 Dzulhijjah, atau C41=OFF:
+      // INFAQ tetap frame utama, PETUGAS tetap tampil.
       left.style.display = '';
       right.style.display = 'none';
       title.style.display = '';
