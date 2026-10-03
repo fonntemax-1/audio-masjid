@@ -6227,10 +6227,15 @@ function updateFridayPrayerDisplay() {
         );
 
         // Batas atas isi scrolling QUR'BAN:
-        // 2 ukuran font tanggal.
-        content.style.top = qurbanStartGapPx + 'px';
+        // 2 ukuran font tanggal. Gap dimasukkan ke padding
+        // konten agar tetap menjadi bagian dari siklus scrolling.
+        content.style.top = '0px';
+        content.style.paddingTop = qurbanStartGapPx + 'px';
+        content.style.boxSizing = 'border-box';
       } else {
         content.style.top = '0px';
+        content.style.paddingTop = '0px';
+        content.style.boxSizing = 'border-box';
       }
 
       /*
