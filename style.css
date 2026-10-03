@@ -2565,14 +2565,31 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
   box-shadow: none !important;
 }
 .infaq-left-title {
-  color: var(--theme-accent) !important;
+  /* Samakan warna dengan NAMA MASJID pada header */
+  color: #ffcc00 !important;
+  background: linear-gradient(
+    110deg,
+    #ffcc00 0%,
+    #ffcc00 38%,
+    #fff8c4 48%,
+    #ffffff 50%,
+    #fff8c4 52%,
+    #ffcc00 62%,
+    #ffcc00 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent !important;
   font-family: Arial, sans-serif;
   font-weight: 700;
   font-size: clamp(1rem, 1.4vw, 1.5rem);
   line-height: 1.08;
   white-space: normal;
-  text-shadow: 0.08vh 0.08vh 0.12vh rgba(0,0,0,0.95),
-               0.16vh 0.16vh 0.28vh rgba(0,0,0,0.82);
+  text-shadow:
+    0.08vh 0.08vh 0.12vh rgba(0,0,0,1),
+    0.16vh 0.16vh 0.28vh rgba(0,0,0,0.95),
+    0 0.35vh 0.65vh rgba(0,0,0,0.85);
 }
 .infaq-left-text {
   margin-top: .18vh;
