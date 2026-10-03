@@ -3040,3 +3040,17 @@ body[data-display-theme="kuning"] .prayer-time {
   color:#ffcc00 !important;
   -webkit-text-fill-color:#ffcc00 !important;
 }
+
+
+/* INFAQ frame utama: beri bayangan hitam pada seluruh elemen agar tetap terbaca. */
+#infaq-left-widget .infaq-left-title,
+#infaq-left-widget .infaq-left-text{
+  text-shadow:
+    1px 1px 2px #000,
+    -1px -1px 2px #000,
+    1px -1px 2px #000,
+    -1px 1px 2px #000 !important;
+}
+#infaq-left-widget .infaq-left-content img{
+  filter:drop-shadow(2px 2px 2px #000) !important;
+}
