@@ -3299,3 +3299,10 @@ body[data-display-theme="kuning"] .prayer-time {
   padding-top:0 !important;
   padding-bottom:0 !important;
 }
+
+
+/* QUR'BAN: beri ruang 1 ukuran font setelah baris terakhir.
+   Tujuannya agar akhir scrolling tidak terlalu mepet dengan tanggal A3. */
+#fin-panel-box.qurban-display .keuangan-table tr:last-child td.qurban-scroll-text{
+  padding-bottom:1em !important;
+}
