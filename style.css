@@ -2991,3 +2991,22 @@ body[data-display-theme="kuning"] .petugas-infaq-title{
   -webkit-text-fill-color:var(--theme-accent) !important;
   white-space:nowrap !important;
 }
+
+
+/* WAKTU SHOLAT: label WAKTU kecil/putih, nama sholat pada timer
+   tetap mengikuti warna tema dan sedikit lebih besar. */
+.countdown-title.waktu-sholat-title{
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+  font-size:clamp(.85rem,1.45vw,1.55rem) !important;
+  font-weight:700 !important;
+  line-height:1 !important;
+  text-shadow:0 0.16vh 0.35vh rgba(0,0,0,.95) !important;
+}
+.countdown-timer.waktu-sholat-prayer{
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+  font-size:clamp(1.35rem,2.45vw,2.65rem) !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+}
