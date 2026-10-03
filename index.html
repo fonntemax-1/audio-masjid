@@ -4112,9 +4112,13 @@ function updateFridayPrayerDisplay() {
           if (typeof applyInfaqText_ === 'function') {
             applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
             const infaqMode = String(data.InfaqMode || '').trim().toUpperCase();
-            if (infaqMode === 'AUTO' || infaqMode === 'OFF') {
+            const displayMode = String(window.__infaqModeFromDisplay || '').trim().toUpperCase();
+            const effectiveInfaqMode =
+              displayMode === 'AUTO' ? 'AUTO' :
+              (infaqMode === 'AUTO' || infaqMode === 'OFF' ? infaqMode : '');
+            if (effectiveInfaqMode === 'AUTO' || effectiveInfaqMode === 'OFF') {
               applyInfaqFramePlacement_(
-                infaqMode,
+                effectiveInfaqMode,
                 infaq.text1 || '',
                 infaq.text2 || ''
               );
@@ -4243,10 +4247,18 @@ function updateFridayPrayerDisplay() {
       if (typeof applyInfaqText_ === 'function' && data.Infaq) {
         const infaq = data.Infaq || {};
         applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
-        // Placement C41 hanya dikendalikan oleh getRealtimePanelsFast.
-        // Endpoint display-config tidak boleh mengubah placement karena
-        // responsnya dapat datang berbeda urutan dan menyebabkan PETUGAS
-        // tampil sesaat saat LAPORAN KEUANGAN sedang dirender.
+        // C41 dibaca dari snapshot display juga. Jika deployment
+        // endpoint panel cepat belum memuat C41 terbaru, nilai AUTO dari
+        // snapshot ini tetap harus memindahkan INFAQ ke frame PETUGAS.
+        const displayInfaqMode = String(data.InfaqMode || '').trim().toUpperCase();
+        if (displayInfaqMode === 'AUTO' || displayInfaqMode === 'OFF') {
+          window.__infaqModeFromDisplay = displayInfaqMode;
+          applyInfaqFramePlacement_(
+            displayInfaqMode,
+            infaq.text1 || '',
+            infaq.text2 || ''
+          );
+        }
       }
 
       const signature = JSON.stringify([
