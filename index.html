@@ -4090,7 +4090,11 @@ function updateFridayPrayerDisplay() {
           if (typeof applyInfaqText_ === 'function') {
             const infaq = data.Infaq || {};
             applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
-            // Jangan mengubah placement dari jalur realtime lain.
+            applyInfaqFramePlacement_(
+              data.InfaqMode || 'OFF',
+              infaq.text1 || '',
+              infaq.text2 || ''
+            );
           }
         })
         .catch(function(error) {
