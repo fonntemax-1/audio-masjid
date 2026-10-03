@@ -3061,3 +3061,12 @@ body[data-display-theme="kuning"] .prayer-time {
 .qurban-display .qurban-scroll-text.qurban-highlight-row:nth-child(-n+2) *{
   font-size:clamp(.72rem,1.45cqw,1.28rem) !important;
 }
+
+
+/* QUR'BAN: warna font A2 disamakan dengan A1.
+   Berlaku hanya pada dua baris pertama data QUR'BAN. */
+.qurban-display .keuangan-table tr:nth-child(1) td,
+.qurban-display .keuangan-table tr:nth-child(2) td{
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+}
