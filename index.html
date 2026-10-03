@@ -4160,6 +4160,8 @@ function updateFridayPrayerDisplay() {
 
     let currentQurbanGregorianDate_ = '';
     let qurbanDateConversionToken_ = 0;
+    let currentPetugasGregorianDate_ = '';
+    let petugasDateConversionToken_ = 0;
 
     function parseQurbanDateToIso_(value) {
       const raw = String(value || '').trim();
@@ -4277,6 +4279,62 @@ function updateFridayPrayerDisplay() {
         .catch(function(error) {
           console.warn(
             'KONVERSI TANGGAL QURBAN KE HIJRIAH GAGAL:',
+            error && error.message ? error.message : error
+          );
+        });
+    }
+
+    function renderPetugasDateHeader_(gregorianValue) {
+      const dateEl = document.getElementById('petugas-tanggal');
+      if (!dateEl) return;
+
+      const rawGregorian = String(
+        gregorianValue !== undefined
+          ? gregorianValue
+          : currentPetugasGregorianDate_
+      ).trim();
+
+      currentPetugasGregorianDate_ = rawGregorian;
+
+      if (!rawGregorian) {
+        dateEl.innerText = '';
+        dateEl.style.display = 'none';
+        return;
+      }
+
+      const gregorian = formatPanelKegiatanDate_(rawGregorian);
+      dateEl.innerText = gregorian;
+      dateEl.style.display = 'block';
+
+      const isoDate = parseQurbanDateToIso_(rawGregorian);
+      if (!isoDate) {
+        return;
+      }
+
+      const token = ++petugasDateConversionToken_;
+
+      gasApiCall('getHijriDateFromApi', { date: isoDate })
+        .then(function(result) {
+          if (token !== petugasDateConversionToken_) return;
+
+          if (
+            !result ||
+            result.success !== true ||
+            result.found !== true ||
+            !result.hijri
+          ) {
+            return;
+          }
+
+          const hijri = String(result.hijri).trim();
+          if (!hijri) return;
+
+          dateEl.innerText = hijri + ' | ' + gregorian;
+          dateEl.style.display = 'block';
+        })
+        .catch(function(error) {
+          console.warn(
+            'KONVERSI TANGGAL PETUGAS KE HIJRIAH GAGAL:',
             error && error.message ? error.message : error
           );
         });
@@ -5612,9 +5670,6 @@ function updateFridayPrayerDisplay() {
         titleEl.insertAdjacentElement('afterend', dateEl);
       }
 
-      dateEl.textContent = dateValue
-        ? formatPanelKegiatanDate_(dateValue)
-        : '';
       dateEl.style.cssText =
         'text-align:center;' +
         'color:#ffffff;' +
@@ -5628,6 +5683,18 @@ function updateFridayPrayerDisplay() {
       // Gunakan formula responsive yang sama persis.
       dateEl.style.fontSize = 'clamp(0.95rem, 5.2cqw, 1.70rem)';
       dateEl.style.display = showPetugas && dateValue ? 'block' : 'none';
+
+      // Pola tanggal sama dengan QUR'BAN A3:
+      // HIJRIAH | MASEHI, dengan tanggal Hijriah dikonversi
+      // dari tanggal asli pada data PETUGAS SHOLAT.
+      if (showPetugas && dateValue) {
+        renderPetugasDateHeader_(dateValue);
+        applyPetugasDatePattern_();
+      } else {
+        currentPetugasGregorianDate_ = '';
+        petugasDateConversionToken_++;
+        dateEl.innerText = '';
+      }
 
       // Field lain tetap mengikuti urutan B27:B30.
       // Tanggal dikeluarkan dari daftar agar tidak tampil dua kali.
