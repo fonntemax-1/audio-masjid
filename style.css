@@ -3010,3 +3010,18 @@ body[data-display-theme="kuning"] .petugas-infaq-title{
   font-weight:900 !important;
   line-height:1 !important;
 }
+
+
+/* DEFAULT COUNTDOWN: baris "MENUJU SHOLAT" tetap putih
+   dengan ukuran font default countdown yang sama seperti sebelumnya. */
+.countdown-title{
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+  font-size:clamp(1.2rem, 2.2vw, 2.4rem) !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+}
+.countdown-title .countdown-title-prayer{
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+}
