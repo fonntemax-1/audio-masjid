@@ -5921,9 +5921,12 @@ function updateFridayPrayerDisplay() {
        * dahulu setengah frame. Baru salinan tabel berikutnya masuk.
        * Ini membuat pergantian lebih nyaman dibaca tanpa refresh.
        */
+      const finPanelBox =
+        document.getElementById('fin-panel-box');
+
       const isQurbanScroll =
-        document.getElementById('fin-panel-box') &&
-        document.getElementById('fin-panel-box').classList.contains('qurban-display');
+        !!finPanelBox &&
+        finPanelBox.classList.contains('qurban-display');
 
       let firstBlock = content.firstElementChild;
 
@@ -5938,57 +5941,54 @@ function updateFridayPrayerDisplay() {
         const spacer = document.createElement('div');
         spacer.className = 'keuangan-scroll-spacer';
 
-        const spacerHeight = Math.max(
-          1,
-          Math.round(area.clientHeight * 0.5)
-        );
-        spacer.style.height = spacerHeight + 'px';
-        spacer.setAttribute('aria-hidden', 'true');
+        let spacerHeight =
+          Math.max(
+            1,
+            Math.round(area.clientHeight * 0.5)
+          );
 
+        // =====================================================
+        // QUR'BAN — JARAK START & END YANG BENAR
+        // =====================================================
         if (isQurbanScroll) {
-          // Jarak start/end QUR'BAN dihitung nyata dari 2 ukuran font,
-          // lalu ikut masuk ke jalur transform dan loop distance.
           const sampleCell =
             firstBlock.querySelector('.qurban-scroll-text');
+
           const sampleFontPx = sampleCell
             ? parseFloat(window.getComputedStyle(sampleCell).fontSize) || 16
             : 16;
+
           const qurbanGapHeight =
             Math.max(1, Math.round(sampleFontPx * 2));
 
-          const startSpacer = document.createElement('div');
-          startSpacer.className = 'qurban-scroll-start-spacer';
-          startSpacer.style.height = qurbanGapHeight + 'px';
-          startSpacer.setAttribute('aria-hidden', 'true');
+          // START:
+          // Seluruh content dimulai 2 ukuran font di bawah
+          // batas atas area scrolling (tepat di bawah tanggal A3).
+          content.style.paddingTop = '0px';
+          content.style.paddingBottom = '0px';
+          content.style.top = qurbanGapHeight + 'px';
 
-          const endSpacer = document.createElement('div');
-          endSpacer.className = 'qurban-scroll-end-spacer';
-          endSpacer.style.height = qurbanGapHeight + 'px';
-          endSpacer.setAttribute('aria-hidden', 'true');
-
-          const cloneStartSpacer = startSpacer.cloneNode(false);
-          const cloneEndSpacer = endSpacer.cloneNode(false);
-
-          content.appendChild(startSpacer);
-          content.appendChild(firstBlock);
-          content.appendChild(endSpacer);
-          content.appendChild(spacer);
-          content.appendChild(cloneStartSpacer);
-          content.appendChild(clone);
-          content.appendChild(cloneEndSpacer);
-        } else {
-          content.appendChild(spacer);
-          content.appendChild(clone);
+          // END:
+          // Setelah baris terakhir selesai, beri ruang kosong
+          // 2 ukuran font sebelum data berikutnya masuk.
+          spacerHeight = qurbanGapHeight;
         }
+
+        spacer.style.height = spacerHeight + 'px';
+        spacer.setAttribute('aria-hidden', 'true');
+
+        content.appendChild(spacer);
+        content.appendChild(clone);
       }
 
       firstBlock = content.querySelector('table.keuangan-table');
 
       if (!firstBlock) return;
 
-      const loopSpacer = Array.from(content.children).find(function(el) {
-        return el.classList.contains('keuangan-scroll-spacer');
-      });
+      const loopSpacer =
+        Array.from(content.children).find(function(el) {
+          return el.classList.contains('keuangan-scroll-spacer');
+        });
 
       const loopHeight =
         firstBlock.getBoundingClientRect().height;
@@ -5998,21 +5998,6 @@ function updateFridayPrayerDisplay() {
           ? loopSpacer.getBoundingClientRect().height
           : Math.round(area.clientHeight * 0.5);
 
-      let startGapHeight = 0;
-      let endGapHeight = 0;
-
-      if (isQurbanScroll) {
-        const startGapEl =
-          content.querySelector('.qurban-scroll-start-spacer');
-        const endGapEl =
-          content.querySelector('.qurban-scroll-end-spacer');
-
-        startGapHeight =
-          startGapEl ? startGapEl.getBoundingClientRect().height : 0;
-        endGapHeight =
-          endGapEl ? endGapEl.getBoundingClientRect().height : 0;
-      }
-
       if (loopHeight <= area.clientHeight) {
         content.style.transform = 'translateY(0px)';
         return;
@@ -6020,9 +6005,7 @@ function updateFridayPrayerDisplay() {
 
       const loopDistance =
         loopHeight +
-        gapHeight +
-        startGapHeight +
-        endGapHeight;
+        gapHeight;
       const speed = 0.2;
       let lastFrame = 0;
 
