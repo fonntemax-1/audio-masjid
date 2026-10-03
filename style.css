@@ -3218,3 +3218,20 @@ body[data-display-theme="kuning"] .prayer-time {
   -webkit-background-clip:border-box !important;
   background-clip:border-box !important;
 }
+
+
+/* TANGGAL QURBAN + PETUGAS SHOLAT: lebih kecil dan rapat vertikal,
+   warna tetap PUTIH. */
+#fin-panel-box.qurban-display #fin-extra,
+#petugas-panel-box #petugas-tanggal{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+  font-size:clamp(.62rem,3.15cqw,1.00rem) !important;
+  font-weight:700 !important;
+  line-height:1.05 !important;
+  text-align:center !important;
+  margin-top:.12vh !important;
+  margin-bottom:.45vh !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+}
