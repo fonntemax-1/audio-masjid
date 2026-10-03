@@ -3054,3 +3054,10 @@ body[data-display-theme="kuning"] .prayer-time {
 #infaq-left-widget .infaq-left-content img{
   filter:drop-shadow(2px 2px 2px #000) !important;
 }
+
+
+/* QUR'BAN: kecilkan font A1 dan A2 tanpa mengubah baris/data lainnya. */
+.qurban-display .qurban-scroll-text.qurban-highlight-row:nth-child(-n+2),
+.qurban-display .qurban-scroll-text.qurban-highlight-row:nth-child(-n+2) *{
+  font-size:clamp(.72rem,1.45cqw,1.28rem) !important;
+}
