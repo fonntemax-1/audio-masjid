@@ -6221,10 +6221,10 @@ function updateFridayPrayerDisplay() {
 
         qurbanStartGapPx = Math.max(
           1,
-          Math.round(sampleFontPx)
+          Math.round(sampleFontPx * 2)
         );
 
-        // Baris pertama mulai setelah jarak 1 ukuran font dari tanggal A3.
+        // Baris pertama mulai setelah jarak 2 ukuran font dari tanggal A3.
         content.style.top = qurbanStartGapPx + 'px';
       } else {
         content.style.top = '0px';
@@ -6254,7 +6254,7 @@ function updateFridayPrayerDisplay() {
           Math.round(area.clientHeight * 0.5)
         );
 
-        // QUR'BAN: tambahkan 1 ukuran font pada jarak END.
+        // QUR'BAN: tambahkan 2 ukuran font pada jarak END.
         // Jeda standar laporan keuangan tetap dipertahankan.
         if (isQurbanScroll) {
           spacerHeight += qurbanStartGapPx;
