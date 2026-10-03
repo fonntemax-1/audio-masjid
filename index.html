@@ -5508,10 +5508,16 @@ function updateFridayPrayerDisplay() {
       }
 
       if (finSub) {
-        finSub.innerText =
-          keuanganSelector === 'QURBAN'
-            ? ('MASJID ' + String(data.KeuanganTanggal || '').trim()).trim()
-            : (data.KeuanganTanggal || '');
+        if (keuanganSelector === 'QURBAN') {
+          currentKeuanganGregorianDate_ = '';
+          keuanganDateConversionToken_++;
+          finSub.innerText =
+            ('MASJID ' + String(data.KeuanganTanggal || '').trim()).trim();
+        } else {
+          currentKeuanganGregorianDate_ =
+            String(data.KeuanganTanggal || '').trim();
+          renderKeuanganDateHeader_(currentKeuanganGregorianDate_);
+        }
 
         if (keuanganSelector === 'QURBAN') {
           // QUR'BAN A2: format font dari Spreadsheet; warna dari tema.
