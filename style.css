@@ -3012,16 +3012,18 @@ body[data-display-theme="kuning"] .petugas-infaq-title{
 }
 
 
-/* DEFAULT COUNTDOWN: baris "MENUJU SHOLAT" tetap putih
-   dengan ukuran font default countdown yang sama seperti sebelumnya. */
+/* DEFAULT COUNTDOWN: "MENUJU SHOLAT" putih dan lebih kecil.
+   Nama sholat pada baris kedua tetap mengikuti warna tema dan lebih besar. */
 .countdown-title{
   color:#fff !important;
   -webkit-text-fill-color:#fff !important;
-  font-size:clamp(1.2rem, 2.2vw, 2.4rem) !important;
-  font-weight:900 !important;
+  font-size:clamp(.9rem, 1.55vw, 1.7rem) !important;
+  font-weight:800 !important;
   line-height:1 !important;
 }
 .countdown-title .countdown-title-prayer{
   color:var(--theme-accent) !important;
   -webkit-text-fill-color:var(--theme-accent) !important;
+  font-size:clamp(1.35rem, 2.45vw, 2.65rem) !important;
+  font-weight:900 !important;
 }
