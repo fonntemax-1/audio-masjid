@@ -4081,14 +4081,20 @@ function updateFridayPrayerDisplay() {
       const finTitle = document.getElementById('fin-title');
       if (finTitle) {
         finTitle.innerText = title.trim();
-        finTitle.style.color = 'var(--theme-accent)';
-        finTitle.style.webkitTextFillColor = 'var(--theme-accent)';
-        finTitle.style.fontFamily = 'inherit';
-        finTitle.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
-        finTitle.style.fontWeight = '900';
-        finTitle.style.lineHeight = 'normal';
-        finTitle.style.textAlign = 'center';
-        finTitle.style.letterSpacing = '0.05vw';
+        if (selector === 'QURBAN') {
+          // Font/layout A1 diambil dari QURBAN!A1.
+          finTitle.style.color = 'var(--theme-accent)';
+          finTitle.style.webkitTextFillColor = 'var(--theme-accent)';
+        } else {
+          finTitle.style.color = 'var(--theme-accent)';
+          finTitle.style.webkitTextFillColor = 'var(--theme-accent)';
+          finTitle.style.fontFamily = 'inherit';
+          finTitle.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
+          finTitle.style.fontWeight = '900';
+          finTitle.style.lineHeight = 'normal';
+          finTitle.style.textAlign = 'center';
+          finTitle.style.letterSpacing = '0.05vw';
+        }
       }
 
       const finSub = document.getElementById('fin-sub');
@@ -4098,14 +4104,9 @@ function updateFridayPrayerDisplay() {
           : date;
 
         if (selector === 'QURBAN') {
+          // Font/layout A2 diambil dari QURBAN!A2.
           finSub.style.color = 'var(--theme-accent)';
           finSub.style.webkitTextFillColor = 'var(--theme-accent)';
-          finSub.style.fontFamily = 'inherit';
-          finSub.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
-          finSub.style.fontWeight = '900';
-          finSub.style.lineHeight = 'normal';
-          finSub.style.textAlign = 'center';
-          finSub.style.letterSpacing = '0.05vw';
         } else {
           finSub.style.color = '#ffffff';
           finSub.style.webkitTextFillColor = '#ffffff';
@@ -5111,15 +5112,20 @@ function updateFridayPrayerDisplay() {
         finTitle.innerText =
           String(data.KeuanganJudul || '').trim();
 
-        // KEUANGAN A1 = persis model visual QUR'BAN A1.
-        finTitle.style.color = 'var(--theme-accent)';
-        finTitle.style.webkitTextFillColor = 'var(--theme-accent)';
-        finTitle.style.fontFamily = 'inherit';
-        finTitle.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
-        finTitle.style.fontWeight = '900';
-        finTitle.style.lineHeight = 'normal';
-        finTitle.style.textAlign = 'center';
-        finTitle.style.letterSpacing = '0.05vw';
+        // QUR'BAN A1: format font dari Spreadsheet; warna dari tema.
+        if (keuanganSelector === 'QURBAN') {
+          finTitle.style.color = 'var(--theme-accent)';
+          finTitle.style.webkitTextFillColor = 'var(--theme-accent)';
+        } else {
+          finTitle.style.color = 'var(--theme-accent)';
+          finTitle.style.webkitTextFillColor = 'var(--theme-accent)';
+          finTitle.style.fontFamily = 'inherit';
+          finTitle.style.fontSize = 'clamp(1rem, 1.4vw, 1.5rem)';
+          finTitle.style.fontWeight = '900';
+          finTitle.style.lineHeight = 'normal';
+          finTitle.style.textAlign = 'center';
+          finTitle.style.letterSpacing = '0.05vw';
+        }
       }
 
       const finSub =
