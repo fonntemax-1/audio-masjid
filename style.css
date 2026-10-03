@@ -3260,3 +3260,42 @@ body[data-display-theme="kuning"] .prayer-time {
 #fin-panel-box.qurban-display #fin-extra{
   margin-top:.35vh !important;
 }
+
+
+/* FINAL PATTERN: PETUGAS SHOLAT meniru pola judul A1 QUR'BAN.
+   A1/A2 QUR'BAN dan judul PETUGAS memakai font/warna tema yang sama.
+   Tanggal PETUGAS meniru pola A3/tanggal QUR'BAN. */
+#petugas-panel-box > #petugas-title{
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+  background:none !important;
+  background-image:none !important;
+  -webkit-background-clip:border-box !important;
+  background-clip:border-box !important;
+  font-weight:900 !important;
+  text-align:center !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:clip !important;
+  letter-spacing:0 !important;
+  line-height:1.02 !important;
+}
+
+#petugas-panel-box #petugas-tanggal{
+  width:100% !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+  font-weight:700 !important;
+  line-height:1.15 !important;
+  text-align:center !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:clip !important;
+  font-size:clamp(.95rem,5.2cqw,1.70rem) !important;
+  margin-top:.12vh !important;
+  margin-bottom:.45vh !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+}
