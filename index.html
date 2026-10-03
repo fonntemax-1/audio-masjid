@@ -12548,9 +12548,17 @@ function setCountdownBlackMode(enabled) {
       // STYLE KHUSUS COUNTDOWN
       // =========================================================
       function formatCountdownTitleHtml_(title) {
-        // Kembalikan countdown ke format satu baris.
-        // MENUJU SHOLAT ASHAR tetap memakai style countdown sebelumnya.
-        return normalizeVisibleRamadanMaghribText_(String(title || ''));
+        const raw = normalizeVisibleRamadanMaghribText_(String(title || ''));
+        const m = raw.match(/^MENUJU SHOLAT (.+)$/i);
+        if (m && m[1]) {
+          const prayer = m[1].trim();
+          return 'MENUJU SHOLAT<br><span class="countdown-title-prayer">' +
+            prayer.replace(/[&<>]/g, function(ch) {
+              return {'&':'&amp;','<':'&lt;','>':'&gt;'}[ch];
+            }) +
+            '</span>';
+        }
+        return raw;
       }
 
       function updateCountdownTitleStyle(title) {
