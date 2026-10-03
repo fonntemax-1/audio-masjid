@@ -3028,3 +3028,15 @@ body[data-display-theme="kuning"] .petugas-infaq-title{
   font-size:clamp(1.35rem, 2.45vw, 2.65rem) !important;
   font-weight:900 !important;
 }
+
+
+/* TEMA KUNING: nama waktu sholat mengikuti warna judul nama masjid. */
+:root[data-display-theme="kuning"] .countdown-title .countdown-title-prayer,
+body[data-display-theme="kuning"] .countdown-title .countdown-title-prayer,
+:root[data-display-theme="kuning"] .countdown-timer.waktu-sholat-prayer,
+body[data-display-theme="kuning"] .countdown-timer.waktu-sholat-prayer,
+:root[data-display-theme="kuning"] .prayer-time,
+body[data-display-theme="kuning"] .prayer-time {
+  color:#ffcc00 !important;
+  -webkit-text-fill-color:#ffcc00 !important;
+}
