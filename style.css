@@ -54,13 +54,13 @@
       --theme-bg-deep: #211a06;
       --theme-panel: #342a0b;
       --theme-panel-2: #51400e;
-      --theme-border: #f4c542;
-      --theme-accent: #ffd95a;
-      --theme-highlight: #fff0a6;
+      --theme-border: #ffcc00;
+      --theme-accent: #ffcc00;
+      --theme-highlight: #ffcc00;
       --theme-active-bg: #4a3708;
-      --theme-running: #ffe27a;
+      --theme-running: #ffcc00;
       --theme-text: #fffdf0;
-      --theme-divider: #f4c542;
+      --theme-divider: #ffcc00;
     }
 
     body,
@@ -1726,7 +1726,7 @@
     }
 
     :root[data-display-theme="kuning"] .footer {
-      border-color: #f4c542 !important;
+      border-color: #ffcc00 !important;
     }
 
     marquee {
@@ -1884,7 +1884,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
   :root[data-display-theme="kuning"] .center-panel,
   body[data-display-theme="kuning"] .center-panel {
-    border-color: #f4c542 !important;
+    border-color: #ffcc00 !important;
   }
 
   :root[data-display-theme="hijau"] .event-banner,
@@ -1907,8 +1907,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
      dan bingkai luarnya .screen-container. Keduanya harus KUNING. */
   :root[data-display-theme="kuning"] .center-panel,
   body[data-display-theme="kuning"] .center-panel {
-    border: 0.2vh solid #f4c542 !important;
-    border-color: #f4c542 !important;
+    border: 0.2vh solid #ffcc00 !important;
+    border-color: #ffcc00 !important;
   }
 
   :root[data-display-theme="kuning"] .event-banner {
@@ -1918,7 +1918,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
   :root[data-display-theme="kuning"] .screen-container,
   body[data-display-theme="kuning"] .screen-container {
-    border-color: #f4c542 !important;
+    border-color: #ffcc00 !important;
   }
 
   .event-running {
@@ -2011,10 +2011,10 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
 
   :root[data-display-theme="kuning"],
   body[data-display-theme="kuning"] {
-    --theme-border: #f4c542 !important;
-    --theme-accent: #ffd95a !important;
-    --theme-divider: #f4c542 !important;
-    --theme-running: #ffe27a !important;
+    --theme-border: #ffcc00 !important;
+    --theme-accent: #ffcc00 !important;
+    --theme-divider: #ffcc00 !important;
+    --theme-running: #ffcc00 !important;
   }
 
   :root[data-display-theme="hijau"] .screen-container,
@@ -2145,7 +2145,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
   body[data-display-theme="kuning"] .finance-panel,
   :root[data-display-theme="kuning"] .khutbah-panel,
   body[data-display-theme="kuning"] .khutbah-panel {
-    border-color: #f4c542 !important;
+    border-color: #ffcc00 !important;
   }
 
   :root[data-display-theme="kuning"] .center-panel .event-banner,
@@ -2303,7 +2303,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-city{
   /* KUNING: jarum detik kuning dengan efek bayangan halus. */
   :root[data-display-theme="kuning"] .analog-clock .second,
   body[data-display-theme="kuning"] .analog-clock .second {
-    background: #f4c542 !important;
+    background: #ffcc00 !important;
     filter: drop-shadow(0.10vh 0.18vh 0.20vh rgba(70,52,5,0.72)) !important;
   }
 
