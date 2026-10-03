@@ -3261,16 +3261,39 @@ body[data-display-theme="kuning"] .prayer-time {
   padding-bottom:0 !important;
 }
 
-/* TANGGAL QURBAN: benar-benar responsif terhadap lebar frame.
-   Ukuran minimum aman, mengikuti container, dan maksimum tetap terbatas. */
-#fin-panel-box.qurban-display #fin-extra{
+/* =========================================================
+   POLA TANGGAL BERSAMA:
+   QURBAN + KEUANGAN + PETUGAS SHOLAT
+   ========================================================= */
+#fin-panel-box #fin-extra,
+#fin-panel-box:not(.qurban-display) #fin-sub,
+#petugas-panel-box #petugas-tanggal{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
   font-size:clamp(.70rem,3.8cqw,1.35rem) !important;
+  font-weight:700 !important;
+  line-height:1.15 !important;
+  text-align:center !important;
   max-width:100% !important;
   width:100% !important;
   box-sizing:border-box !important;
   overflow:hidden !important;
   white-space:nowrap !important;
   text-overflow:clip !important;
+  margin-top:.12vh !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+}
+
+/* QURBAN: hanya jarak Tanggal -> area scrolling tetap khusus 1 font. */
+#fin-panel-box.qurban-display #fin-extra{
+  margin-bottom:1em !important;
+}
+
+/* KEUANGAN & PETUGAS: pola dasar tanpa tambahan jarak QURBAN. */
+#fin-panel-box:not(.qurban-display) #fin-sub,
+#petugas-panel-box #petugas-tanggal{
+  margin-bottom:.45vh !important;
 }
 
 
