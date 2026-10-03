@@ -4425,7 +4425,9 @@ function updateFridayPrayerDisplay() {
         });
     }
 
-    pollRealtimeDisplayConfig_();
+    // Jangan menembakkan request GAS bersamaan saat reload.
+    // First paint memakai cache/local state; sinkronisasi kontrol menyusul.
+    setTimeout(pollRealtimeDisplayConfig_, 700);
     // Snapshot realtime adalah jalur utama sinkronisasi kontrol Spreadsheet.
     // Polling dibuat 1 detik agar perubahan C26/C28/C29:C32/B35:B39,
     // theme, header, C22, dan kontrol tampilan terasa hampir realtime.
@@ -14136,7 +14138,12 @@ function setCountdownBlackMode(enabled) {
     // Jalur yang diperlukan untuk menampilkan jadwal/kartu dijalankan lebih dulu.
     // Request sekunder ditunda agar browser segera menyelesaikan first paint.
     loadGitHubStage1Config_();
-    fetchSheetData();
+
+    // Tunda request Sheet utama sedikit agar browser menyelesaikan
+    // first paint terlebih dahulu. Cache lokal + jadwal lokal tetap aktif.
+    setTimeout(function() {
+      fetchSheetData();
+    }, 900);
 
     // Event banner dan Hijri bukan blocker untuk tampilan awal.
     setTimeout(function() {
@@ -14206,10 +14213,14 @@ function setCountdownBlackMode(enabled) {
     // Kontrol YouTube G20 dipisahkan dari tick countdown 1 detik.
     // Ini mencegah evaluasi iframe/jadwal YouTube ikut membebani jalur
     // jam + countdown. Timeline audio/scheduler tidak diubah.
-    startFastYouTubeControlPolling_();
+    setTimeout(function() {
+      startFastYouTubeControlPolling_();
+    }, 1600);
 
     // C22 juga disinkronkan lewat jalur ringan terpisah.
-    startFastIqomahBlackModePolling_();
+    setTimeout(function() {
+      startFastIqomahBlackModePolling_();
+    }, 2000);
 
     // panels!C2 tetap diperiksa terpisah, tetapi tidak lagi ikut setiap
     // getDataFromSheet(). 30 detik cukup cepat untuk perubahan AUTO/OFF
