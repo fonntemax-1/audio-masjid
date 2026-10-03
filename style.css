@@ -2958,3 +2958,24 @@ body[data-display-theme="kuning"] .petugas-infaq-title{
   -webkit-text-fill-color:#ffcc00 !important;
   text-shadow:none !important;
 }
+
+
+/* COUNTDOWN MENUJU SHOLAT: dua baris dengan tipografi yang sama
+   seperti waktu sholat pada kartu utama. */
+.countdown-title{
+  display:block !important;
+  visibility:visible !important;
+  width:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+  font-size:clamp(1.2rem, 2.2vw, 2.4rem) !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+  text-align:center !important;
+  white-space:normal !important;
+}
+.countdown-title br{
+  display:block !important;
+}
