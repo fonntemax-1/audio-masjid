@@ -3307,3 +3307,67 @@ body[data-display-theme="kuning"] .prayer-time {
 }
 
 
+
+
+/* FINAL STANDARD ISI TABEL QUR'BAN
+   Isi tabel QUR'BAN memakai standar yang sama dengan LAPORAN KEUANGAN.
+   HANYA isi tabel yang dikunci di sini; A1, A2, dan tanggal A3 tidak disentuh. */
+#fin-panel-box.qurban-display .keuangan-content{
+  top:0 !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+  box-sizing:border-box !important;
+}
+
+#fin-panel-box.qurban-display .keuangan-table{
+  width:100% !important;
+  max-width:100% !important;
+  table-layout:fixed !important;
+  border-collapse:collapse !important;
+  font-size:clamp(0.68rem, 1.05cqw, 1.05rem) !important;
+  line-height:1.15 !important;
+}
+
+#fin-panel-box.qurban-display .keuangan-table td{
+  width:auto !important;
+  max-width:none !important;
+  box-sizing:border-box !important;
+  padding:
+    clamp(0.20rem, 0.45cqh, 0.45rem)
+    clamp(0.15rem, 0.35cqw, 0.45rem) !important;
+  vertical-align:middle !important;
+  color:#ffffff !important;
+  font-family:inherit !important;
+  font-size:inherit !important;
+  font-weight:400 !important;
+  line-height:1.15 !important;
+  text-transform:none !important;
+  white-space:normal !important;
+  word-break:normal !important;
+  overflow-wrap:break-word !important;
+  overflow:visible !important;
+  text-align:left !important;
+  text-overflow:clip !important;
+  letter-spacing:normal !important;
+}
+
+#fin-panel-box.qurban-display .keuangan-table tr{
+  height:auto !important;
+}
+
+/* QUR'BAN tidak lagi memakai font khusus/highlight khusus pada isi tabel.
+   Warna, font, ukuran dan spacing mengikuti tabel laporan keuangan. */
+#fin-panel-box.qurban-display .keuangan-table .qurban-scroll-text,
+#fin-panel-box.qurban-display .keuangan-table .qurban-scroll-text *{
+  font-family:inherit !important;
+  font-size:inherit !important;
+  font-weight:400 !important;
+  line-height:inherit !important;
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+  text-transform:none !important;
+  white-space:normal !important;
+  word-break:normal !important;
+  overflow-wrap:break-word !important;
+  letter-spacing:normal !important;
+}
