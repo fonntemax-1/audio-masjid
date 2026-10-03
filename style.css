@@ -2582,10 +2582,11 @@ body.panel-countdown-auto .clock-overlay .panel-black-icon img {
   font-size: clamp(.42rem, .62vw, .62rem);
   line-height: 1.12;
   text-align: center;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  overflow-wrap: normal;
+  text-overflow: clip;
 }
-.infaq-left-text div { margin: 0; display: inline; }
 .infaq-left-text div + div::before { content: "  "; }
 
 /* INFAQ & SHADAQAH mengikuti warna judul LAPORAN KEUANGAN. */
