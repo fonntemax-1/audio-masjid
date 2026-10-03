@@ -5915,11 +5915,47 @@ function updateFridayPrayerDisplay() {
       keuanganPos = 0;
       content.style.transform = 'translateY(0px)';
 
+      const finPanelBox =
+        document.getElementById('fin-panel-box');
+
+      const isQurbanScroll =
+        !!finPanelBox &&
+        finPanelBox.classList.contains('qurban-display');
+
+      // QUR'BAN: jarak START yang benar-benar terlihat.
+      // Content dimulai 1 ukuran font di bawah tanggal/A3.
+      let qurbanGapHeight = 0;
+
+      if (isQurbanScroll) {
+        const sampleCell =
+          content.querySelector('.qurban-scroll-text');
+
+        const sampleFontPx = sampleCell
+          ? parseFloat(window.getComputedStyle(sampleCell).fontSize) || 16
+          : 16;
+
+        qurbanGapHeight =
+          Math.max(1, Math.round(sampleFontPx));
+
+        // Hapus sisa padding/posisi lama agar hanya ada satu sumber jarak.
+        area.style.paddingTop = '0px';
+        area.style.paddingBottom = '0px';
+        content.style.paddingTop = '0px';
+        content.style.paddingBottom = '0px';
+
+        // Jarak 1 font berada tetap di bawah tanggal.
+        content.style.top = qurbanGapHeight + 'px';
+      } else {
+        content.style.top = '0px';
+        area.style.paddingTop = '';
+        area.style.paddingBottom = '';
+      }
+
       /*
-       * Loop kontinu dengan jeda kosong 1/2 tinggi frame.
-       * Setelah satu tabel selesai keluar, layar kosong terlebih
-       * dahulu setengah frame. Baru salinan tabel berikutnya masuk.
-       * Ini membuat pergantian lebih nyaman dibaca tanpa refresh.
+       * Loop kontinu.
+       * QUR'BAN memakai spacer 1 ukuran font di antara
+       * tabel pertama dan clone, sehingga jarak akhir benar-benar
+       * terlihat sebelum siklus berikutnya masuk.
        */
       let firstBlock = content.firstElementChild;
 
@@ -5934,10 +5970,13 @@ function updateFridayPrayerDisplay() {
         const spacer = document.createElement('div');
         spacer.className = 'keuangan-scroll-spacer';
 
-        const spacerHeight = Math.max(
-          1,
-          Math.round(area.clientHeight * 0.5)
-        );
+        const spacerHeight = isQurbanScroll
+          ? qurbanGapHeight
+          : Math.max(
+              1,
+              Math.round(area.clientHeight * 0.5)
+            );
+
         spacer.style.height = spacerHeight + 'px';
         spacer.setAttribute('aria-hidden', 'true');
 
@@ -5956,14 +5995,22 @@ function updateFridayPrayerDisplay() {
       const gapHeight =
         loopSpacer && loopSpacer.classList.contains('keuangan-scroll-spacer')
           ? loopSpacer.getBoundingClientRect().height
-          : Math.round(area.clientHeight * 0.5);
+          : Math.max(
+              1,
+              Math.round(area.clientHeight * 0.5)
+            );
 
       if (loopHeight <= area.clientHeight) {
         content.style.transform = 'translateY(0px)';
         return;
       }
 
-      const loopDistance = loopHeight + gapHeight;
+      // Karena top untuk QUR'BAN tetap sebesar 1 font, loopDistance
+      // cukup berupa tinggi tabel + jarak akhir 1 font.
+      const loopDistance =
+        loopHeight +
+        gapHeight;
+
       const speed = 0.2;
       let lastFrame = 0;
 
@@ -5982,9 +6029,9 @@ function updateFridayPrayerDisplay() {
         keuanganPos -= speed;
 
         /*
-         * Reset hanya setelah tabel pertama + jeda 1/2 frame
-         * sudah seluruhnya lewat. Pada saat reset, salinan kedua
-         * berada tepat di posisi awal tabel pertama.
+         * Reset setelah tabel + jarak akhir selesai.
+         * Content kembali ke posisi awal yang sama:
+         * tanggal -> 1 font -> baris pertama.
          */
         if (Math.abs(keuanganPos) >= loopDistance) {
           keuanganPos += loopDistance;
