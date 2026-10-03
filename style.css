@@ -2998,15 +2998,16 @@ body[data-display-theme="kuning"] .petugas-infaq-title{
 .countdown-title.waktu-sholat-title{
   color:#fff !important;
   -webkit-text-fill-color:#fff !important;
-  font-size:clamp(.85rem,1.45vw,1.55rem) !important;
+  font-size:clamp(.72rem,1.15vw,1.25rem) !important;
   font-weight:700 !important;
   line-height:1 !important;
   text-shadow:0 0.16vh 0.35vh rgba(0,0,0,.95) !important;
+  white-space:nowrap !important;
 }
 .countdown-timer.waktu-sholat-prayer{
   color:var(--theme-accent) !important;
   -webkit-text-fill-color:var(--theme-accent) !important;
-  font-size:clamp(1.35rem,2.45vw,2.65rem) !important;
+  font-size:clamp(1.5rem,2.65vw,2.85rem) !important;
   font-weight:900 !important;
   line-height:1 !important;
 }
