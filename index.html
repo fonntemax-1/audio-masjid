@@ -4158,6 +4158,39 @@ function updateFridayPrayerDisplay() {
     let realtimePanelsFastRequestInFlight = false;
     let realtimePanelsFastLastSignature = '';
 
+    let currentQurbanGregorianDate_ = '';
+
+    function getCurrentHijriHeaderText_() {
+      const numEl = document.getElementById('hijri-num');
+      const textEl = document.getElementById('hijri-text');
+      const day = String(numEl ? numEl.textContent || '' : '').trim();
+      const monthYear = String(textEl ? textEl.textContent || '' : '').trim();
+
+      if (!day || !monthYear || day === '--' || monthYear === '--') {
+        return '';
+      }
+
+      return (day + ' ' + monthYear).trim();
+    }
+
+    function renderQurbanDateHeader_() {
+      const dateEl = document.getElementById('fin-extra');
+      if (!dateEl) return;
+
+      const gregorian = String(currentQurbanGregorianDate_ || '').trim();
+      if (!gregorian) {
+        dateEl.innerText = '';
+        dateEl.style.display = 'none';
+        return;
+      }
+
+      const hijri = getCurrentHijriHeaderText_();
+      dateEl.innerText = hijri
+        ? (hijri + ' | ' + gregorian)
+        : gregorian;
+      dateEl.style.display = 'block';
+    }
+
     function applyPanelKeuanganSourceFast_(source) {
       if (!source || typeof source !== 'object') return;
       const selector = String(source.selector || 'KEUANGAN').trim().toUpperCase();
@@ -4210,8 +4243,15 @@ function updateFridayPrayerDisplay() {
 
       const finExtra = document.getElementById('fin-extra');
       if (finExtra) {
-        finExtra.innerText = selector === 'QURBAN' ? a3.trim() : '';
-        finExtra.style.display = selector === 'QURBAN' && a3.trim() ? '' : 'none';
+        currentQurbanGregorianDate_ =
+          selector === 'QURBAN' ? a3.trim() : '';
+
+        if (selector === 'QURBAN') {
+          renderQurbanDateHeader_();
+        } else {
+          finExtra.innerText = '';
+          finExtra.style.display = 'none';
+        }
       }
 
       const finPanelBox = document.getElementById('fin-panel-box');
@@ -5287,14 +5327,18 @@ function updateFridayPrayerDisplay() {
 
       if (finExtra) {
         const a3 = String(data.KeuanganA3 || '').trim();
-        finExtra.innerText =
+
+        currentQurbanGregorianDate_ =
           keuanganSelector === 'QURBAN'
             ? a3
             : '';
-        finExtra.style.display =
-          keuanganSelector === 'QURBAN' && a3
-            ? ''
-            : 'none';
+
+        if (keuanganSelector === 'QURBAN' && a3) {
+          renderQurbanDateHeader_();
+        } else {
+          finExtra.innerText = '';
+          finExtra.style.display = 'none';
+        }
       }
 
       const finPanelBox =
@@ -6532,6 +6576,14 @@ function updateFridayPrayerDisplay() {
               textElement.innerText =
                 title;
             }
+          }
+
+          if (
+            currentQurbanGregorianDate_ &&
+            document.getElementById('fin-panel-box') &&
+            document.getElementById('fin-panel-box').classList.contains('qurban-display')
+          ) {
+            renderQurbanDateHeader_();
           }
 
           console.log(
