@@ -3999,17 +3999,14 @@ function updateFridayPrayerDisplay() {
             'important'
           );
         }
-        if (style.fontColor) {
-          el.style.setProperty(
-            'color',
-            String(style.fontColor),
-            'important'
-          );
-          el.style.setProperty(
-            '-webkit-text-fill-color',
-            String(style.fontColor),
-            'important'
-          );
+        // WARNA TIDAK DIAMBIL DARI SPREADSHEET.
+        // A1/A2 mengikuti warna tema display, A3 tetap putih.
+        if (key === 'A3') {
+          el.style.setProperty('color', '#ffffff', 'important');
+          el.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+        } else {
+          el.style.setProperty('color', 'var(--theme-accent)', 'important');
+          el.style.setProperty('-webkit-text-fill-color', 'var(--theme-accent)', 'important');
         }
 
         el.style.setProperty(
