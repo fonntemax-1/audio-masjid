@@ -3202,39 +3202,16 @@ body[data-display-theme="kuning"] .prayer-time {
 .header-center .latin-name,
 #nama_masjid{
   color:var(--theme-accent) !important;
-  background:linear-gradient(
-    110deg,
-    var(--theme-accent) 0%,
-    var(--theme-accent) 38%,
-    rgba(255,255,255,.55) 47%,
-    #ffffff 50%,
-    rgba(255,255,255,.55) 53%,
-    var(--theme-accent) 62%,
-    var(--theme-accent) 100%
-  ) !important;
-  background-size:260% 100% !important;
-  background-position:-30% 0 !important;
-  -webkit-background-clip:text !important;
-  background-clip:text !important;
-  -webkit-text-fill-color:transparent !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+  background:none !important;
+  background-image:none !important;
+  -webkit-background-clip:border-box !important;
+  background-clip:border-box !important;
+  animation:none !important;
   text-shadow:
-    -0.10vh -0.10vh 0 rgba(0,0,0,.95),
-     0.10vh -0.10vh 0 rgba(0,0,0,.95),
-    -0.10vh  0.10vh 0 rgba(0,0,0,.95),
-     0.10vh  0.10vh 0 rgba(0,0,0,.95),
-     0 0.12vh 0.30vh rgba(0,0,0,.92) !important;
-  animation:mosqueNameHighlightElegant 7s ease-in-out infinite !important;
-}
-@keyframes mosqueNameHighlightElegant{
-  0%{
-    background-position:-30% 0;
-  }
-  50%{
-    background-position:130% 0;
-  }
-  100%{
-    background-position:-30% 0;
-  }
+    0 0.18vh 0 rgba(0,0,0,0.98),
+    0 0.32vh 0.42vh rgba(0,0,0,0.92),
+    0 0.62vh 0.90vh rgba(0,0,0,0.68) !important;
 }
 
 #fin-panel-box.qurban-display #fin-title{
