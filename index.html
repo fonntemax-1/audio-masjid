@@ -5103,6 +5103,14 @@ function updateFridayPrayerDisplay() {
       // KEUANGAN
       // =======================================================
 
+      const keuanganSelector =
+        String(
+          data.KeuanganSelector ||
+          'KEUANGAN'
+        )
+          .trim()
+          .toUpperCase();
+
       const finTitle =
         document.getElementById(
           'fin-title'
@@ -5133,28 +5141,26 @@ function updateFridayPrayerDisplay() {
           'fin-sub'
         );
 
-      const keuanganSelector =
-        String(
-          data.KeuanganSelector ||
-          'KEUANGAN'
-        )
-          .trim()
-          .toUpperCase();
-
       if (finSub) {
         finSub.innerText =
           keuanganSelector === 'QURBAN'
             ? ('MASJID ' + String(data.KeuanganTanggal || '').trim()).trim()
             : (data.KeuanganTanggal || '');
 
-        // KEUANGAN A2 = persis model visual QUR'BAN A3.
-        finSub.style.color = '#ffffff';
-        finSub.style.webkitTextFillColor = '#ffffff';
-        finSub.style.fontFamily = 'inherit';
-        finSub.style.fontSize = 'clamp(0.95rem, 5.2cqw, 1.70rem)';
-        finSub.style.fontWeight = 'bold';
-        finSub.style.lineHeight = '1.15';
-        finSub.style.textAlign = 'center';
+        if (keuanganSelector === 'QURBAN') {
+          // QUR'BAN A2: format font dari Spreadsheet; warna dari tema.
+          finSub.style.color = 'var(--theme-accent)';
+          finSub.style.webkitTextFillColor = 'var(--theme-accent)';
+        } else {
+          // KEUANGAN A2 tetap menggunakan format layout panel keuangan.
+          finSub.style.color = '#ffffff';
+          finSub.style.webkitTextFillColor = '#ffffff';
+          finSub.style.fontFamily = 'inherit';
+          finSub.style.fontSize = 'clamp(0.95rem, 5.2cqw, 1.70rem)';
+          finSub.style.fontWeight = 'bold';
+          finSub.style.lineHeight = '1.15';
+          finSub.style.textAlign = 'center';
+        }
         finSub.style.marginBottom = '1.8vh';
       }
 
