@@ -3867,6 +3867,8 @@ function updateFridayPrayerDisplay() {
     // Hari biasa + C41=OFF: INFAQ + QRIS tetap di frame utama,
     // PETUGAS tetap tampil.
     // =========================================================
+    window.__infaqPlacementReady = false;
+
     function applyInfaqFramePlacement_(mode, text1, text2) {
       const left = document.getElementById('infaq-left-widget');
       const right = document.getElementById('petugas-infaq-display');
@@ -4105,11 +4107,14 @@ function updateFridayPrayerDisplay() {
           // Petugas pada polling berikutnya.
           if (typeof applyInfaqText_ === 'function') {
             applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
-            applyInfaqFramePlacement_(
-              data.InfaqMode || 'OFF',
-              infaq.text1 || '',
-              infaq.text2 || ''
-            );
+            const infaqMode = String(data.InfaqMode || '').trim().toUpperCase();
+            if (infaqMode === 'AUTO' || infaqMode === 'OFF') {
+              applyInfaqFramePlacement_(
+                infaqMode,
+                infaq.text1 || '',
+                infaq.text2 || ''
+              );
+            }
           }
 
         })
@@ -4234,15 +4239,10 @@ function updateFridayPrayerDisplay() {
       if (typeof applyInfaqText_ === 'function' && data.Infaq) {
         const infaq = data.Infaq || {};
         applyInfaqText_(infaq.text1 || '', infaq.text2 || '');
-        // Sinkronkan placement dari endpoint display juga. Ini penting
-        // bila deployment Apps Script belum menjalankan endpoint fast.
-        if (data.InfaqMode !== undefined) {
-          applyInfaqFramePlacement_(
-            data.InfaqMode || 'OFF',
-            infaq.text1 || '',
-            infaq.text2 || ''
-          );
-        }
+        // Placement C41 hanya dikendalikan oleh getRealtimePanelsFast.
+        // Endpoint display-config tidak boleh mengubah placement karena
+        // responsnya dapat datang berbeda urutan dan menyebabkan PETUGAS
+        // tampil sesaat saat LAPORAN KEUANGAN sedang dirender.
       }
 
       const signature = JSON.stringify([
