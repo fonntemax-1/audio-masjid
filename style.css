@@ -3324,7 +3324,7 @@ body[data-display-theme="kuning"] .prayer-time {
   max-width:100% !important;
   table-layout:fixed !important;
   border-collapse:collapse !important;
-  font-size:clamp(0.68rem, 1.05cqw, 1.05rem) !important;
+  font-size:clamp(0.75rem, 1.15cqw, 1.15rem) !important;
   line-height:1.15 !important;
 }
 
