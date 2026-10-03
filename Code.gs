@@ -4479,6 +4479,8 @@ function getRealtimePanelsFast() {
     const infaqText1 = String((infaqValues[0] || [])[0] || '').trim();
     const infaqText2 = String((infaqValues[1] || [])[0] || '').trim();
 
+    const infaqMode = String(panels.getRange('C' + 41).getDisplayValue() || '').trim().toUpperCase();
+
     const panelValues = panels.getRange('C26:C32').getDisplayValues();
     const selectorRaw = String((panelValues[0] || [])[0] || 'KEUANGAN').trim();
     const selectorKey = selectorRaw.toUpperCase().replace(/[\s’‘']/g, '');
@@ -4548,6 +4550,7 @@ function getRealtimePanelsFast() {
       success: true,
       signature: JSON.stringify([selectedKey, title, date, a3, rows, jenis, kegiatanValues, infaqText1, infaqText2]),
       Infaq: { text1: infaqText1, text2: infaqText2 },
+      InfaqMode: infaqMode === 'AUTO' ? 'AUTO' : 'OFF',
       Kegiatan: { success: true, jenis: jenis, fields: fields },
       PanelKeuangan: panelKeuangan
     };
