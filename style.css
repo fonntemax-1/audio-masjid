@@ -3269,6 +3269,8 @@ body[data-display-theme="kuning"] .prayer-time {
 }
 #fin-panel-box.qurban-display #fin-extra{
   margin-top:.35vh !important;
+  /* Jarak nyata Tanggal -> TOP area scrolling: 2x font Tanggal. */
+  margin-bottom:2em !important;
 }
 
 
