@@ -173,6 +173,8 @@
   height: 100%;
   object-fit: contain;
   display: block;
+  filter: drop-shadow(0 0.20vh 0.30vh rgba(0,0,0,0.72))
+          drop-shadow(0 0.45vh 0.65vh rgba(0,0,0,0.38));
 }
 
     /* HIJAU: teks yang sebelumnya kuning/emas mengikuti warna tema.
