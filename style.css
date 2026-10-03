@@ -3252,7 +3252,6 @@ body[data-display-theme="kuning"] .prayer-time {
 #fin-panel-box:not(.qurban-display) #fin-sub{
   color:#ffffff !important;
   -webkit-text-fill-color:#ffffff !important;
-  font-size:clamp(.86rem,4.7cqw,1.55rem) !important;
   font-weight:700 !important;
   line-height:1.15 !important;
   text-align:center !important;
@@ -3260,6 +3259,18 @@ body[data-display-theme="kuning"] .prayer-time {
   margin-bottom:.45vh !important;
   padding-top:0 !important;
   padding-bottom:0 !important;
+}
+
+/* TANGGAL QURBAN: benar-benar responsif terhadap lebar frame.
+   Ukuran minimum aman, mengikuti container, dan maksimum tetap terbatas. */
+#fin-panel-box.qurban-display #fin-extra{
+  font-size:clamp(.70rem,3.8cqw,1.35rem) !important;
+  max-width:100% !important;
+  width:100% !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+  white-space:nowrap !important;
+  text-overflow:clip !important;
 }
 
 
