@@ -6523,8 +6523,15 @@ function updateFridayPrayerDisplay() {
     let keuanganPos =
       0;
 
+    // TV/browser compatibility:
+    // Jangan membuat loop scroll baru pada setiap realtime refresh.
+    // Satu loop cukup untuk satu mode panel; refresh data tidak boleh
+    // membatalkan lalu membuat requestAnimationFrame baru terus-menerus.
+    let keuanganScrollMode = '';
+    let keuanganScrollStartTimer = null;
 
-    function startKeuanganScroll() {
+
+    function startKeuanganScroll(forceRestart) {
 
       const area =
         document.getElementById(
@@ -6538,11 +6545,6 @@ function updateFridayPrayerDisplay() {
 
       if (!area || !content) return;
 
-      if (keuanganAnimId) {
-        cancelAnimationFrame(keuanganAnimId);
-        keuanganAnimId = null;
-      }
-
       keuanganPos = 0;
       content.style.transform = 'translate3d(0,0,0)';
       content.style.visibility = 'hidden';
@@ -6553,6 +6555,25 @@ function updateFridayPrayerDisplay() {
       const isQurbanScroll =
         !!finPanelBox &&
         finPanelBox.classList.contains('qurban-display');
+
+      const currentMode = isQurbanScroll ? 'QURBAN' : 'KEUANGAN';
+
+      // Realtime refresh boleh memperbarui isi tabel, tetapi TIDAK
+      // boleh membuat loop scrolling baru setiap kali data datang.
+      // Ini sangat penting pada browser TV agar main thread tidak penuh
+      // oleh cancel/requestAnimationFrame berulang.
+      if (!forceRestart &&
+          keuanganAnimId &&
+          keuanganScrollMode === currentMode) {
+        return;
+      }
+
+      if (keuanganAnimId) {
+        cancelAnimationFrame(keuanganAnimId);
+        keuanganAnimId = null;
+      }
+
+      keuanganScrollMode = currentMode;
 
       // Jarak visual khusus QUR'BAN harus dihitung dari FONT TANGGAL A3,
       // bukan dari font isi tabel.
@@ -6644,6 +6665,7 @@ function updateFridayPrayerDisplay() {
       if (loopHeight <= area.clientHeight) {
         content.style.transform = 'translate3d(0,0,0)';
         content.style.willChange = 'auto';
+        keuanganAnimId = null;
         return;
       }
 
