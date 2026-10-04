@@ -4442,6 +4442,9 @@ function updateFridayPrayerDisplay() {
       const gregorian = formatPanelKegiatanDate_(rawGregorian);
       dateEl.style.display = 'block';
 
+      // Garis bawah baru ditampilkan setelah tanggal benar-benar siap.
+      dateEl.style.setProperty('border-bottom', '0.2vh solid var(--theme-accent)', 'important');
+
       const isoDate = parseQurbanDateToIso_(rawGregorian);
       if (!isoDate) {
         dateEl.innerText = gregorian;
