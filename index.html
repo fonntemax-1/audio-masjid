@@ -7249,6 +7249,54 @@ function updateFridayPrayerDisplay() {
     // Rotasi tidak bergantung pada timezone halaman/browser.
     // Pergantian terjadi tepat berdasarkan menit lokal lokasi.
     // =========================================================
+
+    // =========================================================
+    // FLASH ANIMATION COUNTDOWN EVENT
+    // Efek visual singkat: saat muncul, setiap 30 detik,
+    // dan setiap pergantian angka/event countdown.
+    // Tidak mengubah layout, ukuran, warna, audio, atau scheduler.
+    // =========================================================
+    let eventCountdownFlashLastSlot_ = '';
+    let eventCountdownFlashLastState_ = '';
+
+    (function installEventCountdownFlash_() {
+      if (document.getElementById('event-countdown-flash-style')) return;
+
+      const style = document.createElement('style');
+      style.id = 'event-countdown-flash-style';
+      style.textContent = `
+        @keyframes eventCountdownFlash {
+          0%   { opacity: 1; filter: brightness(1); }
+          18%  { opacity: 0.28; filter: brightness(1.7); }
+          38%  { opacity: 1; filter: brightness(1); }
+          58%  { opacity: 0.38; filter: brightness(1.45); }
+          100% { opacity: 1; filter: brightness(1); }
+        }
+
+        #event-countdown-display.event-countdown-flash {
+          animation: eventCountdownFlash 650ms ease-in-out;
+        }
+      `;
+      document.head.appendChild(style);
+    })();
+
+    function flashEventCountdown_(display, triggerKey) {
+      if (!display) return;
+      if (display.dataset.eventFlashKey === triggerKey) return;
+
+      display.dataset.eventFlashKey = triggerKey;
+      display.classList.remove('event-countdown-flash');
+
+      // Paksa reflow agar animasi dapat diputar ulang.
+      void display.offsetWidth;
+
+      display.classList.add('event-countdown-flash');
+
+      window.setTimeout(function() {
+        display.classList.remove('event-countdown-flash');
+      }, 700);
+    }
+
     function updateEventCountdown() {
       const display = document.getElementById('event-countdown-display');
       const number = document.getElementById('event-countdown-number');
@@ -7324,7 +7372,11 @@ function updateFridayPrayerDisplay() {
 
       if (activeConfigs.length === 0) {
         display.classList.remove('active');
+        display.classList.remove('event-countdown-flash');
+        display.removeAttribute('data-event-flash-key');
         display.setAttribute('aria-hidden', 'true');
+        eventCountdownFlashLastState_ = '';
+        eventCountdownFlashLastSlot_ = '';
         WEB_APP_STATE.event.active = null;
         return;
       }
@@ -7366,6 +7418,34 @@ function updateFridayPrayerDisplay() {
           rotationSlot % activeConfigs.length
         ];
 
+      // Flash saat countdown baru muncul/berganti, dan setiap 30 detik.
+      const activeStateKey =
+        String(active.row) + '|' +
+        String(active.end) + '|' +
+        String(active.diffDays);
+
+      const halfMinuteSlot =
+        String(todayKey) + '|' +
+        String(Number(now.hour)) + ':' +
+        String(Number(now.minute)) + ':' +
+        String(Number(now.second) >= 30 ? 30 : 0);
+
+      const isNewCountdownState =
+        eventCountdownFlashLastState_ !== activeStateKey;
+
+      const isNewHalfMinuteSlot =
+        eventCountdownFlashLastSlot_ !== halfMinuteSlot;
+
+      if (isNewCountdownState || isNewHalfMinuteSlot) {
+        flashEventCountdown_(
+          display,
+          activeStateKey + '|' + halfMinuteSlot
+        );
+
+        eventCountdownFlashLastState_ = activeStateKey;
+        eventCountdownFlashLastSlot_ = halfMinuteSlot;
+      }
+
       // B60:B63 / teks nama countdown di Spreadsheet DIABAIKAN.
       // Identitas countdown ditentukan MUTLAK dari nomor baris.
       // C = START, D = END, E = STATUS ON/OFF.
@@ -7381,7 +7461,10 @@ function updateFridayPrayerDisplay() {
       // Hanya baris 60-63 yang merupakan countdown valid.
       if (!text) {
         display.classList.remove('active');
+        display.classList.remove('event-countdown-flash');
         display.setAttribute('aria-hidden', 'true');
+        eventCountdownFlashLastState_ = '';
+        eventCountdownFlashLastSlot_ = '';
         WEB_APP_STATE.event.active = null;
         return;
       }
