@@ -7231,6 +7231,13 @@ function updateFridayPrayerDisplay() {
     }
 
 
+    // =========================================================
+    // EVENT COUNTDOWN - ROTASI SINKRON ZONA WAKTU
+    //
+    // Zona acuan countdown mengikuti waktu WITA (Asia/Makassar).
+    // Rotasi tidak bergantung pada waktu halaman/browser.
+    // Pergantian terjadi tepat berdasarkan menit WITA.
+    // =========================================================
     function updateEventCountdown() {
       const display = document.getElementById('event-countdown-display');
       const number = document.getElementById('event-countdown-number');
@@ -7244,19 +7251,22 @@ function updateFridayPrayerDisplay() {
         : [];
 
       const now = getWitaTime();
-      const todayKey =
-        String(now.year) + '-' +
-        String(now.month).padStart(2, '0') + '-' +
-        String(now.day).padStart(2, '0');
 
       function dateKeyToUtcMs_(key) {
         const parts = String(key || '').split('-').map(Number);
-        if (parts.length !== 3 || !Number.isFinite(parts[0]) ||
-            !Number.isFinite(parts[1]) || !Number.isFinite(parts[2])) {
+        if (parts.length !== 3 ||
+            !Number.isFinite(parts[0]) ||
+            !Number.isFinite(parts[1]) ||
+            !Number.isFinite(parts[2])) {
           return NaN;
         }
         return Date.UTC(parts[0], parts[1] - 1, parts[2]);
       }
+
+      const todayKey =
+        String(now.year) + '-' +
+        String(now.month).padStart(2, '0') + '-' +
+        String(now.day).padStart(2, '0');
 
       const todayMs = dateKeyToUtcMs_(todayKey);
 
@@ -7264,18 +7274,26 @@ function updateFridayPrayerDisplay() {
         const startKey = String(config.start || '').trim();
         const endKey = String(config.end || '').trim();
         const status = String(config.status || '').trim().toUpperCase();
+
         const startMs = dateKeyToUtcMs_(startKey);
         const endMs = dateKeyToUtcMs_(endKey);
 
-        if (status !== 'ON' || !Number.isFinite(startMs) ||
-            !Number.isFinite(endMs) || endMs <= startMs) {
+        if (status !== 'ON' ||
+            !Number.isFinite(startMs) ||
+            !Number.isFinite(endMs) ||
+            endMs <= startMs) {
           return null;
         }
 
-        // Aktif mulai START dan berakhir H-1 dari END.
-        if (todayMs < startMs || todayMs >= endMs) return null;
+        // Aktif mulai START sampai H-1 dari END.
+        if (todayMs < startMs || todayMs >= endMs) {
+          return null;
+        }
 
-        const diffDays = Math.round((endMs - todayMs) / 86400000);
+        const diffDays = Math.round(
+          (endMs - todayMs) / 86400000
+        );
+
         if (diffDays <= 0) return null;
 
         return {
@@ -7286,7 +7304,9 @@ function updateFridayPrayerDisplay() {
           status: status,
           diffDays: diffDays
         };
-      }).filter(Boolean).sort(function(a, b) {
+      })
+      .filter(Boolean)
+      .sort(function(a, b) {
         return a.row - b.row;
       });
 
@@ -7297,18 +7317,45 @@ function updateFridayPrayerDisplay() {
         return;
       }
 
-      const witaEpochMs = Date.UTC(
-        Number(now.year),
-        Number(now.month) - 1,
-        Number(now.day),
-        Number(now.hour),
-        Number(now.minute),
-        Number(now.second)
-      );
+      /*
+       * ROTASI BERDASARKAN MENIT WITA.
+       *
+       * getWitaTime() adalah sumber waktu aplikasi, sehingga
+       * pergantian tidak mengikuti timezone komputer/display.
+       *
+       * Contoh 2 countdown aktif:
+       * menit WITA 10:15 -> item pertama
+       * menit WITA 10:16 -> item kedua
+       * menit WITA 10:17 -> item pertama
+       */
+      const minuteSlot =
+        Math.floor(
+          (
+            Number(now.hour) * 60 +
+            Number(now.minute)
+          )
+        );
 
-      const rotationSlot = Math.floor(witaEpochMs / 60000);
-      const active = activeConfigs[rotationSlot % activeConfigs.length];
-      const text = getEventDisplayText_(active.event);
+      /*
+       * Agar urutan tetap konsisten terhadap kalender dan tidak
+       * berubah saat halaman reload, gunakan jumlah hari sejak
+       * epoch WITA sebagai bagian slot rotasi.
+       */
+      const witaDayNumber =
+        Math.floor(
+          dateKeyToUtcMs_(todayKey) / 86400000
+        );
+
+      const rotationSlot =
+        (witaDayNumber * 1440) + minuteSlot;
+
+      const active =
+        activeConfigs[
+          rotationSlot % activeConfigs.length
+        ];
+
+      const text =
+        getEventDisplayText_(active.event);
 
       if (!text) {
         display.classList.remove('active');
@@ -7321,9 +7368,17 @@ function updateFridayPrayerDisplay() {
       const nextLine1 = String(text.line1 || '');
       const nextLine2 = String(text.line2 || '');
 
-      if (number.innerText !== nextNumber) number.innerText = nextNumber;
-      if (line1.innerText !== nextLine1) line1.innerText = nextLine1;
-      if (line2.innerText !== nextLine2) line2.innerText = nextLine2;
+      if (number.innerText !== nextNumber) {
+        number.innerText = nextNumber;
+      }
+
+      if (line1.innerText !== nextLine1) {
+        line1.innerText = nextLine1;
+      }
+
+      if (line2.innerText !== nextLine2) {
+        line2.innerText = nextLine2;
+      }
 
       display.classList.add('active');
       display.setAttribute('aria-hidden', 'false');
@@ -7340,13 +7395,25 @@ function updateFridayPrayerDisplay() {
       WEB_APP_STATE.event.active = activeState;
 
       const activeLogKey = [
-        active.row, active.event, active.diffDays,
-        active.start, active.end, rotationSlot
+        active.row,
+        active.event,
+        active.diffDays,
+        active.start,
+        active.end,
+        rotationSlot
       ].join('|');
 
-      if (updateEventCountdown._lastLoggedActiveKey !== activeLogKey) {
-        updateEventCountdown._lastLoggedActiveKey = activeLogKey;
-        console.log('EVENT COUNTDOWN TAMPIL:', activeState);
+      if (
+        updateEventCountdown._lastLoggedActiveKey !==
+        activeLogKey
+      ) {
+        updateEventCountdown._lastLoggedActiveKey =
+          activeLogKey;
+
+        console.log(
+          'EVENT COUNTDOWN TAMPIL WITA:',
+          activeState
+        );
       }
     }
 
