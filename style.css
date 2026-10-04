@@ -273,6 +273,24 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(
+    110deg,
+    #f4c542 0%,
+    #f4c542 38%,
+    #fff8c4 48%,
+    #ffffff 50%,
+    #fff8c4 52%,
+    #f4c542 62%,
+    #f4c542 100%
+  );
+  background-size: 250% 100%;
+  background-position: -20% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: mosqueNameHighlight 8s ease-in-out infinite;
 }
 
 .header-center .latin-name {
