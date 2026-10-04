@@ -58,6 +58,10 @@ function handleGithubApiRequest_(params) {
         result = getRealtimePanelsFast();
         break;
 
+      case 'getEventCountdownConfig':
+        result = getPanelEventCountdownConfig_();
+        break;
+
       case 'getYoutubeControl':
         result = getYoutubeControl();
         break;
