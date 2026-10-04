@@ -15372,3 +15372,76 @@ function setCountdownBlackMode(enabled) {
 
 </body>
 </html>
+
+
+<style id="analog-cream-gold-elegant">
+/* JAM ANALOG — cream dial + metallic gold circular bezel.
+   Tidak memakai frame kotak dan bezel tidak bergantung pada warna tema.
+   Warna tema hanya menjadi aksen halus agar pergantian HIJAU/MERAH/KUNING
+   tidak pernah membuat lingkaran bezel hilang. */
+.analog-clock{
+  border:0.48vh solid transparent !important;
+  border-radius:50% !important;
+  box-sizing:border-box !important;
+  background:
+    linear-gradient(#f4ead2, #efe2c4) padding-box,
+    linear-gradient(
+      135deg,
+      #fff4b8 0%,
+      #d7ad4b 18%,
+      #fff1a1 34%,
+      #b8872d 52%,
+      #f7df79 70%,
+      #c39537 86%,
+      #fff0a0 100%
+    ) border-box !important;
+  box-shadow:
+    0 1.0vh 2.6vh rgba(0,0,0,0.72),
+    0 0 0.42vh rgba(0,0,0,0.58),
+    inset 0 0 0 0.14vh rgba(255,255,255,0.82),
+    inset 0 0 0 0.34vh color-mix(in srgb, var(--theme-accent) 42%, transparent),
+    inset 0 0 1.5vh rgba(92,65,24,0.22) !important;
+  overflow:hidden !important;
+}
+
+/* Lapisan tipis aksen tema di bagian dalam lingkaran. */
+.analog-clock .clock-face-svg{
+  border-radius:50%;
+  filter:drop-shadow(0 0 0.18vh color-mix(in srgb, var(--theme-accent) 24%, transparent));
+}
+
+/* Tick dan angka dibuat sedikit lebih hangat agar menyatu dengan dial cream. */
+.analog-clock .clock-face-svg text{
+  fill:#3d3427 !important;
+}
+.analog-clock .clock-face-svg g[stroke="#333333"]{
+  stroke:#5a4a32;
+}
+.analog-clock .clock-face-svg g[stroke="#111111"]{
+  stroke:#332b20;
+}
+
+/* Jarum tetap kontras dan elegan di atas dial cream. */
+.analog-clock .hand.hour,
+.analog-clock .hand.minute{
+  background:linear-gradient(90deg,#4a3925,#8e6a2d) !important;
+  box-shadow:0 0.10vh 0.22vh rgba(0,0,0,0.42) !important;
+}
+.analog-clock .hand.second{
+  background:#9a2929 !important;
+  box-shadow:0 0.08vh 0.18vh rgba(0,0,0,0.35) !important;
+}
+.analog-clock .center-dot{
+  background:#c59a3a !important;
+  border:0.12vh solid #fff0a0 !important;
+  box-shadow:0 0 0.28vh rgba(80,54,18,0.65) !important;
+}
+
+/* Tidak ada frame/pseudo-element persegi. */
+.analog-clock::before,
+.analog-clock::after{
+  display:none !important;
+  content:none !important;
+}
+</style>
+
