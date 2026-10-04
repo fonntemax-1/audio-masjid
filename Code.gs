@@ -642,9 +642,70 @@ function getDataFromSheet() {
     // Sumber: sheet "infaq", range B1:B3
     // =====================================================
     result.Infaq = [];
-    // Event: A=EVENT, B=ANGKA DURASI HITUNGAN HARI, C=STATUS, D=KETERANGAN.
+    
+function getPanelEventCountdownConfig_() {
+  const result = [];
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('panels');
+    if (!sheet) return result;
+
+    const range = sheet.getRange('C60:E63');
+    const values = range.getValues();
+    const displays = range.getDisplayValues();
+    const spreadsheetTimezone =
+      ss.getSpreadsheetTimeZone() ||
+      Session.getScriptTimeZone() ||
+      'Asia/Makassar';
+
+    function normalizeDate_(raw, display) {
+      if (raw instanceof Date && !isNaN(raw.getTime())) {
+        return Utilities.formatDate(raw, spreadsheetTimezone, 'yyyy-MM-dd');
+      }
+
+      const text = String(display || raw || '').trim();
+      if (!text) return '';
+
+      let m = text.match(/^(\d{1,2})[\\/.-](\d{1,2})[\\/.-](\d{4})$/);
+      if (m) {
+        return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
+      }
+
+      m = text.match(/^(\d{4})[\\/.-](\d{1,2})[\\/.-](\d{1,2})$/);
+      if (m) {
+        return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
+      }
+
+      return '';
+    }
+
+    values.forEach(function(row, index) {
+      const sheetRow = 60 + index;
+      const displayRow = displays[index] || [];
+      const start = normalizeDate_(row[0], displayRow[0]);
+      const end = normalizeDate_(row[1], displayRow[1]);
+      const status = String(row[2] == null ? displayRow[2] || '' : row[2]).trim().toUpperCase();
+
+      result.push({
+        row: sheetRow,
+        event: String(sheet.getRange('B' + sheetRow).getDisplayValue() || '').trim(),
+        start: start,
+        end: end,
+        status: status === 'ON' ? 'ON' : 'OFF'
+      });
+    });
+  } catch (error) {
+    Logger.log('PANELS COUNTDOWN C60:E63 ERROR: ' + (error && error.message ? error.message : error));
+  }
+  return result;
+}
+
+// Event: A=EVENT, B=ANGKA DURASI HITUNGAN HARI, C=STATUS, D=KETERANGAN.
     // Kolom B adalah angka konfigurasi; kolom D hanya keterangan.
     result.Event = [];
+
+    // Countdown baru: panels!C60:E63 adalah satu-satunya sumber konfigurasi.
+    result.EventCountdown = getPanelEventCountdownConfig_();
 
     const targetSheets = [
       'Nama_Mesjid',
