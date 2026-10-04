@@ -7265,46 +7265,73 @@ function updateFridayPrayerDisplay() {
       const style = document.createElement('style');
       style.id = 'event-countdown-flash-style';
       style.textContent = `
-        @keyframes eventCountdownCombinedFlash {
-          0% {
-            transform: scale(1);
-            filter: brightness(1);
-            text-shadow: 0 0 0 transparent;
-          }
-          15% {
-            transform: scale(1.035);
-            filter: brightness(1.18);
-            text-shadow: 0 0 12px currentColor;
-          }
-          30% {
-            transform: scale(1.09);
-            filter: brightness(1.28);
-            text-shadow: 0 0 20px currentColor;
-          }
-          45% {
-            transform: scale(0.985);
-            filter: brightness(1.08);
-            text-shadow: 0 0 10px currentColor;
-          }
-          60% {
-            transform: scale(1.055);
-            filter: brightness(1.22);
-            text-shadow: 0 0 16px currentColor;
-          }
-          78% {
-            transform: scale(1.02);
-            filter: brightness(1.12);
-            text-shadow: 0 0 8px currentColor;
-          }
-          100% {
-            transform: scale(1);
-            filter: brightness(1);
-            text-shadow: 0 0 0 transparent;
-          }
+        @keyframes eventCountdownZoomPulse {
+          0%, 100% { transform: scale(1); }
+          25% { transform: scale(1.09); }
+          50% { transform: scale(0.985); }
+          75% { transform: scale(1.055); }
+        }
+
+        @keyframes eventCountdownGlowPulse {
+          0%, 100% { text-shadow: 0 0 0 transparent; }
+          35% { text-shadow: 0 0 22px currentColor; }
+          65% { text-shadow: 0 0 10px currentColor; }
+        }
+
+        @keyframes eventCountdownBrightnessPulse {
+          0%, 100% { filter: brightness(1); }
+          35% { filter: brightness(1.35); }
+          65% { filter: brightness(1.12); }
+        }
+
+        @keyframes eventCountdownScalePulse {
+          0%, 100% { transform: scale(1); }
+          40% { transform: scale(1.035); }
+          70% { transform: scale(0.99); }
+        }
+
+        @keyframes eventCountdownShineSweep {
+          0% { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
+          18% { opacity: .65; }
+          55% { opacity: .85; }
+          100% { transform: translateX(140%) skewX(-18deg); opacity: 0; }
         }
 
         #event-countdown-display.event-countdown-flash .event-countdown-inner {
-          animation: eventCountdownCombinedFlash 800ms ease-in-out;
+          position: relative;
+          overflow: hidden;
+          animation: eventCountdownZoomPulse 800ms ease-in-out;
+          transform-origin: center center;
+        }
+
+        #event-countdown-display.event-countdown-flash .event-countdown-inner::after {
+          content: "";
+          position: absolute;
+          top: -20%;
+          left: 0;
+          width: 24%;
+          height: 140%;
+          pointer-events: none;
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(255,255,255,0) 15%,
+            rgba(255,255,255,.9) 50%,
+            rgba(255,255,255,0) 85%,
+            transparent 100%
+          );
+          transform: translateX(-140%) skewX(-18deg);
+          animation: eventCountdownShineSweep 800ms ease-out;
+        }
+
+        #event-countdown-display.event-countdown-flash .event-countdown-number {
+          animation:
+            eventCountdownGlowPulse 800ms ease-in-out,
+            eventCountdownBrightnessPulse 800ms ease-in-out;
+        }
+
+        #event-countdown-display.event-countdown-flash .event-countdown-text {
+          animation: eventCountdownScalePulse 800ms ease-in-out;
           transform-origin: center center;
         }
       `;
