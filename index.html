@@ -97,9 +97,15 @@
   background-clip:border-box !important;
 }
 
-#countdown-title .countdown-title-prayer{
+#countdown-title .countdown-title-prayer,
+#countdown-title .countdown-title-theme{
   color:var(--theme-accent) !important;
   -webkit-text-fill-color:var(--theme-accent) !important;
+}
+
+#countdown-title .countdown-title-white{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
 }
 
 #countdown{
@@ -107,7 +113,10 @@
   -webkit-text-fill-color:#ffffff !important;
 }
 
-#countdown.waktu-sholat-prayer{
+/* Nama sholat / PUASA / IMSAK pada baris kedua mengikuti tema.
+   Angka countdown tetap putih. */
+#countdown.waktu-sholat-prayer,
+#countdown.countdown-prayer-theme{
   color:var(--theme-accent) !important;
   -webkit-text-fill-color:var(--theme-accent) !important;
 }
@@ -13514,16 +13523,51 @@ function setCountdownBlackMode(enabled) {
       // =========================================================
       function formatCountdownTitleHtml_(title) {
         const raw = normalizeVisibleRamadanMaghribText_(String(title || ''));
-        const m = raw.match(/^MENUJU SHOLAT (.+)$/i);
-        if (m && m[1]) {
-          const prayer = m[1].trim();
+        const escapeHtml = function(value) {
+          return String(value || '').replace(/[&<>]/g, function(ch) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;'}[ch];
+          });
+        };
+
+        // COUNTDOWN COLOR:
+        // - MENUJU IQOMAH = warna tema
+        // - MENUJU IMSAK = warna tema
+        // - MENUJU SHOLAT = putih, nama sholat = warna tema
+        // - ADZAN = putih, nama sholat berada pada timer dan = warna tema
+        // - MENUJU WAKTU = putih, BERBUKA = warna tema
+        // - WAKTU = putih, BERBUKA = warna tema
+        // - WAKTU IMSAK = putih, IMSAK pada timer = warna tema
+        const menujuSholat = raw.match(/^MENUJU SHOLAT (.+)$/i);
+        if (menujuSholat && menujuSholat[1]) {
           return 'MENUJU SHOLAT<br><span class="countdown-title-prayer">' +
-            prayer.replace(/[&<>]/g, function(ch) {
-              return {'&':'&amp;','<':'&lt;','>':'&gt;'}[ch];
-            }) +
+            escapeHtml(menujuSholat[1].trim()) +
             '</span>';
         }
-        return raw;
+
+        const menujuWaktu = raw.match(/^MENUJU WAKTU (BERBUKA)$/i);
+        if (menujuWaktu) {
+          return 'MENUJU WAKTU<br><span class="countdown-title-prayer">' +
+            escapeHtml(menujuWaktu[1]) +
+            '</span>';
+        }
+
+        if (/^MENUJU IQOMAH$/i.test(raw)) {
+          return '<span class="countdown-title-theme">' + escapeHtml(raw) + '</span>';
+        }
+
+        if (/^MENUJU IMSAK$/i.test(raw)) {
+          return '<span class="countdown-title-theme">' + escapeHtml(raw) + '</span>';
+        }
+
+        if (/^WAKTU BERBUKA$/i.test(raw)) {
+          return 'WAKTU<br><span class="countdown-title-prayer">BERBUKA</span>';
+        }
+
+        if (/^ADZAN$/i.test(raw)) {
+          return '<span class="countdown-title-white">ADZAN</span>';
+        }
+
+        return escapeHtml(raw);
       }
 
       function updateCountdownTitleStyle(title) {
@@ -13542,7 +13586,10 @@ function setCountdownBlackMode(enabled) {
           document.getElementById('countdown');
 
         if (countdownTimer) {
-          countdownTimer.classList.remove('waktu-sholat-prayer');
+          countdownTimer.classList.remove(
+            'waktu-sholat-prayer',
+            'countdown-prayer-theme'
+          );
         }
 
         const normalizedTitle =
@@ -13558,10 +13605,30 @@ function setCountdownBlackMode(enabled) {
           }
         }
 
-        // IQOMAH menggunakan style default countdown,
-        // sama persis dengan baris atas ADZAN.
-        // WAKTU IMSAK menggunakan struktur dan style ADZAN:
-        // title = WAKTU, timer = IMSAK.
+        // ADZAN / IQOMAH menampilkan nama sholat pada baris timer.
+        // Nama sholat mengikuti warna tema, sedangkan angka countdown
+        // tetap putih.
+        if (
+          normalizedTitle === 'ADZAN' ||
+          normalizedTitle === 'IQOMAH'
+        ) {
+          if (countdownTimer) {
+            countdownTimer.classList.add('countdown-prayer-theme');
+          }
+        }
+
+        // WAKTU BERBUKA menampilkan PUASA pada baris timer.
+        // PUASA mengikuti warna tema.
+        if (normalizedTitle === 'WAKTU BERBUKA') {
+          if (countdownTimer) {
+            countdownTimer.classList.add('countdown-prayer-theme');
+          }
+        }
+
+        // WAKTU IMSAK menampilkan IMSAK pada baris timer.
+        // Tetap mengikuti warna tema.
+        // MENUJU IQOMAH dan MENUJU IMSAK sudah diberi warna tema
+        // langsung melalui formatCountdownTitleHtml_().
       }
 
       let activeState =
