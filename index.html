@@ -4122,6 +4122,7 @@ function updateFridayPrayerDisplay() {
       dateEl.style.setProperty('margin-bottom', '.45vh', 'important');
       dateEl.style.setProperty('padding-top', '0', 'important');
       dateEl.style.setProperty('padding-bottom', '0', 'important');
+      dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
     }
 
     function applyQurbanDatePattern_() {
@@ -4145,6 +4146,7 @@ function updateFridayPrayerDisplay() {
       dateEl.style.setProperty('margin-top', '.12vh', 'important');
       dateEl.style.setProperty('padding-top', '0', 'important');
       dateEl.style.setProperty('padding-bottom', '0', 'important');
+      dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
     }
 
     function startPetugasHeaderAutoFit_() {
@@ -4286,6 +4288,8 @@ function updateFridayPrayerDisplay() {
         dateEl.innerText = '';
         return;
       }
+
+      dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
 
       const isoDate = parseQurbanDateToIso_(rawGregorian);
       if (!isoDate) {
