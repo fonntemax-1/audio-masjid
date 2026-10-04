@@ -7287,6 +7287,51 @@ function updateFridayPrayerDisplay() {
       const style = document.createElement('style');
       style.id = 'event-countdown-flash-style';
       style.textContent = `
+        @keyframes masjidNameShineSweep {
+          0% {
+            transform: translateX(-140%) skewX(-18deg);
+            opacity: 0;
+          }
+          8% {
+            opacity: 0.9;
+          }
+          32% {
+            transform: translateX(140%) skewX(-18deg);
+            opacity: 0;
+          }
+          100% {
+            transform: translateX(140%) skewX(-18deg);
+            opacity: 0;
+          }
+        }
+
+        #nama_masjid {
+          position: relative;
+          overflow: hidden;
+          isolation: isolate;
+        }
+
+        #nama_masjid::after {
+          content: "";
+          position: absolute;
+          top: -25%;
+          left: 0;
+          width: 18%;
+          height: 150%;
+          pointer-events: none;
+          z-index: 2;
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(255,255,255,0) 15%,
+            rgba(255,255,255,0.95) 50%,
+            rgba(255,255,255,0) 85%,
+            transparent 100%
+          );
+          transform: translateX(-140%) skewX(-18deg);
+          animation: masjidNameShineSweep 5s linear infinite;
+        }
+
         @keyframes eventCountdownZoomPulse {
           0%, 100% { transform: scale(1); }
           25% { transform: scale(1.09); }
