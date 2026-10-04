@@ -657,6 +657,7 @@
 
       event: {
         rows: [],
+        countdownConfigs: [],
         active: null,
         targetKey: ''
       },
@@ -5548,6 +5549,16 @@ function updateFridayPrayerDisplay() {
       WEB_APP_STATE.event.rows =
         eventRows;
 
+      WEB_APP_STATE.event.countdownConfigs =
+        Array.isArray(data.EventCountdown)
+          ? data.EventCountdown
+          : (
+              data.data &&
+              Array.isArray(data.data.EventCountdown)
+                ? data.data.EventCountdown
+                : []
+            );
+
       console.log(
         'EVENT DATA DITERIMA:',
         {
@@ -7199,392 +7210,110 @@ function updateFridayPrayerDisplay() {
     }
 
 
-    function getEventTargetGregorian_(eventName) {
-
-      if (
-        typeof moment !== 'function' ||
-        !moment.iConvert ||
-        typeof moment.iConvert.toGregorian !== 'function'
-      ) {
-        return null;
-      }
-
-      const key =
-        normalizeEventCountdownName_(eventName);
-
-      let targetDay = null;
-      let targetMonth = null;
-
-      if (key === 'countdown ramadhan') {
-        targetMonth = 9;
-        targetDay = 1;
-      } else if (
-        key === 'countdown malam lailatul qadr' ||
-        key === 'countdown lailatul qadr'
-      ) {
-        // Lailatul Qadr display is fixed:
-        // countdown targets 1 Syawal and starts exactly 10 days before it.
-        // B9 is not used to change this event's activation window.
-        targetMonth = 10;
-        targetDay = 1;
-      } else if (key === 'countdown idul fitri') {
-        targetMonth = 10;
-        targetDay = 1;
-      } else if (key === 'countdown idul adha') {
-        targetMonth = 12;
-        targetDay = 10;
-      } else {
-        return null;
-      }
-
-      // Gunakan tanggal WITA, bukan timezone browser TV.
-      // Ini mencegah countdown Event tertinggal/maju satu hari.
-      const apiDate = getApiDate();
-      const today =
-        moment(apiDate, 'YYYY-MM-DD').startOf('day');
-
-      const currentHijriYear =
-        today.iYear();
-
-      function convert(hijriYear) {
-        const greg =
-          moment.iConvert.toGregorian(
-            hijriYear,
-            targetMonth,
-            targetDay
-          );
-
-        return moment([
-          greg.gy,
-          greg.gm,
-          greg.gd
-        ]).startOf('day');
-      }
-
-      let target =
-        convert(currentHijriYear);
-
-      if (
-        target.valueOf() <
-        today.valueOf()
-      ) {
-        target =
-          convert(currentHijriYear + 1);
-      }
-
-      return {
-        moment: target,
-        hijriYear:
-          target.iYear ? target.iYear() : currentHijriYear
-      };
-    }
-
-
-    function getEventCountdownConfigs() {
-
-      const rows =
-        Array.isArray(WEB_APP_STATE.event.rows)
-          ? WEB_APP_STATE.event.rows
-          : [];
-
-      return rows
-        .filter(function(row) {
-          if (!row || typeof row !== 'object') {
-            return false;
-          }
-
-          let status =
-            String(
-              row.status !== undefined
-                ? row.status
-                : row.STATUS !== undefined
-                  ? row.STATUS
-                  : ''
-            )
-              .trim()
-              .toUpperCase();
-
-          // AUTO = aktif. ON/kosong lama diperlakukan sebagai AUTO.
-          // OFF = tidak ditampilkan.
-          if (!status || status === 'ON') {
-            status = 'AUTO';
-          }
-
-          const rowNumber =
-            Number(row.row);
-
-          return (
-            status === 'AUTO' &&
-            rowNumber >= 8 &&
-            rowNumber <= 11
-          );
-        })
-        .map(function(row) {
-
-          const targetInfo =
-            getEventTargetGregorian_(row.event);
-
-          if (!targetInfo) {
-            return null;
-          }
-
-          const limit =
-            Number(row.days);
-
-          if (
-            !Number.isFinite(limit) ||
-            limit < 0
-          ) {
-            return null;
-          }
-
-          return {
-            row: Number(row.row),
-            event: String(row.event || '').trim(),
-            // Lailatul Qadr selalu aktif dalam jendela tetap 10 hari.
-            days:
-              (
-                normalizeEventCountdownName_(row.event) === 'countdown malam lailatul qadr' ||
-                normalizeEventCountdownName_(row.event) === 'countdown lailatul qadr'
-              )
-                ? 10
-                : limit,
-            status: 'AUTO',
-            target: targetInfo.moment,
-            targetHijriYear:
-              targetInfo.hijriYear
-          };
-        })
-        .filter(Boolean);
-    }
-
-
     function getEventDisplayText_(eventName) {
+      const key = normalizeEventCountdownName_(eventName);
 
-      const key =
-        normalizeEventCountdownName_(eventName);
-
-      if (key === 'countdown ramadhan') {
-        return {
-          line1: 'HARI',
-          line2: 'menuju Ramadhan'
-        };
+      if (key === 'menuju ramadhan' || key === 'countdown ramadhan') {
+        return { line1: 'HARI', line2: 'menuju Ramadhan' };
       }
-
-      if (
-        key === 'countdown malam lailatul qadr' ||
-        key === 'countdown lailatul qadr'
-      ) {
-        return {
-          line1: 'HARI',
-          line2: 'menuju Lailatul Qadr'
-        };
+      if (key === 'menuju lailatul qadr' ||
+          key === 'countdown malam lailatul qadr' ||
+          key === 'countdown lailatul qadr') {
+        return { line1: 'HARI', line2: 'menuju Lailatul Qadr' };
       }
-
-      if (key === 'countdown idul fitri') {
-        return {
-          line1: 'HARI LAGI',
-          line2: 'menuju Idul Fitri'
-        };
+      if (key === 'menuju idul fitri' || key === 'countdown idul fitri') {
+        return { line1: 'HARI LAGI', line2: 'menuju Idul Fitri' };
       }
-
-      if (key === 'countdown idul adha') {
-        return {
-          line1: 'HARI LAGI',
-          line2: 'menuju Idul Adha'
-        };
+      if (key === 'menuju idul adha' || key === 'countdown idul adha') {
+        return { line1: 'HARI LAGI', line2: 'menuju Idul Adha' };
       }
-
       return null;
     }
 
 
     function updateEventCountdown() {
+      const display = document.getElementById('event-countdown-display');
+      const number = document.getElementById('event-countdown-number');
+      const line1 = document.getElementById('event-countdown-line1');
+      const line2 = document.getElementById('event-countdown-line2');
 
-      // PERFORMANCE GUARD:
-      // Fungsi ini dipanggil setiap detik melalui updateClock().
-      // Jangan menghitung ulang konfigurasi Moment/DOM bila tanggal dan
-      // data Event belum berubah. Pada TV TCL, pekerjaan berulang ini
-      // dapat menumpuk dengan scheduler lain dan membuat tampilan utama
-      // tersendat, sementara running text tetap berjalan.
-      const nowWitaForEvent = getWitaTime();
-      const eventDateKey =
-        String(nowWitaForEvent.year) + '-' +
-        String(nowWitaForEvent.month).padStart(2, '0') + '-' +
-        String(nowWitaForEvent.day).padStart(2, '0');
+      if (!display || !number || !line1 || !line2) return;
 
-      const eventRowsSignature =
-        Array.isArray(WEB_APP_STATE.event.rows)
-          ? WEB_APP_STATE.event.rows.map(function(row) {
-              return [
-                row && row.row,
-                row && row.event,
-                row && row.days,
-                row && row.status
-              ].join('|');
-            }).join(';;')
-          : '';
+      const configs = Array.isArray(WEB_APP_STATE.event.countdownConfigs)
+        ? WEB_APP_STATE.event.countdownConfigs
+        : [];
 
-      const eventCacheKey =
-        eventDateKey + '||' + eventRowsSignature;
+      const now = getWitaTime();
+      const todayKey =
+        String(now.year) + '-' +
+        String(now.month).padStart(2, '0') + '-' +
+        String(now.day).padStart(2, '0');
 
-      if (updateEventCountdown._lastConfigKey !== eventCacheKey) {
-        updateEventCountdown._lastConfigKey = eventCacheKey;
-        updateEventCountdown._cachedConfigs =
-          getEventCountdownConfigs();
+      function dateKeyToUtcMs_(key) {
+        const parts = String(key || '').split('-').map(Number);
+        if (parts.length !== 3 || !Number.isFinite(parts[0]) ||
+            !Number.isFinite(parts[1]) || !Number.isFinite(parts[2])) {
+          return NaN;
+        }
+        return Date.UTC(parts[0], parts[1] - 1, parts[2]);
       }
 
-      const display =
-        document.getElementById(
-          'event-countdown-display'
-        );
+      const todayMs = dateKeyToUtcMs_(todayKey);
 
-      const number =
-        document.getElementById(
-          'event-countdown-number'
-        );
+      const activeConfigs = configs.map(function(config) {
+        const startKey = String(config.start || '').trim();
+        const endKey = String(config.end || '').trim();
+        const status = String(config.status || '').trim().toUpperCase();
+        const startMs = dateKeyToUtcMs_(startKey);
+        const endMs = dateKeyToUtcMs_(endKey);
 
-      const line1 =
-        document.getElementById(
-          'event-countdown-line1'
-        );
+        if (status !== 'ON' || !Number.isFinite(startMs) ||
+            !Number.isFinite(endMs) || endMs <= startMs) {
+          return null;
+        }
 
-      const line2 =
-        document.getElementById(
-          'event-countdown-line2'
-        );
+        // Aktif mulai START dan berakhir H-1 dari END.
+        if (todayMs < startMs || todayMs >= endMs) return null;
 
-      if (
-        !display ||
-        !number ||
-        !line1 ||
-        !line2
-      ) {
-        return;
-      }
+        const diffDays = Math.round((endMs - todayMs) / 86400000);
+        if (diffDays <= 0) return null;
 
-      const configs =
-        Array.isArray(updateEventCountdown._cachedConfigs)
-          ? updateEventCountdown._cachedConfigs
-          : [];
+        return {
+          row: Number(config.row),
+          event: String(config.event || '').trim(),
+          start: startKey,
+          end: endKey,
+          status: status,
+          diffDays: diffDays
+        };
+      }).filter(Boolean).sort(function(a, b) {
+        return a.row - b.row;
+      });
 
-      // Tanggal acuan countdown wajib WITA.
-      const today =
-        moment(eventDateKey, 'YYYY-MM-DD').startOf('day');
-
-      // Countdown event tidak perlu dihitung ulang setiap detik.
-      // Target/hari hanya berubah saat tanggal atau konfigurasi berubah;
-      // pilihan kartu hanya berubah setiap 5 menit.
-      const witaNow = getWitaTime();
-      const witaEpochMs =
-        Date.UTC(
-          Number(witaNow.year),
-          Number(witaNow.month) - 1,
-          Number(witaNow.day),
-          Number(witaNow.hour),
-          Number(witaNow.minute),
-          Number(witaNow.second)
-        );
-
-      const rotationSlot =
-        Math.floor(
-          witaEpochMs /
-          (5 * 60 * 1000)
-        );
-
-      const activeCacheKey =
-        eventCacheKey + '||' + rotationSlot;
-
-      let active;
-
-      if (
-        updateEventCountdown._activeCacheKey === activeCacheKey
-      ) {
-        active =
-          updateEventCountdown._activeCachedValue || null;
-      } else {
-        const activeConfigs =
-          configs
-            .map(function(config) {
-
-              const diffDays =
-                Math.max(
-                  0,
-                  Math.ceil(
-                    (
-                      config.target.valueOf() -
-                      today.valueOf()
-                    ) /
-                    86400000
-                  )
-                );
-
-              return Object.assign(
-                {},
-                config,
-                {
-                  diffDays: diffDays
-                }
-              );
-            })
-            .filter(function(config) {
-
-              const key =
-                normalizeEventCountdownName_(config.event);
-
-              // Semua batas durasi countdown berasal dari Spreadsheet.
-              // Tidak ada lagi window khusus/hard-code per event.
-              return (
-                config.diffDays > 0 &&
-                config.diffDays <= config.days
-              );
-
-            })
-            .sort(function(a, b) {
-              return a.row - b.row;
-            });
-
-        active =
-          activeConfigs.length > 0
-            ? activeConfigs[
-                rotationSlot % activeConfigs.length
-              ]
-            : null;
-
-        updateEventCountdown._activeCacheKey =
-          activeCacheKey;
-        updateEventCountdown._activeCachedValue =
-          active;
-      }
-
-      if (!active) {
-
+      if (activeConfigs.length === 0) {
         display.classList.remove('active');
-        display.setAttribute(
-          'aria-hidden',
-          'true'
-        );
-
-        WEB_APP_STATE.event.active =
-          null;
-
+        display.setAttribute('aria-hidden', 'true');
+        WEB_APP_STATE.event.active = null;
         return;
       }
 
-      const text =
-        getEventDisplayText_(active.event);
+      const witaEpochMs = Date.UTC(
+        Number(now.year),
+        Number(now.month) - 1,
+        Number(now.day),
+        Number(now.hour),
+        Number(now.minute),
+        Number(now.second)
+      );
+
+      const rotationSlot = Math.floor(witaEpochMs / 60000);
+      const active = activeConfigs[rotationSlot % activeConfigs.length];
+      const text = getEventDisplayText_(active.event);
 
       if (!text) {
-
         display.classList.remove('active');
-        display.setAttribute(
-          'aria-hidden',
-          'true'
-        );
-
-        WEB_APP_STATE.event.active =
-          null;
-
+        display.setAttribute('aria-hidden', 'true');
+        WEB_APP_STATE.event.active = null;
         return;
       }
 
@@ -7592,58 +7321,32 @@ function updateFridayPrayerDisplay() {
       const nextLine1 = String(text.line1 || '');
       const nextLine2 = String(text.line2 || '');
 
-      // Hindari layout/paint bila teks sebenarnya tidak berubah.
-      if (number.innerText !== nextNumber) {
-        number.innerText = nextNumber;
-      }
-      if (line1.innerText !== nextLine1) {
-        line1.innerText = nextLine1;
-      }
-      if (line2.innerText !== nextLine2) {
-        line2.innerText = nextLine2;
-      }
+      if (number.innerText !== nextNumber) number.innerText = nextNumber;
+      if (line1.innerText !== nextLine1) line1.innerText = nextLine1;
+      if (line2.innerText !== nextLine2) line2.innerText = nextLine2;
 
-      if (!display.classList.contains('active')) {
-        display.classList.add('active');
-      }
+      display.classList.add('active');
+      display.setAttribute('aria-hidden', 'false');
 
-      if (display.getAttribute('aria-hidden') !== 'false') {
-        display.setAttribute('aria-hidden', 'false');
-      }
-
-      WEB_APP_STATE.event.active = {
+      const activeState = {
         row: active.row,
         event: active.event,
         days: active.diffDays,
-        limit: active.days,
-        status: active.status,
-        targetGregorian:
-          active.target.format('YYYY-MM-DD'),
-        targetHijriYear:
-          active.targetHijriYear
+        start: active.start,
+        end: active.end,
+        status: active.status
       };
 
-      // Jangan spam console setiap detik. Logging hanya saat
-      // event/angka/slot aktif benar-benar berubah.
-      const activeLogKey =
-        [
-          WEB_APP_STATE.event.active.row,
-          WEB_APP_STATE.event.active.event,
-          WEB_APP_STATE.event.active.days,
-          WEB_APP_STATE.event.active.limit,
-          WEB_APP_STATE.event.active.targetGregorian
-        ].join('|');
+      WEB_APP_STATE.event.active = activeState;
 
-      if (
-        updateEventCountdown._lastLoggedActiveKey !== activeLogKey
-      ) {
-        updateEventCountdown._lastLoggedActiveKey =
-          activeLogKey;
+      const activeLogKey = [
+        active.row, active.event, active.diffDays,
+        active.start, active.end, rotationSlot
+      ].join('|');
 
-        console.log(
-          'EVENT COUNTDOWN TAMPIL:',
-          WEB_APP_STATE.event.active
-        );
+      if (updateEventCountdown._lastLoggedActiveKey !== activeLogKey) {
+        updateEventCountdown._lastLoggedActiveKey = activeLogKey;
+        console.log('EVENT COUNTDOWN TAMPIL:', activeState);
       }
     }
 
@@ -14690,6 +14393,7 @@ function setCountdownBlackMode(enabled) {
         // Langsung hitung ulang tampilan setelah pergantian tanggal.
         // Nama internal tetap DZUHUR, tetapi pada Jumat tampil JUM'AT.
         updatePrayerCountdown();
+        updateEventCountdown();
 
       }
 
@@ -14873,6 +14577,19 @@ function setCountdownBlackMode(enabled) {
       .audio
       .lastDate =
       WEB_APP_STATE.dateKey;
+
+    const initialEventCountdownDisplay = document.getElementById('event-countdown-display');
+    const initialEventCountdownNumber = document.getElementById('event-countdown-number');
+    const initialEventCountdownLine1 = document.getElementById('event-countdown-line1');
+    const initialEventCountdownLine2 = document.getElementById('event-countdown-line2');
+
+    if (initialEventCountdownDisplay) {
+      initialEventCountdownDisplay.classList.remove('active');
+      initialEventCountdownDisplay.setAttribute('aria-hidden', 'true');
+    }
+    if (initialEventCountdownNumber) initialEventCountdownNumber.innerText = '';
+    if (initialEventCountdownLine1) initialEventCountdownLine1.innerText = '';
+    if (initialEventCountdownLine2) initialEventCountdownLine2.innerText = '';
 
     setLogoMasjid(
       DEFAULT_LOGO_MASJID
