@@ -3471,3 +3471,27 @@ body[data-display-theme="kuning"] .prayer-time {
     drop-shadow(0 0.38vh 0.45vh rgba(0,0,0,0.92))
     drop-shadow(0 0.75vh 1.10vh rgba(0,0,0,0.72)) !important;
 }
+
+
+/* =========================================================
+   INFAQ & SHADAQAH — BLACK SHADOW SAMA DENGAN NAMA MASJID
+   Tidak menyentuh mekanisme reload/startup.
+   ========================================================= */
+.infaq-left-title,
+.infaq-left-text,
+.petugas-infaq-title,
+.petugas-infaq-text{
+  -webkit-text-stroke: 0 !important;
+  text-shadow:
+    0 0.18vh 0 rgba(0,0,0,0.98),
+    0 0.32vh 0.42vh rgba(0,0,0,0.92),
+    0 0.62vh 0.90vh rgba(0,0,0,0.68) !important;
+}
+
+.infaq-left-content img,
+.petugas-infaq-content img{
+  filter:
+    drop-shadow(0 0.18vh 0 rgba(0,0,0,0.98))
+    drop-shadow(0 0.32vh 0.42vh rgba(0,0,0,0.92))
+    drop-shadow(0 0.62vh 0.90vh rgba(0,0,0,0.68)) !important;
+}
