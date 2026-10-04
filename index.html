@@ -7287,52 +7287,6 @@ function updateFridayPrayerDisplay() {
       const style = document.createElement('style');
       style.id = 'event-countdown-flash-style';
       style.textContent = `
-        @keyframes headerRunningLightSweep {
-          0% { opacity: 0; transform: translateX(-130%); }
-          8% { opacity: 0.15; }
-          22% { opacity: 0.95; transform: translateX(130%); }
-          32% { opacity: 0; transform: translateX(130%); }
-          100% { opacity: 0; transform: translateX(130%); }
-        }
-
-        /* Soft shine yang benar-benar terlihat di permukaan logo + nama.
-           Tidak menggeser elemen aslinya. */
-        #nama_masjid,
-        .header-logo {
-          position: relative;
-          isolation: isolate;
-          overflow: hidden;
-        }
-
-        #nama_masjid::after,
-        .header-logo::after {
-          content: "";
-          position: absolute;
-          top: -25%;
-          left: 0;
-          width: 16%;
-          height: 150%;
-          pointer-events: none;
-          z-index: 20;
-          background: linear-gradient(
-            90deg,
-            transparent 0%,
-            rgba(255,255,255,0.05) 18%,
-            rgba(255,255,255,0.42) 42%,
-            rgba(255,255,255,0.95) 50%,
-            rgba(255,255,255,0.42) 58%,
-            rgba(255,255,255,0.05) 82%,
-            transparent 100%
-          );
-          filter: blur(2px);
-          mix-blend-mode: screen;
-          box-shadow:
-            0 0 10px rgba(255,255,255,0.5),
-            0 0 22px rgba(255,255,255,0.28);
-          transform: translateX(-130%);
-          animation: headerRunningLightSweep 5s linear infinite;
-        }
-
         @keyframes eventCountdownZoomPulse {
           0%, 100% { transform: scale(1); }
           25% { transform: scale(1.09); }
