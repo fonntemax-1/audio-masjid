@@ -15383,9 +15383,13 @@ function setCountdownBlackMode(enabled) {
       10000
     );
 
+    // getDataFromSheet sudah mencakup data utama (audio config,
+    // lokasi, Event, dll). Panel visual, C22, dan YouTube memiliki
+    // polling ringan terpisah. 60 detik mengurangi request Spreadsheet
+    // yang berulang tanpa mengubah jalur realtime panel.
     setInterval(
       fetchSheetData,
-      30000
+      60000
     );
 
     // Jalur khusus Petugas Sholat + KEUANGAN/QUR'BAN sudah dipasang
