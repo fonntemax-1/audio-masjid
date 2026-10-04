@@ -6838,10 +6838,18 @@ function updateFridayPrayerDisplay() {
 
     function getSynchronizedNow() {
 
-      // SUMBER WAKTU UTAMA = JAM PERANGKAT (TV/komputer).
-      // Timezone hanya menentukan bagaimana tanggal/jam perangkat
-      // dibaca untuk WIT/WITA/WIB. Tidak menunggu server internet.
-      return new Date(Date.now());
+      // SUMBER WAKTU UTAMA = JAM PERANGKAT + KOREKSI INTERNET.
+      // Apps Script hanya memberi epoch UTC; timezone tetap menentukan
+      // bagaimana waktu tersebut ditampilkan sebagai WIT/WITA/WIB.
+      // Jika sinkronisasi belum berhasil, offset = 0 sehingga fallback
+      // tetap menggunakan jam perangkat seperti sebelumnya.
+      return new Date(
+        Date.now() + (
+          internetTimeSynced
+            ? internetTimeOffsetMs
+            : 0
+        )
+      );
 
     }
 
@@ -6877,8 +6885,15 @@ function updateFridayPrayerDisplay() {
 
     function syncInternetTime() {
 
+      // Ukur waktu sebelum dan sesudah request agar offset dihitung
+      // terhadap titik tengah request. Ini mengurangi pengaruh latency
+      // jaringan terhadap koreksi jam.
+      const syncRequestStartMs = Date.now();
+
       return gasApiCall('getServerTime')
         .then(function(result) {
+
+          const syncRequestEndMs = Date.now();
 
           if (
             !result ||
@@ -6901,12 +6916,16 @@ function updateFridayPrayerDisplay() {
             );
           }
 
-          const clientEpochMs =
-            Date.now();
+          const clientMidpointEpochMs =
+            syncRequestStartMs +
+            (
+              syncRequestEndMs -
+              syncRequestStartMs
+            ) / 2;
 
           const offsetMs =
             serverEpochMs -
-            clientEpochMs;
+            clientMidpointEpochMs;
 
           // Sinkronisasi pertama boleh mengoreksi penuh.
           // Sinkronisasi berikutnya ditahan selama audio aktif agar
