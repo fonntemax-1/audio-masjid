@@ -4445,20 +4445,23 @@ function updateFridayPrayerDisplay() {
       const isoDate = parseQurbanDateToIso_(rawGregorian);
       if (!isoDate) {
         dateEl.innerText = gregorian;
-        return;\n        dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
+        dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
+        return;
       }
 
       const cachedHijri = hijriDateConversionCache_[isoDate];
       if (cachedHijri) {
         dateEl.innerText = cachedHijri + ' | ' + gregorian;
         dateEl.dataset.hijriDateKey = isoDate;
-        return;\n        dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
+        dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
+        return;
       }
 
       // Pertahankan hasil Hijriah yang sudah tampil untuk tanggal yang sama.
       if (dateEl.dataset.hijriDateKey !== isoDate) {
         dateEl.innerText = gregorian;
-        dateEl.dataset.hijriDateKey = isoDate;\n        dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
+        dateEl.dataset.hijriDateKey = isoDate;
+        dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
       }
 
       const token = ++petugasDateConversionToken_;
@@ -4481,7 +4484,8 @@ function updateFridayPrayerDisplay() {
 
           hijriDateConversionCache_[isoDate] = hijri;
           dateEl.dataset.hijriDateKey = isoDate;
-          dateEl.innerText = hijri + ' | ' + gregorian;\n          dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
+          dateEl.innerText = hijri + ' | ' + gregorian;
+          dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
         })
         .catch(function(error) {
           console.warn(
