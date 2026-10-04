@@ -4147,7 +4147,7 @@ function updateFridayPrayerDisplay() {
       dateEl.style.setProperty('padding-bottom', '0', 'important');
       dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
       installPanelDateAutoFit_();
-      autoFitPanelDate_(dateEl);
+      schedulePanelDatesSharedAutoFit_();
     }
 
     function startPetugasHeaderAutoFit_() {
@@ -4273,45 +4273,62 @@ function updateFridayPrayerDisplay() {
       return '';
     }
 
-    function autoFitPanelDate_(dateEl) {
-      if (!dateEl || !dateEl.isConnected) return;
+    function autoFitPanelDatesShared_() {
+      const ids = ['fin-sub', 'fin-extra', 'petugas-tanggal'];
+      const elements = ids.map(function(id) {
+        return document.getElementById(id);
+      }).filter(function(el) {
+        return el && el.isConnected && el.innerText.trim() && el.offsetParent !== null;
+      });
 
-      const fit = function() {
-        if (!dateEl.isConnected || !dateEl.innerText.trim()) return;
+      if (!elements.length) return;
 
-        const computed = getComputedStyle(dateEl);
-        const baseSize = parseFloat(dateEl.dataset.autoFitBaseSize || computed.fontSize) || 16;
-        const minPx = 7;
-        const available = Math.max(1, dateEl.clientWidth - 2);
-        const text = dateEl.innerText.trim();
+      elements.forEach(function(el) {
+        el.style.setProperty('white-space', 'nowrap', 'important');
+        el.style.setProperty('overflow', 'hidden', 'important');
+        el.style.setProperty('text-overflow', 'clip', 'important');
+        el.style.setProperty('width', '100%', 'important');
+        el.style.setProperty('max-width', '100%', 'important');
+        el.style.setProperty('box-sizing', 'border-box', 'important');
+      });
 
-        dateEl.style.setProperty('white-space', 'nowrap', 'important');
-        dateEl.style.setProperty('overflow', 'hidden', 'important');
-        dateEl.style.setProperty('text-overflow', 'clip', 'important');
-        dateEl.style.setProperty('width', '100%', 'important');
-        dateEl.style.setProperty('max-width', '100%', 'important');
-        dateEl.style.setProperty('box-sizing', 'border-box', 'important');
+      // Cari ukuran terbesar yang masih membuat SEMUA tanggal muat
+      // di frame masing-masing. Tanggal paling panjang menjadi penentu.
+      const minPx = 7;
+      const maxPx = Math.max.apply(null, elements.map(function(el) {
+        return parseFloat(el.dataset.autoFitBaseSize || getComputedStyle(el).fontSize) || 16;
+      }));
 
-        let low = minPx;
-        let high = Math.max(minPx, baseSize);
+      let low = minPx;
+      let high = maxPx;
 
-        // Binary search: cari ukuran font terbesar yang masih muat penuh.
-        for (let n = 0; n < 16; n++) {
-          const mid = (low + high) / 2;
-          dateEl.style.setProperty('font-size', mid.toFixed(2) + 'px', 'important');
+      for (let n = 0; n < 18; n++) {
+        const mid = (low + high) / 2;
+        elements.forEach(function(el) {
+          el.style.setProperty('font-size', mid.toFixed(2) + 'px', 'important');
+        });
 
-          if (dateEl.scrollWidth <= available + 1) {
-            low = mid;
-          } else {
-            high = mid;
-          }
+        const allFit = elements.every(function(el) {
+          return el.scrollWidth <= el.clientWidth + 1;
+        });
+
+        if (allFit) {
+          low = mid;
+        } else {
+          high = mid;
         }
+      }
 
-        dateEl.style.setProperty('font-size', low.toFixed(2) + 'px', 'important');
-      };
+      elements.forEach(function(el) {
+        el.style.setProperty('font-size', low.toFixed(2) + 'px', 'important');
+      });
+    }
 
+    function schedulePanelDatesSharedAutoFit_() {
       requestAnimationFrame(function() {
-        requestAnimationFrame(fit);
+        requestAnimationFrame(function() {
+          autoFitPanelDatesShared_();
+        });
       });
     }
 
@@ -4324,9 +4341,8 @@ function updateFridayPrayerDisplay() {
         el.dataset.autoFitBaseSize =
           parseFloat(getComputedStyle(el).fontSize) || 16;
 
-        // Pantau perubahan teks tanggal (Hijriah/Masehi).
         const textObserver = new MutationObserver(function() {
-          autoFitPanelDate_(el);
+          schedulePanelDatesSharedAutoFit_();
         });
         textObserver.observe(el, {
           childList: true,
@@ -4334,14 +4350,15 @@ function updateFridayPrayerDisplay() {
           subtree: true
         });
 
-        // Pantau perubahan ukuran panel/TV.
         if (typeof ResizeObserver === 'function') {
           const resizeObserver = new ResizeObserver(function() {
-            autoFitPanelDate_(el);
+            schedulePanelDatesSharedAutoFit_();
           });
           resizeObserver.observe(el.parentElement || el);
         }
       });
+
+      schedulePanelDatesSharedAutoFit_();
     }
 
     function renderKeuanganDateHeader_(gregorianValue) {
@@ -4441,7 +4458,7 @@ function updateFridayPrayerDisplay() {
       dateEl.style.display = 'block';
       applyQurbanDatePattern_();
       installPanelDateAutoFit_();
-      autoFitPanelDate_(dateEl);
+      schedulePanelDatesSharedAutoFit_();
 
       const isoDate = parseQurbanDateToIso_(rawGregorian);
       if (!isoDate) {
@@ -4456,7 +4473,7 @@ function updateFridayPrayerDisplay() {
         dateEl.innerText = cachedHijri + ' | ' + gregorian;
         dateEl.dataset.hijriDateKey = isoDate;
         installPanelDateAutoFit_();
-      autoFitPanelDate_(dateEl);
+      schedulePanelDatesSharedAutoFit_();
         return;
       }
 
@@ -4466,7 +4483,7 @@ function updateFridayPrayerDisplay() {
         dateEl.innerText = gregorian;
         dateEl.dataset.hijriDateKey = isoDate;
         installPanelDateAutoFit_();
-      autoFitPanelDate_(dateEl);
+      schedulePanelDatesSharedAutoFit_();
       }
 
       const token = ++qurbanDateConversionToken_;
@@ -4491,7 +4508,7 @@ function updateFridayPrayerDisplay() {
           dateEl.dataset.hijriDateKey = isoDate;
           dateEl.innerText = hijri + ' | ' + gregorian;
           installPanelDateAutoFit_();
-      autoFitPanelDate_(dateEl);
+      schedulePanelDatesSharedAutoFit_();
         })
         .catch(function(error) {
           console.warn(
@@ -4526,13 +4543,13 @@ function updateFridayPrayerDisplay() {
       // Garis bawah baru ditampilkan setelah tanggal benar-benar siap.
       dateEl.style.setProperty('border-bottom', '0.2vh solid var(--theme-accent)', 'important');
       installPanelDateAutoFit_();
-      autoFitPanelDate_(dateEl);
+      schedulePanelDatesSharedAutoFit_();
 
       const isoDate = parseQurbanDateToIso_(rawGregorian);
       if (!isoDate) {
         dateEl.innerText = gregorian;
         installPanelDateAutoFit_();
-      autoFitPanelDate_(dateEl);
+      schedulePanelDatesSharedAutoFit_();
         return;
       }
 
