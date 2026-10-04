@@ -2767,6 +2767,8 @@ body[data-display-theme="kuning"] .header-moon.moon-new::after {
   margin:0;
   color:var(--theme-accent)!important;
   -webkit-text-fill-color:var(--theme-accent)!important;
+  -webkit-text-stroke:0 !important;
+  text-shadow:0.16vh 0.18vh 0.22vh rgba(0,0,0,0.95), 0 0.32vh 0.55vh rgba(0,0,0,0.72) !important;
   font-family:Arial,sans-serif;
   font-weight:700;
   font-size:clamp(.9rem,1.35vw,1.5rem);
@@ -2780,6 +2782,7 @@ body[data-display-theme="kuning"] .header-moon.moon-new::after {
   width:100%;
   margin-top:.22vh;
   color:#fff;
+  text-shadow:0.16vh 0.18vh 0.22vh rgba(0,0,0,0.95), 0 0.32vh 0.55vh rgba(0,0,0,0.72) !important;
   font-family:Arial,sans-serif;
   font-weight:700;
   font-size:clamp(.5rem,1.05vw,1rem);
@@ -2810,6 +2813,7 @@ body[data-display-theme="kuning"] .header-moon.moon-new::after {
 }
 .petugas-infaq-content img{
   display:block;
+  filter:drop-shadow(0.16vh 0.18vh 0.22vh rgba(0,0,0,0.95)) drop-shadow(0 0.32vh 0.55vh rgba(0,0,0,0.72)) !important;
   width:clamp(88px,10vw,132px);
   max-width:82%;
   max-height:100%;
