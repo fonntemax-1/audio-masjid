@@ -3229,37 +3229,17 @@ body[data-display-theme="kuning"] .prayer-time {
 }
 
 
-/* FINAL COLOR LOCK - NAMA MASJID harus sama persis dengan DAFTAR PESERTA QURBAN.
-   Hilangkan gradient/highlight putih agar warna teks solid mengikuti warna judul QURBAN. */
+/* FINAL HEADER NAMA MASJID — KEMBALIKAN KE TAMPILAN ASLI */
 .header-center .latin-name,
 #nama_masjid{
-  color:var(--theme-accent) !important;
-  background:linear-gradient(
-    110deg,
-    var(--theme-accent) 0%,
-    var(--theme-accent) 36%,
-    rgba(255,255,255,0.18) 43%,
-    #ffffff 49%,
-    #ffffff 51%,
-    rgba(255,255,255,0.18) 57%,
-    var(--theme-accent) 64%,
-    var(--theme-accent) 100%
-  ) !important;
-  background-size:300% 100% !important;
-  background-position:-120% 0 !important;
-  -webkit-background-clip:text !important;
-  background-clip:text !important;
-  -webkit-text-fill-color:transparent !important;
-  animation:mosqueNameHighlightVisible 4s linear infinite !important;
-  text-shadow:
-    0 0.18vh 0 rgba(0,0,0,0.98),
-    0 0.32vh 0.42vh rgba(0,0,0,0.92),
-    0 0.62vh 0.90vh rgba(0,0,0,0.68) !important;
-}
-@keyframes mosqueNameHighlightVisible {
-  0% { background-position:-120% 0; }
-  55% { background-position:120% 0; }
-  100% { background-position:120% 0; }
+  color:#ffcc00 !important;
+  background:none !important;
+  background-image:none !important;
+  -webkit-background-clip:border-box !important;
+  background-clip:border-box !important;
+  -webkit-text-fill-color:#ffcc00 !important;
+  animation:none !important;
+  text-shadow:none !important;
 }
 
 #fin-panel-box.qurban-display #fin-title{
