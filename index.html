@@ -4044,17 +4044,10 @@ function updateFridayPrayerDisplay() {
         return;
       }
 
-      const available = Math.max(40, panel.clientWidth - 20);
-
-      // QUR'BAN:
-      // A1 dan A2 HARUS IDENTIK: font, ukuran, warna, ketebalan dan
-      // alignment. Ukuran bersama otomatis mengikuti lebar frame.
-      // Ukuran A1/A2 dibuat STABIL berdasarkan lebar frame.
-      // Tidak berubah mengikuti panjang teks atau polling realtime.
-      const stableFontPx = Math.max(
-        16.5,
-        Math.min(34.5, panel.clientWidth * 0.085 * 0.75)
-      );
+      // QUR'BAN A1/A2 dikunci ke SATU ukuran tetap.
+      // Tidak bergantung pada lebar panel, panjang teks, tanggal,
+      // ResizeObserver, atau realtime polling.
+      const stableFontPx = 28;
 
       // Samakan font A1/A2 secara eksplisit.
       const titleFontFamily =
