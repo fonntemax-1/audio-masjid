@@ -3294,19 +3294,30 @@ function updateFridayPrayerDisplay() {
 
         // -------------------------------------------------------
         // SPESIAL BANNER IMSAK - Ramadan saja, 3 menit
-        // Mulai TEPAT saat waktu IMSAK dimulai dan berakhir
-        // 3 menit kemudian.
+        // Mulai TEPAT dari WAKTU IMSAK, bukan dari WAKTU SUBUH.
+        // Banner aktif selama 3 menit sejak IMSAK dimulai.
+        //
+        // Jika sumber jadwal menyediakan nilai IMSAK, gunakan nilai
+        // tersebut. Jika tidak, gunakan rumus IMSAK yang sama dengan
+        // countdown utama: 10 menit sebelum SUBUH.
         //
         // Format:
         //   WAKTU IMSAK (KOTA) DAN SEKITARNYA
-        //
-        // Perhitungan memakai jadwal Subuh, bukan state countdown,
-        // sehingga banner tetap muncul tepat saat pergantian fase.
         // -------------------------------------------------------
         const subuhSec = parsePrayerSec_(schedule.subuh);
+        const scheduleImsakSec =
+          parsePrayerSec_(schedule.imsak);
 
-        if (isRamadanDisplay() && subuhSec !== null) {
-          const imsakStartSec = subuhSec - (10 * 60);
+        const imsakStartSec =
+          scheduleImsakSec !== null
+            ? scheduleImsakSec
+            : (
+                subuhSec !== null
+                  ? subuhSec - (10 * 60)
+                  : null
+              );
+
+        if (isRamadanDisplay() && imsakStartSec !== null) {
           const imsakEndSec = imsakStartSec + (3 * 60);
 
           if (
