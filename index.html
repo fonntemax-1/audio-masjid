@@ -4124,6 +4124,29 @@ function updateFridayPrayerDisplay() {
       dateEl.style.setProperty('padding-bottom', '0', 'important');
     }
 
+    function applyQurbanDatePattern_() {
+      const dateEl = document.getElementById('fin-extra');
+      if (!dateEl) return;
+
+      // QUR'BAN menggunakan pattern ukuran yang sama persis dengan
+      // tanggal PETUGAS SHOLAT.
+      dateEl.style.setProperty('width', '100%', 'important');
+      dateEl.style.setProperty('max-width', '100%', 'important');
+      dateEl.style.setProperty('box-sizing', 'border-box', 'important');
+      dateEl.style.setProperty('text-align', 'center', 'important');
+      dateEl.style.setProperty('white-space', 'nowrap', 'important');
+      dateEl.style.setProperty('overflow', 'hidden', 'important');
+      dateEl.style.setProperty('text-overflow', 'clip', 'important');
+      dateEl.style.setProperty('color', '#ffffff', 'important');
+      dateEl.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+      dateEl.style.setProperty('font-weight', '700', 'important');
+      dateEl.style.setProperty('line-height', '1.15', 'important');
+      dateEl.style.setProperty('font-size', 'clamp(.70rem,3.8cqw,1.35rem)', 'important');
+      dateEl.style.setProperty('margin-top', '.12vh', 'important');
+      dateEl.style.setProperty('padding-top', '0', 'important');
+      dateEl.style.setProperty('padding-bottom', '0', 'important');
+    }
+
     function startPetugasHeaderAutoFit_() {
       const panel = document.getElementById('petugas-panel-box');
       if (!panel) return;
@@ -4340,6 +4363,7 @@ function updateFridayPrayerDisplay() {
       const gregorian = formatPanelKegiatanDate_(rawGregorian);
 
       dateEl.style.display = 'block';
+      applyQurbanDatePattern_();
 
       const isoDate = parseQurbanDateToIso_(rawGregorian);
       if (!isoDate) {
