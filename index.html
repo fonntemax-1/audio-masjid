@@ -4320,24 +4320,28 @@ function updateFridayPrayerDisplay() {
       const dateEl = document.getElementById('fin-extra');
       if (!dateEl) return;
 
-      const gregorian = String(
+      const rawGregorian = String(
         gregorianValue !== undefined
           ? gregorianValue
           : currentQurbanGregorianDate_
       ).trim();
 
-      currentQurbanGregorianDate_ = gregorian;
+      currentQurbanGregorianDate_ = rawGregorian;
 
-      if (!gregorian) {
+      if (!rawGregorian) {
         dateEl.innerText = '';
         dateEl.style.display = 'none';
         dateEl.dataset.hijriDateKey = '';
         return;
       }
 
+      // Format QUR'BAN disamakan persis dengan PETUGAS SHOLAT:
+      // 2 Oktober 2026, bukan 02/10/2026.
+      const gregorian = formatPanelKegiatanDate_(rawGregorian);
+
       dateEl.style.display = 'block';
 
-      const isoDate = parseQurbanDateToIso_(gregorian);
+      const isoDate = parseQurbanDateToIso_(rawGregorian);
       if (!isoDate) {
         dateEl.innerText = gregorian;
         return;
