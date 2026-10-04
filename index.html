@@ -83,19 +83,34 @@
 }
 </style>
 <style id="countdown-prayer-name-theme">
-/* Nama waktu sholat pada countdown mengikuti warna tema.
-   Angka/jam countdown tetap putih. */
+/* COUNTDOWN:
+   - MENUJU SHOLAT / WAKTU = putih
+   - Nama waktu sholat = warna tema
+   - Angka countdown = putih
+   Untuk WAKTU IMSAK, IMSAK berada di elemen countdown sehingga
+   class waktu-sholat-prayer memberi warna tema pada nama waktunya. */
 #countdown-title{
-  color:var(--theme-accent) !important;
-  -webkit-text-fill-color:var(--theme-accent) !important;
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
   background:none !important;
   background-image:none !important;
   -webkit-background-clip:border-box !important;
   background-clip:border-box !important;
 }
+
+#countdown-title .countdown-title-prayer{
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+}
+
 #countdown{
   color:#ffffff !important;
   -webkit-text-fill-color:#ffffff !important;
+}
+
+#countdown.waktu-sholat-prayer{
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
 }
 </style>
 </head>
