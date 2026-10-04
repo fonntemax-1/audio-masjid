@@ -872,14 +872,15 @@
       border: 0.48vh solid transparent;
       border-image: linear-gradient(
         135deg,
-        #fff7c7 0%,
-        #f6d66f 12%,
-        #b8860b 28%,
-        #ffe89a 43%,
-        #d4a62a 58%,
-        #8f650d 74%,
-        #f8d86d 88%,
-        #fff4b0 100%
+        #fffbe0 0%,
+        #ffe98a 9%,
+        #c58a12 23%,
+        #8a5a08 34%,
+        #fff1a8 46%,
+        #d39a18 58%,
+        #7a4e07 72%,
+        #f7d45f 86%,
+        #fff8c8 100%
       ) 1;
       box-shadow:
         0 1.1vh 2.8vh rgba(0,0,0,0.88),
@@ -1052,9 +1053,12 @@
     }
 
     .tz-text {
-      font-size: clamp(0.8rem, 1.3vw, 1.4rem);
-      color: #ffffff;
-      font-weight: bold;
+      font-size: clamp(0.92rem, 1.55vw, 1.55rem);
+      color: var(--theme-accent);
+      -webkit-text-fill-color: var(--theme-accent);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.03vw;
     }
 
     /* =========================================================
@@ -3537,4 +3541,41 @@ body[data-display-theme="kuning"] .prayer-time {
   text-shadow:
     0.12vh 0.16vh 0.28vh rgba(0,0,0,0.92),
     0.28vh 0.34vh 0.62vh rgba(0,0,0,0.62) !important;
+}
+
+/* =========================================================
+   HEADER GOLD SHINE
+   Cahaya tipis berjalan hanya pada bentuk font.
+   Tidak mengubah ukuran, posisi, atau layout header.
+   ========================================================= */
+.header-center .latin-name,
+#nama_masjid {
+  background-image: linear-gradient(
+    110deg,
+    #ffcc00 0%,
+    #ffcc00 39%,
+    rgba(255,255,255,0.18) 44%,
+    #fff6b0 49%,
+    #ffffff 50%,
+    #fff6b0 51%,
+    rgba(255,255,255,0.18) 56%,
+    #ffcc00 61%,
+    #ffcc00 100%
+  );
+  background-size: 260% 100%;
+  background-position: 120% 0;
+  background-repeat: no-repeat;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent !important;
+  animation: masjidHeaderGoldShine 6s linear infinite;
+}
+
+@keyframes masjidHeaderGoldShine {
+  0%, 20% {
+    background-position: 120% 0;
+  }
+  80%, 100% {
+    background-position: -120% 0;
+  }
 }
