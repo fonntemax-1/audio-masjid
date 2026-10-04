@@ -3546,3 +3546,56 @@ body[data-display-theme="kuning"] .prayer-time {
     0.12vh 0.16vh 0.28vh rgba(0,0,0,0.92),
     0.28vh 0.34vh 0.62vh rgba(0,0,0,0.62) !important;
 }
+
+
+/* HEADER NAMA MASJID — HIGHLIGHT BERJALAN YANG TERLIHAT JELAS */
+.header-center .latin-name,
+#nama_masjid{
+  position:relative !important;
+  display:inline-block !important;
+  overflow:visible !important;
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+  background:none !important;
+  background-image:none !important;
+  -webkit-background-clip:border-box !important;
+  background-clip:border-box !important;
+  animation:none !important;
+  text-shadow:none !important;
+}
+
+.header-center .latin-name::after,
+#nama_masjid::after{
+  content:attr(data-highlight-text);
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  white-space:nowrap;
+  overflow:hidden;
+  color:transparent !important;
+  -webkit-text-fill-color:transparent !important;
+  background:linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(255,255,255,0.05) 43%,
+    rgba(255,255,255,0.95) 48%,
+    #ffffff 50%,
+    rgba(255,255,255,0.95) 52%,
+    rgba(255,255,255,0.05) 57%,
+    transparent 60%,
+    transparent 100%
+  ) !important;
+  background-size:220% 100% !important;
+  background-position:-120% 0 !important;
+  -webkit-background-clip:text !important;
+  background-clip:text !important;
+  animation:masjidHeaderLightSweep 3.2s linear infinite !important;
+}
+
+@keyframes masjidHeaderLightSweep{
+  0%   { background-position:-120% 0; }
+  55%  { background-position:120% 0; }
+  100% { background-position:120% 0; }
+}
