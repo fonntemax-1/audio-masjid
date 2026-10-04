@@ -7532,18 +7532,8 @@ function updateFridayPrayerDisplay() {
               const key =
                 normalizeEventCountdownName_(config.event);
 
-              // Lailatul Qadr hanya aktif H-10 s.d. H-1.
-              // Pada H-0 (1 Syawal) langsung berhenti.
-              if (
-                key === 'countdown malam lailatul qadr' ||
-                key === 'countdown lailatul qadr'
-              ) {
-                return (
-                  config.diffDays >= 1 &&
-                  config.diffDays <= 10
-                );
-              }
-
+              // Semua batas durasi countdown berasal dari Spreadsheet.
+              // Tidak ada lagi window khusus/hard-code per event.
               return (
                 config.diffDays > 0 &&
                 config.diffDays <= config.days
