@@ -4146,6 +4146,7 @@ function updateFridayPrayerDisplay() {
       dateEl.style.setProperty('padding-top', '0', 'important');
       dateEl.style.setProperty('padding-bottom', '0', 'important');
       dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
+      autoFitPanelDate_(dateEl);
     }
 
     function startPetugasHeaderAutoFit_() {
@@ -4271,6 +4272,54 @@ function updateFridayPrayerDisplay() {
       return '';
     }
 
+    function autoFitPanelDate_(dateEl) {
+      if (!dateEl) return;
+
+      const fit = function() {
+        if (!dateEl.isConnected || !dateEl.innerText.trim()) return;
+
+        const current = parseFloat(getComputedStyle(dateEl).fontSize) || 16;
+        const minPx = 7;
+        const maxPx = Math.max(current, 16);
+        dateEl.style.setProperty('white-space', 'nowrap', 'important');
+        dateEl.style.setProperty('overflow', 'hidden', 'important');
+        dateEl.style.setProperty('text-overflow', 'clip', 'important');
+        dateEl.style.setProperty('width', '100%', 'important');
+        dateEl.style.setProperty('max-width', '100%', 'important');
+        dateEl.style.setProperty('box-sizing', 'border-box', 'important');
+
+        let size = Math.min(current, maxPx);
+        dateEl.style.setProperty('font-size', size.toFixed(2) + 'px', 'important');
+
+        while (dateEl.scrollWidth > dateEl.clientWidth + 1 && size > minPx) {
+          size = Math.max(minPx, size - 0.25);
+          dateEl.style.setProperty('font-size', size.toFixed(2) + 'px', 'important');
+        }
+
+        // Pulihkan sedikit ruang agar perubahan ukuran TV tidak membuat teks mepet.
+        if (dateEl.scrollWidth > dateEl.clientWidth + 1) {
+          dateEl.style.setProperty('font-size', minPx + 'px', 'important');
+        }
+      };
+
+      requestAnimationFrame(fit);
+    }
+
+    function installPanelDateAutoFit_() {
+      ['fin-sub', 'fin-extra', 'petugas-tanggal'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (!el || el.dataset.autoFitInstalled === '1') return;
+
+        el.dataset.autoFitInstalled = '1';
+        if (typeof ResizeObserver === 'function') {
+          const observer = new ResizeObserver(function() {
+            autoFitPanelDate_(el);
+          });
+          observer.observe(el);
+        }
+      });
+    }
+
     function renderKeuanganDateHeader_(gregorianValue) {
       const dateEl = document.getElementById('fin-sub');
       if (!dateEl) return;
@@ -4367,6 +4416,7 @@ function updateFridayPrayerDisplay() {
 
       dateEl.style.display = 'block';
       applyQurbanDatePattern_();
+      autoFitPanelDate_(dateEl);
 
       const isoDate = parseQurbanDateToIso_(rawGregorian);
       if (!isoDate) {
@@ -4380,6 +4430,7 @@ function updateFridayPrayerDisplay() {
       if (cachedHijri) {
         dateEl.innerText = cachedHijri + ' | ' + gregorian;
         dateEl.dataset.hijriDateKey = isoDate;
+        autoFitPanelDate_(dateEl);
         return;
       }
 
@@ -4388,6 +4439,7 @@ function updateFridayPrayerDisplay() {
       if (dateEl.dataset.hijriDateKey !== isoDate) {
         dateEl.innerText = gregorian;
         dateEl.dataset.hijriDateKey = isoDate;
+        autoFitPanelDate_(dateEl);
       }
 
       const token = ++qurbanDateConversionToken_;
@@ -4411,6 +4463,7 @@ function updateFridayPrayerDisplay() {
           hijriDateConversionCache_[isoDate] = hijri;
           dateEl.dataset.hijriDateKey = isoDate;
           dateEl.innerText = hijri + ' | ' + gregorian;
+          autoFitPanelDate_(dateEl);
         })
         .catch(function(error) {
           console.warn(
@@ -4444,10 +4497,12 @@ function updateFridayPrayerDisplay() {
 
       // Garis bawah baru ditampilkan setelah tanggal benar-benar siap.
       dateEl.style.setProperty('border-bottom', '0.2vh solid var(--theme-accent)', 'important');
+      autoFitPanelDate_(dateEl);
 
       const isoDate = parseQurbanDateToIso_(rawGregorian);
       if (!isoDate) {
         dateEl.innerText = gregorian;
+        autoFitPanelDate_(dateEl);
         return;
       }
 
