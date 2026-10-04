@@ -4658,6 +4658,20 @@ function updateFridayPrayerDisplay() {
           selector === 'QURBAN' ? a3.trim() : '';
 
         if (selector === 'QURBAN') {
+          // Saat berpindah dari KEUANGAN, fin-sub masih membawa
+          // border-bottom tanggal KEUANGAN. Bersihkan divider lama
+          // sebelum menampilkan A2/A3 QURBAN agar tidak ada garis
+          // tertinggal di atas tanggal QURBAN.
+          const staleFinanceDivider =
+            document.getElementById('fin-sub');
+          if (staleFinanceDivider) {
+            staleFinanceDivider.style.setProperty(
+              'border-bottom',
+              '0',
+              'important'
+            );
+          }
+
           renderQurbanDateHeader_(currentQurbanGregorianDate_);
         } else {
           finExtra.innerText = '';
@@ -5761,6 +5775,14 @@ function updateFridayPrayerDisplay() {
             : '';
 
         if (keuanganSelector === 'QURBAN' && a3) {
+          // Bersihkan garis divider tanggal KEUANGAN yang tersisa
+          // sebelum render A2/A3 QURBAN.
+          finSub.style.setProperty(
+            'border-bottom',
+            '0',
+            'important'
+          );
+
           renderQurbanDateHeader_(currentQurbanGregorianDate_);
         } else {
           finExtra.innerText = '';
