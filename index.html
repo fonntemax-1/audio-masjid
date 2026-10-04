@@ -1256,11 +1256,30 @@
 
       WEB_APP_STATE.audio.audioConfigReady = configReady;
 
+      // Fingerprint stabil: urutkan key object secara rekursif agar
+      // polling Sheet tidak dianggap "berubah" hanya karena urutan key
+      // object dari JSONP/Apps Script berbeda.
+      function stableAudioConfigStringify_(value) {
+        if (Array.isArray(value)) {
+          return '[' + value.map(function(item) {
+            return stableAudioConfigStringify_(item);
+          }).join(',') + ']';
+        }
+
+        if (value && typeof value === 'object') {
+          return '{' + Object.keys(value).sort().map(function(key) {
+            return JSON.stringify(key) + ':' +
+              stableAudioConfigStringify_(value[key]);
+          }).join(',') + '}';
+        }
+
+        return JSON.stringify(value);
+      }
+
       const configSignature =
-        JSON.stringify({
+        stableAudioConfigStringify_({
           audioConfig: audioConfig,
           audioScheduleConfig: audioScheduleConfig,
-          audioDurationConfig: audioDurationConfig,
           audioFridayConfig: audioFridayConfig
         });
 
