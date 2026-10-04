@@ -4044,15 +4044,16 @@ function updateFridayPrayerDisplay() {
         return;
       }
 
-      // QUR'BAN A1/A2 tetap RESPONSIVE terhadap lebar frame.
-      // Ukuran hanya mengikuti ukuran panel, bukan scrolling,
-      // panjang teks, atau isi A2.
-      const stableFontPx = Math.max(
-        16,
-        Math.min(34.5, panel.clientWidth * 0.085 * 0.75)
-      );
-
-      // Samakan font A1/A2 secara eksplisit.
+      /*
+       * QUR'BAN A1/A2:
+       * - tetap RESPONSIVE terhadap ukuran frame/container;
+       * - tidak dihitung dari scrollWidth, isi tabel, atau posisi scroll;
+       * - tidak dikunci ke angka pixel oleh JavaScript.
+       *
+       * Container #fin-panel-box sudah memakai container-type:inline-size,
+       * sehingga cqw mengikuti LEBAR FRAME QUR'BAN. Perubahan transform
+       * pada #keuangan-content tidak mengubah ukuran container ini.
+       */
       const titleFontFamily =
         window.getComputedStyle(title).fontFamily || 'Arial, sans-serif';
 
@@ -4075,21 +4076,17 @@ function updateFridayPrayerDisplay() {
           'var(--theme-accent)',
           'important'
         );
-      });
 
-      // A1 dan A2 memakai satu ukuran tetap.
-      // Jangan ukur scrollWidth karena isi A2/tanggal dapat berubah
-      // saat realtime polling dan menyebabkan font membesar-mengecil.
-      title.style.setProperty(
-        'font-size',
-        stableFontPx.toFixed(2) + 'px',
-        'important'
-      );
-      sub.style.setProperty(
-        'font-size',
-        stableFontPx.toFixed(2) + 'px',
-        'important'
-      );
+        // RESPONSIVE, bukan fixed pixel:
+        // 6.375cqw = formula proporsional terhadap lebar frame.
+        // Clamp menjaga batas minimum/maksimum tanpa mengunci ukuran
+        // pada satu nilai dan tetap berubah ketika frame berubah.
+        el.style.setProperty(
+          'font-size',
+          'clamp(16px, 6.375cqw, 34.5px)',
+          'important'
+        );
+      });
     }
 
     function fitPetugasHeaderText_() {
