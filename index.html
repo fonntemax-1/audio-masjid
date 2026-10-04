@@ -4028,68 +4028,54 @@ function updateFridayPrayerDisplay() {
       if (!panel || !title || title.style.display === 'none') return;
 
       /*
-       * PETUGAS SHOLAT harus selalu berada di dalam frame.
-       * Ukuran awal mengikuti lebar panel, kemudian benar-benar
-       * diukur dari scrollWidth. Jika judul panjang, font diperkecil
-       * sampai seluruh teks muat satu baris tanpa terpotong.
-       *
-       * Ini lebih aman untuk TV dengan resolusi/aspect ratio berbeda
-       * karena tidak memakai ukuran tetap berdasarkan layar.
+       * JUDUL PETUGAS SHOLAT:
+       * ukuran benar-benar mengikuti LEBAR FRAME, bukan ukuran TV.
+       * Untuk judul panjang, font diperkecil sampai seluruh teks
+       * masuk ke satu baris dan tidak melewati frame.
        */
       const panelWidth = Math.max(panel.clientWidth, 1);
-      const available = Math.max(40, panelWidth - 4);
+      const available = Math.max(32, panelWidth - 6);
 
+      // Lebih kecil dari setting lama agar judul panjang tidak mepet.
+      // 5.8% dari lebar frame tetap responsif pada berbagai TV.
       const maxFontPx = Math.max(
-        14,
-        Math.min(32, panelWidth * 0.075)
+        11,
+        Math.min(28, panelWidth * 0.058)
       );
-      const minFontPx = 9;
+      const minFontPx = 7;
 
-      title.style.setProperty('font-family', 'inherit', 'important');
-      title.style.setProperty('font-weight', '900', 'important');
-      title.style.setProperty('font-style', 'normal', 'important');
-      title.style.setProperty('width', '100%', 'important');
-      title.style.setProperty('max-width', '100%', 'important');
-      title.style.setProperty('min-width', '0', 'important');
-      title.style.setProperty('box-sizing', 'border-box', 'important');
-      title.style.setProperty('white-space', 'nowrap', 'important');
-      title.style.setProperty('overflow', 'hidden', 'important');
-      title.style.setProperty('text-overflow', 'clip', 'important');
-      title.style.setProperty('letter-spacing', '0', 'important');
-      title.style.setProperty('line-height', '1.02', 'important');
-      title.style.setProperty('text-align', 'center', 'important');
-      title.style.setProperty('padding-left', '0', 'important');
-      title.style.setProperty('padding-right', '0', 'important');
-      title.style.setProperty('color', 'var(--theme-accent)', 'important');
-      title.style.setProperty(
-        '-webkit-text-fill-color',
-        'var(--theme-accent)',
-        'important'
-      );
+      const important = function(property, value) {
+        title.style.setProperty(property, value, 'important');
+      };
 
-      // Mulai dari ukuran yang proporsional terhadap panel.
-      title.style.setProperty(
-        'font-size',
-        maxFontPx.toFixed(2) + 'px',
-        'important'
-      );
+      important('font-family', 'inherit');
+      important('font-weight', '900');
+      important('font-style', 'normal');
+      important('width', '100%');
+      important('max-width', '100%');
+      important('min-width', '0');
+      important('box-sizing', 'border-box');
+      important('white-space', 'nowrap');
+      important('overflow', 'hidden');
+      important('text-overflow', 'clip');
+      important('letter-spacing', '0');
+      important('line-height', '1.02');
+      important('text-align', 'center');
+      important('padding-left', '0');
+      important('padding-right', '0');
+      important('color', 'var(--theme-accent)');
+      important('-webkit-text-fill-color', 'var(--theme-accent)');
 
       /*
-       * Auto-fit berbasis pengukuran aktual.
-       * Binary search menghindari loop panjang pada TV dan memastikan
-       * scrollWidth tidak melewati lebar frame.
+       * Binary search memakai ukuran nyata teks (scrollWidth).
+       * Jadi judul pendek tetap besar, judul panjang otomatis mengecil.
        */
       let low = minFontPx;
       let high = maxFontPx;
 
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 14; i++) {
         const mid = (low + high) / 2;
-
-        title.style.setProperty(
-          'font-size',
-          mid.toFixed(2) + 'px',
-          'important'
-        );
+        important('font-size', mid.toFixed(2) + 'px');
 
         if (title.scrollWidth <= available) {
           low = mid;
@@ -4098,19 +4084,13 @@ function updateFridayPrayerDisplay() {
         }
       }
 
-      // Tambahkan sedikit toleransi agar tidak menyentuh border frame.
-      const fittedFontPx = Math.max(
+      const fitted = Math.max(
         minFontPx,
-        Math.min(maxFontPx, low * 0.98)
+        Math.min(maxFontPx, low * 0.96)
       );
 
-      title.style.setProperty(
-        'font-size',
-        fittedFontPx.toFixed(2) + 'px',
-        'important'
-      );
+      important('font-size', fitted.toFixed(2) + 'px');
     }
-
     function applyPetugasDatePattern_() {
       const panel = document.getElementById('petugas-panel-box');
       const dateEl = document.getElementById('petugas-tanggal');
