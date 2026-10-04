@@ -23,12 +23,18 @@
 
 
   <style id="countdown-white-all-themes">
-    /* Jam countdown display waktu sholat selalu putih pada semua tema. */
+    /* Angka countdown selalu putih.
+       Nama IMSAK/SUBUH/DZUHUR/ASHAR/MAGHRIB/ISYA
+       pada mode WAKTU SHOLAT tetap mengikuti warna tema. */
     #countdown,
-    .countdown-timer,
-    #countdown.waktu-sholat-prayer {
+    .countdown-timer {
       color: #ffffff !important;
       -webkit-text-fill-color: #ffffff !important;
+    }
+
+    #countdown.waktu-sholat-prayer {
+      color: var(--theme-accent) !important;
+      -webkit-text-fill-color: var(--theme-accent) !important;
     }
   </style>
   <style id="petugas-infaq-clean">
