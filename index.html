@@ -7344,7 +7344,7 @@ function updateFridayPrayerDisplay() {
       document.head.appendChild(style);
     })();
 
-    function flashEventCountdown_(display, triggerKey) {
+    function flashEventCountdown_(display, triggerKey, effectIndex) {
       if (!display) return;
       if (display.dataset.eventFlashKey === triggerKey) return;
 
@@ -7358,8 +7358,12 @@ function updateFridayPrayerDisplay() {
         'event-flash-shine'
       ];
 
-      const effectIndex = Number(triggerKey.split('|').pop()) % effects.length;
-      const effectClass = effects[effectIndex];
+      const safeEffectIndex =
+        Number.isFinite(Number(effectIndex))
+          ? Math.abs(Number(effectIndex)) % effects.length
+          : 0;
+
+      const effectClass = effects[safeEffectIndex];
 
       effects.forEach(function(className) {
         display.classList.remove(className);
@@ -7517,9 +7521,18 @@ function updateFridayPrayerDisplay() {
         eventCountdownFlashLastSlot_ !== fiveSecondSlot;
 
       if (isNewCountdownState || isNewTenSecondSlot) {
+        const secondsOfDay =
+          (Number(now.hour) * 3600) +
+          (Number(now.minute) * 60) +
+          Number(now.second);
+
+        const effectIndex =
+          Math.floor(secondsOfDay / 5) % 5;
+
         flashEventCountdown_(
           display,
-          activeStateKey + '|' + fiveSecondSlot
+          activeStateKey + '|' + fiveSecondSlot,
+          effectIndex
         );
 
         eventCountdownFlashLastState_ = activeStateKey;
