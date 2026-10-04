@@ -3234,16 +3234,32 @@ body[data-display-theme="kuning"] .prayer-time {
 .header-center .latin-name,
 #nama_masjid{
   color:var(--theme-accent) !important;
-  -webkit-text-fill-color:var(--theme-accent) !important;
-  background:none !important;
-  background-image:none !important;
-  -webkit-background-clip:border-box !important;
-  background-clip:border-box !important;
-  animation:none !important;
+  background:linear-gradient(
+    110deg,
+    var(--theme-accent) 0%,
+    var(--theme-accent) 36%,
+    rgba(255,255,255,0.18) 43%,
+    #ffffff 49%,
+    #ffffff 51%,
+    rgba(255,255,255,0.18) 57%,
+    var(--theme-accent) 64%,
+    var(--theme-accent) 100%
+  ) !important;
+  background-size:300% 100% !important;
+  background-position:-120% 0 !important;
+  -webkit-background-clip:text !important;
+  background-clip:text !important;
+  -webkit-text-fill-color:transparent !important;
+  animation:mosqueNameHighlightVisible 4s linear infinite !important;
   text-shadow:
     0 0.18vh 0 rgba(0,0,0,0.98),
     0 0.32vh 0.42vh rgba(0,0,0,0.92),
     0 0.62vh 0.90vh rgba(0,0,0,0.68) !important;
+}
+@keyframes mosqueNameHighlightVisible {
+  0% { background-position:-120% 0; }
+  55% { background-position:120% 0; }
+  100% { background-position:120% 0; }
 }
 
 #fin-panel-box.qurban-display #fin-title{
