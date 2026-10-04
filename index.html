@@ -4253,19 +4253,65 @@ function updateFridayPrayerDisplay() {
       const panel = document.getElementById('fin-panel-box');
       if (!panel) return;
 
+      /*
+       * TV COMPATIBILITY:
+       * Jangan memakai ResizeObserver untuk header QURBAN.
+       * Pada beberapa browser TV, perubahan transform/paint saat
+       * scrolling dapat memicu layout notification berulang.
+       * Akibatnya A1/A2 ikut dihitung ulang dan rendering jam dapat
+       * tersendat.
+       *
+       * A1/A2 tetap RESPONSIVE, tetapi hanya dihitung saat lebar frame
+       * benar-benar berubah (startup / window resize). Scrolling tidak
+       * pernah menjadi pemicu auto-fit.
+       */
       if (window.__qurbanHeaderFitObserver) {
-        try { window.__qurbanHeaderFitObserver.disconnect(); } catch (e) {}
+        try {
+          window.__qurbanHeaderFitObserver.disconnect();
+        } catch (e) {}
+        window.__qurbanHeaderFitObserver = null;
       }
 
-      if (window.ResizeObserver) {
-        const observer = new ResizeObserver(function() {
-          fitQurbanHeaderText_();
-        });
-        observer.observe(panel);
-        window.__qurbanHeaderFitObserver = observer;
+      let lastWidth = 0;
+      let resizeTimer = null;
+
+      const fitIfWidthChanged = function() {
+        const width = Math.max(1, panel.clientWidth);
+        if (width === lastWidth) return;
+        lastWidth = width;
+        fitQurbanHeaderText_();
+      };
+
+      // Jalankan sekali setelah layout awal stabil.
+      fitIfWidthChanged();
+
+      // Fallback ringan untuk browser TV: resize window jauh lebih jarang
+      // dibanding ResizeObserver dan tidak terhubung dengan scrolling.
+      if (window.__qurbanHeaderResizeHandler) {
+        try {
+          window.removeEventListener(
+            'resize',
+            window.__qurbanHeaderResizeHandler
+          );
+        } catch (e) {}
       }
 
-      fitQurbanHeaderText_();
+      window.__qurbanHeaderResizeHandler = function() {
+        if (resizeTimer) {
+          clearTimeout(resizeTimer);
+        }
+
+        resizeTimer = setTimeout(function() {
+          resizeTimer = null;
+          fitIfWidthChanged();
+        }, 120);
+      };
+
+      window.addEventListener(
+        'resize',
+        window.__qurbanHeaderResizeHandler,
+        { passive: true }
+      );
     }
 
     // REALTIME KHUSUS PANEL - KEUANGAN / QUR'BAN / PETUGAS SHOLAT
@@ -6498,7 +6544,7 @@ function updateFridayPrayerDisplay() {
       }
 
       keuanganPos = 0;
-      content.style.transform = 'translateY(0px)';
+      content.style.transform = 'translate3d(0,0,0)';
       content.style.visibility = 'hidden';
 
       const finPanelBox =
@@ -6596,13 +6642,21 @@ function updateFridayPrayerDisplay() {
           : Math.round(area.clientHeight * 0.5);
 
       if (loopHeight <= area.clientHeight) {
-        content.style.transform = 'translateY(0px)';
+        content.style.transform = 'translate3d(0,0,0)';
+        content.style.willChange = 'auto';
         return;
       }
 
       const loopDistance = loopHeight + gapHeight;
       const speed = 0.2;
       let lastFrame = 0;
+
+      // Hindari layout/compositing berulang pada browser TV.
+      // Scroll hanya memindahkan layer content; header/jam tidak ikut
+      // dihitung ulang.
+      content.style.willChange = 'transform';
+      content.style.backfaceVisibility = 'hidden';
+      content.style.webkitBackfaceVisibility = 'hidden';
 
       function step(timestamp) {
 
@@ -6634,7 +6688,7 @@ function updateFridayPrayerDisplay() {
         }
 
         content.style.transform =
-          'translateY(' + keuanganPos + 'px)';
+          'translate3d(0,' + keuanganPos + 'px,0)';
 
         keuanganAnimId =
           requestAnimationFrame(step);
