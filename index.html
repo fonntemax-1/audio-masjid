@@ -62,7 +62,7 @@
 /* HEADER MASJID / NAMA MASJID — tanpa efek shine berjalan. */
 .header-center .latin-name,
 #nama_masjid{
-  color:#ffcc00 !important;
+  color:var(--theme-accent) !important;
   font-family:'AlhambraC12', serif !important;
   font-size:clamp(1.85rem, 3.0vh, 3.8rem) !important;
   line-height:1 !important;
@@ -73,7 +73,7 @@
   background-image:none !important;
   background-clip:border-box !important;
   -webkit-background-clip:border-box !important;
-  -webkit-text-fill-color:#ffcc00 !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
   animation:none !important;
   text-shadow:
     0.10vh 0.12vh 0 rgba(0,0,0,0.98),
@@ -127,6 +127,7 @@
   font-weight:800 !important;
   line-height:1 !important;
 }
+</style>
 <style id="analog-no-box-bezel">
 /* Jam analog benar-benar tanpa bezel/frame kotak.
    Border-image dan pseudo-bezel dihapus agar browser TV tidak
