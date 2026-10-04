@@ -3299,7 +3299,11 @@ body[data-display-theme="kuning"] .prayer-time {
 }
 
 /* KEUANGAN & PETUGAS: pola dasar tanpa tambahan jarak QURBAN. */
-#fin-panel-box:not(.qurban-display) #fin-sub,
+#fin-panel-box:not(.qurban-display) #fin-sub{
+  /* KEUANGAN: batas Tanggal -> TOP area scrolling = 1x font Tanggal. */
+  margin-bottom:1em !important;
+}
+
 #petugas-panel-box #petugas-tanggal{
   margin-bottom:.45vh !important;
 }
