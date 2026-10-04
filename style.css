@@ -868,68 +868,16 @@
           #d8c58d 91%,
           #a88943 100%);
 
-      /* Bezel emas berlapis agar terlihat metalik, bukan flat. */
-      border: 0.48vh solid transparent;
-      border-image: linear-gradient(
-        135deg,
-        #fffbe0 0%,
-        #ffe98a 9%,
-        #c58a12 23%,
-        #8a5a08 34%,
-        #fff1a8 46%,
-        #d39a18 58%,
-        #7a4e07 72%,
-        #f7d45f 86%,
-        #fff8c8 100%
-      ) 1;
+      /* Dial tetap bundar tanpa bezel/frame luar. */
+      border: 0 !important;
+      border-image: none !important;
       box-shadow:
-        0 1.1vh 2.8vh rgba(0,0,0,0.88),
-        0 0.22vh 0.45vh rgba(255,235,150,0.55),
-        0 0 0.75vh rgba(218,165,45,0.42),
-        inset 0 0 0 0.22vh rgba(255,247,195,0.95),
-        inset 0 0 0 0.52vh rgba(142,98,12,0.92),
-        inset 0 0 0 0.78vh rgba(248,210,91,0.95),
-        inset 0 0 1.55vh rgba(66,42,5,0.62);
+        0 1.1vh 2.8vh rgba(0,0,0,0.88);
       overflow: hidden;
       isolation: isolate;
     }
 
-    /* Kilau logam halus pada bezel. */
-    .analog-clock::before {
-      content: "";
-      position: absolute;
-      inset: 0.45vh;
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 0;
-      background:
-        conic-gradient(
-          from 215deg,
-          rgba(255,255,255,0.62),
-          rgba(255,255,255,0.04) 14%,
-          rgba(120,78,15,0.28) 31%,
-          rgba(255,239,170,0.72) 48%,
-          rgba(135,89,18,0.20) 65%,
-          rgba(255,255,255,0.48) 82%,
-          rgba(120,78,15,0.22)
-        );
-      -webkit-mask: radial-gradient(circle, transparent 0 91%, #000 92% 100%);
-      mask: radial-gradient(circle, transparent 0 91%, #000 92% 100%);
-    }
-
-    /* Cincin bagian dalam dial. */
-    .analog-clock::after {
-      content: "";
-      position: absolute;
-      inset: 1.65vh;
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 0;
-      border: 0.18vh solid rgba(141,101,30,0.72);
-      box-shadow:
-        inset 0 0 0 0.10vh rgba(255,255,255,0.72),
-        inset 0 0 1.1vh rgba(105,73,16,0.25);
-    }
+    /* Tidak ada bezel luar; hanya dial bundar. */
 
     .clock-face-svg {
       width: 84%;
