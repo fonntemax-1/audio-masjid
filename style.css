@@ -3265,6 +3265,14 @@ body[data-display-theme="kuning"] .prayer-time {
    POLA TANGGAL BERSAMA:
    QURBAN + KEUANGAN + PETUGAS SHOLAT
    ========================================================= */
+/* GARIS PEMISAH DI BAWAH TANGGAL:
+   QUR'BAN + LAPORAN KEUANGAN + PETUGAS SHOLAT. */
+#fin-panel-box #fin-extra,
+#fin-panel-box:not(.qurban-display) #fin-sub,
+#petugas-panel-box #petugas-tanggal{
+  border-bottom:1px solid var(--theme-accent) !important;
+}
+
 #fin-panel-box #fin-extra,
 #fin-panel-box:not(.qurban-display) #fin-sub,
 #petugas-panel-box #petugas-tanggal{
