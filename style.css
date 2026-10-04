@@ -1329,6 +1329,7 @@
     }
 
     .keuangan-content {
+      visibility: hidden;
       position: absolute;
       contain: layout paint;
       backface-visibility: hidden;
