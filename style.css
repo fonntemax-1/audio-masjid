@@ -3270,7 +3270,8 @@ body[data-display-theme="kuning"] .prayer-time {
 #fin-panel-box #fin-extra,
 #fin-panel-box:not(.qurban-display) #fin-sub,
 #petugas-panel-box #petugas-tanggal{
-  border-bottom:1px solid var(--theme-accent) !important;
+  /* Border diaktifkan renderer setelah tanggal siap. */
+  border-bottom:0 !important;
 }
 
 #fin-panel-box #fin-extra,
