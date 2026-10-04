@@ -869,14 +869,26 @@
           #a88943 100%);
 
       /* Bezel emas berlapis agar terlihat metalik, bukan flat. */
-      border: 0.48vh solid #d8b45a;
+      border: 0.48vh solid transparent;
+      border-image: linear-gradient(
+        135deg,
+        #fff7c7 0%,
+        #f6d66f 12%,
+        #b8860b 28%,
+        #ffe89a 43%,
+        #d4a62a 58%,
+        #8f650d 74%,
+        #f8d86d 88%,
+        #fff4b0 100%
+      ) 1;
       box-shadow:
         0 1.1vh 2.8vh rgba(0,0,0,0.88),
-        0 0.25vh 0.5vh rgba(255,225,135,0.35),
-        inset 0 0 0 0.24vh #fff0ad,
-        inset 0 0 0 0.55vh #9a7125,
-        inset 0 0 0 0.82vh #f3d477,
-        inset 0 0 1.5vh rgba(80,48,8,0.55);
+        0 0.22vh 0.45vh rgba(255,235,150,0.55),
+        0 0 0.75vh rgba(218,165,45,0.42),
+        inset 0 0 0 0.22vh rgba(255,247,195,0.95),
+        inset 0 0 0 0.52vh rgba(142,98,12,0.92),
+        inset 0 0 0 0.78vh rgba(248,210,91,0.95),
+        inset 0 0 1.55vh rgba(66,42,5,0.62);
       overflow: hidden;
       isolation: isolate;
     }
