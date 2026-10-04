@@ -4025,11 +4025,12 @@ function updateFridayPrayerDisplay() {
       // QUR'BAN:
       // A1 dan A2 HARUS IDENTIK: font, ukuran, warna, ketebalan dan
       // alignment. Ukuran bersama otomatis mengikuti lebar frame.
-      const maxFontPx = Math.max(
+      // Ukuran A1/A2 dibuat STABIL berdasarkan lebar frame.
+      // Tidak berubah mengikuti panjang teks atau polling realtime.
+      const stableFontPx = Math.max(
         16.5,
         Math.min(34.5, panel.clientWidth * 0.085 * 0.75)
       );
-      const minFontPx = 12;
 
       // Samakan font A1/A2 secara eksplisit.
       const titleFontFamily =
@@ -4056,35 +4057,17 @@ function updateFridayPrayerDisplay() {
         );
       });
 
-      // Ukur A1 dan A2 dengan ukuran yang sama, lalu gunakan ukuran
-      // terbesar yang masih membuat KEDUANYA muat dalam frame.
-      title.style.setProperty('font-size', maxFontPx + 'px', 'important');
-      sub.style.setProperty('font-size', maxFontPx + 'px', 'important');
-
-      const titleNaturalWidth = title.scrollWidth;
-      const subNaturalWidth = sub.scrollWidth;
-      const widestNaturalWidth = Math.max(
-        titleNaturalWidth,
-        subNaturalWidth,
-        1
-      );
-
-      const fittedFontPx = Math.max(
-        minFontPx,
-        Math.min(
-          maxFontPx,
-          maxFontPx * (available / widestNaturalWidth)
-        )
-      );
-
+      // A1 dan A2 memakai satu ukuran tetap.
+      // Jangan ukur scrollWidth karena isi A2/tanggal dapat berubah
+      // saat realtime polling dan menyebabkan font membesar-mengecil.
       title.style.setProperty(
         'font-size',
-        fittedFontPx.toFixed(2) + 'px',
+        stableFontPx.toFixed(2) + 'px',
         'important'
       );
       sub.style.setProperty(
         'font-size',
-        fittedFontPx.toFixed(2) + 'px',
+        stableFontPx.toFixed(2) + 'px',
         'important'
       );
     }
