@@ -3097,14 +3097,16 @@ function updateFridayPrayerDisplay() {
       const nowSeconds = Math.floor(getCurrentTimeSeconds());
 
       // Saat startup/pergantian fase, state countdown dapat null.
-      // Tidak ada banner khusus jika belum ada state aktif.
-      // Biarkan loadEventRunningText() mengambil Event Text Spreadsheet.
+      // Banner berbasis waktu (khususnya IMSAK) tetap harus dapat
+      // dihitung langsung dari jadwal sholat, tanpa menunggu state.
+      // Gunakan object kosong sebagai fallback agar pemeriksaan waktu
+      // tetap berjalan saat pergantian fase.
       if (!state || typeof state !== 'object') {
-        return '';
+        state = {};
       }
 
       // State countdown boleh kosong sesaat saat pergantian fase.
-      // Banner khusus tetap harus ditentukan dari waktu aktual/schedule,
+      // Banner khusus tetap ditentukan dari waktu aktual/schedule,
       // agar Event Sheet tidak dapat mengambil alih sebelum batas waktunya.
       const city = getEventPrayerCity_();
       const suffix = city
@@ -3291,7 +3293,15 @@ function updateFridayPrayerDisplay() {
         }
 
         // -------------------------------------------------------
-        // IMSAK - Ramadan saja, 3 menit
+        // SPESIAL BANNER IMSAK - Ramadan saja, 3 menit
+        // Mulai TEPAT saat waktu IMSAK dimulai dan berakhir
+        // 3 menit kemudian.
+        //
+        // Format:
+        //   WAKTU IMSAK (KOTA) DAN SEKITARNYA
+        //
+        // Perhitungan memakai jadwal Subuh, bukan state countdown,
+        // sehingga banner tetap muncul tepat saat pergantian fase.
         // -------------------------------------------------------
         const subuhSec = parsePrayerSec_(schedule.subuh);
 
