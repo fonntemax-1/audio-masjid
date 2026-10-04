@@ -6765,7 +6765,11 @@ function updateFridayPrayerDisplay() {
     }
 
 
-    function getWitaTime() {
+    // WAKTU LOKAL DISPLAY - SELALU MENGIKUTI TIMEZONE LOKASI AKTIF
+    // Sumber timezone berasal dari WEB_APP_STATE.location.timezone.
+    // Contoh: Asia/Makassar (WITA), Asia/Jakarta (WIB), Asia/Jayapura (WIT).
+    // Tidak mengikuti timezone Windows/Chrome pada TV.
+    function getSelectedTimezoneTime_() {
 
       // Formatter Intl cukup mahal jika dibuat ulang setiap detik.
       // Cache berdasarkan timezone agar countdown hanya melakukan
@@ -6808,6 +6812,13 @@ function updateFridayPrayerDisplay() {
 
       return result;
 
+    }
+
+    // Kompatibilitas: seluruh kode lama yang masih memanggil getWitaTime()
+    // tetap bekerja, tetapi sumber waktunya sekarang sepenuhnya generic
+    // dan mengikuti timezone lokasi aktif.
+    function getWitaTime() {
+      return getSelectedTimezoneTime_();
     }
 
 
@@ -7250,7 +7261,8 @@ function updateFridayPrayerDisplay() {
         ? WEB_APP_STATE.event.countdownConfigs
         : [];
 
-      const now = getWitaTime();
+      const timezone = getSelectedTimezone();
+      const now = getSelectedTimezoneTime_();
 
       function dateKeyToUtcMs_(key) {
         const parts = String(key || '').split('-').map(Number);
@@ -7318,15 +7330,15 @@ function updateFridayPrayerDisplay() {
       }
 
       /*
-       * ROTASI BERDASARKAN MENIT WITA.
+       * ROTASI BERDASARKAN MENIT TIMEZONE LOKASI AKTIF.
        *
-       * getWitaTime() adalah sumber waktu aplikasi, sehingga
-       * pergantian tidak mengikuti timezone komputer/display.
+       * getSelectedTimezoneTime_() adalah sumber waktu aplikasi, sehingga
+       * pergantian selalu mengikuti timezone lokasi aktif.
        *
        * Contoh 2 countdown aktif:
-       * menit WITA 10:15 -> item pertama
-       * menit WITA 10:16 -> item kedua
-       * menit WITA 10:17 -> item pertama
+       * menit lokal 10:15 -> item pertama
+       * menit lokal 10:16 -> item kedua
+       * menit lokal 10:17 -> item pertama
        */
       const minuteSlot =
         Math.floor(
@@ -7337,7 +7349,7 @@ function updateFridayPrayerDisplay() {
         );
 
       /*
-       * Agar urutan tetap konsisten terhadap kalender dan tidak
+       * Agar urutan tetap konsisten terhadap kalender timezone aktif dan tidak
        * berubah saat halaman reload, gunakan jumlah hari sejak
        * epoch WITA sebagai bagian slot rotasi.
        */
@@ -7411,7 +7423,7 @@ function updateFridayPrayerDisplay() {
           activeLogKey;
 
         console.log(
-          'EVENT COUNTDOWN TAMPIL WITA:',
+          'EVENT COUNTDOWN TAMPIL ' + timezone + ':',
           activeState
         );
       }
@@ -14764,6 +14776,7 @@ function setCountdownBlackMode(enabled) {
 
     // Countdown event membaca panels!C60:E63 secara realtime.
     // Tidak perlu reload halaman saat ON/OFF atau tanggal berubah.
+    // Semua perhitungan tanggal + rotasi mengikuti timezone lokasi aktif.
     setTimeout(function() {
       startEventCountdownFastPolling_();
     }, 1700);
