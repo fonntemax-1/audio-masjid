@@ -7289,61 +7289,65 @@ function updateFridayPrayerDisplay() {
       style.textContent = `
         @keyframes headerRunningLightSweep {
           0% {
-            transform: translateX(-180%);
-            opacity: 0;
-          }
-          4% {
-            opacity: 0.15;
-          }
-          18% {
-            opacity: 1;
+            background-position: 220% 0;
           }
           30% {
-            transform: translateX(180%);
-            opacity: 0;
+            background-position: -80% 0;
           }
           100% {
-            transform: translateX(180%);
-            opacity: 0;
+            background-position: -80% 0;
           }
         }
 
-        /* Lampu berjalan hanya menyapu area logo MASJID + NAMA MASJID.
-           Elemen asli tidak ikut bergeser. Setelah sweep selesai,
-           cahaya diam sekitar 3,5 detik sebelum mengulang. */
+        /* Soft moving light: cahaya menyatu dengan permukaan logo/nama,
+           bukan batang putih yang berdiri di atas tulisan. */
         #nama_masjid,
         .header-logo {
           position: relative;
-          overflow: hidden;
           isolation: isolate;
         }
 
-        #nama_masjid::after,
+        #nama_masjid {
+          background-image: linear-gradient(
+            105deg,
+            currentColor 0%,
+            currentColor 42%,
+            rgba(255,255,255,0.95) 48%,
+            currentColor 54%,
+            currentColor 100%
+          );
+          background-size: 260% 100%;
+          background-position: 220% 0;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: headerRunningLightSweep 5s linear infinite;
+        }
+
+        #nama_masjid::after {
+          content: none;
+        }
+
         .header-logo::after {
           content: "";
           position: absolute;
-          top: -30%;
-          left: 0;
-          width: 9%;
-          height: 160%;
+          inset: 0;
           pointer-events: none;
-          z-index: 20;
+          z-index: 2;
           background: linear-gradient(
-            90deg,
-            rgba(255,255,255,0) 0%,
-            rgba(255,255,255,0.12) 18%,
-            rgba(255,255,255,0.95) 45%,
-            rgba(255,255,255,1) 50%,
-            rgba(255,255,255,0.95) 55%,
-            rgba(255,255,255,0.12) 82%,
-            rgba(255,255,255,0) 100%
+            105deg,
+            transparent 0%,
+            transparent 42%,
+            rgba(255,255,255,0.9) 49%,
+            rgba(255,255,255,0.55) 51%,
+            transparent 58%,
+            transparent 100%
           );
-          filter: blur(0.5px);
-          box-shadow:
-            0 0 8px rgba(255,255,255,0.9),
-            0 0 18px rgba(255,255,255,0.65);
-          transform: translateX(-180%);
+          background-size: 260% 100%;
+          background-position: 220% 0;
           animation: headerRunningLightSweep 5s linear infinite;
+          mix-blend-mode: screen;
+          opacity: 0.7;
         }
 
         @keyframes eventCountdownZoomPulse {
