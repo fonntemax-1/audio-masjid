@@ -7265,16 +7265,46 @@ function updateFridayPrayerDisplay() {
       const style = document.createElement('style');
       style.id = 'event-countdown-flash-style';
       style.textContent = `
-        @keyframes eventCountdownZoomPulse {
-          0%   { transform: scale(1); }
-          25%  { transform: scale(1.09); }
-          50%  { transform: scale(0.985); }
-          75%  { transform: scale(1.055); }
-          100% { transform: scale(1); }
+        @keyframes eventCountdownCombinedFlash {
+          0% {
+            transform: scale(1);
+            filter: brightness(1);
+            text-shadow: 0 0 0 transparent;
+          }
+          15% {
+            transform: scale(1.035);
+            filter: brightness(1.18);
+            text-shadow: 0 0 12px currentColor;
+          }
+          30% {
+            transform: scale(1.09);
+            filter: brightness(1.28);
+            text-shadow: 0 0 20px currentColor;
+          }
+          45% {
+            transform: scale(0.985);
+            filter: brightness(1.08);
+            text-shadow: 0 0 10px currentColor;
+          }
+          60% {
+            transform: scale(1.055);
+            filter: brightness(1.22);
+            text-shadow: 0 0 16px currentColor;
+          }
+          78% {
+            transform: scale(1.02);
+            filter: brightness(1.12);
+            text-shadow: 0 0 8px currentColor;
+          }
+          100% {
+            transform: scale(1);
+            filter: brightness(1);
+            text-shadow: 0 0 0 transparent;
+          }
         }
 
         #event-countdown-display.event-countdown-flash .event-countdown-inner {
-          animation: eventCountdownZoomPulse 650ms ease-in-out;
+          animation: eventCountdownCombinedFlash 800ms ease-in-out;
           transform-origin: center center;
         }
       `;
