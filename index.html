@@ -144,6 +144,37 @@
   content:none !important;
 }
 </style>
+<style id="final-theme-header-and-analog-bezel">
+/* Header MASJID/NAMA MASJID mengikuti tema aktif. */
+.header-center .latin-name,
+#nama_masjid{
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+}
+
+/* Jam analog:
+   - hanya bezel LINGKARAN yang dipertahankan;
+   - frame/kotak luar tetap tidak ada;
+   - bezel selalu terlihat saat tema berganti;
+   - warna bezel mengikuti warna tema. */
+.analog-clock{
+  border:0.34vh solid var(--theme-accent) !important;
+  border-radius:50% !important;
+  box-sizing:border-box !important;
+  box-shadow:
+    0 1.1vh 2.8vh rgba(0,0,0,0.88),
+    0 0 0.32vh rgba(0,0,0,0.70),
+    inset 0 0 0 0.16vh rgba(255,255,255,0.48),
+    inset 0 0 0 0.34vh var(--theme-accent),
+    inset 0 0 1.25vh rgba(0,0,0,0.42) !important;
+  overflow:hidden !important;
+}
+.analog-clock::before,
+.analog-clock::after{
+  display:none !important;
+  content:none !important;
+}
+</style>
 </head>
 
 <body>
