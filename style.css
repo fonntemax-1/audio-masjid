@@ -3546,37 +3546,3 @@ body[data-display-theme="kuning"] .prayer-time {
     0.12vh 0.16vh 0.28vh rgba(0,0,0,0.92),
     0.28vh 0.34vh 0.62vh rgba(0,0,0,0.62) !important;
 }
-
-
-/* HEADER NAMA MASJID — FINAL SWEEP */
-.header-center .latin-name,
-#nama_masjid{
-  color:var(--theme-accent) !important;
-  background-image:linear-gradient(
-    100deg,
-    var(--theme-accent) 0%,
-    var(--theme-accent) 37%,
-    #fff8c4 44%,
-    #ffffff 50%,
-    #fff8c4 56%,
-    var(--theme-accent) 63%,
-    var(--theme-accent) 100%
-  ) !important;
-  background-size:350% 100% !important;
-  background-repeat:no-repeat !important;
-  background-position:-150% 0 !important;
-  -webkit-background-clip:text !important;
-  background-clip:text !important;
-  -webkit-text-fill-color:transparent !important;
-  animation:masjidNameSweepFinal 2.8s linear infinite !important;
-  text-shadow:
-    0 0.18vh 0 rgba(0,0,0,0.98),
-    0 0.32vh 0.42vh rgba(0,0,0,0.92),
-    0 0.62vh 0.90vh rgba(0,0,0,0.68) !important;
-}
-
-@keyframes masjidNameSweepFinal{
-  0%   { background-position:-150% 0; }
-  60%  { background-position:150% 0; }
-  100% { background-position:150% 0; }
-}
