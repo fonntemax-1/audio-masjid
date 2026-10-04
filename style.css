@@ -3454,12 +3454,10 @@ body[data-display-theme="kuning"] .prayer-time {
 
 
 /* FINAL INFAQ & SHADAQAH SHADOW
-   Shadow hitam diseragamkan dengan gaya shadow header judul masjid.
-   Tidak mengubah mekanisme reload/loading. */
+   Hanya tampilan INFAQ/SHADAQAH + QRIS.
+   Tidak menyentuh reload/loading/scheduler. */
 #infaq-left-widget .infaq-left-title,
-#infaq-left-widget .infaq-left-text,
-.petugas-infaq-title,
-.petugas-infaq-text{
+#infaq-left-widget .infaq-left-text{
   -webkit-text-stroke:0 !important;
   text-shadow:
     0 0.18vh 0 rgba(0,0,0,0.98),
@@ -3467,8 +3465,7 @@ body[data-display-theme="kuning"] .prayer-time {
     0 0.75vh 1.10vh rgba(0,0,0,0.72) !important;
 }
 
-#infaq-left-widget .infaq-left-content img,
-.petugas-infaq-content img{
+#infaq-left-widget .infaq-left-content img{
   filter:
     drop-shadow(0 0.18vh 0 rgba(0,0,0,0.98))
     drop-shadow(0 0.38vh 0.45vh rgba(0,0,0,0.92))
