@@ -4027,21 +4027,30 @@ function updateFridayPrayerDisplay() {
 
       if (!panel || !title || title.style.display === 'none') return;
 
-      const available = Math.max(40, panel.clientWidth - 20);
+      /*
+       * PETUGAS SHOLAT harus selalu berada di dalam frame.
+       * Ukuran awal mengikuti lebar panel, kemudian benar-benar
+       * diukur dari scrollWidth. Jika judul panjang, font diperkecil
+       * sampai seluruh teks muat satu baris tanpa terpotong.
+       *
+       * Ini lebih aman untuk TV dengan resolusi/aspect ratio berbeda
+       * karena tidak memakai ukuran tetap berdasarkan layar.
+       */
+      const panelWidth = Math.max(panel.clientWidth, 1);
+      const available = Math.max(40, panelWidth - 4);
 
-      // PETUGAS SHOLAT mengikuti pattern A1 QUR'BAN:
-      // ukuran dasar 75% dan auto-fit terhadap lebar frame.
       const maxFontPx = Math.max(
-        16.5,
-        Math.min(34.5, panel.clientWidth * 0.085 * 0.75)
+        14,
+        Math.min(32, panelWidth * 0.075)
       );
-      const minFontPx = 12;
+      const minFontPx = 9;
 
       title.style.setProperty('font-family', 'inherit', 'important');
       title.style.setProperty('font-weight', '900', 'important');
       title.style.setProperty('font-style', 'normal', 'important');
       title.style.setProperty('width', '100%', 'important');
       title.style.setProperty('max-width', '100%', 'important');
+      title.style.setProperty('min-width', '0', 'important');
       title.style.setProperty('box-sizing', 'border-box', 'important');
       title.style.setProperty('white-space', 'nowrap', 'important');
       title.style.setProperty('overflow', 'hidden', 'important');
@@ -4049,22 +4058,50 @@ function updateFridayPrayerDisplay() {
       title.style.setProperty('letter-spacing', '0', 'important');
       title.style.setProperty('line-height', '1.02', 'important');
       title.style.setProperty('text-align', 'center', 'important');
+      title.style.setProperty('padding-left', '0', 'important');
+      title.style.setProperty('padding-right', '0', 'important');
       title.style.setProperty('color', 'var(--theme-accent)', 'important');
       title.style.setProperty(
         '-webkit-text-fill-color',
         'var(--theme-accent)',
         'important'
       );
+
+      // Mulai dari ukuran yang proporsional terhadap panel.
       title.style.setProperty(
         'font-size',
         maxFontPx.toFixed(2) + 'px',
         'important'
       );
 
-      const naturalWidth = Math.max(title.scrollWidth, 1);
+      /*
+       * Auto-fit berbasis pengukuran aktual.
+       * Binary search menghindari loop panjang pada TV dan memastikan
+       * scrollWidth tidak melewati lebar frame.
+       */
+      let low = minFontPx;
+      let high = maxFontPx;
+
+      for (let i = 0; i < 12; i++) {
+        const mid = (low + high) / 2;
+
+        title.style.setProperty(
+          'font-size',
+          mid.toFixed(2) + 'px',
+          'important'
+        );
+
+        if (title.scrollWidth <= available) {
+          low = mid;
+        } else {
+          high = mid;
+        }
+      }
+
+      // Tambahkan sedikit toleransi agar tidak menyentuh border frame.
       const fittedFontPx = Math.max(
         minFontPx,
-        Math.min(maxFontPx, maxFontPx * (available / naturalWidth))
+        Math.min(maxFontPx, low * 0.98)
       );
 
       title.style.setProperty(
