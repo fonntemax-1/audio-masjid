@@ -128,14 +128,20 @@
   line-height:1 !important;
 }
 <style id="analog-no-box-bezel">
-/* Jam analog: hilangkan border-image agar bezel tidak pernah tampil kotak.
-   Cincin/efek lingkaran tetap berasal dari pseudo-element circular. */
+/* Jam analog benar-benar tanpa bezel/frame kotak.
+   Border-image dan pseudo-bezel dihapus agar browser TV tidak
+   merender garis persegi di luar dial. */
 .analog-clock{
   border:0 !important;
   border-image:none !important;
-  box-sizing:border-box !important;
+  box-shadow:
+    0 1.1vh 2.8vh rgba(0,0,0,0.88) !important;
 }
-</style>
+.analog-clock::before,
+.analog-clock::after{
+  display:none !important;
+  content:none !important;
+}
 </style>
 </head>
 
