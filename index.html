@@ -592,7 +592,12 @@
             ? 25000
             : action === 'getPrayerSchedule'
               ? 30000
-              : 20000;
+              : (
+                  action === 'getRealtimePanelsFast' ||
+                  action === 'getYoutubeControl'
+                )
+                ? 30000
+                : 20000;
 
         timeoutId = setTimeout(function() {
           if (finished) return;
