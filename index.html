@@ -7217,7 +7217,7 @@ function updateFridayPrayerDisplay() {
         .toLowerCase()
         .replace(/[’']/g, '')
         .replace(/[_-]+/g, ' ')
-        .replace(/\\s+/g, ' ');
+        .replace(/\s+/g, ' ');
     }
 
 
@@ -7243,11 +7243,11 @@ function updateFridayPrayerDisplay() {
 
 
     // =========================================================
-    // EVENT COUNTDOWN - ROTASI SINKRON ZONA WAKTU
+    // EVENT COUNTDOWN - ROTASI SINKRON TIMEZONE LOKASI
     //
-    // Zona acuan countdown mengikuti waktu WITA (Asia/Makassar).
-    // Rotasi tidak bergantung pada waktu halaman/browser.
-    // Pergantian terjadi tepat berdasarkan menit WITA.
+    // Semua perhitungan mengikuti timezone lokasi aktif.
+    // Rotasi tidak bergantung pada timezone halaman/browser.
+    // Pergantian terjadi tepat berdasarkan menit lokal lokasi.
     // =========================================================
     function updateEventCountdown() {
       const display = document.getElementById('event-countdown-display');
@@ -7353,20 +7353,31 @@ function updateFridayPrayerDisplay() {
        * berubah saat halaman reload, gunakan jumlah hari sejak
        * epoch WITA sebagai bagian slot rotasi.
        */
-      const witaDayNumber =
+      const localDayNumber =
         Math.floor(
           dateKeyToUtcMs_(todayKey) / 86400000
         );
 
       const rotationSlot =
-        (witaDayNumber * 1440) + minuteSlot;
+        (localDayNumber * 1440) + minuteSlot;
 
       const active =
         activeConfigs[
           rotationSlot % activeConfigs.length
         ];
 
+      // Label B60:B63 adalah label tampilan, tetapi row tetap menjadi
+      // identitas utama agar IDUL ADHA/IDUL FITRI tidak gagal hanya karena
+      // perbedaan penulisan label di Sheet.
+      const eventTextByRow = {
+        60: { line1: 'HARI', line2: 'menuju Ramadhan' },
+        61: { line1: 'HARI', line2: 'menuju Lailatul Qadr' },
+        62: { line1: 'HARI LAGI', line2: 'menuju Idul Fitri' },
+        63: { line1: 'HARI LAGI', line2: 'menuju Idul Adha' }
+      };
+
       const text =
+        eventTextByRow[active.row] ||
         getEventDisplayText_(active.event);
 
       if (!text) {
@@ -14695,13 +14706,15 @@ function setCountdownBlackMode(enabled) {
       }
     }, 1000);
 
+    // Tick 1 detik memastikan pergantian tepat saat menit lokal berubah,
+    // meskipun setInterval 60 detik mengalami drift.
     setInterval(function() {
       try {
         updateEventCountdown();
       } catch (eventCountdownError) {
         console.warn('EVENT COUNTDOWN ERROR:', eventCountdownError);
       }
-    }, 60000);
+    }, 1000);
 
     // STARTUP: JANGAN menunggu internet/server untuk menampilkan kartu.
     // Lokasi terakhir + cache kartu dipakai terlebih dahulu.
