@@ -14927,8 +14927,27 @@ function setCountdownBlackMode(enabled) {
     setInterval(function() {
       try {
         updatePrayerCountdown();
+
+        // G20=AUTO harus dievaluasi SETIAP DETIK.
+        // Sebelumnya kontrol YouTube hanya diperiksa saat startup/
+        // perubahan selector, sehingga ketika waktu masuk 5 menit
+        // sebelum Qiroah YouTube tetap UNMUTE.
+        if (
+          typeof updateYouTubeAudioStop === 'function'
+        ) {
+          const ytTime = getSelectedTimezoneTime_();
+          const ytNowSeconds =
+            (Number(ytTime.hour) * 3600) +
+            (Number(ytTime.minute) * 60) +
+            Number(ytTime.second);
+
+          updateYouTubeAudioStop(
+            ytNowSeconds,
+            getApiDate()
+          );
+        }
       } catch (prayerTickError) {
-        console.warn('REALTIME COUNTDOWN ERROR:', prayerTickError);
+        console.warn('REALTIME COUNTDOWN/YOUTUBE ERROR:', prayerTickError);
       }
     }, 1000);
 
