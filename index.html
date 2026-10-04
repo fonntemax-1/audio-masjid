@@ -4044,10 +4044,13 @@ function updateFridayPrayerDisplay() {
         return;
       }
 
-      // QUR'BAN A1/A2 dikunci ke SATU ukuran tetap.
-      // Tidak bergantung pada lebar panel, panjang teks, tanggal,
-      // ResizeObserver, atau realtime polling.
-      const stableFontPx = 28;
+      // QUR'BAN A1/A2 tetap RESPONSIVE terhadap lebar frame.
+      // Ukuran hanya mengikuti ukuran panel, bukan scrolling,
+      // panjang teks, atau isi A2.
+      const stableFontPx = Math.max(
+        16,
+        Math.min(34.5, panel.clientWidth * 0.085 * 0.75)
+      );
 
       // Samakan font A1/A2 secara eksplisit.
       const titleFontFamily =
@@ -4346,6 +4349,16 @@ function updateFridayPrayerDisplay() {
       const elements = ids.map(function(id) {
         return document.getElementById(id);
       }).filter(function(el) {
+        // QUR'BAN: fin-sub adalah A2, bukan tanggal.
+        // Jangan biarkan auto-fit tanggal mengubah ukuran A2.
+        if (
+          el &&
+          el.id === 'fin-sub' &&
+          document.getElementById('fin-panel-box') &&
+          document.getElementById('fin-panel-box').classList.contains('qurban-display')
+        ) {
+          return false;
+        }
         return el && el.isConnected && el.innerText.trim() && el.offsetParent !== null;
       });
 
