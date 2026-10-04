@@ -4046,14 +4046,21 @@ function updateFridayPrayerDisplay() {
 
       /*
        * QUR'BAN A1/A2:
-       * - tetap RESPONSIVE terhadap ukuran frame/container;
-       * - tidak dihitung dari scrollWidth, isi tabel, atau posisi scroll;
-       * - tidak dikunci ke angka pixel oleh JavaScript.
+       * - tetap RESPONSIVE terhadap LEBAR FRAME;
+       * - tidak memakai cqw/container query karena sebagian browser TV
+       *   tidak merender container units secara konsisten;
+       * - tidak membaca scroll position, scrollWidth, transform, atau
+       *   ukuran isi tabel;
+       * - ukuran hanya dihitung ulang ketika ukuran FRAME berubah.
        *
-       * Container #fin-panel-box sudah memakai container-type:inline-size,
-       * sehingga cqw mengikuti LEBAR FRAME QUR'BAN. Perubahan transform
-       * pada #keuangan-content tidak mengubah ukuran container ini.
+       * Jadi scrolling tidak pernah menjadi pemicu perubahan font A1/A2.
        */
+      const panelWidth = Math.max(1, panel.clientWidth);
+      const responsiveFontPx = Math.max(
+        16,
+        Math.min(34.5, panelWidth * 0.06375)
+      );
+
       const titleFontFamily =
         window.getComputedStyle(title).fontFamily || 'Arial, sans-serif';
 
@@ -4077,13 +4084,12 @@ function updateFridayPrayerDisplay() {
           'important'
         );
 
-        // RESPONSIVE, bukan fixed pixel:
-        // 6.375cqw = formula proporsional terhadap lebar frame.
-        // Clamp menjaga batas minimum/maksimum tanpa mengunci ukuran
-        // pada satu nilai dan tetap berubah ketika frame berubah.
+        // Nilai ini BUKAN fixed: dihitung ulang dari lebar FRAME.
+        // Browser TV yang tidak mendukung cqw tetap mendapatkan ukuran
+        // responsive yang stabil.
         el.style.setProperty(
           'font-size',
-          'clamp(16px, 6.375cqw, 34.5px)',
+          responsiveFontPx.toFixed(2) + 'px',
           'important'
         );
       });
