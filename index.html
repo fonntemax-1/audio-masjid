@@ -59,8 +59,7 @@
   </style>
 
 <style id="restore-header-masjid-original">
-/* Kembalikan header MASJID/NAMA MASJID ke tampilan asli.
-   Override terakhir agar tidak ada CSS efek highlight yang menutup teks. */
+/* HEADER MASJID / NAMA MASJID — tanpa efek shine berjalan. */
 .header-center .latin-name,
 #nama_masjid{
   color:#ffcc00 !important;
@@ -70,26 +69,12 @@
   font-weight:700 !important;
   letter-spacing:0.10vw !important;
   text-transform:uppercase !important;
-  background-color:transparent !important;
-  background-image:linear-gradient(
-    110deg,
-    #ffcc00 0%,
-    #ffcc00 39%,
-    rgba(255,255,255,0.18) 44%,
-    #fff6b0 49%,
-    #ffffff 50%,
-    #fff6b0 51%,
-    rgba(255,255,255,0.18) 56%,
-    #ffcc00 61%,
-    #ffcc00 100%
-  ) !important;
-  background-size:260% 100% !important;
-  background-position:120% 0 !important;
-  background-repeat:no-repeat !important;
-  background-clip:text !important;
-  -webkit-background-clip:text !important;
-  -webkit-text-fill-color:transparent !important;
-  animation:masjidHeaderGoldShine 6s linear infinite !important;
+  background:transparent !important;
+  background-image:none !important;
+  background-clip:border-box !important;
+  -webkit-background-clip:border-box !important;
+  -webkit-text-fill-color:#ffcc00 !important;
+  animation:none !important;
   text-shadow:
     0.10vh 0.12vh 0 rgba(0,0,0,0.98),
     0.22vh 0.26vh 0.42vh rgba(0,0,0,0.82),
@@ -142,6 +127,15 @@
   font-weight:800 !important;
   line-height:1 !important;
 }
+<style id="analog-no-box-bezel">
+/* Jam analog: hilangkan border-image agar bezel tidak pernah tampil kotak.
+   Cincin/efek lingkaran tetap berasal dari pseudo-element circular. */
+.analog-clock{
+  border:0 !important;
+  border-image:none !important;
+  box-sizing:border-box !important;
+}
+</style>
 </style>
 </head>
 
