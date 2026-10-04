@@ -5582,7 +5582,11 @@ function updateFridayPrayerDisplay() {
           oldCity !== newCity ||
           oldSlug !== newSlug ||
           oldTimezone !== newTimezone ||
-          WEB_APP_STATE.prayer.dateLoaded !== getApiDate()
+          (
+            WEB_APP_STATE.prayer.dateLoaded !== getApiDate() &&
+            !prayerScheduleRequestInFlight &&
+            !prayerScheduleRetryTimer
+          )
         ) {
           WEB_APP_STATE.prayer.dateLoaded = '';
 
@@ -11672,7 +11676,7 @@ function updateFridayPrayerDisplay() {
         }
 
         try {
-          queueCurrentAudioCatchUp(dateKey);
+          queueCurrentAudioCatchUp(dateKey, { silent: true });
         } catch (error) {
           console.warn(
             'AUDIO CATCH-UP WATCHDOG ERROR:',
@@ -11832,7 +11836,7 @@ function updateFridayPrayerDisplay() {
           // event yang sedang berlangsung. Ini penting bila halaman
           // dibuka/reload ketika waktu sholat sudah berjalan.
           try {
-            queueCurrentAudioCatchUp(dateKey);
+            queueCurrentAudioCatchUp(dateKey, { silent: true });
           } catch (audioPrayerCatchUpError) {
             console.warn(
               'AUDIO CATCH-UP PER SHOLAT ERROR:',
@@ -11953,7 +11957,7 @@ function updateFridayPrayerDisplay() {
         // Tidak mengubah target, durasi, urutan, GAP, atau status ON/OFF.
         // =====================================================
         try {
-          queueCurrentAudioCatchUp(dateKey);
+          queueCurrentAudioCatchUp(dateKey, { silent: true });
         } catch (audioCatchUpError) {
           console.error(
             'AUDIO FINAL CATCH-UP ERROR - SCHEDULE TETAP TERSIMPAN:',
@@ -12062,7 +12066,7 @@ function updateFridayPrayerDisplay() {
       ) {
         schedulePromise
           .then(function() {
-            queueCurrentAudioCatchUp(nowDate);
+            queueCurrentAudioCatchUp(nowDate, { silent: true });
           })
           .catch(function(error) {
             console.error(
@@ -12071,7 +12075,7 @@ function updateFridayPrayerDisplay() {
             );
           });
       } else {
-        queueCurrentAudioCatchUp(nowDate);
+        queueCurrentAudioCatchUp(nowDate, { silent: true });
       }
 
       // YouTube AUTO terpisah dari scheduler audio.
