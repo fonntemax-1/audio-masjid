@@ -3504,12 +3504,11 @@ body[data-display-theme="kuning"] .prayer-time {
 }
 
 
-/* INFAQ & SHADAQAH - hilangkan outline hitam, pertahankan black shadow lembut. */
-.petugas-infaq-title,
-.infaq-left-title{
+/* INFAQ & SHADAQAH pada FRAME UTAMA:
+   hilangkan outline hitam, pertahankan black shadow saja. */
+#infaq-left-widget .infaq-left-title{
   -webkit-text-stroke: 0 !important;
   text-shadow:
-    0 0.18vh 0 rgba(0,0,0,0.98),
-    0 0.32vh 0.42vh rgba(0,0,0,0.92),
-    0 0.62vh 0.90vh rgba(0,0,0,0.68) !important;
+    0.12vh 0.16vh 0.28vh rgba(0,0,0,0.92),
+    0.28vh 0.34vh 0.62vh rgba(0,0,0,0.62) !important;
 }
