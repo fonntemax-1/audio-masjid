@@ -13536,7 +13536,7 @@ function setCountdownBlackMode(enabled) {
         // - ADZAN = putih, nama sholat berada pada timer dan = warna tema
         // - MENUJU WAKTU = putih, BERBUKA = warna tema
         // - WAKTU = putih, BERBUKA = warna tema
-        // - WAKTU IMSAK = putih, IMSAK pada timer = warna tema
+        // - WAKTU IMSAK = seluruh judul mengikuti warna tema
         const menujuSholat = raw.match(/^MENUJU SHOLAT (.+)$/i);
         if (menujuSholat && menujuSholat[1]) {
           return 'MENUJU SHOLAT<br><span class="countdown-title-prayer">' +
@@ -13556,6 +13556,10 @@ function setCountdownBlackMode(enabled) {
         }
 
         if (/^MENUJU IMSAK$/i.test(raw)) {
+          return '<span class="countdown-title-theme">' + escapeHtml(raw) + '</span>';
+        }
+
+        if (/^WAKTU IMSAK$/i.test(raw)) {
           return '<span class="countdown-title-theme">' + escapeHtml(raw) + '</span>';
         }
 
