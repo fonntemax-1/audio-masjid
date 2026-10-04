@@ -10930,66 +10930,69 @@ function updateFridayPrayerDisplay() {
         }
 
         // =====================================================
-        // FILL TARHIM SEBELUM BEEP PERTAMA
+        // EXTEND TARHIM SUBUH RAMADHAN SAMPAI SEBELUM BEEP
         //
-        // Jika masih ada ruang kosong setelah TARHIM terakhir sampai
-        // BEEP pertama, TARHIM boleh REPLAY/LOOP untuk mengisi ruang.
-        // BEEP tetap terkunci 1 detik sebelum ADZAN dan tidak digeser.
+        // Tarhim terakhir diperbolehkan REPLAY/LOOP sampai tepat
+        // sebelum gap BEEP pertama. BEEP tetap terkunci dan tidak
+        // digeser. Playback yang sudah mendukung replay akan mengulang
+        // file Tarhim ketika mencapai durasi fisiknya sampai endSec.
         //
-        // Audio lain (sirine/adzan/doa/beep/iqomah) tidak disentuh.
-        // Setiap replay mempunyai target/end berbeda sehingga lock
-        // event tetap aman dan tidak dianggap replay event yang sama.
+        // Hanya berlaku untuk SUBUH RAMADHAN. Audio lain tidak disentuh.
         // =====================================================
         if (
           firstBeepItem &&
           Number.isFinite(firstBeepTarget)
         ) {
-          const tarhimItem =
-            items
-              .slice(sirineIndex + 1, adzanIndex)
-              .find(function(item) {
-                return item.event === 'tarhim';
-              });
+          const tarhimEventIndex =
+            events
+              .map(function(eventItem, index) {
+                return {
+                  eventItem: eventItem,
+                  index: index
+                };
+              })
+              .filter(function(entry) {
+                return (
+                  entry.eventItem &&
+                  entry.eventItem.audioType === 'tarhim'
+                );
+              })
+              .map(function(entry) {
+                return entry;
+              })
+              .pop();
 
-          if (tarhimItem && tarhimItem.duration > 0) {
-            const tarhimGap =
-              getSystemGapSeconds('tarhim', 'tarhim');
+          if (
+            tarhimEventIndex &&
+            tarhimEventIndex.eventItem
+          ) {
+            const tarhimEvent =
+              tarhimEventIndex.eventItem;
 
-            let fillCursor =
-              Number(cursorAfterSirine);
+            const tarhimToBeepGap =
+              getSystemGapSeconds('tarhim', 'beep');
 
-            let tarhimLoopNumber = 1;
+            const tarhimStopSec =
+              firstBeepTarget -
+              tarhimToBeepGap;
 
-            while (
-              fillCursor +
-                tarhimGap +
-                tarhimItem.duration +
-                1 <=
-              firstBeepTarget
+            if (
+              Number.isFinite(tarhimStopSec) &&
+              tarhimStopSec > tarhimEvent.targetSec
             ) {
-              fillCursor += tarhimGap;
+              const originalEndSec =
+                tarhimEvent.endSec;
 
-              add(
-                'TARHIM_LOOP_' + tarhimLoopNumber,
-                fillCursor,
-                tarhimItem.duration,
-                'Tarhim Loop - SUBUH',
-                tarhimItem.audioType,
-                tarhimItem.status
-              );
-
-              fillCursor += tarhimItem.duration;
-              tarhimLoopNumber++;
-            }
-
-            if (tarhimLoopNumber > 1) {
-              cursorAfterSirine = fillCursor;
+              tarhimEvent.endSec =
+                tarhimStopSec;
 
               console.log(
-                'AUDIO SUBUH RAMADHAN: TARHIM REPLAY UNTUK MENGISI WAKTU KOSONG.',
-                'loop=', tarhimLoopNumber - 1,
-                'fillEnd=', fillCursor,
-                'beepTarget=', firstBeepTarget
+                'AUDIO SUBUH RAMADHAN: TARHIM REPLAY SAMPAI SEBELUM BEEP.',
+                'target=', tarhimEvent.targetSec,
+                'originalEnd=', originalEndSec,
+                'newEnd=', tarhimEvent.endSec,
+                'beepTarget=', firstBeepTarget,
+                'gap=', tarhimToBeepGap
               );
             }
           }
