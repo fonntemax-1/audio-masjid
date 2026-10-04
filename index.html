@@ -51,6 +51,36 @@
       filter: none !important;
     }
   </style>
+<!-- HEADER NAMA MASJID: sumber teks untuk highlight sweep -->
+<script>
+(function () {
+  function bindMasjidHeaderHighlight_() {
+    var el = document.getElementById('nama_masjid');
+    if (!el || el.dataset.highlightBound === '1') return;
+    el.dataset.highlightBound = '1';
+
+    function sync_() {
+      var text = (el.textContent || '').trim();
+      if (text) el.setAttribute('data-highlight-text', text);
+    }
+
+    sync_();
+
+    var observer = new MutationObserver(sync_);
+    observer.observe(el, {
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindMasjidHeaderHighlight_);
+  } else {
+    bindMasjidHeaderHighlight_();
+  }
+})();
+</script>
 </head>
 
 <body>
