@@ -6279,6 +6279,7 @@ function updateFridayPrayerDisplay() {
 
       keuanganPos = 0;
       content.style.transform = 'translateY(0px)';
+      content.style.visibility = 'hidden';
 
       const finPanelBox =
         document.getElementById('fin-panel-box');
@@ -6419,6 +6420,7 @@ function updateFridayPrayerDisplay() {
           requestAnimationFrame(step);
       }
 
+      content.style.visibility = 'visible';
       keuanganAnimId =
         requestAnimationFrame(step);
     }
