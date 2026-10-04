@@ -4146,6 +4146,7 @@ function updateFridayPrayerDisplay() {
       dateEl.style.setProperty('padding-top', '0', 'important');
       dateEl.style.setProperty('padding-bottom', '0', 'important');
       dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
+      installPanelDateAutoFit_();
       autoFitPanelDate_(dateEl);
     }
 
@@ -4416,6 +4417,7 @@ function updateFridayPrayerDisplay() {
 
       dateEl.style.display = 'block';
       applyQurbanDatePattern_();
+      installPanelDateAutoFit_();
       autoFitPanelDate_(dateEl);
 
       const isoDate = parseQurbanDateToIso_(rawGregorian);
@@ -4430,7 +4432,8 @@ function updateFridayPrayerDisplay() {
       if (cachedHijri) {
         dateEl.innerText = cachedHijri + ' | ' + gregorian;
         dateEl.dataset.hijriDateKey = isoDate;
-        autoFitPanelDate_(dateEl);
+        installPanelDateAutoFit_();
+      autoFitPanelDate_(dateEl);
         return;
       }
 
@@ -4439,7 +4442,8 @@ function updateFridayPrayerDisplay() {
       if (dateEl.dataset.hijriDateKey !== isoDate) {
         dateEl.innerText = gregorian;
         dateEl.dataset.hijriDateKey = isoDate;
-        autoFitPanelDate_(dateEl);
+        installPanelDateAutoFit_();
+      autoFitPanelDate_(dateEl);
       }
 
       const token = ++qurbanDateConversionToken_;
@@ -4463,7 +4467,8 @@ function updateFridayPrayerDisplay() {
           hijriDateConversionCache_[isoDate] = hijri;
           dateEl.dataset.hijriDateKey = isoDate;
           dateEl.innerText = hijri + ' | ' + gregorian;
-          autoFitPanelDate_(dateEl);
+          installPanelDateAutoFit_();
+      autoFitPanelDate_(dateEl);
         })
         .catch(function(error) {
           console.warn(
@@ -4497,12 +4502,14 @@ function updateFridayPrayerDisplay() {
 
       // Garis bawah baru ditampilkan setelah tanggal benar-benar siap.
       dateEl.style.setProperty('border-bottom', '0.2vh solid var(--theme-accent)', 'important');
+      installPanelDateAutoFit_();
       autoFitPanelDate_(dateEl);
 
       const isoDate = parseQurbanDateToIso_(rawGregorian);
       if (!isoDate) {
         dateEl.innerText = gregorian;
-        autoFitPanelDate_(dateEl);
+        installPanelDateAutoFit_();
+      autoFitPanelDate_(dateEl);
         return;
       }
 
