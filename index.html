@@ -7366,20 +7366,19 @@ function updateFridayPrayerDisplay() {
           rotationSlot % activeConfigs.length
         ];
 
-      // Label B60:B63 adalah label tampilan, tetapi row tetap menjadi
-      // identitas utama agar IDUL ADHA/IDUL FITRI tidak gagal hanya karena
-      // perbedaan penulisan label di Sheet.
+      // B60:B63 / teks nama countdown di Spreadsheet DIABAIKAN.
+      // Identitas countdown ditentukan MUTLAK dari nomor baris.
+      // C = START, D = END, E = STATUS ON/OFF.
       const eventTextByRow = {
         60: { line1: 'HARI', line2: 'menuju Ramadhan' },
         61: { line1: 'HARI', line2: 'menuju Lailatul Qadr' },
-        62: { line1: 'HARI LAGI', line2: 'menuju Idul Fitri' },
-        63: { line1: 'HARI LAGI', line2: 'menuju Idul Adha' }
+        62: { line1: 'HARI', line2: 'menuju Idul Fitri' },
+        63: { line1: 'HARI', line2: 'menuju Idul Adha' }
       };
 
-      const text =
-        eventTextByRow[active.row] ||
-        getEventDisplayText_(active.event);
+      const text = eventTextByRow[active.row];
 
+      // Hanya baris 60-63 yang merupakan countdown valid.
       if (!text) {
         display.classList.remove('active');
         display.setAttribute('aria-hidden', 'true');
