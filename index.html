@@ -4445,7 +4445,6 @@ function updateFridayPrayerDisplay() {
       const isoDate = parseQurbanDateToIso_(rawGregorian);
       if (!isoDate) {
         dateEl.innerText = gregorian;
-        dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
         return;
       }
 
@@ -4453,7 +4452,6 @@ function updateFridayPrayerDisplay() {
       if (cachedHijri) {
         dateEl.innerText = cachedHijri + ' | ' + gregorian;
         dateEl.dataset.hijriDateKey = isoDate;
-        dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
         return;
       }
 
@@ -4461,7 +4459,6 @@ function updateFridayPrayerDisplay() {
       if (dateEl.dataset.hijriDateKey !== isoDate) {
         dateEl.innerText = gregorian;
         dateEl.dataset.hijriDateKey = isoDate;
-        dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
       }
 
       const token = ++petugasDateConversionToken_;
@@ -4485,7 +4482,6 @@ function updateFridayPrayerDisplay() {
           hijriDateConversionCache_[isoDate] = hijri;
           dateEl.dataset.hijriDateKey = isoDate;
           dateEl.innerText = hijri + ' | ' + gregorian;
-          dateEl.style.setProperty('border-bottom', '1px solid var(--theme-accent)', 'important');
         })
         .catch(function(error) {
           console.warn(
