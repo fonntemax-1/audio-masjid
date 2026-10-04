@@ -15374,54 +15374,71 @@ function setCountdownBlackMode(enabled) {
 </html>
 
 
-<style id="analog-cream-gold-elegant">
-/* JAM ANALOG — cream dial + metallic gold circular bezel.
-   Tidak memakai frame kotak dan bezel tidak bergantung pada warna tema.
-   Warna tema hanya menjadi aksen halus agar pergantian HIJAU/MERAH/KUNING
-   tidak pernah membuat lingkaran bezel hilang. */
+<style id="analog-square-frame-elegant">
+/* JAM ANALOG — kembali ke model dengan KOTAK/FRAME.
+   Dial tetap cream, bezel lingkaran tetap ada, dan warna tema hanya
+   menjadi aksen tipis sehingga frame tidak pernah hilang saat tema berubah. */
 .analog-clock{
-  border:0.48vh solid transparent !important;
-  border-radius:50% !important;
+  border:0.32vh solid #b8872d !important;
+  border-radius:1.35vh !important;
   box-sizing:border-box !important;
   background:
-    linear-gradient(#f4ead2, #efe2c4) padding-box,
-    linear-gradient(
-      135deg,
-      #fff4b8 0%,
-      #d7ad4b 18%,
-      #fff1a1 34%,
-      #b8872d 52%,
-      #f7df79 70%,
-      #c39537 86%,
-      #fff0a0 100%
-    ) border-box !important;
+    linear-gradient(145deg,#fff0a0 0%,#d3a33d 22%,#8e6726 48%,#e4bc55 72%,#fff0a0 100%) padding-box !important;
   box-shadow:
-    0 1.0vh 2.6vh rgba(0,0,0,0.72),
-    0 0 0.42vh rgba(0,0,0,0.58),
-    inset 0 0 0 0.14vh rgba(255,255,255,0.82),
-    inset 0 0 0 0.18vh var(--theme-accent),
-    inset 0 0 1.5vh rgba(92,65,24,0.22) !important;
+    0 1.0vh 2.6vh rgba(0,0,0,0.78),
+    0 0 0.38vh rgba(0,0,0,0.62),
+    inset 0 0 0 0.12vh rgba(255,255,255,0.78),
+    inset 0 0 0 0.22vh var(--theme-accent),
+    inset 0 0 1.25vh rgba(60,40,12,0.48) !important;
   overflow:hidden !important;
+  position:relative !important;
 }
 
-/* Lapisan tipis aksen tema di bagian dalam lingkaran. */
+/* Dial lingkaran cream di dalam frame kotak. */
+.analog-clock::before{
+  content:"" !important;
+  position:absolute !important;
+  z-index:0 !important;
+  width:88% !important;
+  height:88% !important;
+  left:6% !important;
+  top:6% !important;
+  border-radius:50% !important;
+  box-sizing:border-box !important;
+  background:linear-gradient(145deg,#f8eed8,#ead9b7) !important;
+  border:0.28vh solid #b8872d !important;
+  box-shadow:
+    inset 0 0 1.25vh rgba(80,55,20,0.30),
+    inset 0 0 0 0.10vh rgba(255,255,255,0.78),
+    0 0 0.30vh rgba(0,0,0,0.48) !important;
+  pointer-events:none !important;
+}
+
+/* Pastikan elemen jam berada di atas dial pseudo-element. */
+.analog-clock .clock-face-svg,
+.analog-clock .hand,
+.analog-clock .center-dot{
+  position:relative !important;
+  z-index:1 !important;
+}
+
+/* Bezel tetap metallic gold dan tidak bergantung pada warna tema. */
 .analog-clock .clock-face-svg{
-  border-radius:50%;
-  filter:drop-shadow(0 0 0.16vh var(--theme-accent));
+  filter:drop-shadow(0 0 0.10vh var(--theme-accent));
 }
 
-/* Tick dan angka dibuat sedikit lebih hangat agar menyatu dengan dial cream. */
+/* Warna angka/tick hangat agar serasi dengan dial cream. */
 .analog-clock .clock-face-svg text{
   fill:#3d3427 !important;
 }
 .analog-clock .clock-face-svg g[stroke="#333333"]{
-  stroke:#5a4a32;
+  stroke:#5a4a32 !important;
 }
 .analog-clock .clock-face-svg g[stroke="#111111"]{
-  stroke:#332b20;
+  stroke:#332b20 !important;
 }
 
-/* Jarum tetap kontras dan elegan di atas dial cream. */
+/* Jarum kontras di atas dial cream. */
 .analog-clock .hand.hour,
 .analog-clock .hand.minute{
   background:linear-gradient(90deg,#4a3925,#8e6a2d) !important;
@@ -15436,12 +15453,4 @@ function setCountdownBlackMode(enabled) {
   border:0.12vh solid #fff0a0 !important;
   box-shadow:0 0 0.28vh rgba(80,54,18,0.65) !important;
 }
-
-/* Tidak ada frame/pseudo-element persegi. */
-.analog-clock::before,
-.analog-clock::after{
-  display:none !important;
-  content:none !important;
-}
 </style>
-
