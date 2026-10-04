@@ -7274,37 +7274,54 @@ function updateFridayPrayerDisplay() {
 
         @keyframes eventCountdownGlowPulse {
           0%, 100% { text-shadow: 0 0 0 transparent; }
-          35% { text-shadow: 0 0 22px currentColor; }
+          35% { text-shadow: 0 0 24px currentColor; }
           65% { text-shadow: 0 0 10px currentColor; }
         }
 
         @keyframes eventCountdownBrightnessPulse {
           0%, 100% { filter: brightness(1); }
-          35% { filter: brightness(1.35); }
+          35% { filter: brightness(1.4); }
           65% { filter: brightness(1.12); }
         }
 
         @keyframes eventCountdownScalePulse {
           0%, 100% { transform: scale(1); }
-          40% { transform: scale(1.035); }
-          70% { transform: scale(0.99); }
+          40% { transform: scale(1.06); }
+          70% { transform: scale(0.985); }
         }
 
         @keyframes eventCountdownShineSweep {
           0% { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
-          18% { opacity: .65; }
-          55% { opacity: .85; }
+          18% { opacity: .75; }
+          55% { opacity: .9; }
           100% { transform: translateX(140%) skewX(-18deg); opacity: 0; }
         }
 
-        #event-countdown-display.event-countdown-flash .event-countdown-inner {
-          position: relative;
-          overflow: hidden;
+        /* Efek dipilih bergantian oleh JS: 5 detik sekali */
+        #event-countdown-display.event-countdown-flash.event-flash-zoom .event-countdown-inner {
           animation: eventCountdownZoomPulse 800ms ease-in-out;
           transform-origin: center center;
         }
 
-        #event-countdown-display.event-countdown-flash .event-countdown-inner::after {
+        #event-countdown-display.event-countdown-flash.event-flash-glow .event-countdown-number {
+          animation: eventCountdownGlowPulse 800ms ease-in-out;
+        }
+
+        #event-countdown-display.event-countdown-flash.event-flash-bright .event-countdown-number {
+          animation: eventCountdownBrightnessPulse 800ms ease-in-out;
+        }
+
+        #event-countdown-display.event-countdown-flash.event-flash-scale .event-countdown-text {
+          animation: eventCountdownScalePulse 800ms ease-in-out;
+          transform-origin: center center;
+        }
+
+        #event-countdown-display.event-countdown-flash.event-flash-shine .event-countdown-inner {
+          position: relative;
+          overflow: hidden;
+        }
+
+        #event-countdown-display.event-countdown-flash.event-flash-shine .event-countdown-inner::after {
           content: "";
           position: absolute;
           top: -20%;
@@ -7323,17 +7340,6 @@ function updateFridayPrayerDisplay() {
           transform: translateX(-140%) skewX(-18deg);
           animation: eventCountdownShineSweep 800ms ease-out;
         }
-
-        #event-countdown-display.event-countdown-flash .event-countdown-number {
-          animation:
-            eventCountdownGlowPulse 800ms ease-in-out,
-            eventCountdownBrightnessPulse 800ms ease-in-out;
-        }
-
-        #event-countdown-display.event-countdown-flash .event-countdown-text {
-          animation: eventCountdownScalePulse 800ms ease-in-out;
-          transform-origin: center center;
-        }
       `;
       document.head.appendChild(style);
     })();
@@ -7343,16 +7349,32 @@ function updateFridayPrayerDisplay() {
       if (display.dataset.eventFlashKey === triggerKey) return;
 
       display.dataset.eventFlashKey = triggerKey;
-      display.classList.remove('event-countdown-flash');
 
-      // Paksa reflow agar animasi dapat diputar ulang.
+      const effects = [
+        'event-flash-zoom',
+        'event-flash-glow',
+        'event-flash-bright',
+        'event-flash-scale',
+        'event-flash-shine'
+      ];
+
+      const effectIndex = Number(triggerKey.split('|').pop()) % effects.length;
+      const effectClass = effects[effectIndex];
+
+      effects.forEach(function(className) {
+        display.classList.remove(className);
+      });
+
+      display.classList.remove('event-countdown-flash');
       void display.offsetWidth;
 
+      display.classList.add(effectClass);
       display.classList.add('event-countdown-flash');
 
       window.setTimeout(function() {
         display.classList.remove('event-countdown-flash');
-      }, 700);
+        display.classList.remove(effectClass);
+      }, 900);
     }
 
     function updateEventCountdown() {
@@ -7482,26 +7504,26 @@ function updateFridayPrayerDisplay() {
         String(active.end) + '|' +
         String(active.diffDays);
 
-      const tenSecondSlot =
+      const fiveSecondSlot =
         String(todayKey) + '|' +
         String(Number(now.hour)) + ':' +
         String(Number(now.minute)) + ':' +
-        String(Math.floor(Number(now.second) / 10) * 10);
+        String(Math.floor(Number(now.second) / 5) * 5);
 
       const isNewCountdownState =
         eventCountdownFlashLastState_ !== activeStateKey;
 
       const isNewTenSecondSlot =
-        eventCountdownFlashLastSlot_ !== tenSecondSlot;
+        eventCountdownFlashLastSlot_ !== fiveSecondSlot;
 
       if (isNewCountdownState || isNewTenSecondSlot) {
         flashEventCountdown_(
           display,
-          activeStateKey + '|' + tenSecondSlot
+          activeStateKey + '|' + fiveSecondSlot
         );
 
         eventCountdownFlashLastState_ = activeStateKey;
-        eventCountdownFlashLastSlot_ = tenSecondSlot;
+        eventCountdownFlashLastSlot_ = fiveSecondSlot;
       }
 
       // B60:B63 / teks nama countdown di Spreadsheet DIABAIKAN.
