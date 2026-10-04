@@ -15298,13 +15298,8 @@ function setCountdownBlackMode(enabled) {
       startRealtimePanelsFast_();
     }, 1500);
 
-    // Countdown event membaca panels!C60:E63 secara realtime.
-    // Tidak perlu reload halaman saat ON/OFF atau tanggal berubah.
-    // Semua perhitungan tanggal + rotasi mengikuti timezone lokasi aktif.
-    setTimeout(function() {
-      startEventCountdownFastPolling_();
-    }, 1700);
-
+    // Countdown event sudah memiliki tick realtime 1 detik di atas.
+    // Tidak perlu starter/polling kedua karena fungsi tersebut tidak ada.
     // Sinkronisasi waktu internet adalah data tambahan.
     setTimeout(function() {
       syncInternetTime();
