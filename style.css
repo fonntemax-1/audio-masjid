@@ -3548,54 +3548,35 @@ body[data-display-theme="kuning"] .prayer-time {
 }
 
 
-/* HEADER NAMA MASJID — HIGHLIGHT BERJALAN YANG TERLIHAT JELAS */
+/* HEADER NAMA MASJID — FINAL SWEEP */
 .header-center .latin-name,
 #nama_masjid{
-  position:relative !important;
-  display:inline-block !important;
-  overflow:visible !important;
   color:var(--theme-accent) !important;
-  -webkit-text-fill-color:var(--theme-accent) !important;
-  background:none !important;
-  background-image:none !important;
-  -webkit-background-clip:border-box !important;
-  background-clip:border-box !important;
-  animation:none !important;
-  text-shadow:none !important;
-}
-
-.header-center .latin-name::after,
-#nama_masjid::after{
-  content:attr(data-highlight-text);
-  position:absolute;
-  inset:0;
-  z-index:3;
-  pointer-events:none;
-  white-space:nowrap;
-  overflow:hidden;
-  color:transparent !important;
-  -webkit-text-fill-color:transparent !important;
-  background:linear-gradient(
-    105deg,
-    transparent 0%,
-    transparent 40%,
-    rgba(255,255,255,0.05) 43%,
-    rgba(255,255,255,0.95) 48%,
+  background-image:linear-gradient(
+    100deg,
+    var(--theme-accent) 0%,
+    var(--theme-accent) 37%,
+    #fff8c4 44%,
     #ffffff 50%,
-    rgba(255,255,255,0.95) 52%,
-    rgba(255,255,255,0.05) 57%,
-    transparent 60%,
-    transparent 100%
+    #fff8c4 56%,
+    var(--theme-accent) 63%,
+    var(--theme-accent) 100%
   ) !important;
-  background-size:220% 100% !important;
-  background-position:-120% 0 !important;
+  background-size:350% 100% !important;
+  background-repeat:no-repeat !important;
+  background-position:-150% 0 !important;
   -webkit-background-clip:text !important;
   background-clip:text !important;
-  animation:masjidHeaderLightSweep 3.2s linear infinite !important;
+  -webkit-text-fill-color:transparent !important;
+  animation:masjidNameSweepFinal 2.8s linear infinite !important;
+  text-shadow:
+    0 0.18vh 0 rgba(0,0,0,0.98),
+    0 0.32vh 0.42vh rgba(0,0,0,0.92),
+    0 0.62vh 0.90vh rgba(0,0,0,0.68) !important;
 }
 
-@keyframes masjidHeaderLightSweep{
-  0%   { background-position:-120% 0; }
-  55%  { background-position:120% 0; }
-  100% { background-position:120% 0; }
+@keyframes masjidNameSweepFinal{
+  0%   { background-position:-150% 0; }
+  60%  { background-position:150% 0; }
+  100% { background-position:150% 0; }
 }
