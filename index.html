@@ -31,6 +31,26 @@
       -webkit-text-fill-color: #ffffff !important;
     }
   </style>
+  <style id="petugas-infaq-clean">
+    /* Saat INFAQ & SHADAQAH berada di frame PETUGAS SHOLAT,
+       hilangkan outline/shadow hitam dari judul, teks, frame QRIS,
+       dan gambar QRIS. */
+    #petugas-infaq-display,
+    #petugas-infaq-display .petugas-infaq-title,
+    #petugas-infaq-display .petugas-infaq-text,
+    #petugas-infaq-display .petugas-infaq-content,
+    #petugas-infaq-display .petugas-infaq-content img {
+      outline: none !important;
+      text-shadow: none !important;
+      box-shadow: none !important;
+      filter: none !important;
+    }
+
+    #petugas-infaq-display .petugas-infaq-content img {
+      -webkit-filter: none !important;
+      filter: none !important;
+    }
+  </style>
 </head>
 
 <body>
