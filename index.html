@@ -6843,18 +6843,10 @@ function updateFridayPrayerDisplay() {
 
     function getSynchronizedNow() {
 
-      // SUMBER WAKTU UTAMA = JAM PERANGKAT + KOREKSI INTERNET.
-      // Apps Script hanya memberi epoch UTC; timezone tetap menentukan
-      // bagaimana waktu tersebut ditampilkan sebagai WIT/WITA/WIB.
-      // Jika sinkronisasi belum berhasil, offset = 0 sehingga fallback
-      // tetap menggunakan jam perangkat seperti sebelumnya.
-      return new Date(
-        Date.now() + (
-          internetTimeSynced
-            ? internetTimeOffsetMs
-            : 0
-        )
-      );
+      // Waktu web mengikuti jam komputer secara langsung.
+      // Sinkronisasi internet tetap dipakai sebagai informasi/validasi,
+      // tetapi tidak menggeser jam, countdown, jadwal, atau audio.
+      return new Date(Date.now());
 
     }
 
