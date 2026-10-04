@@ -7455,26 +7455,26 @@ function updateFridayPrayerDisplay() {
         String(active.end) + '|' +
         String(active.diffDays);
 
-      const halfMinuteSlot =
+      const tenSecondSlot =
         String(todayKey) + '|' +
         String(Number(now.hour)) + ':' +
         String(Number(now.minute)) + ':' +
-        String(Number(now.second) >= 30 ? 30 : 0);
+        String(Math.floor(Number(now.second) / 10) * 10);
 
       const isNewCountdownState =
         eventCountdownFlashLastState_ !== activeStateKey;
 
-      const isNewHalfMinuteSlot =
-        eventCountdownFlashLastSlot_ !== halfMinuteSlot;
+      const isNewTenSecondSlot =
+        eventCountdownFlashLastSlot_ !== tenSecondSlot;
 
-      if (isNewCountdownState || isNewHalfMinuteSlot) {
+      if (isNewCountdownState || isNewTenSecondSlot) {
         flashEventCountdown_(
           display,
-          activeStateKey + '|' + halfMinuteSlot
+          activeStateKey + '|' + tenSecondSlot
         );
 
         eventCountdownFlashLastState_ = activeStateKey;
-        eventCountdownFlashLastSlot_ = halfMinuteSlot;
+        eventCountdownFlashLastSlot_ = tenSecondSlot;
       }
 
       // B60:B63 / teks nama countdown di Spreadsheet DIABAIKAN.
