@@ -4274,14 +4274,17 @@ function updateFridayPrayerDisplay() {
     }
 
     function autoFitPanelDate_(dateEl) {
-      if (!dateEl) return;
+      if (!dateEl || !dateEl.isConnected) return;
 
       const fit = function() {
         if (!dateEl.isConnected || !dateEl.innerText.trim()) return;
 
-        const current = parseFloat(getComputedStyle(dateEl).fontSize) || 16;
+        const computed = getComputedStyle(dateEl);
+        const baseSize = parseFloat(dateEl.dataset.autoFitBaseSize || computed.fontSize) || 16;
         const minPx = 7;
-        const maxPx = Math.max(current, 16);
+        const available = Math.max(1, dateEl.clientWidth - 2);
+        const text = dateEl.innerText.trim();
+
         dateEl.style.setProperty('white-space', 'nowrap', 'important');
         dateEl.style.setProperty('overflow', 'hidden', 'important');
         dateEl.style.setProperty('text-overflow', 'clip', 'important');
@@ -4289,21 +4292,27 @@ function updateFridayPrayerDisplay() {
         dateEl.style.setProperty('max-width', '100%', 'important');
         dateEl.style.setProperty('box-sizing', 'border-box', 'important');
 
-        let size = Math.min(current, maxPx);
-        dateEl.style.setProperty('font-size', size.toFixed(2) + 'px', 'important');
+        let low = minPx;
+        let high = Math.max(minPx, baseSize);
 
-        while (dateEl.scrollWidth > dateEl.clientWidth + 1 && size > minPx) {
-          size = Math.max(minPx, size - 0.25);
-          dateEl.style.setProperty('font-size', size.toFixed(2) + 'px', 'important');
+        // Binary search: cari ukuran font terbesar yang masih muat penuh.
+        for (let n = 0; n < 16; n++) {
+          const mid = (low + high) / 2;
+          dateEl.style.setProperty('font-size', mid.toFixed(2) + 'px', 'important');
+
+          if (dateEl.scrollWidth <= available + 1) {
+            low = mid;
+          } else {
+            high = mid;
+          }
         }
 
-        // Pulihkan sedikit ruang agar perubahan ukuran TV tidak membuat teks mepet.
-        if (dateEl.scrollWidth > dateEl.clientWidth + 1) {
-          dateEl.style.setProperty('font-size', minPx + 'px', 'important');
-        }
+        dateEl.style.setProperty('font-size', low.toFixed(2) + 'px', 'important');
       };
 
-      requestAnimationFrame(fit);
+      requestAnimationFrame(function() {
+        requestAnimationFrame(fit);
+      });
     }
 
     function installPanelDateAutoFit_() {
@@ -4312,11 +4321,25 @@ function updateFridayPrayerDisplay() {
         if (!el || el.dataset.autoFitInstalled === '1') return;
 
         el.dataset.autoFitInstalled = '1';
+        el.dataset.autoFitBaseSize =
+          parseFloat(getComputedStyle(el).fontSize) || 16;
+
+        // Pantau perubahan teks tanggal (Hijriah/Masehi).
+        const textObserver = new MutationObserver(function() {
+          autoFitPanelDate_(el);
+        });
+        textObserver.observe(el, {
+          childList: true,
+          characterData: true,
+          subtree: true
+        });
+
+        // Pantau perubahan ukuran panel/TV.
         if (typeof ResizeObserver === 'function') {
-          const observer = new ResizeObserver(function() {
+          const resizeObserver = new ResizeObserver(function() {
             autoFitPanelDate_(el);
           });
-          observer.observe(el);
+          resizeObserver.observe(el.parentElement || el);
         }
       });
     }
