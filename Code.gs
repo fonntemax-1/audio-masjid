@@ -4582,14 +4582,16 @@ function getRealtimePanelsFast() {
     );
 
     const panelValues = panels.getRange('C26:C32').getDisplayValues();
-    const selectorRaw = String((panelValues[0] || [])[0] || 'KEUANGAN').trim();
+    const selectorRaw = String((panelValues[0] || [])[0] || '').trim();
     const selectorKey = selectorRaw.toUpperCase().replace(/[\s’‘']/g, '');
     const selectedKey =
       selectorKey === 'QURBAN'
         ? 'QURBAN'
         : selectorKey === 'PENGURUS'
           ? 'PENGURUS'
-          : 'KEUANGAN';
+          : selectorKey === 'KEUANGAN'
+            ? 'KEUANGAN'
+            : '';
 
     const jenis = String((panelValues[2] || [])[0] || '').trim().toUpperCase();
     const kegiatanValues = [
@@ -4768,7 +4770,7 @@ function getPanelKeuanganSource() {
   const panels = ss.getSheetByName('panels');
   const rawSelector = panels
     ? String(panels.getRange('C26').getDisplayValue() || '').trim()
-    : 'KEUANGAN';
+    : '';
 
   const selectorKey = rawSelector
     .toUpperCase()
@@ -4779,7 +4781,9 @@ function getPanelKeuanganSource() {
       ? 'QURBAN'
       : selectorKey === 'PENGURUS'
         ? 'PENGURUS'
-        : 'KEUANGAN';
+        : selectorKey === 'KEUANGAN'
+          ? 'KEUANGAN'
+          : '';
 
   let selectedSheet = null;
   ss.getSheets().some(function(sheet) {
