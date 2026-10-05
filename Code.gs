@@ -4645,10 +4645,16 @@ function getRealtimePanelsFast() {
         // PENGURUS realtime: baca A5 sampai baris terakhir yang
         // benar-benar berisi data. getLastRow() menjadi batas dinamis,
         // sehingga tidak ada batas jumlah baris dari sisi program.
-        const lastPengurusRow = selectedSheet.getLastRow();
-        if (lastPengurusRow >= 5) {
+        const pengurusStartRow = 19;
+        const lastPengurusContentRow = getLastFilledColumnRow_(selectedSheet, pengurusStartRow, 1);
+        if (lastPengurusContentRow >= pengurusStartRow) {
           const pengurusRows = selectedSheet
-            .getRange(5, 1, lastPengurusRow - 4, 1)
+            .getRange(
+              pengurusStartRow,
+              1,
+              lastPengurusContentRow - pengurusStartRow + 1,
+              1
+            )
             .getDisplayValues();
 
           pengurusRows.forEach(function(displayRow) {
@@ -4773,6 +4779,27 @@ function getQurbanHeaderStyles_(sheet) {
 }
 
 // =====================================================
+// HELPER: BARIS TERAKHIR YANG BENAR-BENAR TERISI
+// Dipakai PENGURUS agar data berhenti tepat pada field terakhir.
+// =====================================================
+function getLastFilledColumnRow_(sheet, startRow, column) {
+  const sheetLastRow = sheet.getLastRow();
+  if (sheetLastRow < startRow) return startRow - 1;
+
+  const values = sheet
+    .getRange(startRow, column, sheetLastRow - startRow + 1, 1)
+    .getDisplayValues();
+
+  for (let i = values.length - 1; i >= 0; i--) {
+    if (String(values[i][0] == null ? '' : values[i][0]).trim() !== '') {
+      return startRow + i;
+    }
+  }
+
+  return startRow - 1;
+}
+
+// =====================================================
 // PANEL KEUANGAN / QUR'BAN CEPAT - panels!C26
 // Hanya membaca selector + data panel. Tidak menjalankan
 // getDataFromSheet(), scheduler, audio, atau jadwal sholat.
@@ -4837,10 +4864,16 @@ function getPanelKeuanganSource() {
     // PENGURUS mengikuti format QURBAN.
     // A1:A4 adalah header; data/scrolling dimulai dari A5.
     // Batas bawah dinamis mengikuti baris terakhir yang berisi data.
-    const lastPengurusRow = selectedSheet.getLastRow();
-    if (lastPengurusRow >= 5) {
+    const pengurusStartRow = 19;
+    const lastPengurusContentRow = getLastFilledColumnRow_(selectedSheet, pengurusStartRow, 1);
+    if (lastPengurusContentRow >= pengurusStartRow) {
       const pengurusRows = selectedSheet
-        .getRange(5, 1, lastPengurusRow - 4, 1)
+        .getRange(
+          pengurusStartRow,
+          1,
+          lastPengurusContentRow - pengurusStartRow + 1,
+          1
+        )
         .getDisplayValues();
 
       pengurusRows.forEach(function(displayRow) {
