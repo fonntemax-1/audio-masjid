@@ -180,6 +180,78 @@
     animation:none !important;
   }
 }
+<style id="header-text-white-highlight-fix">
+/* Highlight putih tipis sebagai lapisan terpisah.
+   Text asli tetap memakai warna/theme dan shadow aslinya. */
+#nama_masjid{
+  position:relative !important;
+  background-image:none !important;
+  background-clip:border-box !important;
+  -webkit-background-clip:border-box !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+  animation:none !important;
+}
+#nama_masjid::after{
+  content:attr(data-highlight-text);
+  position:absolute;
+  inset:0;
+  display:block;
+  color:#ffffff;
+  -webkit-text-fill-color:#ffffff;
+  font:inherit;
+  font-size:inherit;
+  font-weight:inherit;
+  line-height:inherit;
+  letter-spacing:inherit;
+  text-transform:inherit;
+  text-align:inherit;
+  white-space:nowrap;
+  pointer-events:none;
+  z-index:2;
+  opacity:.9;
+  -webkit-mask-image:linear-gradient(
+    110deg,
+    transparent 0%,
+    transparent 47%,
+    #000 49.3%,
+    #000 50.7%,
+    transparent 53%,
+    transparent 100%
+  );
+  mask-image:linear-gradient(
+    110deg,
+    transparent 0%,
+    transparent 47%,
+    #000 49.3%,
+    #000 50.7%,
+    transparent 53%,
+    transparent 100%
+  );
+  -webkit-mask-size:260% 100%;
+  mask-size:260% 100%;
+  -webkit-mask-position:200% 0;
+  mask-position:200% 0;
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  animation:masjidHeaderThinWhiteSweep 4.8s linear infinite;
+}
+@keyframes masjidHeaderThinWhiteSweep{
+  0%,18%{
+    -webkit-mask-position:200% 0;
+    mask-position:200% 0;
+  }
+  62%,100%{
+    -webkit-mask-position:-60% 0;
+    mask-position:-60% 0;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  #nama_masjid::after{
+    display:none;
+  }
+}
+</style>
+
 </style>
 
 </head>
@@ -5317,6 +5389,7 @@ function updateFridayPrayerDisplay() {
       if (nameEl && data.Nama !== undefined) {
         const nama = String(data.Nama || '').trim();
         nameEl.innerText = nama ? (/^MASJID\b/i.test(nama) ? nama : 'MASJID ' + nama) : '';
+        nameEl.setAttribute('data-highlight-text', nameEl.innerText);
         updateLogoPositionResponsive_();
       }
 
@@ -5900,6 +5973,7 @@ function updateFridayPrayerDisplay() {
               ? (/^MASJID\\b/i.test(nama) ? nama : 'MASJID ' + nama)
               : '';
 
+          element.setAttribute('data-highlight-text', element.innerText);
           updateLogoPositionResponsive_();
 
         }
