@@ -5318,8 +5318,23 @@ function validateMasjidLicense_(routing, license) {
     };
   }
 
-  const expected = hashLicense_(supplied);
-  const valid = expected === String(row.licenseHash || '').trim().toLowerCase();
+  // License aktif dihitung ulang dari identitas Master saat ini.
+  // Jadi perubahan nama/kota/provinsi/timezone otomatis membatalkan
+  // license lama, walaupun LICENSE_HASH belum diedit manual.
+  const currentLicense = generateMasjidLicense_(
+    row.name,
+    row.city,
+    row.province,
+    row.timezone
+  );
+
+  const suppliedHash = hashLicense_(supplied);
+  const currentHash = hashLicense_(currentLicense);
+  const storedHash = String(row.licenseHash || '').trim().toLowerCase();
+
+  const valid =
+    suppliedHash === currentHash &&
+    (!storedHash || storedHash === currentHash);
 
   return {
     success: true,
