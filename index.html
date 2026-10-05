@@ -6125,10 +6125,28 @@ function updateFridayPrayerDisplay() {
               .toUpperCase()
           : '';
 
+      const incomingKeuanganRows =
+        Array.isArray(data.Keuangan)
+          ? data.Keuangan
+          : [];
+
+      // Jika panel yang sedang tampil adalah PENGURUS dan deployment
+      // lama sesaat mengembalikan KEUANGAN tanpa baris, pertahankan
+      // selector PENGURUS. Snapshot realtime 5 detik tetap menjadi
+      // sumber pembaruan data yang sebenarnya.
+      const preservePengurusDuringEmptyFallback =
+        currentFinPanelSelector === 'PENGURUS' &&
+        incomingKeuanganSelector === 'KEUANGAN' &&
+        incomingKeuanganRows.length === 0;
+
       const keuanganSelector =
-        incomingKeuanganSelector ||
-        currentFinPanelSelector ||
-        '';
+        preservePengurusDuringEmptyFallback
+          ? 'PENGURUS'
+          : (
+              incomingKeuanganSelector ||
+              currentFinPanelSelector ||
+              ''
+            );
 
       // =======================================================
       // KEUANGAN
