@@ -5126,13 +5126,54 @@ function provisionMasjidTemplate_(spreadsheetId, masjidId, routing) {
   if (!spreadsheetId) throw new Error('Spreadsheet ID wajib diisi.');
 
   const ss = SpreadsheetApp.openById(spreadsheetId);
-  const configSheet = ss.getSheetByName('KONFIG_TENANT') || ss.insertSheet('KONFIG_TENANT');
 
-  configSheet.getRange(2, 2).setValue('TV Signage Masjid');
-  configSheet.getRange(3, 2).setValue('1.0');
-  configSheet.getRange(4, 2).setValue('ACTIVE');
-  configSheet.getRange(5, 2).setValue(masjidId);
-  configSheet.getRange(6, 2).setValue(routing);
+  // Struktur standar TV Signage Masjid.
+  // Hanya membuat header/label dasar; tidak mengisi data operasional.
+  const schemas = {
+    'panels': [
+      ['PARAMETER', 'KETERANGAN', 'NILAI'],
+      ['LOKASI', 'Kota', ''],
+      ['LOKASI', 'Provinsi', ''],
+      ['LOKASI', 'Zona', ''],
+      ['LOKASI', 'Timezone', ''],
+      ['LOKASI', 'GMT', ''],
+      ['LOKASI', 'Slug', ''],
+      ['DISPLAY', 'Countdown Mode', ''],
+      ['DISPLAY', 'Tema', ''],
+      ['DISPLAY', 'YouTube URL', ''],
+      ['DISPLAY', 'YouTube Control', ''],
+      ['DISPLAY', 'Iqomah Black Mode', '']
+    ],
+    'Adzan': [['PARAMETER', 'NILAI']],
+    'Nama_Mesjid': [['PARAMETER', 'NILAI']],
+    'Keuangan': [['DATA', 'NILAI']],
+    'infaq': [['DATA', 'NILAI']],
+    "Jum'at": [['DATA', 'NILAI']],
+    'Event': [['DATA', 'NILAI']],
+    'Running_Text': [['DATA', 'NILAI']],
+    'youtube': [['PARAMETER', 'NILAI']],
+    "QUR'BAN": [['DATA', 'NILAI']]
+  };
+
+  Object.keys(schemas).forEach(function(sheetName) {
+    const sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
+    const schema = schemas[sheetName];
+
+    // Jangan menghapus data jika provisioning dijalankan ulang.
+    if (sheet.getLastRow() === 0) {
+      sheet.getRange(1, 1, schema.length, schema[0].length).setValues(schema);
+    }
+  });
+
+  const configSheet = ss.getSheetByName('KONFIG_TENANT') || ss.insertSheet('KONFIG_TENANT');
+  configSheet.getRange(1, 1, 1, 2).setValues([['KEY', 'VALUE']]);
+  configSheet.getRange(2, 1, 5, 2).setValues([
+    ['APP_NAME', 'TV Signage Masjid'],
+    ['TEMPLATE_VERSION', '1.0'],
+    ['TENANT_STATUS', 'ACTIVE'],
+    ['MASJID_ID', masjidId],
+    ['ROUTING', routing]
+  ]);
 
   return {
     success: true,
