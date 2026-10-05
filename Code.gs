@@ -5082,6 +5082,74 @@ function uniqueMasjidRouting_(sheet, baseRouting) {
   return base + n;
 }
 
+function registerMasjid_(name, city, province, timezone, spreadsheetId) {
+  name = String(name || '').trim();
+  city = String(city || '').trim();
+  province = String(province || '').trim();
+  timezone = String(timezone || '').trim();
+  spreadsheetId = String(spreadsheetId || '').trim();
+
+  if (!name || !city) throw new Error('NAMA_MESJID dan KOTA wajib diisi.');
+  if (!spreadsheetId) throw new Error('SPREADSHEET_ID masjid wajib diisi.');
+
+  const master = getMasterSpreadsheet_();
+  const sheet = master.getSheetByName('MASJID');
+  if (!sheet) throw new Error('Sheet Master MASJID belum dibuat.');
+
+  const id = nextMasjidId_(sheet);
+  const base = slugifyMasjidRouting_(name, city);
+  const routing = uniqueMasjidRouting_(sheet, base);
+  const now = new Date();
+
+  sheet.appendRow([
+    id, name, city, province, timezone, routing, spreadsheetId,
+    '', 'ACTIVE', '', now, now
+  ]);
+
+  return {
+    success: true,
+    id: id,
+    namaMesjid: name,
+    kota: city,
+    provinsi: province,
+    timezone: timezone,
+    routing: routing,
+    spreadsheetId: spreadsheetId
+  };
+}
+
+function getMasjidByRouting_(routing) {
+  const master = getMasterSpreadsheet_();
+  const sheet = master.getSheetByName('MASJID');
+  if (!sheet) throw new Error('Sheet Master MASJID belum dibuat.');
+
+  const wanted = String(routing || '').trim().toLowerCase();
+  if (!wanted) return null;
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return null;
+
+  const rows = sheet.getRange(2, 1, lastRow - 1, 12).getDisplayValues();
+  for (let i = 0; i < rows.length; i++) {
+    if (
+      String(rows[i][5] || '').trim().toLowerCase() === wanted &&
+      String(rows[i][8] || 'ACTIVE').trim().toUpperCase() !== 'INACTIVE'
+    ) {
+      return {
+        id: rows[i][0],
+        namaMesjid: rows[i][1],
+        kota: rows[i][2],
+        provinsi: rows[i][3],
+        timezone: rows[i][4],
+        routing: rows[i][5],
+        spreadsheetId: rows[i][6],
+        licenseStatus: rows[i][8]
+      };
+    }
+  }
+  return null;
+}
+
 function setupMasterSpreadsheet() {
   const props = PropertiesService.getScriptProperties();
   let masterId = String(props.getProperty('MASTER_SPREADSHEET_ID') || '').trim();
