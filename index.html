@@ -7452,12 +7452,35 @@ function updateFridayPrayerDisplay() {
 
     function getSelectedTimezone() {
 
-      const timezone =
+      const location =
         WEB_APP_STATE &&
-        WEB_APP_STATE.location &&
-        WEB_APP_STATE.location.timezone;
+        WEB_APP_STATE.location
+          ? WEB_APP_STATE.location
+          : {};
 
-      return timezone || 'Asia/Makassar';
+      // Utamakan timezone yang dikirim dari panels/API.
+      // Jika belum tersedia, tentukan dari zona masjid agar countdown
+      // tetap mengikuti kalender lokal masjid, bukan timezone browser/Windows.
+      const configuredTimezone =
+        String(location.timezone || '').trim();
+
+      if (configuredTimezone) {
+        return configuredTimezone;
+      }
+
+      const zona =
+        String(location.zona || '').trim().toUpperCase();
+
+      if (zona === 'WIB') {
+        return 'Asia/Jakarta';
+      }
+
+      if (zona === 'WIT') {
+        return 'Asia/Jayapura';
+      }
+
+      // WITA adalah default untuk lokasi yang belum selesai dimuat.
+      return 'Asia/Makassar';
 
     }
 
