@@ -8337,11 +8337,18 @@ function updateFridayPrayerDisplay() {
       const rotationSlot =
         (localDayNumber * 2880) + halfMinuteSlot;
 
-      // SEMUA countdown aktif (E60:E64 dan baris custom 64+)
-// berada dalam SATU antrean rotasi 30 detik.
-// Status E = ON/OFF menentukan apakah baris ikut antrean.
-// Tidak ada lagi pemisahan antrean 60-63 dengan 64+.
-      const queueForRotation = activeConfigs;
+      const hasCustomQueue =
+        activeConfigs.some(function(config) {
+          return Number(config.row) >= 64;
+        });
+
+      const customQueue =
+        activeConfigs.filter(function(config) {
+          return Number(config.row) >= 64;
+        });
+
+      const queueForRotation =
+        hasCustomQueue ? customQueue : activeConfigs;
 
       /*
        * ROTASI STABIL 30 DETIK
@@ -8397,8 +8404,7 @@ function updateFridayPrayerDisplay() {
       const activeStateKey =
         String(active.row) + '|' +
         String(active.end) + '|' +
-        String(active.diffDays) + '|' +
-        String(rotationSlot);
+        String(active.diffDays);
 
       const fiveSecondSlot =
         String(todayKey) + '|' +
@@ -9990,3 +9996,6128 @@ function updateFridayPrayerDisplay() {
         'JADWAL SHOLAT STATE DITERIMA:',
         JSON.stringify(normalizedSchedule)
       );
+
+      WEB_APP_STATE
+        .prayer
+        .dateLoaded =
+        result.tanggal ||
+        getApiDate();
+
+      // Preload jadwal besok di background agar pergantian hari cepat.
+      preloadNextPrayerSchedule();
+
+      // Terapkan ulang tampilan setelah jadwal Subuh/Terbit masuk.
+      // Hanya tampilan yang berubah; data raw tetap dipakai scheduler audio.
+      updateRamadanPrayerCards();
+
+      WEB_APP_STATE
+        .audio
+        .scheduleInitialized = false;
+
+    }
+
+
+    function setPrayerTime(
+      id,
+      value
+    ) {
+
+      const element =
+        document.getElementById(
+          id
+        );
+
+      if (
+        element &&
+        value
+      ) {
+
+        // Simpan waktu asli dari jadwal/API.
+        // Display Ramadan boleh mengubah innerText tanpa mengubah
+        // nilai waktu asli yang dipakai audio dan scheduler.
+        element.dataset.rawPrayerTime = String(value);
+        element.innerText =
+          value;
+
+      }
+
+    }
+
+
+    function getPrayerCardCacheKey() {
+      const city =
+        String(
+          WEB_APP_STATE.location.slug ||
+          WEB_APP_STATE.location.kota ||
+          ''
+        ).trim().toLowerCase();
+
+      const date =
+        WEB_APP_STATE.prayer.dateLoaded ||
+        getApiDate();
+
+      if (!city || !date) return '';
+
+      return 'PRAYER_CARD_CACHE_' + city + '_' + date;
+    }
+
+
+    function savePrayerCardCache() {
+      const key = getPrayerCardCacheKey();
+      if (!key) return;
+
+      const schedule = WEB_APP_STATE.prayer.schedule || {};
+      const cached = {
+        kota: String(WEB_APP_STATE.location.kota || ''),
+        timezone: String(getSelectedTimezone() || ''),
+        tanggal: String(
+          WEB_APP_STATE.prayer.dateLoaded || getApiDate()
+        ),
+        jadwal: {
+          subuh: String(schedule.subuh || '').trim(),
+          terbit: String(schedule.terbit || '').trim(),
+          dzuhur: String(schedule.dzuhur || '').trim(),
+          ashar: String(schedule.ashar || '').trim(),
+          maghrib: String(schedule.maghrib || '').trim(),
+          isya: String(schedule.isya || '').trim()
+        }
+      };
+
+      const valid =
+        ['subuh','terbit','dzuhur','ashar','maghrib','isya']
+          .every(function(k) {
+            return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(cached.jadwal[k]);
+          });
+
+      if (!valid) return;
+
+      try {
+        localStorage.setItem(key, JSON.stringify(cached));
+        console.log(
+          'JADWAL KARTU CACHE DISIMPAN:',
+          key,
+          cached.jadwal
+        );
+      } catch (e) {
+        console.warn('JADWAL KARTU CACHE GAGAL DISIMPAN:', e);
+      }
+    }
+
+
+    function loadGitHubPrayerCache(force) {
+
+      const nowMs = Date.now();
+      if (!force && prayerGitHubCacheRequestInFlight) {
+        return Promise.resolve(false);
+      }
+      if (!force && prayerGitHubCacheLastAttemptMs &&
+          nowMs - prayerGitHubCacheLastAttemptMs < PRAYER_GITHUB_CACHE_RETRY_MS) {
+        return Promise.resolve(false);
+      }
+
+      prayerGitHubCacheRequestInFlight = true;
+      prayerGitHubCacheLastAttemptMs = nowMs;
+
+      const url =
+        window.location.origin +
+        '/audio-masjid/data/prayer-cache.json?ts=' +
+        Date.now();
+
+      console.log(
+        'JADWAL GITHUB CACHE MULTI-KOTA: meminta',
+        url
+      );
+
+      return fetch(url, {
+        cache: 'no-store'
+      })
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('HTTP ' + response.status);
+          }
+
+          console.log(
+            'JADWAL GITHUB CACHE MULTI-KOTA: HTTP OK',
+            response.status,
+            response.url
+          );
+
+          return response.json();
+        })
+        .then(function(payload) {
+          const location =
+            WEB_APP_STATE.location || {};
+
+          const targetDate =
+            getApiDate();
+
+          const targetSlug =
+            String(
+              location.slug ||
+              ''
+            ).trim().toLowerCase();
+
+          const targetTimezone =
+            String(
+              location.timezone ||
+              ''
+            ).trim();
+
+          // Format baru:
+          // payload.cities[slug] = jadwal kota untuk tanggal lokal kota tersebut.
+          // Tetap dukung format lama satu-kota agar transisi cache aman.
+          const cityCache =
+            payload &&
+            payload.cities &&
+            targetSlug
+              ? payload.cities[targetSlug]
+              : null;
+
+          const selectedPayload =
+            cityCache ||
+            (
+              payload &&
+              payload.slug &&
+              String(payload.slug).trim().toLowerCase() === targetSlug
+                ? payload
+                : null
+            );
+
+          if (
+            !selectedPayload ||
+            selectedPayload.success !== true ||
+            !selectedPayload.jadwal
+          ) {
+            console.warn(
+              'JADWAL GITHUB CACHE MULTI-KOTA: kota belum tersedia',
+              {
+                targetSlug: targetSlug,
+                targetDate: targetDate,
+                availableCities:
+                  payload &&
+                  payload.cities
+                    ? Object.keys(payload.cities).length
+                    : 0
+              }
+            );
+            return false;
+          }
+
+          const cacheDate =
+            String(
+              selectedPayload.tanggal ||
+              ''
+            ).trim();
+
+          const cacheSlug =
+            String(
+              selectedPayload.slug ||
+              targetSlug ||
+              ''
+            ).trim().toLowerCase();
+
+          const cacheTimezone =
+            String(
+              selectedPayload.timezone ||
+              ''
+            ).trim();
+
+          console.log(
+            'JADWAL GITHUB CACHE MULTI-KOTA: perbandingan',
+            {
+              cacheDate: cacheDate,
+              targetDate: targetDate,
+              cacheSlug: cacheSlug,
+              targetSlug: targetSlug,
+              cacheTimezone: cacheTimezone,
+              targetTimezone: targetTimezone
+            }
+          );
+
+          if (
+            cacheDate !== targetDate ||
+            (targetSlug && cacheSlug && cacheSlug !== targetSlug) ||
+            (targetTimezone &&
+              cacheTimezone &&
+              cacheTimezone !== targetTimezone)
+          ) {
+            console.warn(
+              'JADWAL GITHUB CACHE MULTI-KOTA: tidak cocok',
+              {
+                cacheDate: cacheDate,
+                targetDate: targetDate,
+                cacheSlug: cacheSlug,
+                targetSlug: targetSlug,
+                cacheTimezone: cacheTimezone,
+                targetTimezone: targetTimezone
+              }
+            );
+            return false;
+          }
+
+          const j =
+            selectedPayload.jadwal;
+
+          const keys = [
+            'subuh',
+            'terbit',
+            'dzuhur',
+            'ashar',
+            'maghrib',
+            'isya'
+          ];
+
+          const valid =
+            keys.every(function(key) {
+              return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(
+                String(j[key] || '').trim()
+              );
+            });
+
+          if (!valid) {
+            console.warn(
+              'JADWAL GITHUB CACHE MULTI-KOTA: format jadwal tidak valid',
+              j
+            );
+            return false;
+          }
+
+          const schedule = {
+            subuh: String(j.subuh).trim(),
+            terbit: String(j.terbit).trim(),
+            dzuhur: String(j.dzuhur).trim(),
+            ashar: String(j.ashar).trim(),
+            maghrib: String(j.maghrib).trim(),
+            isya: String(j.isya).trim()
+          };
+
+          WEB_APP_STATE.prayer.schedule =
+            schedule;
+
+          WEB_APP_STATE.prayer.dateLoaded =
+            cacheDate;
+
+          keys.forEach(function(key) {
+            setPrayerTime(
+              'prayer-' + key,
+              schedule[key]
+            );
+          });
+
+          updateRamadanPrayerCards();
+
+          savePrayerCardCache();
+
+          console.log(
+            'JADWAL SHOLAT: memakai CACHE GITHUB MULTI-KOTA:',
+            targetSlug,
+            schedule
+          );
+
+          return true;
+        })
+        .catch(function(error) {
+          console.warn(
+            'JADWAL GITHUB CACHE MULTI-KOTA: belum tersedia:',
+            error && error.message
+              ? error.message
+              : error
+          );
+          return false;
+        })
+        .then(function(result) {
+          prayerGitHubCacheRequestInFlight = false;
+          return result;
+        });
+
+    }
+
+    function savePanelLocationCache() {
+      try {
+        localStorage.setItem(
+          'MASJID_PANEL_LOCATION_CACHE',
+          JSON.stringify(WEB_APP_STATE.location || {})
+        );
+      } catch (e) {}
+    }
+
+    function loadPanelLocationCache() {
+      try {
+        const raw = localStorage.getItem('MASJID_PANEL_LOCATION_CACHE');
+        if (!raw) return false;
+
+        const cached = JSON.parse(raw);
+        if (
+          !cached ||
+          !cached.kota ||
+          !cached.slug ||
+          !cached.timezone
+        ) {
+          return false;
+        }
+
+        WEB_APP_STATE.location = {
+          kota: String(cached.kota || ''),
+          provinsi: String(cached.provinsi || ''),
+          zona: String(cached.zona || 'WITA'),
+          timezone: String(cached.timezone || 'Asia/Makassar'),
+          gmt: String(cached.gmt || 'UTC+8'),
+          slug: String(cached.slug || '')
+        };
+
+        console.log(
+          'LOKASI CACHE STARTUP:',
+          WEB_APP_STATE.location
+        );
+
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function loadPrayerCardCache() {
+      const key = getPrayerCardCacheKey();
+      if (!key) return false;
+
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return false;
+
+        const cached = JSON.parse(raw);
+        const j = cached && cached.jadwal;
+
+        if (
+          !j ||
+          !['subuh','terbit','dzuhur','ashar','maghrib','isya']
+            .every(function(k) {
+              return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(
+                String(j[k] || '').trim()
+              );
+            })
+        ) {
+          return false;
+        }
+
+        const schedule = {
+          subuh: String(j.subuh).trim(),
+          terbit: String(j.terbit).trim(),
+          dzuhur: String(j.dzuhur).trim(),
+          ashar: String(j.ashar).trim(),
+          maghrib: String(j.maghrib).trim(),
+          isya: String(j.isya).trim()
+        };
+
+        WEB_APP_STATE.prayer.schedule = schedule;
+        WEB_APP_STATE.prayer.dateLoaded =
+          String(cached.tanggal || getApiDate());
+
+        setPrayerTime('prayer-subuh', schedule.subuh);
+        setPrayerTime('prayer-terbit', schedule.terbit);
+        setPrayerTime('prayer-dzuhur', schedule.dzuhur);
+        setPrayerTime('prayer-ashar', schedule.ashar);
+        setPrayerTime('prayer-maghrib', schedule.maghrib);
+        setPrayerTime('prayer-isya', schedule.isya);
+
+        updateRamadanPrayerCards();
+
+        console.log(
+          'JADWAL COUNTDOWN: memakai CACHE KARTU, API refresh di belakang layar:',
+          schedule
+        );
+
+        return true;
+      } catch (e) {
+        console.warn('JADWAL KARTU CACHE GAGAL DIBACA:', e);
+        return false;
+      }
+    }
+
+
+    function readPrayerTimesFromUI() {
+
+      const schedule =
+        WEB_APP_STATE
+          .prayer
+          .schedule;
+
+      // JANGAN menjadikan teks kartu sebagai sumber utama countdown.
+      // Saat Ramadan, teks kartu SUBUH/IMSAK sengaja berubah secara visual.
+      // Sumber kebenaran tetap jadwal API yang tersimpan di state.
+      //
+      // Dataset rawPrayerTime dipakai sebagai fallback bila state belum
+      // terisi. Untuk enam waktu sholat, nilai yang sudah ada di state
+      // tidak pernah ditimpa oleh teks visual kartu.
+      const ids = [
+        ['subuh', 'prayer-subuh'],
+        ['terbit', 'prayer-terbit'],
+        ['dzuhur', 'prayer-dzuhur'],
+        ['ashar', 'prayer-ashar'],
+        ['maghrib', 'prayer-maghrib'],
+        ['isya', 'prayer-isya']
+      ];
+
+      ids.forEach(function(pair) {
+        const key = pair[0];
+        const id = pair[1];
+        const el = document.getElementById(id);
+
+        if (!el) return;
+
+        const raw =
+          String(
+            el.dataset.rawPrayerTime ||
+            ''
+          ).trim();
+
+        if (raw && raw.includes(':')) {
+          schedule[key] = raw;
+          return;
+        }
+
+        // Fallback hanya jika state belum memiliki waktu valid.
+        const current =
+          String(schedule[key] || '').trim();
+
+        if (!current || !current.includes(':')) {
+          const text =
+            String(el.innerText || '').trim();
+
+          if (text && text.includes(':')) {
+            schedule[key] = text;
+          }
+        }
+      });
+
+    }
+
+
+    // =========================================================
+    // AUDIO EVENT KEY
+    // =========================================================
+
+    function getAudioEventKey(
+      prayerName,
+      eventName,
+      dateKey,
+      targetSec,
+      endSec
+    ) {
+
+      // Setiap baris/event harus memiliki lock sendiri.
+      // Ini penting karena satu shalat dapat memiliki lebih dari satu
+      // event dengan nama yang sama, misalnya TARHIM #1 dan TARHIM #2.
+      // Target/end membuat keduanya menjadi event yang berbeda.
+      const target = Number.isFinite(Number(targetSec))
+        ? Number(targetSec)
+        : 0;
+      const end = Number.isFinite(Number(endSec))
+        ? Number(endSec)
+        : 0;
+
+      return (
+        'AUDIO_' +
+        dateKey +
+        '_' +
+        prayerName +
+        '_' +
+        eventName +
+        '_' +
+        target +
+        '_' +
+        end
+      );
+
+    }
+
+
+    // =========================================================
+    // CEK AUDIO EVENT SUDAH DIPUTAR
+    // =========================================================
+
+    function hasAudioEventPlayed(
+      key
+    ) {
+
+      if (
+        WEB_APP_STATE
+          .audio
+          .playedLocks
+          .has(key)
+      ) {
+
+        return true;
+
+      }
+
+      try {
+
+        return (
+          localStorage.getItem(
+            key
+          ) === '1'
+        );
+
+      } catch (e) {
+
+        return false;
+
+      }
+
+    }
+
+
+    // =========================================================
+    // TANDAI AUDIO EVENT SUDAH DIPUTAR
+    // =========================================================
+
+    function markAudioEventPlayed(
+      key
+    ) {
+
+      WEB_APP_STATE
+        .audio
+        .playedLocks
+        .add(key);
+
+      WEB_APP_STATE
+        .audio
+        .queuedLocks
+        .delete(key);
+
+      try {
+
+        localStorage.setItem(
+          key,
+          '1'
+        );
+
+      } catch (e) {}
+
+    }
+
+
+    // =========================================================
+    // RESET AUDIO UNTUK TANGGAL BARU
+    // =========================================================
+
+    function resetAudioForNewDate(
+      dateKey
+    ) {
+
+      if (!dateKey) return;
+
+      // Fungsi ini dipanggil dari updatePrayerCountdown() setiap detik.
+      // Semua reset/cache cleanup hanya boleh dilakukan ketika tanggal
+      // benar-benar berubah. Jangan scan localStorage setiap detik.
+      if (
+        WEB_APP_STATE.audio.lastDate === dateKey
+      ) {
+        return;
+      }
+
+      resetYouTubeAutoStopForNewDate(
+        dateKey
+      );
+
+      if (
+        WEB_APP_STATE
+          .audio
+          .lastDate !==
+        dateKey
+      ) {
+
+        WEB_APP_STATE
+          .audio
+          .lastDate =
+          dateKey;
+
+        WEB_APP_STATE
+          .audio
+          .queue
+          .length = 0;
+
+        WEB_APP_STATE
+          .audio
+          .queuedLocks
+          .clear();
+
+        WEB_APP_STATE
+          .audio
+          .playedLocks
+          .clear();
+
+        WEB_APP_STATE
+          .audio
+          .failedLocks
+          .clear();
+
+        WEB_APP_STATE
+          .audio
+          .retryCount
+          .clear();
+
+        // Schedule audio dihitung ulang setiap pergantian tanggal.
+        WEB_APP_STATE
+          .audio
+          .computedSchedules
+          .clear();
+
+        WEB_APP_STATE
+          .audio
+          .durationPromises
+          .clear();
+
+        WEB_APP_STATE
+          .audio
+          .scheduleInitialized = false;
+
+        WEB_APP_STATE.audio.audioConfigWaitLogged = false;
+      }
+
+      try {
+
+        const prefix =
+          'AUDIO_';
+
+        const currentPrefix =
+          'AUDIO_' +
+          dateKey +
+          '_';
+
+        const removeKeys = [];
+
+        for (
+          let i = 0;
+          i < localStorage.length;
+          i++
+        ) {
+
+          const key =
+            localStorage.key(i);
+
+          if (
+            key &&
+            key.indexOf(prefix) === 0 &&
+            key.indexOf(currentPrefix) !== 0
+          ) {
+
+            removeKeys.push(
+              key
+            );
+
+          }
+
+        }
+
+        removeKeys.forEach(
+          function(key) {
+
+            localStorage.removeItem(
+              key
+            );
+
+          }
+        );
+
+      } catch (e) {}
+
+    }
+
+
+    // =========================================================
+    // TRIGGER AUDIO EVENT
+    // =========================================================
+
+    function triggerAudioEvent(
+      prayerName,
+      eventName,
+      url,
+      label,
+      dateKey,
+      targetSec,
+      endSec,
+      audioType,
+      status,
+      options
+    ) {
+
+      options = options || {};
+
+      const allowActiveCatchUp =
+        options.allowActiveCatchUp === true;
+
+      const key =
+        getAudioEventKey(
+          prayerName,
+          eventName,
+          dateKey,
+          targetSec,
+          endSec
+        );
+
+      // CATCH-UP hanya boleh mengabaikan marker localStorage lama.
+      // Marker in-memory tetap menjadi pengaman agar event yang sudah
+      // benar-benar dimainkan pada sesi halaman ini tidak di-replay.
+      if (
+        allowActiveCatchUp
+          ? WEB_APP_STATE.audio.playedLocks.has(key)
+          : hasAudioEventPlayed(key)
+      ) {
+        return;
+      }
+
+      if (
+        WEB_APP_STATE
+          .audio
+          .queuedLocks
+          .has(key)
+      ) {
+        return;
+      }
+
+      // failedLocks hanya dipakai untuk event non-protected.
+      // Rangkaian audio wajib tetap boleh dicoba kembali setelah
+      // kegagalan sementara.
+      const triggerAudioType =
+        String(audioType || '').trim().toLowerCase();
+
+      const triggerProtectedSequence =
+        triggerAudioType === 'sirine' ||
+        triggerAudioType === 'adzan-subuh' ||
+        triggerAudioType === 'adzan-biasa' ||
+        triggerAudioType === 'adzan' ||
+        triggerAudioType === 'doa-adzan' ||
+        triggerAudioType === 'doa-puasa' ||
+        triggerAudioType === 'doa-buka' ||
+        triggerAudioType === 'beep' ||
+        triggerAudioType === 'iqomah';
+
+      if (
+        WEB_APP_STATE
+          .audio
+          .failedLocks
+          .has(key) &&
+        !triggerProtectedSequence
+      ) {
+        return;
+      }
+
+      if (
+        !url &&
+        !audioType
+      ) {
+
+        console.warn(
+          'URL audio kosong:',
+          prayerName,
+          eventName,
+          label
+        );
+
+        return;
+
+      }
+
+      // Jangan masukkan event yang sudah benar-benar selesai.
+      // Event yang sedang berlangsung tetap boleh masuk agar dapat
+      // diputar sebagai CATCH-UP dari awal sampai endSec.
+      const triggerWita = getWitaTime();
+      const triggerNowSeconds =
+        Number(triggerWita.hour) * 3600 +
+        Number(triggerWita.minute) * 60 +
+        Number(triggerWita.second);
+
+      // NORMALISASI WAKTU:
+      // Hasil schedule dapat datang sebagai number maupun numeric string.
+      // Semua perbandingan queue HARUS memakai angka yang dinormalisasi.
+      const normalizedTargetSec = Number(targetSec);
+      const normalizedEndSec = Number(endSec);
+      const hasTargetSec = Number.isFinite(normalizedTargetSec);
+      const hasEndSec = Number.isFinite(normalizedEndSec);
+
+      // Jangan masukkan event yang BELUM waktunya ke queue.
+      // Ini mencegah seluruh rangkaian Maghrib/Isya masuk sekaligus
+      // saat halaman baru direload beberapa menit sebelum sholat.
+      if (
+        hasTargetSec &&
+        triggerNowSeconds < normalizedTargetSec
+      ) {
+        return;
+      }
+
+      // Event yang sudah benar-benar selesai tidak perlu dibuat ulang.
+      // Event protected juga tidak boleh disimpan untuk dimainkan terlambat.
+      if (
+        hasEndSec &&
+        triggerNowSeconds > normalizedEndSec
+      ) {
+        if (!triggerProtectedSequence) {
+          WEB_APP_STATE.audio.failedLocks.add(key);
+        }
+        return;
+      }
+
+      WEB_APP_STATE
+        .audio
+        .queuedLocks
+        .add(key);
+
+      const queued =
+        enqueueAudio(
+          url || '',
+          label,
+          key,
+          {
+            audioType: audioType || '',
+            prayerName: prayerName,
+            eventName: eventName,
+            dateKey: dateKey,
+            targetSec: hasTargetSec ? normalizedTargetSec : null,
+            endSec: hasEndSec ? normalizedEndSec : null,
+            status: status || 'ON'
+          }
+        );
+
+      if (!queued) {
+
+        WEB_APP_STATE
+          .audio
+          .queuedLocks
+          .delete(key);
+
+      }
+
+    }
+
+
+    // =========================================================
+    // HELPER AUDIO SCHEDULE - DYNAMIC DURASI
+    // =========================================================
+
+    // =========================================================
+    // AUDIO TIMING = 100% DARI SPREADSHEET
+    // =========================================================
+    // Tidak ada angka durasi/GAP cadangan di frontend.
+    // Jika Spreadsheet belum menyediakan durasi, nilai 0 dikembalikan
+    // dan schedule tidak mengarang durasi dari hardcode lama.
+    //
+
+    // =========================================================
+    // AUDIO DURATION = METADATA FILE AKTUAL
+    //
+    // ID audio dan URL dipisahkan:
+    //   audioConfig["qiroah-1"] = URL dari Sheet A:B
+    //
+    // Durasi tidak lagi berasal dari kolom sequence.
+    // =========================================================
+
+    function getSheetAudioDuration(audioType) {
+      const type = String(audioType || '').trim().toLowerCase();
+      const value = Number(audioDurationConfig[type]);
+      return Number.isFinite(value) && value > 0 ? value : 0;
+    }
+
+    function loadAudioMetadataDuration(audioType) {
+      const type = String(audioType || '').trim().toLowerCase();
+      if (!type) return Promise.resolve(0);
+
+      if (WEB_APP_STATE.audio.durationCache.has(type)) {
+        return Promise.resolve(WEB_APP_STATE.audio.durationCache.get(type));
+      }
+
+      // Jika metadata untuk tipe audio yang sama sedang dimuat oleh
+      // schedule sholat lain, ikut menunggu Promise yang sama.
+      if (WEB_APP_STATE.audio.durationPromises.has(type)) {
+        return WEB_APP_STATE.audio.durationPromises.get(type);
+      }
+
+      const url = normalizeAudioUrl(audioConfig[type] || '');
+      if (!url) {
+        console.warn('AUDIO DURASI: URL tidak ditemukan untuk ID:', type);
+        return Promise.resolve(0);
+      }
+
+      const durationPromise = new Promise(function(resolve) {
+        let attempt = 0;
+        let settled = false;
+        let probe = null;
+
+        function finish(value, isError) {
+          if (settled) return;
+          const duration = Number(value);
+          const safe =
+            Number.isFinite(duration) && duration > 0
+              ? duration
+              : 0;
+
+          if (safe > 0) {
+            settled = true;
+            WEB_APP_STATE.audio.durationCache.set(type, safe);
+            resolve(safe);
+            return;
+          }
+
+          // Chrome/Windows kadang dapat mengembalikan
+          // ERR_CACHE_OPERATION_NOT_SUPPORTED pada probe metadata pertama.
+          // Coba sekali lagi dengan URL cache-busting agar metadata dibaca
+          // dari request baru tanpa mengubah URL audio konfigurasi utama.
+          if (isError && attempt === 0) {
+            attempt++;
+            console.warn(
+              'AUDIO DURASI: retry metadata dengan cache-bypass:',
+              type
+            );
+            setTimeout(startProbe, 150);
+            return;
+          }
+
+          settled = true;
+          if (isError) {
+            console.warn(
+              'AUDIO DURASI: gagal membaca metadata:',
+              type,
+              url
+            );
+          }
+          resolve(0);
+        }
+
+        function startProbe() {
+          if (settled) return;
+
+          if (probe) {
+            probe.onloadedmetadata = null;
+            probe.onerror = null;
+            probe.onabort = null;
+            try {
+              probe.removeAttribute('src');
+              probe.load();
+            } catch (_) {}
+          }
+
+          probe = new Audio();
+          probe.preload = 'metadata';
+
+          probe.onloadedmetadata = function() {
+            finish(probe.duration, false);
+          };
+
+          probe.onerror = function() {
+            finish(0, true);
+          };
+
+          probe.onabort = function() {
+            finish(0, true);
+          };
+
+          try {
+            const probeUrl =
+              attempt > 0
+                ? url + (url.indexOf('?') >= 0 ? '&' : '?') +
+                  'meta_retry=' + Date.now()
+                : url;
+
+            probe.src = probeUrl;
+            probe.load();
+          } catch (error) {
+            console.warn(
+              'AUDIO DURASI: exception metadata:',
+              type,
+              error
+            );
+            finish(0, true);
+          }
+        }
+
+        startProbe();
+      });
+
+      WEB_APP_STATE.audio.durationPromises.set(type, durationPromise);
+
+      durationPromise.then(function() {
+        WEB_APP_STATE.audio.durationPromises.delete(type);
+      }).catch(function() {
+        WEB_APP_STATE.audio.durationPromises.delete(type);
+      });
+
+      return durationPromise;
+    }
+
+    async function getAudioDuration(audioType) {
+      const type = String(audioType || '').trim().toLowerCase();
+      if (!type) return 0;
+
+      let metadataDuration = 0;
+      try {
+        metadataDuration = await loadAudioMetadataDuration(type);
+      } catch (error) {
+        console.warn(
+          'AUDIO DURASI: metadata probe gagal:',
+          type,
+          error
+        );
+      }
+      if (metadataDuration > 0) {
+        console.log('AUDIO DURASI FILE:', type, metadataDuration, 'detik');
+        return metadataDuration;
+      }
+
+      // Kompatibilitas hanya bila backend lama memang sudah mengirim
+      // durasi > 0. Bukan fallback angka hard-code.
+      return getSheetAudioDuration(type);
+    }
+
+    async function getAllAudioDurations() {
+      const types = [
+        'qiroah-1','qiroah-2','qiroah-3','qiroah-4','qiroah-5',
+        'tarhim','beep','adzan-subuh','adzan-biasa','doa-adzan',
+        'doa','doa-puasa','doa-buka','sirine','iqomah','takbiran'
+      ];
+
+      const result = {};
+
+      // Probe metadata tidak boleh menghentikan seluruh scheduler.
+      // Jika satu file gagal dibaca oleh browser, lanjutkan ke file berikutnya
+      // agar audio lain tetap dapat membangun timeline.
+      for (const type of types) {
+        try {
+          result[type] = await getAudioDuration(type);
+        } catch (error) {
+          console.warn(
+            'AUDIO DURASI: probe gagal, lanjut tanpa menghentikan scheduler:',
+            type,
+            error
+          );
+          result[type] = 0;
+        }
+      }
+
+      console.log('=== AUDIO DURASI METADATA ===', result);
+      return result;
+    }
+
+
+    function mapSheetEventToAudioType(eventName, prayerName) {
+
+      const event =
+        String(eventName || '')
+          .trim()
+          .toLowerCase();
+
+      if (/^qiroah-\d+$/.test(event)) return event;
+      if (event === 'qiroah') return 'qiroah';
+      if (event === 'beep') return 'beep';
+      if (event === 'doa') return 'doa';
+      if (event === 'iqomah') return 'iqomah';
+      if (event === 'tarhim') return 'tarhim';
+      if (event === 'sirine') return 'sirine';
+      if (event === 'adzan-subuh') return 'adzan-subuh';
+      if (event === 'adzan-biasa' || event === 'adzan') return 'adzan-biasa';
+
+      // Semua event lain yang berasal dari Sheet Adzan
+      // langsung memakai nama event sebagai key audio.
+      // Ini sengaja GENERIK agar event baru seperti:
+      // takbiran, doa-buka, doa-puasa, dan event lain
+      // tidak perlu ditambahkan satu per satu ke frontend.
+      if (event && event !== 'gap') return event;
+
+      return '';
+    }
+
+    async function getPrayerAudioSchedule(prayerName,pSec) {
+      const events = [];
+      const name = String(prayerName || '').toUpperCase().trim();
+      const ramadan = isRamadanDisplay();
+
+      let sequenceName = name;
+      if (name === 'SUBUH') {
+        sequenceName = ramadan ? 'SUBUH_RAMADHAN' : 'SUBUH_BIASA';
+      }
+      if (name === 'MAGHRIB') {
+        sequenceName = ramadan ? 'MAGHRIB_RAMADHAN' : 'MAGHRIB_BIASA';
+      }
+
+      const sheetSequence =
+        Array.isArray(audioScheduleConfig[sequenceName])
+          ? audioScheduleConfig[sequenceName]
+          : [];
+
+      if (!sheetSequence.length) {
+        console.warn(
+          'AUDIO SCHEDULE: sequence Sheet kosong:',
+          sequenceName
+        );
+        return {
+          events: events,
+          durations: await getAllAudioDurations()
+        };
+      }
+
+      // =========================================================
+      // TIMELINE AUDIO BARU - SESUAI SEQUENCE SHEET
+      //
+      // Urutan dan status ON/OFF tetap berasal dari Sheet.
+      // Durasi selalu dari file audio aktual.
+      //
+      // GAP:
+      //   normal audio -> audio berikutnya = 3 detik
+      //   DOA-ADZAN -> BEEP = 5 menit
+      //   DOA-BUKA -> BEEP (Maghrib Ramadan) = 3 menit
+      //
+      // Audio berikut TIDAK BOLEH dipotong / looping:
+      //   beep, adzan-biasa, adzan-subuh, doa-adzan,
+      //   doa-puasa, doa-buka, iqomah.
+      //
+      // Qiroah dan Tarhim juga dimainkan utuh. Tidak ada replay
+      // otomatis yang dibuat oleh scheduler.
+      // =========================================================
+
+      const GAP = 3;
+
+      function getSystemGapSeconds(previousEvent,nextEvent) {
+        const prev = String(previousEvent || '').toLowerCase();
+        const next = String(nextEvent || '').toLowerCase();
+
+        // =====================================================
+        // GAP AUDIO FINAL
+        // =====================================================
+        // Default semua perpindahan audio = 3 DETIK.
+        //
+        // KHUSUS SUBUH RAMADAN:
+        // QIROAH -> TARHIM          = 3 detik
+        // TARHIM -> SIRINE          = 3 detik
+        // SIRINE -> TARHIM          = 3 detik
+        // TARHIM -> BEEP            = 3 detik
+        // BEEP -> ADZAN-SUBUH       = 1 detik
+        // ADZAN-SUBUH -> DOA-ADZAN  = 1 detik
+        // DOA-ADZAN -> BEEP         = 3 MENIT
+        // BEEP -> IQOMAH            = 1 detik
+        //
+        // KHUSUS MAGHRIB RAMADAN:
+        // QIROAH -> TARHIM          = 3 detik
+        // TARHIM -> SIRINE          = 3 detik
+        // SIRINE -> DOA-BUKA        = 1 detik
+        // DOA-BUKA -> BEEP          = 3 MENIT
+        // BEEP -> ADZAN-BIASA       = 1 detik
+        // ADZAN-BIASA -> DOA-ADZAN  = 3 detik
+        // DOA-ADZAN -> BEEP         = 3 MENIT
+        // BEEP -> IQOMAH            = 1 detik
+        //
+        // BEEP tidak pernah dimajukan untuk mengisi waktu.
+        // Qiroah/Tarhim yang digunakan untuk fill/loop time.
+        // =====================================================
+
+        // BEEP -> ADZAN / IQOMAH = 1 detik.
+        if (
+          prev === 'beep' &&
+          (
+            next === 'adzan-subuh' ||
+            next === 'adzan-biasa' ||
+            next === 'adzan' ||
+            next === 'iqomah'
+          )
+        ) {
+          return 1;
+        }
+
+        // ADZAN -> DOA-ADZAN pada Subuh Ramadan = 1 detik.
+        if (
+          ramadan &&
+          name === 'SUBUH' &&
+          (
+            prev === 'adzan-subuh' ||
+            prev === 'adzan-biasa' ||
+            prev === 'adzan'
+          ) &&
+          (
+            next === 'doa-adzan' ||
+            next === 'doa'
+          )
+        ) {
+          return 1;
+        }
+
+        // DOA-ADZAN -> BEEP = 3 MENIT untuk semua sholat.
+        if (
+          (
+            prev === 'doa-adzan' ||
+            prev === 'doa'
+          ) &&
+          next === 'beep'
+        ) {
+          return 3 * 60;
+        }
+
+        // MAGHRIB RAMADAN:
+        // SIRINE -> DOA-BUKA = 1 detik.
+        if (
+          ramadan &&
+          name === 'MAGHRIB' &&
+          prev === 'sirine' &&
+          next === 'doa-buka'
+        ) {
+          return 1;
+        }
+
+        // MAGHRIB RAMADAN:
+        // DOA-BUKA -> BEEP = 3 MENIT.
+        if (
+          ramadan &&
+          name === 'MAGHRIB' &&
+          prev === 'doa-buka' &&
+          next === 'beep'
+        ) {
+          return 3 * 60;
+        }
+
+        // Semua perpindahan lain tetap 3 detik.
+        return GAP;
+      }
+
+      const items = [];
+
+      // Metadata durasi audio dimuat BERURUTAN sesuai urutan Sheet.
+      // Jangan menjalankan banyak pemuatan metadata audio sekaligus.
+      // Pada TV/browser, Promise.all() dapat membuat subsystem media
+      // dan main thread sibuk sehingga seluruh display terlihat stag.
+      // Urutan audio, status ON/OFF, dan timeline tetap sama.
+      for (const raw of sheetSequence) {
+        const event =
+          String(raw && raw.event || '')
+            .trim()
+            .toLowerCase();
+
+        if (!event || event === 'gap') {
+          continue;
+        }
+
+        const audioType =
+          mapSheetEventToAudioType(event,name);
+
+        if (!audioType) {
+          continue;
+        }
+
+        const duration =
+          await getAudioDuration(audioType);
+
+        if (!(duration > 0)) {
+          console.warn(
+            'AUDIO SCHEDULE: durasi audio tidak tersedia:',
+            audioType
+          );
+          continue;
+        }
+
+        items.push({
+          event: event,
+          duration: duration,
+          status:
+            String(raw.status || 'ON').toUpperCase() === 'OFF'
+              ? 'OFF'
+              : 'ON',
+          audioType: audioType
+        });
+      }
+
+      if (!items.length) {
+        return {
+          events: events,
+          durations: await getAllAudioDurations()
+        };
+      }
+
+      function add(
+        eventName,
+        target,
+        duration,
+        label,
+        audioType,
+        status
+      ) {
+        if (
+          !(duration > 0) ||
+          !audioType ||
+          !Number.isFinite(target)
+        ) {
+          return;
+        }
+
+        events.push({
+          eventName: eventName,
+          targetSec: target,
+          endSec: target + duration,
+          label: label,
+          audioType: audioType,
+          status:
+            String(status || 'ON').toUpperCase() === 'OFF'
+              ? 'OFF'
+              : 'ON'
+        });
+      }
+
+      function getLabel(item) {
+        if (
+          /^qiroah-\d+$/.test(item.event) ||
+          item.event === 'qiroah'
+        ) {
+          return 'Qiroah - ' + name;
+        }
+
+        if (item.event === 'tarhim') {
+          return 'Tarhim - ' + name;
+        }
+
+        if (item.event === 'sirine') {
+          return 'Sirine - ' + name;
+        }
+
+        if (item.event === 'doa-puasa') {
+          return 'Doa Puasa - ' + name;
+        }
+
+        if (item.event === 'doa-buka') {
+          return 'Doa Buka - ' + name;
+        }
+
+        if (
+          item.event === 'doa' ||
+          item.event === 'doa-adzan'
+        ) {
+          return 'Doa - ' + name;
+        }
+
+        if (item.event === 'beep') {
+          return 'Beep - ' + name;
+        }
+
+        if (item.event === 'iqomah') {
+          return 'Iqomah - ' + name;
+        }
+
+        if (
+          item.event === 'adzan-subuh' ||
+          item.event === 'adzan-biasa' ||
+          item.event === 'adzan'
+        ) {
+          return 'Adzan - ' + name;
+        }
+
+        return item.event + ' - ' + name;
+      }
+
+      const adzanIndex = items.findIndex(function(item) {
+        return (
+          item.event === 'adzan-subuh' ||
+          item.event === 'adzan-biasa' ||
+          item.event === 'adzan'
+        );
+      });
+
+      const sirineIndex = items.findIndex(function(item) {
+        return item.event === 'sirine';
+      });
+
+      const iqomahIndex = items.findIndex(function(item) {
+        return item.event === 'iqomah';
+      });
+
+      if (adzanIndex < 0) {
+        console.warn(
+          'AUDIO SCHEDULE: ADZAN tidak ditemukan:',
+          sequenceName
+        );
+        return {
+          events: events,
+          durations: await getAllAudioDurations()
+        };
+      }
+
+      // ---------------------------------------------------------
+      // SUBUH RAMADHAN:
+      // ANCHOR UTAMA = WAKTU ADZAN SUBUH (pSec).
+      //
+      // Sequence:
+      // QIROAH -> GAP 3s -> TARHIM -> GAP 3s -> SIRINE
+      // -> GAP 3s -> TARHIM -> GAP 3s -> BEEP
+      // -> GAP 1s -> ADZAN-SUBUH -> GAP 1s -> DOA-ADZAN
+      // -> GAP 3 MENIT -> BEEP -> GAP 1s -> IQOMAH.
+      //
+      // Anchor utama = waktu ADZAN SUBUH (pSec).
+      // Semua event sebelum ADZAN dihitung mundur dari anchor.
+      // Tidak ada BEEP yang dimajukan untuk mengisi waktu kosong.
+      // ---------------------------------------------------------
+      if (
+        ramadan &&
+        name === 'SUBUH' &&
+        sirineIndex >= 0
+      ) {
+        // ---------------------------------------------------------
+        // SUBUH RAMADHAN:
+        // ANCHOR UTAMA = SIRINE IMSAK.
+        //
+        // Sirine dimulai tepat 10 menit sebelum waktu ADZAN SUBUH.
+        // Waktu ADZAN SUBUH (pSec) tetap fixed dan tidak boleh bergeser.
+        //
+        // Sequence:
+        // QIROAH -> GAP 3s -> TARHIM -> GAP 3s -> SIRINE
+        // -> GAP 3s -> DOA-PUASA -> GAP 3s -> TARHIM
+        // -> (jika ada ruang) GAP 3s -> BEEP
+        // -> GAP 1s -> ADZAN-SUBUH -> GAP 1s -> DOA-ADZAN
+        // -> GAP 3 MENIT -> BEEP -> GAP 1s -> IQOMAH.
+        //
+        // BEEP pertama DIKUNCI tepat 1 detik sebelum ADZAN SUBUH.
+        // Tarhim tidak dipotong; bila ada ruang, Tarhim boleh mengisi
+        // ruang sebelum BEEP sesuai durasi audio aktual.
+        // ---------------------------------------------------------
+
+        const sirineTarget =
+          Number(pSec) - (10 * 60);
+
+        // Semua event sebelum SIRINE dihitung mundur dari anchor IMSAK.
+        let cursorBefore = sirineTarget;
+
+        for (let i = sirineIndex - 1; i >= 0; i--) {
+          const item = items[i];
+
+          cursorBefore -= item.duration;
+
+          add(
+            item.event.toUpperCase(),
+            cursorBefore,
+            item.duration,
+            getLabel(item),
+            item.audioType,
+            item.status
+          );
+
+          if (i > 0) {
+            cursorBefore -= getSystemGapSeconds(
+              items[i - 1].event,
+              item.event
+            );
+          }
+        }
+
+        add(
+          'SIRINE',
+          sirineTarget,
+          items[sirineIndex].duration,
+          'Sirine Ramadan - WAKTU IMSAK',
+          items[sirineIndex].audioType,
+          items[sirineIndex].status
+        );
+
+        // Cari BEEP pertama dan jadikan ADZAN SUBUH sebagai fixed target.
+        const firstBeepIndexAfterSirine = items.findIndex(function(item, index) {
+          return (
+            index > sirineIndex &&
+            index < adzanIndex &&
+            item.event === 'beep'
+          );
+        });
+
+        const firstBeepItem =
+          firstBeepIndexAfterSirine >= 0
+            ? items[firstBeepIndexAfterSirine]
+            : null;
+
+        const firstBeepTarget =
+          firstBeepItem
+            ? Number(pSec) - 1 - firstBeepItem.duration
+            : null;
+
+        // Event setelah SIRINE dan sebelum ADZAN dijalankan maju,
+        // tetapi BEEP pertama dilewati dulu karena posisinya dikunci
+        // tepat 1 detik sebelum ADZAN SUBUH.
+        let cursorAfterSirine =
+          sirineTarget + items[sirineIndex].duration;
+
+        for (
+          let i = sirineIndex + 1;
+          i < adzanIndex;
+          i++
+        ) {
+          const item = items[i];
+
+          // BEEP pertama akan dipasang tepat sebelum ADZAN.
+          if (
+            i === firstBeepIndexAfterSirine &&
+            item.event === 'beep'
+          ) {
+            continue;
+          }
+
+          cursorAfterSirine += getSystemGapSeconds(
+            items[i - 1].event,
+            item.event
+          );
+
+          add(
+            item.event.toUpperCase(),
+            cursorAfterSirine,
+            item.duration,
+            getLabel(item),
+            item.audioType,
+            item.status
+          );
+
+          cursorAfterSirine += item.duration;
+        }
+
+        // =====================================================
+        // EXTEND TARHIM SUBUH RAMADHAN SAMPAI SEBELUM BEEP
+        //
+        // Tarhim terakhir diperbolehkan REPLAY/LOOP sampai tepat
+        // sebelum gap BEEP pertama. BEEP tetap terkunci dan tidak
+        // digeser. Playback yang sudah mendukung replay akan mengulang
+        // file Tarhim ketika mencapai durasi fisiknya sampai endSec.
+        //
+        // Hanya berlaku untuk SUBUH RAMADHAN. Audio lain tidak disentuh.
+        // =====================================================
+        if (
+          firstBeepItem &&
+          Number.isFinite(firstBeepTarget)
+        ) {
+          const tarhimEventIndex =
+            events
+              .map(function(eventItem, index) {
+                return {
+                  eventItem: eventItem,
+                  index: index
+                };
+              })
+              .filter(function(entry) {
+                return (
+                  entry.eventItem &&
+                  entry.eventItem.audioType === 'tarhim'
+                );
+              })
+              .map(function(entry) {
+                return entry;
+              })
+              .pop();
+
+          if (
+            tarhimEventIndex &&
+            tarhimEventIndex.eventItem
+          ) {
+            const tarhimEvent =
+              tarhimEventIndex.eventItem;
+
+            const tarhimToBeepGap =
+              getSystemGapSeconds('tarhim', 'beep');
+
+            const tarhimStopSec =
+              firstBeepTarget -
+              tarhimToBeepGap;
+
+            if (
+              Number.isFinite(tarhimStopSec) &&
+              tarhimStopSec > tarhimEvent.targetSec
+            ) {
+              const originalEndSec =
+                tarhimEvent.endSec;
+
+              tarhimEvent.endSec =
+                tarhimStopSec;
+
+              console.log(
+                'AUDIO SUBUH RAMADHAN: TARHIM REPLAY SAMPAI SEBELUM BEEP.',
+                'target=', tarhimEvent.targetSec,
+                'originalEnd=', originalEndSec,
+                'newEnd=', tarhimEvent.endSec,
+                'beepTarget=', firstBeepTarget,
+                'gap=', tarhimToBeepGap
+              );
+            }
+          }
+        }
+
+        if (firstBeepItem && Number.isFinite(firstBeepTarget)) {
+          // Pastikan BEEP tidak pernah dimajukan atau dipotong.
+          // Jika rangkaian sebelum BEEP memakan seluruh ruang,
+          // tampilkan warning agar kondisi Sheet/durasi dapat diperiksa.
+          if (
+            cursorAfterSirine >
+            firstBeepTarget
+          ) {
+            console.warn(
+              'AUDIO SUBUH RAMADHAN: ruang sebelum BEEP pertama tidak cukup.',
+              'cursor=', cursorAfterSirine,
+              'beepTarget=', firstBeepTarget,
+              'adzan=', Number(pSec)
+            );
+          }
+
+          add(
+            'BEEP',
+            firstBeepTarget,
+            firstBeepItem.duration,
+            getLabel(firstBeepItem),
+            firstBeepItem.audioType,
+            firstBeepItem.status
+          );
+        }
+
+        // ADZAN SUBUH selalu tepat pada waktu sholat dari jadwal.
+        const adzanItem = items[adzanIndex];
+
+        add(
+          'ADZAN',
+          Number(pSec),
+          adzanItem.duration,
+          getLabel(adzanItem),
+          adzanItem.audioType,
+          adzanItem.status
+        );
+
+        let cursorAfterAdzan =
+          Number(pSec) + adzanItem.duration;
+
+        // Semua event setelah ADZAN berjalan maju sesuai gap final.
+        for (
+          let i = adzanIndex + 1;
+          i < items.length;
+          i++
+        ) {
+          const item = items[i];
+
+          // SIRINE setelah IQOMAH tidak boleh pernah dijadwalkan.
+          // Beberapa konfigurasi Sheet lama masih memiliki SIRINE
+          // tambahan di bagian akhir sequence. Jangan masukkan event
+          // tersebut ke computed schedule.
+          if (item.event === 'sirine') {
+            console.warn(
+              'AUDIO SUBUH RAMADHAN: SIRINE setelah ADZAN/IQOMAH diabaikan.'
+            );
+            continue;
+          }
+
+          const previous = items[i - 1];
+
+          cursorAfterAdzan += getSystemGapSeconds(
+            previous.event,
+            item.event
+          );
+
+          add(
+            item.event.toUpperCase(),
+            cursorAfterAdzan,
+            item.duration,
+            getLabel(item),
+            item.audioType,
+            item.status
+          );
+
+          cursorAfterAdzan += item.duration;
+        }
+
+        console.log(
+          'AUDIO SUBUH RAMADHAN: anchor SIRINE IMSAK =',
+          sirineTarget,
+          'ADZAN fixed =',
+          Number(pSec),
+          'BEEP pertama =',
+          firstBeepTarget,
+          'sequence:',
+          items.map(function(item) {
+            return item.event;
+          }).join(' -> ')
+        );
+      } else if (
+        ramadan &&
+        name === 'MAGHRIB' &&
+        sirineIndex >= 0
+      ) {
+        // -------------------------------------------------------
+        // MAGHRIB RAMADHAN:
+        // ANCHOR UTAMA = dimulainya SIRINE (waktu Maghrib/berbuka).
+        //
+        // Sequence:
+        // QIROAH -> GAP 3s -> TARHIM -> GAP 3s -> SIRINE
+        // -> GAP 1s -> DOA-BUKA -> GAP 3 MENIT -> BEEP
+        // -> GAP 1s -> ADZAN-BIASA -> GAP 3s -> DOA-ADZAN
+        // -> GAP 3 MENIT -> BEEP -> GAP 1s -> IQOMAH.
+        //
+        // Anchor utama = dimulainya SIRINE (pSec).
+        // getSystemGapSeconds() menjaga gap persis sesuai aturan di atas.
+        // Khusus ADZAN -> DOA-ADZAN, gap tetap 3 detik setelah
+        // audio ADZAN selesai.
+        // -------------------------------------------------------
+        const sirineTarget = Number(pSec);
+
+        // Event sebelum SIRINE dihitung mundur dari waktu berbuka.
+        let cursorBefore = sirineTarget;
+
+        for (let i = sirineIndex - 1; i >= 0; i--) {
+          const item = items[i];
+
+          cursorBefore -= item.duration;
+
+          add(
+            item.event.toUpperCase(),
+            cursorBefore,
+            item.duration,
+            getLabel(item),
+            item.audioType,
+            item.status
+          );
+
+          if (i > 0) {
+            cursorBefore -= getSystemGapSeconds(
+              items[i - 1].event,
+              item.event
+            );
+          }
+        }
+
+        add(
+          'SIRINE',
+          sirineTarget,
+          items[sirineIndex].duration,
+          'Sirine Ramadan - WAKTU BERBUKA',
+          items[sirineIndex].audioType,
+          items[sirineIndex].status
+        );
+
+        // =====================================================
+        // SINKRONISASI AUDIO MAGHRIB RAMADAN DENGAN DISPLAY
+        //
+        // Display sudah ditetapkan:
+        //   WAKTU BERBUKA  = pSec sampai +2 menit
+        //   MENUJU MAGHRIB = +2 sampai +3 menit
+        //   ADZAN          = tepat +3 menit
+        //
+        // Karena itu BEEP pertama harus tepat 1 detik sebelum
+        // ADZAN, dan ADZAN-BIASA harus mulai tepat +3 menit.
+        // Jangan biarkan GAP DOA-BUKA -> BEEP 3 menit menggeser
+        // ADZAN jauh setelah display.
+        // =====================================================
+        const firstBeepIndexBeforeAdzan = items.findIndex(function(item, index) {
+          return (
+            index > sirineIndex &&
+            index < adzanIndex &&
+            item.event === 'beep'
+          );
+        });
+
+        let cursorAfterSirine =
+          sirineTarget + items[sirineIndex].duration;
+
+        // Event setelah SIRINE dan sebelum BEEP pertama berjalan
+        // normal. BEEP pertama sendiri dikunci ke -1 detik dari
+        // waktu ADZAN display.
+        for (
+          let i = sirineIndex + 1;
+          i < adzanIndex;
+          i++
+        ) {
+          const item = items[i];
+
+          if (
+            i === firstBeepIndexBeforeAdzan &&
+            item.event === 'beep'
+          ) {
+            continue;
+          }
+
+          const previous = items[i - 1];
+
+          cursorAfterSirine += getSystemGapSeconds(
+            previous.event,
+            item.event
+          );
+
+          add(
+            item.event.toUpperCase(),
+            cursorAfterSirine,
+            item.duration,
+            getLabel(item),
+            item.audioType,
+            item.status
+          );
+
+          cursorAfterSirine += item.duration;
+        }
+
+        const adzanItem = items[adzanIndex];
+
+        // ADZAN MAGHRIB = tepat 3 menit setelah waktu berbuka.
+        const fixedMaghribAdzanTarget =
+          Number(pSec) + (3 * 60);
+
+        // BEEP pertama MAGHRIB RAMADHAN dimulai tepat 4 detik
+        // sebelum DISPLAY/ADZAN MAGHRIB dimulai.
+        // Target BEEP adalah waktu mulai audio, bukan waktu selesai.
+        // Jadi durasi file BEEP tidak menggeser titik mulai ADZAN.
+        if (
+          firstBeepIndexBeforeAdzan >= 0
+        ) {
+          const firstBeepItem =
+            items[firstBeepIndexBeforeAdzan];
+
+          // BEEP #1 harus mulai tepat saat countdown
+          // MENUJU MAGHRIB menunjukkan 00:00:04.
+          // Setelah 4 detik BEEP, tepat di 00:00:00,
+          // ADZAN MAGHRIB dimulai. Target BEEP dan ADZAN
+          // memakai anchor yang sama agar tidak bergeser.
+          const fixedFirstBeepTarget =
+            fixedMaghribAdzanTarget - 4;
+
+          add(
+            'BEEP',
+            fixedFirstBeepTarget,
+            firstBeepItem.duration,
+            getLabel(firstBeepItem),
+            firstBeepItem.audioType,
+            firstBeepItem.status
+          );
+        }
+
+        // ADZAN MAGHRIB dimulai tepat saat countdown
+        // MENUJU MAGHRIB mencapai 00:00:00.
+        add(
+          'ADZAN',
+          fixedMaghribAdzanTarget,
+          adzanItem.duration,
+          getLabel(adzanItem),
+          adzanItem.audioType,
+          adzanItem.status
+        );
+
+        // Semua event setelah ADZAN tetap mengikuti GAP normal.
+        let cursorAfterAdzan =
+          fixedMaghribAdzanTarget + adzanItem.duration;
+
+        for (
+          let i = adzanIndex + 1;
+          i < items.length;
+          i++
+        ) {
+          const item = items[i];
+          const previous = items[i - 1];
+
+          cursorAfterAdzan += getSystemGapSeconds(
+            previous.event,
+            item.event
+          );
+
+          add(
+            item.event.toUpperCase(),
+            cursorAfterAdzan,
+            item.duration,
+            getLabel(item),
+            item.audioType,
+            item.status
+          );
+
+          cursorAfterAdzan += item.duration;
+        }
+      } else {
+        // -------------------------------------------------------
+        // SHOLAT BIASA:
+        // ADZAN = anchor waktu sholat.
+        // Semua event sebelum ADZAN dihitung mundur.
+        // Semua event sesudah ADZAN berjalan maju.
+        // -------------------------------------------------------
+        let cursor = Number(pSec);
+
+        for (let i = adzanIndex - 1; i >= 0; i--) {
+          const item = items[i];
+
+          cursor -= item.duration;
+
+          add(
+            item.event.toUpperCase(),
+            cursor,
+            item.duration,
+            getLabel(item),
+            item.audioType,
+            item.status
+          );
+
+          if (i > 0) {
+            cursor -= getSystemGapSeconds(
+              items[i - 1].event,
+              item.event
+            );
+          }
+        }
+
+        const adzanItem = items[adzanIndex];
+
+        add(
+          'ADZAN',
+          Number(pSec),
+          adzanItem.duration,
+          getLabel(adzanItem),
+          adzanItem.audioType,
+          adzanItem.status
+        );
+
+        cursor =
+          Number(pSec) + adzanItem.duration;
+
+        for (let i = adzanIndex + 1; i < items.length; i++) {
+          const item = items[i];
+          const previous = items[i - 1];
+
+          cursor += getSystemGapSeconds(
+            previous.event,
+            item.event
+          );
+
+          add(
+            item.event.toUpperCase(),
+            cursor,
+            item.duration,
+            getLabel(item),
+            item.audioType,
+            item.status
+          );
+
+          cursor += item.duration;
+        }
+      }
+
+      events.sort(function(a,b) {
+        return a.targetSec - b.targetSec;
+      });
+
+      const durations = {};
+      items.forEach(function(item) {
+        if (
+          item.audioType &&
+          durations[item.audioType] === undefined
+        ) {
+          durations[item.audioType] = item.duration;
+        }
+      });
+
+      console.log(
+        '=== AUDIO SCHEDULE FINAL BARU:',
+        sequenceName,
+        '===',
+        events
+      );
+
+      return {
+        events: events,
+        durations: durations
+      };
+    }
+
+    // =========================================================
+    // AUDIO KHUSUS JUM'AT - QIROAH DINAMIS DARI SHEET
+    //
+    // Durasi dan GAP Jumat dibaca literal dari sequence Spreadsheet.
+    // Tidak ada durasi/sequence cadangan di frontend.
+    // =========================================================
+
+    // =========================================================
+    // AUDIO JUM'AT - 100% MENGIKUTI SEQUENCE SPREADSHEET
+    //
+    // Kolom JUM'AT dibaca sebagai sequence literal:
+    //   qiroah-4 -> gap -> adzan-biasa
+    //
+    // Waktu ADZAN tetap menjadi titik acuan pSec.
+    // Semua item sebelum ADZAN dihitung mundur dari pSec.
+    // DURASI 0 tidak membuat event audio, tetapi tetap dianggap
+    // sebagai row Sheet; GAP > 0 tetap mempengaruhi timeline.
+    // STATUS OFF = event tetap terjadwal tetapi audionya mute.
+    // =========================================================
+
+    async function getFridayQiroahSchedule(pSec) {
+      const events = [];
+      const fridayItems = Array.isArray(audioFridayConfig) ? audioFridayConfig : [];
+      const GAP = 3;
+
+      if (!fridayItems.length) {
+        console.warn("AUDIO JUM'AT: sequence Sheet kosong.");
+        return {events:events,durations:{}};
+      }
+
+      const items = [];
+      for (const raw of fridayItems) {
+        const event = String(raw && raw.event || '').trim().toLowerCase();
+        if (!event) continue;
+
+        if (event === 'gap') {
+          items.push({event:event,duration:GAP,status:'ON',audioType:''});
+          continue;
+        }
+
+        const audioType = mapSheetEventToAudioType(event,'JUMAT');
+        if (!audioType) continue;
+
+        const duration = await getAudioDuration(audioType);
+        if (!(duration > 0)) {
+          console.warn("AUDIO JUM'AT: metadata durasi tidak tersedia:",audioType);
+          continue;
+        }
+
+        items.push({
+          event:event,
+          duration:duration,
+          status:String(raw.status || 'ON').toUpperCase()==='OFF'?'OFF':'ON',
+          audioType:audioType
+        });
+      }
+
+      const adzanIndex = items.findIndex(function(item) {
+        return item.event==='adzan-subuh' || item.event==='adzan-biasa' || item.event==='adzan';
+      });
+
+      if (adzanIndex < 0) {
+        console.warn("AUDIO JUM'AT: ADZAN tidak ditemukan.");
+        return {events:events,durations:{}};
+      }
+
+      function addFriday(eventName,target,duration,label,audioType,status) {
+        if (!(duration > 0) || !audioType || !Number.isFinite(target)) return;
+        events.push({
+          eventName:eventName,
+          targetSec:target,
+          endSec:target+duration,
+          label:label,
+          audioType:audioType,
+          status:String(status || 'ON').toUpperCase()==='OFF'?'OFF':'ON'
+        });
+      }
+
+      let cursor = Number(pSec);
+
+      for (let i=adzanIndex-1;i>=0;i--) {
+        const item=items[i];
+
+        if (item.event==='gap') {
+          cursor -= item.duration;
+          continue;
+        }
+
+        cursor -= item.duration;
+
+        addFriday(
+          /^qiroah-\d+$/.test(item.event) || item.event==='qiroah'
+            ? 'QIROAH_JUMAT'
+            : item.event.toUpperCase(),
+          cursor,
+          item.duration,
+          /^qiroah-\d+$/.test(item.event) || item.event==='qiroah'
+            ? 'Qiroah - JUMAT'
+            : item.event+' - JUMAT',
+          item.audioType,
+          item.status
+        );
+
+        cursor -= GAP;
+      }
+
+      const adzanItem=items[adzanIndex];
+
+      addFriday(
+        'ADZAN',
+        Number(pSec),
+        adzanItem.duration,
+        'Adzan - JUMAT',
+        adzanItem.audioType,
+        adzanItem.status
+      );
+
+      const durations={};
+      items.forEach(function(item){
+        if(item.audioType && durations[item.audioType]===undefined){
+          durations[item.audioType]=item.duration;
+        }
+      });
+
+      events.sort(function(a,b){return a.targetSec-b.targetSec;});
+
+      console.log("=== AUDIO JUM'AT METADATA ===",events);
+
+      return {
+        events:events,
+        durations:durations
+      };
+    }
+
+
+
+    // =========================================================
+    // FINAL AUDIO CATCH-UP
+    // =========================================================
+    // Dipanggil SETELAH seluruh computedSchedules selesai dibuat.
+    // Tujuannya mengatasi race condition antara:
+    //   1. async metadata durasi,
+    //   2. triggerAudioEvent(),
+    //   3. processAudioQueue().
+    //
+    // Hanya event yang sedang aktif yang dipastikan masuk queue.
+    // Tidak mengubah timeline audio.
+    function queueCurrentAudioCatchUp(dateKey, options) {
+
+      options = options || {};
+
+      const silent = options.silent === true;
+
+      const state = WEB_APP_STATE.audio;
+
+      if (
+        !state ||
+        !state.computedSchedules ||
+        typeof state.computedSchedules.forEach !== 'function'
+      ) {
+        return;
+      }
+
+      const wita = getWitaTime();
+      const nowSeconds =
+        Number(wita.hour) * 3600 +
+        Number(wita.minute) * 60 +
+        Number(wita.second);
+
+      let activeCount = 0;
+
+      if (
+        !state.computedSchedules ||
+        typeof state.computedSchedules.forEach !== 'function'
+      ) {
+        return;
+      }
+
+      state.computedSchedules.forEach(function(schedule, prayerName) {
+
+        if (
+          !schedule ||
+          !Array.isArray(schedule.events)
+        ) {
+          return;
+        }
+
+        schedule.events.forEach(function(event) {
+
+          const targetSec = Number(event.targetSec);
+          const endSec = Number(event.endSec);
+
+          if (
+            !Number.isFinite(targetSec) ||
+            !Number.isFinite(endSec) ||
+            endSec <= targetSec
+          ) {
+            return;
+          }
+
+          if (
+            nowSeconds < targetSec ||
+            nowSeconds > endSec
+          ) {
+            return;
+          }
+
+          activeCount++;
+
+          const eventName =
+            String(event.eventName || '').toUpperCase();
+
+          const key =
+            getAudioEventKey(
+              prayerName,
+              event.eventName,
+              dateKey,
+              targetSec,
+              endSec
+            );
+
+          const alreadyQueued =
+            state.queuedLocks.has(key);
+
+          const alreadyPlayedInMemory =
+            state.playedLocks.has(key);
+
+          const persistentPlayed =
+            !alreadyPlayedInMemory &&
+            hasAudioEventPlayed(key);
+
+          // Marker localStorage dari reload sebelumnya tidak boleh
+          // menghalangi event yang SEDANG AKTIF. Tetapi event yang sudah
+          // dimainkan pada sesi halaman ini tetap tidak boleh di-replay.
+          if (!alreadyQueued && !alreadyPlayedInMemory) {
+            const url =
+              audioConfig[event.audioType] || '';
+
+            triggerAudioEvent(
+              prayerName,
+              event.eventName,
+              url,
+              event.label,
+              dateKey,
+              targetSec,
+              endSec,
+              event.audioType,
+              event.status,
+              {
+                allowActiveCatchUp: true
+              }
+            );
+          }
+
+        });
+
+      });
+
+      // Tick realtime dapat memanggil catch-up secara ringan setiap detik
+      // agar event berikutnya masuk tepat saat target tercapai. Jangan
+      // membanjiri console pada jalur realtime; log detail tetap dipakai
+      // untuk startup/watchdog normal.
+      if (!silent) {
+        console.log(
+          'AUDIO CATCH-UP READY:',
+          'date=',
+          dateKey,
+          'nowSec=',
+          nowSeconds,
+          'activeEvents=',
+          activeCount,
+          'queueLength=',
+          state.queue.length,
+          'audioInitialized=',
+          state.initialized
+        );
+      }
+
+      // Jika unlock audio sudah berhasil, langsung proses queue.
+      // Jika belum, initAudioPermission() akan memprosesnya setelah unlock.
+      if (state.initialized) {
+        processAudioQueue();
+      }
+
+      // Watchdog hanya dijadwalkan oleh scheduler utama / startup.
+      // Jangan memanggil startAudioCatchUpWatchdog() dari dalam
+      // queueCurrentAudioCatchUp(), karena callback watchdog sendiri
+      // memanggil fungsi ini dan dapat membentuk loop 3 detik tanpa akhir.
+
+    }
+
+    function startAudioCatchUpWatchdog(dateKey) {
+
+      const state = WEB_APP_STATE.audio;
+
+      if (
+        !state ||
+        !state.scheduleInitialized ||
+        !dateKey
+      ) {
+        return;
+      }
+
+      const nowMs = Date.now();
+
+      // Satu watchdog aktif per tanggal. Jika masih aktif, cukup biarkan
+      // timer yang sudah ada bekerja.
+      if (
+        audioCatchUpWatchdogTimer &&
+        audioCatchUpWatchdogDate === dateKey &&
+        nowMs < audioCatchUpWatchdogUntil
+      ) {
+        return;
+      }
+
+      if (audioCatchUpWatchdogTimer) {
+        clearTimeout(audioCatchUpWatchdogTimer);
+        audioCatchUpWatchdogTimer = null;
+      }
+
+      audioCatchUpWatchdogDate = dateKey;
+      audioCatchUpWatchdogUntil = nowMs + 3500;
+
+      // Catch-up sudah dilakukan oleh scheduler utama. Watchdog hanya
+      // memberi SATU kesempatan retry setelah audio permission/metadata
+      // siap. Hindari scan seluruh schedule setiap detik di TV.
+      audioCatchUpWatchdogTimer = setTimeout(function() {
+        audioCatchUpWatchdogTimer = null;
+
+        if (
+          WEB_APP_STATE.dateKey &&
+          WEB_APP_STATE.dateKey !== dateKey
+        ) {
+          return;
+        }
+
+        const liveState = WEB_APP_STATE.audio;
+        if (!liveState || !liveState.scheduleInitialized) {
+          return;
+        }
+
+        try {
+          queueCurrentAudioCatchUp(dateKey, { silent: true });
+        } catch (error) {
+          console.warn(
+            'AUDIO CATCH-UP WATCHDOG ERROR:',
+            error
+          );
+        }
+
+        audioCatchUpWatchdogDate = '';
+        audioCatchUpWatchdogUntil = 0;
+      }, 3000);
+
+    }
+
+    async function prepareDailyAudioSchedule(
+      dateKey,
+      nowSeconds
+    ) {
+
+      // Jumat: sequence JUM'AT dibaca literal dari Spreadsheet.
+      // Sholat lain tetap membaca sequence masing-masing dari Sheet.
+
+      resetAudioForNewDate(dateKey);
+
+      const audioState =
+        WEB_APP_STATE.audio;
+
+      if (!audioState.audioConfigReady) {
+        if (!audioState.audioConfigWaitLogged) {
+          console.log(
+            'AUDIO SCHEDULE: menunggu konfigurasi audio dari Sheet Adzan...'
+          );
+          audioState.audioConfigWaitLogged = true;
+        }
+        return;
+      }
+
+      audioState.audioConfigWaitLogged = false;
+
+      const prayerSchedule =
+        WEB_APP_STATE.prayer.schedule || {};
+
+      const requiredPrayerTimes = [
+        prayerSchedule.subuh,
+        prayerSchedule.dzuhur,
+        prayerSchedule.ashar,
+        prayerSchedule.maghrib,
+        prayerSchedule.isya
+      ];
+
+      const prayerScheduleReady =
+        requiredPrayerTimes.every(
+          function(value) {
+            return (
+              typeof value === 'string' &&
+              value.includes(':')
+            );
+          }
+        );
+
+      if (!prayerScheduleReady) {
+
+        if (!audioState.prayerScheduleWaitLogged) {
+          console.log(
+            'AUDIO SCHEDULE: menunggu jadwal sholat dari API MuslimKita...'
+          );
+          audioState.prayerScheduleWaitLogged = true;
+        }
+
+        return;
+
+      }
+
+      audioState.prayerScheduleWaitLogged = false;
+
+      if (
+        audioState.scheduleInitialized &&
+        audioState.lastDate === dateKey
+      ) {
+        return;
+      }
+
+      if (audioState.schedulePreparing) return;
+
+      audioState.schedulePreparing = true;
+
+      try {
+
+        const schedule =
+          WEB_APP_STATE.prayer.schedule;
+
+        const prayers = [
+          { name: 'SUBUH', time: schedule.subuh },
+          { name: 'DZUHUR', time: schedule.dzuhur },
+          { name: 'ASHAR', time: schedule.ashar },
+          { name: 'MAGHRIB', time: schedule.maghrib },
+          { name: 'ISYA', time: schedule.isya }
+        ];
+
+        console.log(
+          '=== AUDIO SCHEDULE DINAMIS:',
+          dateKey,
+          '==='
+        );
+
+        for (const prayer of prayers) {
+
+          if (
+            !prayer.time ||
+            !prayer.time.includes(':')
+          ) continue;
+
+          const parts = prayer.time.split(':');
+          const h = Number(parts[0]);
+          const m = Number(parts[1]);
+
+          if (!Number.isFinite(h) || !Number.isFinite(m)) {
+            continue;
+          }
+
+          const pSec =
+            h * 3600 +
+            m * 60;
+
+          let result;
+
+          if (
+            isFridayWita() &&
+            prayer.name === 'DZUHUR'
+          ) {
+
+            // Pada hari Jumat, DZUHUR menggunakan sequence JUM'AT
+            // secara literal dari Spreadsheet, termasuk GAP dan
+            // STATUS ON/OFF. Tidak ada durasi yang di-hardcode.
+            result =
+              await getFridayQiroahSchedule(
+                pSec
+              );
+
+          } else {
+
+            result =
+              await getPrayerAudioSchedule(
+                prayer.name,
+                pSec
+              );
+
+          }
+
+          audioState.computedSchedules.set(
+            prayer.name,
+            result
+          );
+
+          // CATCH-UP PER SHOLAT:
+          // Jangan menunggu seluruh 5 sholat selesai dibuat.
+          // Begitu schedule sholat yang relevan selesai, langsung cek
+          // event yang sedang berlangsung. Ini penting bila halaman
+          // dibuka/reload ketika waktu sholat sudah berjalan.
+          try {
+            queueCurrentAudioCatchUp(dateKey, { silent: true });
+          } catch (audioPrayerCatchUpError) {
+            console.warn(
+              'AUDIO CATCH-UP PER SHOLAT ERROR:',
+              prayer.name,
+              audioPrayerCatchUpError
+            );
+          }
+
+          result.events.forEach(function(event) {
+
+            if (event.targetSec < 0) return;
+
+            // Ambil waktu terbaru untuk setiap event. Pembuatan schedule
+            // memakai await, sehingga nowSeconds yang diterima fungsi
+            // dapat menjadi basi beberapa detik kemudian.
+            const liveWita = getWitaTime();
+            const liveNowSeconds =
+              Number(liveWita.hour) * 3600 +
+              Number(liveWita.minute) * 60 +
+              Number(liveWita.second);
+
+            if (liveNowSeconds > event.endSec) return;
+
+            const url =
+              audioConfig[event.audioType] || '';
+
+            console.log(
+              'AUDIO DYNAMIC:',
+              prayer.name,
+              event.eventName,
+              'target=',
+              event.targetSec,
+              'end=',
+              event.endSec,
+              'duration=',
+              Math.max(
+                0,
+                Number(event.endSec) - Number(event.targetSec)
+              ),
+              'type=',
+              event.audioType
+            );
+
+            triggerAudioEvent(
+              prayer.name,
+              event.eventName,
+              url,
+              event.label,
+              dateKey,
+              event.targetSec,
+              event.endSec,
+              event.audioType,
+              event.status
+            );
+          });
+        }
+
+        audioState.scheduleInitialized = true;
+
+        // HANDOFF FIX:
+        // Begitu seluruh computedSchedules selesai, lakukan catch-up
+        // setelah flag scheduleInitialized benar-benar TRUE. Ini menjadi
+        // pintu final dari proses async metadata -> scheduler -> queue.
+        // Jika autoplay/unlock selesai lebih dulu, event aktif langsung
+        // masuk queue. Jika unlock belum selesai, lock tetap aman dan
+        // initAudioPermission() akan melakukan catch-up lagi setelah unlock.
+        try {
+          queueCurrentAudioCatchUp(dateKey, { silent: true });
+        } catch (audioScheduleReadyCatchUpError) {
+          console.warn(
+            'AUDIO SCHEDULE READY CATCH-UP ERROR:',
+            audioScheduleReadyCatchUpError
+          );
+        }
+
+        try {
+          startAudioCatchUpWatchdog(dateKey);
+        } catch (audioWatchdogError) {
+          console.warn(
+            'AUDIO CATCH-UP WATCHDOG START ERROR:',
+            audioWatchdogError
+          );
+        }
+
+        // Retry ringan hanya untuk menutup race antara metadata terakhir,
+        // autoplay unlock, dan tick realtime. Tidak membangun ulang schedule.
+        [250, 1000, 2000].forEach(function(delay) {
+          setTimeout(function() {
+            if (
+              WEB_APP_STATE.dateKey !== dateKey ||
+              !WEB_APP_STATE.audio.scheduleInitialized
+            ) {
+              return;
+            }
+
+            try {
+              queueCurrentAudioCatchUp(dateKey, { silent: true });
+            } catch (audioHandoffRetryError) {
+              console.warn(
+                'AUDIO HANDOFF RETRY ERROR:',
+                audioHandoffRetryError
+              );
+            }
+          }, delay);
+        });
+
+        // =====================================================
+        // FINAL CATCH-UP SETELAH SCHEDULE BENAR-BENAR LENGKAP
+        //
+        // Pembuatan schedule memakai await metadata audio. Karena itu
+        // triggerAudioEvent() yang dipanggil di tengah proses tidak boleh
+        // menjadi satu-satunya pintu catch-up. Setelah SEMUA prayer selesai,
+        // scan ulang event yang sedang aktif pada detik WITA saat ini.
+        //
+        // Ini hanya memasukkan event yang:
+        //   targetSec <= sekarang <= endSec
+        //
+        // Tidak mengubah target, durasi, urutan, GAP, atau status ON/OFF.
+        // =====================================================
+        try {
+          queueCurrentAudioCatchUp(dateKey, { silent: true });
+        } catch (audioCatchUpError) {
+          console.error(
+            'AUDIO FINAL CATCH-UP ERROR - SCHEDULE TETAP TERSIMPAN:',
+            audioCatchUpError
+          );
+        }
+
+        // Schedule sudah lengkap. Cek ulang segera karena pembuatan
+        // schedule memakai await dan updatePrayerCountdown() sebelumnya
+        // mungkin sudah berjalan sebelum schedule selesai.
+        const liveForYouTube = getWitaTime();
+        const liveForYouTubeSeconds =
+          Number(liveForYouTube.hour) * 3600 +
+          Number(liveForYouTube.minute) * 60 +
+          Number(liveForYouTube.second);
+
+        // YouTube AUTO hanya pemeriksaan startup.
+        // Jika kontrol YouTube gagal, JANGAN menggagalkan
+        // audio schedule/catch-up yang sudah berhasil dibuat.
+        try {
+          updateYouTubeAudioStop(
+            liveForYouTubeSeconds,
+            dateKey
+          );
+        } catch (youtubeError) {
+          console.error(
+            'YOUTUBE STARTUP CHECK ERROR - AUDIO SCHEDULE TETAP BERJALAN:',
+            youtubeError
+          );
+        }
+
+      } catch (error) {
+        console.error(
+          'GAGAL MEMBUAT AUDIO SCHEDULE DINAMIS:',
+          error
+        );
+      } finally {
+        audioState.schedulePreparing = false;
+      }
+
+    }
+
+
+    // =========================================================
+    // PROSES AUDIO SHOLAT
+    // =========================================================
+
+    function processPrayerAudio(
+      p,
+      nowSeconds,
+      nowDate
+    ) {
+
+      if (
+        !p ||
+        !p.name ||
+        !p.time
+      ) {
+        return;
+      }
+
+      const timeParts =
+        p.time.split(':');
+
+      if (
+        timeParts.length < 2
+      ) {
+        return;
+      }
+
+      const hour =
+        parseInt(
+          timeParts[0],
+          10
+        );
+
+      const minute =
+        parseInt(
+          timeParts[1],
+          10
+        );
+
+      if (
+        isNaN(hour) ||
+        isNaN(minute)
+      ) {
+        return;
+      }
+
+      const pSec =
+        hour * 3600 +
+        minute * 60;
+
+      // Tunggu sampai schedule async selesai dibangun.
+      // Ini penting agar CATCH-UP tidak dijalankan sebelum seluruh
+      // computedSchedules dan queue Maghrib tersedia.
+      const schedulePromise =
+        prepareDailyAudioSchedule(
+          nowDate,
+          nowSeconds
+        );
+
+      if (
+        schedulePromise &&
+        typeof schedulePromise.then === 'function'
+      ) {
+        schedulePromise
+          .then(function() {
+            queueCurrentAudioCatchUp(nowDate, { silent: true });
+          })
+          .catch(function(error) {
+            console.error(
+              'AUDIO SCHEDULE PROMISE ERROR:',
+              error
+            );
+          });
+      } else {
+        queueCurrentAudioCatchUp(nowDate, { silent: true });
+      }
+
+      // YouTube AUTO terpisah dari scheduler audio.
+      // Tidak ada kontrol YouTube di sini.
+
+    }
+
+
+    // =========================================================
+    // RAMADAN DISPLAY - MANUAL SCRIPT PROPERTY
+    // =========================================================
+    // Nilai dikirim dari Apps Script melalui data.RamadanDisplay.
+    //
+    // true  = IMSAK + SUBUH
+    // false = SUBUH + TERBIT
+    //
+    // PENTING:
+    // - Tidak membaca tanggal Hijriah untuk menentukan mode.
+    // - Tidak mengubah waktu raw Subuh/Terbit.
+    // - Tidak mengubah schedule, durasi, urutan, atau proses AUDIO.
+    let RAMADAN_DISPLAY = false;
+
+
+    function setRamadanDisplay(value) {
+
+      const normalized =
+        String(
+          value === null || value === undefined
+            ? ''
+            : value
+        )
+          .trim()
+          .toLowerCase();
+
+      if (typeof value === 'boolean') {
+        RAMADAN_DISPLAY = value;
+      } else if (normalized !== '') {
+        RAMADAN_DISPLAY =
+          normalized === 'true' ||
+          normalized === '1' ||
+          normalized === 'yes' ||
+          normalized === 'ya' ||
+          normalized === 'on' ||
+          normalized === 'aktif';
+      } else {
+        return;
+      }
+
+      console.log(
+        'RAMADAN DISPLAY =',
+        RAMADAN_DISPLAY,
+        '=>',
+        RAMADAN_DISPLAY
+          ? 'IMSAK + SUBUH'
+          : 'SUBUH + TERBIT'
+      );
+
+      updateRamadanPrayerCards();
+    }
+
+
+    function isRamadanDisplay() {
+
+      // Mode DISPLAY sepenuhnya mengikuti Script Property.
+      // Tidak ada lagi fallback otomatis berdasarkan tanggal Hijriah.
+      return RAMADAN_DISPLAY === true;
+
+    }
+
+
+    function getSubuhSirineDuration() {
+
+      try {
+
+        const schedules =
+          WEB_APP_STATE.audio.computedSchedules;
+
+        if (!(schedules instanceof Map)) {
+          return 0;
+        }
+
+        const computed =
+          schedules.get('SUBUH');
+
+        const events =
+          computed &&
+          Array.isArray(computed.events)
+            ? computed.events
+            : [];
+
+        const sirine =
+          events.find(function(event) {
+            return String(event.eventName || '')
+              .toUpperCase() === 'SIRINE';
+          });
+
+        if (!sirine) {
+          return 0;
+        }
+
+        const duration =
+          Number(sirine.endSec) -
+          Number(sirine.targetSec);
+
+        return Number.isFinite(duration) && duration > 0
+          ? duration
+          : 0;
+
+      } catch (error) {
+
+        return 0;
+
+      }
+
+    }
+
+
+    function updateRamadanPrayerCards() {
+
+      const subuhElement =
+        document.getElementById('prayer-subuh');
+
+      const terbitElement =
+        document.getElementById('prayer-terbit');
+
+      if (!subuhElement || !terbitElement) {
+        return;
+      }
+
+      // Kartu Ramadan tidak perlu dibangun ulang setiap detik.
+      // Render ulang hanya jika jadwal atau mode Ramadan berubah.
+      const renderKey =
+        String(isRamadanDisplay()) +
+        '|' +
+        String(subuhElement.dataset.rawPrayerTime || WEB_APP_STATE.prayer.schedule.subuh || '') +
+        '|' +
+        String(terbitElement.dataset.rawPrayerTime || WEB_APP_STATE.prayer.schedule.terbit || '');
+
+      if (updateRamadanPrayerCards._lastRenderKey === renderKey) {
+        return;
+      }
+      updateRamadanPrayerCards._lastRenderKey = renderKey;
+
+      // Ambil nilai yang benar-benar berasal dari API/jadwal.
+      // Jangan pernah mengambil waktu dari innerText setelah display
+      // Ramadan mengubahnya menjadi waktu IMSAK.
+      const subuhRaw =
+        subuhElement.dataset.rawPrayerTime ||
+        WEB_APP_STATE.prayer.schedule.subuh ||
+        '';
+
+      const terbitRaw =
+        terbitElement.dataset.rawPrayerTime ||
+        WEB_APP_STATE.prayer.schedule.terbit ||
+        '';
+
+      const parts =
+        String(subuhRaw).split(':');
+
+      if (parts.length < 2) {
+        return;
+      }
+
+      const subuhSec =
+        Number(parts[0]) * 3600 +
+        Number(parts[1]) * 60;
+
+      if (!Number.isFinite(subuhSec)) {
+        return;
+      }
+
+      const subuhCard = subuhElement.closest('.prayer-card');
+      const subuhIcon = subuhCard?.querySelector('.prayer-icon img');
+
+      const terbitCard = terbitElement.closest('.prayer-card');
+      const terbitIcon = terbitCard?.querySelector('.prayer-icon img');
+
+      if (subuhCard) {
+        subuhCard.classList.remove('ramadan-imsak');
+      }
+
+      if (terbitCard) {
+        terbitCard.classList.remove('ramadan-subuh-display');
+      }
+
+      if (subuhIcon) {
+        subuhIcon.src = "https://cdn-icons-png.flaticon.com/512/1113/1113739.png";
+        subuhIcon.alt = 'Imsak';
+      }
+
+      const firstName =
+        subuhElement
+          .closest('.prayer-card')
+          ?.querySelector('.prayer-name');
+
+      const secondName =
+        terbitElement
+          .closest('.prayer-card')
+          ?.querySelector('.prayer-name');
+
+      if (!isRamadanDisplay()) {
+
+        if (subuhIcon) {
+          subuhIcon.src = "https://cdn-icons-png.flaticon.com/512/4814/4814275.png";
+          subuhIcon.alt = 'Subuh';
+        }
+
+        if (terbitIcon) {
+          terbitIcon.src = "https://cdn-icons-png.flaticon.com/512/615/615594.png";
+          terbitIcon.alt = 'Terbit';
+        }
+
+        if (firstName) {
+          firstName.innerText = 'SUBUH';
+        }
+
+        if (secondName) {
+          secondName.innerText = 'TERBIT';
+        }
+
+        subuhElement.innerText = subuhRaw;
+        terbitElement.innerText = terbitRaw;
+        return;
+
+      }
+
+      const imsakSec =
+        subuhSec - (10 * 60);
+
+      const normalizedImsakSec =
+        (imsakSec + 86400) % 86400;
+
+      const imsakTime =
+        String(Math.floor(normalizedImsakSec / 3600))
+          .padStart(2, '0') +
+        ':' +
+        String(Math.floor((normalizedImsakSec % 3600) / 60))
+          .padStart(2, '0');
+
+      // Hanya tampilan visual yang berubah.
+      // data-prayer tetap SUBUH dan TERBIT agar audio/scheduler tidak berubah.
+      if (subuhCard) {
+        subuhCard.classList.add('ramadan-imsak');
+      }
+
+      if (terbitCard) {
+        terbitCard.classList.add('ramadan-subuh-display');
+      }
+
+      if (terbitIcon) {
+        terbitIcon.src = "https://cdn-icons-png.flaticon.com/512/4814/4814275.png";
+        terbitIcon.alt = 'Subuh';
+      }
+
+      if (firstName) {
+        firstName.innerText = 'IMSAK';
+      }
+
+      if (secondName) {
+        secondName.innerText = 'SUBUH';
+      }
+
+      subuhElement.innerText = imsakTime;
+      terbitElement.innerText = subuhRaw;
+
+    }
+
+
+
+// =========================================================
+// HIGHLIGHT KARTU SHOLAT
+// LOGIKA FINAL
+//
+// RAMADAN:
+// IMSAK → SUBUH → DZUHUR → ASHAR → MAGRIB → ISYA → SUBUH → IMSAK
+//
+// NON-RAMADAN:
+// SUBUH → TERBIT → DZUHUR → ASHAR → MAGRIB → ISYA → SUBUH
+//
+// Fungsi ini HANYA mengatur class active-prayer.
+// Tidak mengubah AUDIO / COUNTDOWN / SCHEDULER.
+// =========================================================
+
+function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerName) {
+
+  try {
+
+    if (!Array.isArray(prayerList) || prayerList.length === 0) {
+      return;
+    }
+
+    const computedSchedules =
+      WEB_APP_STATE.audio.computedSchedules instanceof Map
+        ? WEB_APP_STATE.audio.computedSchedules
+        : new Map();
+
+    function getIqomahEndSec(prayerName, fallbackSec) {
+
+      const computed = computedSchedules.get(prayerName);
+
+      const events =
+        computed && Array.isArray(computed.events)
+          ? computed.events
+          : [];
+
+      const iqomahEvent =
+        events.find(function(event) {
+          return String(event.eventName || '').toUpperCase() === 'IQOMAH';
+        });
+
+      if (
+        iqomahEvent &&
+        Number.isFinite(Number(iqomahEvent.endSec))
+      ) {
+        return Number(iqomahEvent.endSec);
+      }
+
+      return fallbackSec;
+    }
+
+    function getPrayerSec(name) {
+
+      const prayer =
+        prayerList.find(function(p) {
+          return p.name === name;
+        });
+
+      return prayer
+        ? Number(prayer.seconds)
+        : null;
+    }
+
+    const subuhSec   = getPrayerSec('SUBUH');
+    const terbitSec  = getPrayerSec('TERBIT');
+    const dzuhurSec  = getPrayerSec('DZUHUR');
+    const asharSec   = getPrayerSec('ASHAR');
+    const maghribSec = getPrayerSec('MAGHRIB');
+    const isyaSec    = getPrayerSec('ISYA');
+
+    if (
+      !Number.isFinite(subuhSec) ||
+      !Number.isFinite(dzuhurSec) ||
+      !Number.isFinite(asharSec) ||
+      !Number.isFinite(maghribSec) ||
+      !Number.isFinite(isyaSec)
+    ) {
+      return;
+    }
+
+    const subuhIqomahEnd =
+      getIqomahEndSec(
+        'SUBUH',
+        subuhSec + (5 * 60) + 180
+      );
+
+    const dzuhurIqomahEnd =
+      getIqomahEndSec(
+        'DZUHUR',
+        dzuhurSec + (5 * 60) + 180
+      );
+
+    const asharIqomahEnd =
+      getIqomahEndSec(
+        'ASHAR',
+        asharSec + (5 * 60) + 180
+      );
+
+    const maghribIqomahEnd =
+      getIqomahEndSec(
+        'MAGHRIB',
+        maghribSec + (5 * 60) + 180
+      );
+
+    const isyaIqomahEnd =
+      getIqomahEndSec(
+        'ISYA',
+        isyaSec + (5 * 60) + 180
+      );
+
+    const batasSubuh =
+      subuhIqomahEnd + (15 * 60);
+
+    const batasDzuhur =
+      dzuhurIqomahEnd + (15 * 60);
+
+    const batasAshar =
+      asharIqomahEnd + (15 * 60);
+
+    const batasMaghrib =
+      maghribIqomahEnd + (15 * 60);
+
+    const batasIsya =
+      isyaIqomahEnd + (15 * 60);
+
+    let targetPrayerName = null;
+
+    // Jika countdown sudah menentukan state aktif, kartu mengikuti
+    // state yang sama agar tidak terjadi perpindahan pada waktu berbeda.
+    if (synchronizedPrayerName) {
+      targetPrayerName = synchronizedPrayerName;
+
+      // Label Jumat adalah JUM'AT hanya untuk tampilan.
+      // Kunci kartu tetap DZUHUR agar class active-prayer
+      // selalu berpindah ke kartu yang benar.
+      if (
+        isFridayWita() &&
+        String(targetPrayerName || '').trim().toUpperCase() === "JUM'AT"
+      ) {
+        targetPrayerName = 'DZUHUR';
+      }
+    }
+
+    // =======================================================
+    // RAMADAN
+    // =======================================================
+
+    if (isRamadanDisplay()) {
+
+      const imsakSec =
+        subuhSec - (10 * 60);
+
+      const sirineDuration =
+        getSubuhSirineDuration();
+
+      // Jika audio schedule belum tersedia, jangan mengunci
+      // kartu IMSAK sepanjang hari. Gunakan fallback pendek.
+      const imsakSirineDuration =
+        sirineDuration > 0
+          ? sirineDuration
+          : 60;
+
+      const imsakSirineEnd =
+        imsakSec + imsakSirineDuration;
+
+      // 25 menit sebelum IMSAK:
+      // countdown mulai masuk fase MENUJU IMSAK dan
+      // highlight berpindah dari SUBUH ke IMSAK.
+      const highlightImsakStart =
+        imsakSec - (15 * 60);
+
+      // -----------------------------------------------------
+      // IMSAK
+      // -----------------------------------------------------
+
+      if (
+        nowSeconds >= highlightImsakStart &&
+        nowSeconds < imsakSirineEnd
+      ) {
+
+        targetPrayerName = 'SUBUH';
+
+      }
+
+      // -----------------------------------------------------
+      // SUBUH
+      // Setelah sirine IMSAK selesai sampai
+      // IQOMAH SUBUH selesai + 15 menit.
+      //
+      // Visual SUBUH = data-prayer TERBIT.
+      // -----------------------------------------------------
+
+      else if (
+        nowSeconds >= imsakSirineEnd &&
+        nowSeconds < batasSubuh
+      ) {
+
+        targetPrayerName = 'TERBIT';
+
+      }
+
+      // -----------------------------------------------------
+      // DZUHUR
+      // -----------------------------------------------------
+
+      else if (
+        nowSeconds >= batasSubuh &&
+        nowSeconds < batasDzuhur
+      ) {
+
+        targetPrayerName = 'DZUHUR';
+
+      }
+
+      // -----------------------------------------------------
+      // ASHAR
+      // -----------------------------------------------------
+
+      else if (
+        nowSeconds >= batasDzuhur &&
+        nowSeconds < batasAshar
+      ) {
+
+        targetPrayerName = 'ASHAR';
+
+      }
+
+      // -----------------------------------------------------
+      // MAGHRIB
+      // -----------------------------------------------------
+
+      else if (
+        nowSeconds >= batasAshar &&
+        nowSeconds < batasMaghrib
+      ) {
+
+        targetPrayerName = 'MAGHRIB';
+
+      }
+
+      // -----------------------------------------------------
+      // ISYA
+      // -----------------------------------------------------
+
+      else if (
+        nowSeconds >= batasMaghrib &&
+        nowSeconds < batasIsya
+      ) {
+
+        targetPrayerName = 'ISYA';
+
+      }
+
+      // -----------------------------------------------------
+      // SUBUH SETELAH ISYA
+      //
+      // Tetap SUBUH sampai 5 menit menjelang IMSAK.
+      // Visual SUBUH = data-prayer TERBIT.
+      // -----------------------------------------------------
+
+      else {
+
+        targetPrayerName = 'TERBIT';
+
+      }
+
+    }
+
+    // =======================================================
+    // NON-RAMADAN
+    // =======================================================
+
+    else {
+
+      // SUBUH setelah ISYA dan sampai batas SUBUH.
+      if (
+        nowSeconds >= batasIsya ||
+        nowSeconds < batasSubuh
+      ) {
+
+        targetPrayerName = 'SUBUH';
+
+      }
+
+      // TERBIT sampai waktu TERBIT.
+      else if (
+        Number.isFinite(terbitSec) &&
+        nowSeconds >= batasSubuh &&
+        nowSeconds < terbitSec
+      ) {
+
+        targetPrayerName = 'TERBIT';
+
+      }
+
+      // DZUHUR.
+      else if (
+        Number.isFinite(terbitSec) &&
+        nowSeconds >= terbitSec &&
+        nowSeconds < batasDzuhur
+      ) {
+
+        targetPrayerName = 'DZUHUR';
+
+      }
+
+      // ASHAR.
+      else if (
+        nowSeconds >= batasDzuhur &&
+        nowSeconds < batasAshar
+      ) {
+
+        targetPrayerName = 'ASHAR';
+
+      }
+
+      // MAGHRIB.
+      else if (
+        nowSeconds >= batasAshar &&
+        nowSeconds < batasMaghrib
+      ) {
+
+        targetPrayerName = 'MAGHRIB';
+
+      }
+
+      // ISYA.
+      else if (
+        nowSeconds >= batasMaghrib &&
+        nowSeconds < batasIsya
+      ) {
+
+        targetPrayerName = 'ISYA';
+
+      }
+
+      else {
+
+        targetPrayerName = 'SUBUH';
+
+      }
+
+    }
+
+    // =======================================================
+    // HARI JUM'AT
+    //
+    // Tidak ada aturan highlight khusus untuk Jumat.
+    // Siklus dan timing mengikuti hari biasa.
+    // Satu-satunya perbedaan adalah label kartu internal DZUHUR
+    // ditampilkan sebagai JUM'AT oleh updateFridayPrayerDisplay().
+    // =======================================================
+    // =======================================================
+    // TERAPKAN CLASS ACTIVE
+    // =======================================================
+
+    if (
+      targetPrayerName !== lastActivePrayerCardName
+    ) {
+
+      if (lastActivePrayerCardName) {
+
+        const oldCard =
+          document.querySelector(
+            `.prayer-card[data-prayer="${lastActivePrayerCardName}"]`
+          );
+
+        if (oldCard) {
+          oldCard.classList.remove('active-prayer');
+        }
+
+      }
+
+      if (targetPrayerName) {
+
+        const activeCard =
+          document.querySelector(
+            `.prayer-card[data-prayer="${targetPrayerName}"]`
+          );
+
+        if (activeCard) {
+          activeCard.classList.add('active-prayer');
+        }
+
+      }
+
+      lastActivePrayerCardName =
+        targetPrayerName || null;
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      'HIGHLIGHT ERROR:',
+      error
+    );
+
+  }
+
+}
+
+
+    // =========================================================
+    // MODE DISPLAY COUNTDOWN
+    // =========================================================
+
+    function setPanelDisplayMode(mode) {
+      const normalized =
+        String(mode || 'OFF')
+          .trim()
+          .toUpperCase();
+
+      // Panels!C2 adalah MAIN CONTROL.
+      // AUTO = black screen mengikuti countdown sholat.
+      // OFF  = black screen selalu dimatikan.
+      // Tidak bergantung pada RAMADAN_DISPLAY.
+      WEB_APP_STATE.panel.mode =
+        normalized === 'AUTO'
+          ? 'AUTO'
+          : 'OFF';
+
+      // C2 tidak boleh mematikan black screen yang dikendalikan C22.
+      // C22 = kontrol utama IQOMAH BLACK. C2 hanya disimpan sebagai
+      // state kompatibilitas dan tidak boleh melakukan repaint/toggle
+      // terhadap class panel-countdown-auto.
+      //
+      // Sebelumnya C2=OFF menghapus class hitam setiap updateUI()
+      // (fetchSheetData berjalan berkala), lalu updatePrayerCountdown()
+      // memasangnya lagi pada tick berikutnya. Akibatnya layar terlihat
+      // bolak-balik NORMAL -> HITAM -> NORMAL.
+      // Status visual hanya boleh diubah oleh setCountdownBlackMode().
+
+    }
+
+    function setPanelIqomahBlackMode(mode) {
+      const normalized =
+        String(mode || 'OFF')
+          .trim()
+          .toUpperCase();
+
+      WEB_APP_STATE.panel.iqomahMode =
+        normalized === 'AUTO'
+          ? 'AUTO'
+          : normalized === 'SLEEP'
+            ? 'SLEEP'
+            : 'OFF';
+
+      document.body.classList.remove('panel-sleep-mode');
+
+      // Saat operator mengganti C22, lepaskan mute SLEEP terlebih dahulu.
+      // Kontrol berikutnya akan kembali mengikuti mode normal.
+      setSleepAudioMute_(false);
+
+      console.log(
+        'PANELS C22 MODE =',
+        WEB_APP_STATE.panel.iqomahMode
+      );
+    }
+
+
+    function applyDisplayTheme(theme) {
+  const normalized =
+    String(theme || 'HIJAU').trim().toUpperCase();
+
+  const safeTheme =
+    normalized === 'MERAH'
+      ? 'merah'
+      : normalized === 'KUNING'
+        ? 'kuning'
+        : 'hijau';
+
+  document.documentElement.setAttribute(
+    'data-display-theme',
+    safeTheme
+  );
+
+  document.body.setAttribute(
+    'data-display-theme',
+    safeTheme
+  );
+
+  WEB_APP_STATE.displayTheme = safeTheme;
+
+  // KUNCI LANGSUNG pada elemen DOM yang membentuk frame area Running Text.
+  // Inline style dipakai sebagai lapisan terakhir agar aturan CSS lama,
+  // cache selector, atau specificity lain tidak dapat mengembalikan hijau.
+  const themeColorMap = {
+    hijau: '#00ffaa',
+    merah: '#ff5a5f',
+    kuning: '#ffcc00'
+  };
+
+  const frameColor = themeColorMap[safeTheme] || themeColorMap.hijau;
+
+  // Kunci border sebagai SHORTHAND + setiap sisi.
+  // Ini memastikan frame Running Text tidak mewarisi border hijau
+  // dari aturan CSS lama. Perubahan hanya visual; audio/scheduler aman.
+  document.querySelectorAll(
+    '.screen-container, .center-panel'
+  ).forEach(function(el) {
+    el.style.setProperty(
+      'border',
+      '0.2vh solid ' + frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-color',
+      frameColor,
+      'important'
+    );
+  });
+
+  // FRAME FOOTER adalah frame hijau yang terlihat di bagian paling bawah.
+  // panels!C18 mengontrol frame ini secara langsung.
+  document.querySelectorAll('.footer').forEach(function(el) {
+    el.style.setProperty(
+      'border',
+      '0.2vh solid ' + frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-top-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-right-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-bottom-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-left-color',
+      frameColor,
+      'important'
+    );
+  });
+
+  document.querySelectorAll(
+    '.center-panel .event-banner'
+  ).forEach(function(el) {
+    el.style.setProperty(
+      'border',
+      '0.2vh solid ' + frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-top-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-right-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-bottom-color',
+      frameColor,
+      'important'
+    );
+    el.style.setProperty(
+      'border-left-color',
+      frameColor,
+      'important'
+    );
+  });
+
+  console.log(
+    'DISPLAY THEME =',
+    safeTheme,
+    'FRAME COLOR =',
+    frameColor
+  );
+}
+
+
+let displayThemeRequestInFlight = null;
+
+function refreshDisplayTheme() {
+  if (displayThemeRequestInFlight) {
+    return displayThemeRequestInFlight;
+  }
+
+  displayThemeRequestInFlight =
+    gasApiCall('getDisplayThemeSetting')
+    .then(function(themeData) {
+      const themeValue =
+        typeof themeData === 'string'
+          ? themeData
+          : (
+              themeData &&
+              themeData.DisplayTheme !== undefined
+                ? themeData.DisplayTheme
+                : themeData && themeData.theme
+            );
+
+      if (!themeValue) {
+        throw new Error('Nilai panels!C18 tidak diterima dari API.');
+      }
+
+      applyDisplayTheme(themeValue);
+      console.log(
+        'DISPLAY THEME C18 TERKONFIRMASI:',
+        String(themeValue).trim().toUpperCase()
+      );
+
+      return themeValue;
+    })
+    .catch(function(error) {
+      console.warn(
+        'DISPLAY THEME C18 BELUM TERBACA:',
+        error && error.message ? error.message : error
+      );
+      throw error;
+    })
+    .finally(function() {
+      displayThemeRequestInFlight = null;
+    });
+
+  // Kembalikan Promise agar pemanggil dapat menangani hasil refresh.
+  // Tanpa return ini, refreshDisplayTheme() menghasilkan undefined
+  // dan pemanggilan .catch() memicu TypeError.
+  return displayThemeRequestInFlight;
+}
+
+
+function setCountdownBlackMode(enabled) {
+      // Panels!C22 menjadi MAIN CONTROL untuk mode hitam IQOMAH.
+      // AUTO = hitam 2 menit sebelum IQOMAH sampai 15 menit
+      //        setelah AUDIO IQOMAH selesai.
+      // OFF  = tampilan normal.
+      const shouldBlack =
+        WEB_APP_STATE.panel.iqomahMode === 'AUTO' &&
+        Boolean(enabled);
+
+      WEB_APP_STATE.panel.countdownBlack =
+        shouldBlack;
+
+      document.body.classList.toggle(
+        'panel-countdown-auto',
+        shouldBlack
+      );
+    }
+
+
+    // =========================================================
+    // SLEEP MODE - AUDIO MUTE
+    // =========================================================
+    // SLEEP hanya membisukan output audio utama.
+    // Audio TIDAK dipause, currentTime TIDAK di-reset, dan scheduler
+    // tetap berjalan. Karena itu audio yang sudah berjalan tidak replay
+    // atau terpotong ketika SLEEP berakhir.
+    let sleepAudioMuted = false;
+
+    function setSleepAudioMute_(shouldMute) {
+      const mute = Boolean(shouldMute);
+      const audio = getAudioElement();
+
+      sleepAudioMuted = mute;
+
+      if (!audio) return;
+
+      try {
+        audio.muted = mute;
+      } catch (error) {
+        console.warn(
+          'SLEEP AUDIO MUTE GAGAL:',
+          error
+        );
+      }
+    }
+
+
+    // =========================================================
+    // SLEEP MODE - NEXT QIROAH WAKE TARGET
+    // =========================================================
+    // Mengikuti qiroah yang benar-benar dibangun oleh scheduler audio.
+    // Karena qiroah dipilih dari Sheet Adzan, mode SLEEP tidak bergantung
+    // pada RAMADAN_DISPLAY dan tidak memakai waktu qiroah hardcode.
+    function getNextQiroahTargetSec_(nowSeconds) {
+      const schedules = WEB_APP_STATE.audio.computedSchedules;
+
+      if (!(schedules instanceof Map)) {
+        return null;
+      }
+
+      let nextTarget = null;
+
+      schedules.forEach(function(schedule) {
+        const events =
+          schedule && Array.isArray(schedule.events)
+            ? schedule.events
+            : [];
+
+        events.forEach(function(event) {
+          const eventName =
+            String(event.eventName || '').trim().toUpperCase();
+
+          const target =
+            Number(event.targetSec);
+
+          if (
+            eventName.indexOf('QIROAH') !== 0 ||
+            !Number.isFinite(target)
+          ) {
+            return;
+          }
+
+          if (
+            target > Number(nowSeconds) &&
+            (nextTarget === null || target < nextTarget)
+          ) {
+            nextTarget = target;
+          }
+        });
+      });
+
+      return nextTarget;
+    }
+
+    function updatePanelSleepMode_(
+      sleepAfterIqomah,
+      nowSeconds
+    ) {
+      let shouldSleep = false;
+
+      if (
+        WEB_APP_STATE.panel.iqomahMode === 'SLEEP' &&
+        sleepAfterIqomah
+      ) {
+        const nextQiroahTarget =
+          getNextQiroahTargetSec_(nowSeconds);
+
+        const wakeSec =
+          nextQiroahTarget === null
+            ? null
+            : nextQiroahTarget - (5 * 60);
+
+        shouldSleep =
+          wakeSec === null ||
+          Number(nowSeconds) < wakeSec;
+
+        // Jangan logging setiap detik di TV/Chrome.
+        // Console spam dapat menahan main thread dan membuat
+        // jam/tampilan terlihat berhenti.
+      }
+
+      document.body.classList.toggle(
+        'panel-sleep-mode',
+        shouldSleep
+      );
+
+      // SLEEP adalah prioritas mute sementara untuk audio utama.
+      // Saat wake, mute dilepas tanpa pause/replay audio.
+      setSleepAudioMute_(shouldSleep);
+
+      // updatePrayerCountdown() sudah mengevaluasi YouTube sekali
+      // pada tick yang sama. Di sini hanya lakukan evaluasi tambahan
+      // saat status SLEEP benar-benar berubah, agar tidak melakukan
+      // scan seluruh computedSchedules dua kali setiap detik.
+      const sleepStateChanged =
+        sleepAudioMuted !== shouldSleep;
+
+      if (sleepStateChanged) {
+        try {
+          updateYouTubeAudioStop(
+            nowSeconds,
+            WEB_APP_STATE.dateKey || getApiDate()
+          );
+        } catch (youtubeError) {
+          console.warn(
+            'SLEEP: sinkronisasi YouTube gagal:',
+            youtubeError
+          );
+        }
+      }
+
+      return shouldSleep;
+    }
+
+    // =========================================================
+    // COUNTDOWN SHOLAT
+    // =========================================================
+
+    function getCountdownCity_() {
+      // Dipertahankan untuk kebutuhan panel/header lain.
+      try {
+        return String(
+          window.__MASJID_HEADER_CITY__ || ''
+        ).trim();
+      } catch (e) {
+        return '';
+      }
+    }
+
+    // Judul countdown kembali ke format asli:
+    // MENUJU SHOLAT ASHAR
+    // SHOLAT ASHAR
+    // tanpa tambahan nama kota.
+    function formatCountdownPrayerTitle_(prayerName, menuju) {
+      const name =
+        String(prayerName || '').trim().toUpperCase();
+
+      if (!name) {
+        return menuju ? 'MENUJU SHOLAT' : 'SHOLAT';
+      }
+
+      return (
+        menuju ? 'MENUJU SHOLAT ' + name : 'WAKTU'
+      );
+    }
+
+    // Judul khusus countdown juga kembali tanpa nama kota.
+    // Normalisasi keras untuk fase Ramadan Maghrib:
+    // semua variasi lama seperti "WAKTU BERBUKA MAGRIB",
+    // "WAKTU BUKA MAGRIB", atau "BUKA PUASA MAGRIB"
+    // wajib ditampilkan sebagai "WAKTU BERBUKA PUASA".
+    function normalizeCountdownDisplayTitle_(value) {
+      let title = String(value || '')
+        .replace(/\\s+/g, ' ')
+        .trim()
+        .toUpperCase();
+
+      // Normalisasi GLOBAL, bukan hanya judul countdown.
+      // Semua teks lama yang menyebut "BUKA/WAKTU BERBUKA MAGRIB"
+      // harus hilang dari layar.
+      if (
+        /^(WAKTU\\s+)?BERBUKA\\s+MAGHRIB$/.test(title) ||
+        /^(WAKTU\\s+)?BERBUKA\\s+MAGRIB$/.test(title) ||
+        /^WAKTU\\s+BUKA\\s+MAGHRIB$/.test(title) ||
+        /^WAKTU\\s+BUKA\\s+MAGRIB$/.test(title) ||
+        /^BUKA\\s+PUASA\\s+MAGHRIB$/.test(title) ||
+        /^BUKA\\s+PUASA\\s+MAGRIB$/.test(title)
+      ) {
+        return 'WAKTU BERBUKA PUASA';
+      }
+
+      return title;
+    }
+
+    function normalizeVisibleRamadanMaghribText_(value) {
+      const text = String(value || '');
+
+      // Semua variasi lama/typo Ramadan Maghrib dinormalisasi ke
+      // SATU teks resmi: WAKTU BERBUKA PUASA.
+      return text
+        .replace(/WAKTU\s+BERBUKA\s+PUASA\s+(?:MAGHRIB|MAGRIB)/gi, 'WAKTU BERBUKA PUASA')
+        .replace(/WAKTU\s+BERBUKA\s+(?:MAGHRIB|MAGRIB)/gi, 'WAKTU BERBUKA PUASA')
+        .replace(/WAKTU\s+BUKA\s+(?:MAGHRIB|MAGRIB)/gi, 'WAKTU BERBUKA PUASA')
+        .replace(/BUKA\s+PUASA\s+(?:MAGHRIB|MAGRIB)/gi, 'WAKTU BERBUKA PUASA');
+    }
+    // PENGUNCI TAMPILAN TERAKHIR:
+    // Jika ada sumber lama/cached/API yang masih menulis
+    // "WAKTU BERBUKA MAGHRIB/MAGRIB" langsung ke DOM,
+    // koreksi dilakukan tepat sebelum teks terlihat di TV.
+    function installRamadanMaghribTextGuard_() {
+      // Normalisasi dilakukan langsung saat teks ditulis ke DOM.
+      // Jangan memasang MutationObserver di elemen countdown/event:
+      // elemen-elemen ini berubah setiap detik dan observer dapat
+      // menambah pekerjaan main-thread pada TV/Chrome.
+      if (window.__RAMADAN_MAGHRIB_TEXT_GUARD__) return;
+      window.__RAMADAN_MAGHRIB_TEXT_GUARD__ = true;
+
+      [
+        document.getElementById('event-running'),
+        document.getElementById('countdown-title'),
+        document.getElementById('panel-black-title'),
+        document.getElementById('panel-black-prayer')
+      ].forEach(function(node) {
+        if (!node) return;
+        const current = String(node.textContent || '');
+        const fixed = normalizeVisibleRamadanMaghribText_(current);
+        if (fixed !== current) {
+          node.textContent = fixed;
+        }
+      });
+    }
+
+    function formatCountdownSpecialTitle_(label) {
+      return normalizeCountdownDisplayTitle_(label);
+    }
+
+    // Tidak lagi menambahkan kota pada judul countdown.
+    function ensureCountdownCityTitle_(title) {
+      return normalizeCountdownDisplayTitle_(title);
+    }
+
+    function updatePrayerCountdown() {
+      installRamadanMaghribTextGuard_();
+
+      readPrayerTimesFromUI();
+      updateFridayPrayerDisplay();
+      updateRamadanPrayerCards();
+
+      const wita =
+        getWitaTime();
+
+      const nowDate =
+        wita.year +
+        '-' +
+        wita.month +
+        '-' +
+        wita.day;
+
+      WEB_APP_STATE.dateKey =
+        nowDate;
+
+      WEB_APP_STATE
+        .countdown
+        .dateKey =
+        nowDate;
+
+      resetAudioForNewDate(
+        nowDate
+      );
+
+      const nowSeconds =
+        Number(wita.hour) * 3600 +
+        Number(wita.minute) * 60 +
+        Number(wita.second);
+
+      const rawPrayers = [
+
+        {
+          name: 'SUBUH',
+          time:
+            WEB_APP_STATE.prayer.schedule.subuh,
+          hasIqomah: true,
+          iqomahDelay: 5 * 60
+        },
+
+        {
+          name: 'TERBIT',
+          time:
+            WEB_APP_STATE.prayer.schedule.terbit,
+          hasIqomah: false
+        },
+
+        {
+          name: 'DZUHUR',
+          time:
+            WEB_APP_STATE.prayer.schedule.dzuhur,
+          hasIqomah: true,
+          iqomahDelay: 5 * 60
+        },
+
+        {
+          name: 'ASHAR',
+          time:
+            WEB_APP_STATE.prayer.schedule.ashar,
+          hasIqomah: true,
+          iqomahDelay: 5 * 60
+        },
+
+        {
+          name: 'MAGHRIB',
+          time:
+            WEB_APP_STATE.prayer.schedule.maghrib,
+          hasIqomah: true,
+          iqomahDelay: 5 * 60
+        },
+
+        {
+          name: 'ISYA',
+          time:
+            WEB_APP_STATE.prayer.schedule.isya,
+          hasIqomah: true,
+          iqomahDelay: 5 * 60
+        }
+
+      ];
+
+      const validPrayers =
+        rawPrayers.filter(
+          function(p) {
+
+            const value =
+              String(p.time || '').trim();
+
+            // 00:00 adalah placeholder HTML, bukan jadwal sholat.
+            // Jangan pernah memilih SUBUH 00:00 sebagai target.
+            return /^([01]?\d|2[0-3]):[0-5]\d$/.test(value) &&
+              value !== '00:00';
+
+          }
+        );
+
+      if (
+        validPrayers.length === 0
+      ) {
+
+        // PRIORITAS TERAKHIR SEBELUM API:
+        // 1. GitHub prayer-cache.json (background service)
+        // 2. localStorage cache kartu
+        // 3. Apps Script / MuslimKita sebagai refresh background
+        //
+        // Ini juga menangani kondisi ketika cache GitHub sudah tersedia
+        // tetapi proses updateUI belum sempat memanggil loader.
+        if (!prayerGitHubCacheRequestInFlight) {
+          prayerGitHubCacheRequestInFlight = true;
+
+          loadGitHubPrayerCache()
+            .then(function(githubLoaded) {
+              prayerGitHubCacheRequestInFlight = false;
+
+              if (githubLoaded) {
+                console.log(
+                  'COUNTDOWN: memakai jadwal dari GitHub cache tanpa menunggu API.'
+                );
+                return updatePrayerCountdown();
+              }
+
+              if (loadPrayerCardCache()) {
+                console.log(
+                  'COUNTDOWN: memakai jadwal dari localStorage cache.'
+                );
+                return updatePrayerCountdown();
+              }
+
+              console.warn(
+                'COUNTDOWN: cache GitHub/local belum tersedia; refresh API di background.'
+              );
+
+              // Jangan membuat request API baru setiap tick countdown.
+              // fetchPrayerSchedule() sendiri menjadwalkan retry bertahap.
+              if (
+                !prayerScheduleRequestInFlight &&
+                !prayerScheduleRetryTimer
+              ) {
+                fetchPrayerSchedule();
+              }
+            })
+            .catch(function(error) {
+              prayerGitHubCacheRequestInFlight = false;
+
+              console.warn(
+                'COUNTDOWN: gagal membaca cache GitHub:',
+                error && error.message ? error.message : error
+              );
+
+              if (loadPrayerCardCache()) {
+                return updatePrayerCountdown();
+              }
+
+              // Retry API tetap dikendalikan oleh timer backoff.
+              if (
+                !prayerScheduleRequestInFlight &&
+                !prayerScheduleRetryTimer
+              ) {
+                fetchPrayerSchedule();
+              }
+            });
+        }
+
+
+        // JANGAN kosongkan countdown saat cache sedang dimuat.
+        // Tampilan awal harus tetap menuju sholat dan langsung memakai
+        // jadwal terakhir yang tersedia. Cache GitHub/local/API berjalan
+        // di belakang layar dan akan memanggil updatePrayerCountdown()
+        // kembali setelah jadwal tersedia.
+        // Jangan mematikan mode hitam C22 hanya karena jadwal
+        // sedang kosong sementara saat refresh/cache/API berjalan.
+        // Status layar dipertahankan sampai jadwal baru benar-benar tersedia.
+        // Ini mencegah layar bolak-balik HITAM -> NORMAL -> HITAM.
+        processAudioQueue();
+
+        const countdownTitle =
+          document.getElementById('countdown-title');
+
+        const countdown =
+          document.getElementById('countdown');
+
+        if (
+          countdownTitle &&
+          !String(countdownTitle.innerText || '').trim()
+        ) {
+          countdownTitle.innerText =
+            'MENUJU SHOLAT';
+        }
+
+        if (
+          countdown &&
+          !String(countdown.innerText || '').trim()
+        ) {
+          countdown.innerText =
+            '00:00:00';
+        }
+
+        WEB_APP_STATE.countdown.active = null;
+        return;
+
+      }
+
+      // =======================================================
+      // SATU SUMBER WAKTU UNTUK KARTU + COUNTDOWN
+      //
+      // prayerList dibangun dari WEB_APP_STATE.prayer.schedule,
+      // bukan dari teks visual kartu. Ini mencegah mode Ramadan
+      // (IMSAK/SUBUH) atau perubahan label kartu mengacaukan target
+      // countdown.
+      // =======================================================
+      const prayerList =
+        validPrayers
+          .map(function(p) {
+
+            const parts =
+              String(p.time).trim().split(':');
+
+            const h = Number(parts[0]);
+            const m = Number(parts[1]);
+
+            if (
+              !Number.isFinite(h) ||
+              !Number.isFinite(m) ||
+              h < 0 ||
+              h > 23 ||
+              m < 0 ||
+              m > 59
+            ) {
+              return null;
+            }
+
+            return {
+              ...p,
+              seconds:
+                h * 3600 +
+                m * 60
+            };
+
+          })
+          .filter(Boolean)
+          .sort(function(a, b) {
+            return a.seconds - b.seconds;
+          });
+
+      // Jangan console.log setiap detik. Console DevTools pada TV/Chrome
+      // dapat menjadi bottleneck utama dan membuat animasi terlihat putus-putus.
+
+      // Window layar hitam Panel AUTO.
+      // Mulai setelah Adzan selesai (fase MENUJU IQOMAH)
+      // dan berakhir 15 menit setelah IQOMAH selesai.
+      // Window layar hitam Panel AUTO:
+// mulai 2 menit sebelum waktu IQOMAH
+// dan kembali normal 15 menit setelah waktu IQOMAH.
+// DISPLAY-ONLY; audio, YouTube, dan scheduler tetap sama.
+      let panelBlackWindow = false;
+      let panelSleepWindow = false;
+
+      // =======================================================
+      // AUDIO PROCESSING
+      // =======================================================
+      //
+      // prepareDailyAudioSchedule() adalah async. Memanggilnya setiap
+      // detik walaupun schedule sudah lengkap hanya membuat Promise baru
+      // dan pekerjaan microtask tambahan. Pada TV hal ini terus berulang
+      // sepanjang hari dan dapat membuat main thread tersendat.
+      //
+      // Schedule tetap dibuat sekali per tanggal; saat tanggal berubah
+      // resetAudioForNewDate() mengembalikan scheduleInitialized=false,
+      // sehingga blok ini otomatis membangun ulang schedule.
+      const audioScheduleWasReady =
+        WEB_APP_STATE.audio.scheduleInitialized === true;
+
+      if (!audioScheduleWasReady) {
+        prepareDailyAudioSchedule(
+          nowDate,
+          nowSeconds
+        );
+      } else {
+        // SCHEDULE sudah lengkap. triggerAudioEvent() sengaja menolak
+        // event yang masih di masa depan agar reload tidak membangun queue
+        // berisi seluruh rangkaian Maghrib/Isya sekaligus.
+        // Karena itu scheduler realtime harus membuka event berikutnya
+        // tepat ketika targetSec tercapai.
+        //
+        // Scan ini ringan (hanya computedSchedules yang sudah ada),
+        // tidak membangun ulang durasi/schedule dan tidak mencetak log
+        // setiap detik. Event yang sudah di-queue/played otomatis dilewati
+        // oleh queuedLocks/playedLocks.
+        try {
+          queueCurrentAudioCatchUp(
+            nowDate,
+            { silent: true }
+          );
+        } catch (audioRealtimeCatchUpError) {
+          console.warn(
+            'AUDIO REALTIME CATCH-UP ERROR:',
+            audioRealtimeCatchUpError
+          );
+        }
+      }
+
+      // AUDIO QUEUE TIDAK lagi diproses dari tick countdown.
+      // Queue mempunyai wake-timer/callback sendiri. Menjalankan
+      // processAudioQueue() setiap detik membuat jalur audio ikut
+      // mengambil main-thread tepat bersamaan dengan jam/countdown.
+      // Ini tidak mengubah timeline, urutan, GAP, atau durasi audio.
+
+      // =========================================================
+      // STYLE KHUSUS COUNTDOWN
+      // =========================================================
+      function formatCountdownTitleHtml_(title) {
+        const raw = normalizeVisibleRamadanMaghribText_(String(title || ''));
+        const escapeHtml = function(value) {
+          return String(value || '').replace(/[&<>]/g, function(ch) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;'}[ch];
+          });
+        };
+
+        // COUNTDOWN COLOR:
+        // - MENUJU IQOMAH = warna tema
+        // - MENUJU IMSAK = warna tema
+        // - MENUJU SHOLAT = putih, nama sholat = warna tema
+        // - ADZAN = putih, nama sholat berada pada timer dan = warna tema
+        // - MENUJU WAKTU = putih, BERBUKA = warna tema
+        // - WAKTU = putih, BERBUKA = warna tema
+        // - WAKTU IMSAK = seluruh judul mengikuti warna tema
+        const menujuSholat = raw.match(/^MENUJU SHOLAT (.+)$/i);
+        if (menujuSholat && menujuSholat[1]) {
+          return 'MENUJU SHOLAT<br><span class="countdown-title-prayer">' +
+            escapeHtml(menujuSholat[1].trim()) +
+            '</span>';
+        }
+
+        const menujuWaktu = raw.match(/^MENUJU WAKTU (BERBUKA)$/i);
+        if (menujuWaktu) {
+          return 'MENUJU WAKTU<br><span class="countdown-title-prayer">' +
+            escapeHtml(menujuWaktu[1]) +
+            '</span>';
+        }
+
+        if (/^MENUJU IQOMAH$/i.test(raw)) {
+          return '<span class="countdown-title-theme">' + escapeHtml(raw) + '</span>';
+        }
+
+        if (/^MENUJU IMSAK$/i.test(raw)) {
+          return '<span class="countdown-title-theme">' + escapeHtml(raw) + '</span>';
+        }
+
+        if (/^WAKTU IMSAK$/i.test(raw)) {
+          return '<span class="countdown-title-theme">' + escapeHtml(raw) + '</span>';
+        }
+
+        if (/^WAKTU BERBUKA$/i.test(raw)) {
+          return 'WAKTU<br><span class="countdown-title-prayer">BERBUKA</span>';
+        }
+
+        if (/^ADZAN$/i.test(raw)) {
+          return '<span class="countdown-title-white">ADZAN</span>';
+        }
+
+        return escapeHtml(raw);
+      }
+
+      function updateCountdownTitleStyle(title) {
+        const countdownTitle =
+          document.getElementById('countdown-title');
+
+        if (!countdownTitle) return;
+
+        countdownTitle.classList.remove(
+          'iqomah-title',
+          'imsak-time-title',
+          'waktu-sholat-title'
+        );
+
+        const countdownTimer =
+          document.getElementById('countdown');
+
+        if (countdownTimer) {
+          countdownTimer.classList.remove(
+            'waktu-sholat-prayer',
+            'countdown-prayer-theme'
+          );
+        }
+
+        const normalizedTitle =
+          String(title || '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toUpperCase();
+
+        if (normalizedTitle === 'WAKTU') {
+          countdownTitle.classList.add('waktu-sholat-title');
+          if (countdownTimer) {
+            countdownTimer.classList.add('waktu-sholat-prayer');
+          }
+        }
+
+        // ADZAN / IQOMAH menampilkan nama sholat pada baris timer.
+        // Nama sholat mengikuti warna tema, sedangkan angka countdown
+        // tetap putih.
+        if (
+          normalizedTitle === 'ADZAN' ||
+          normalizedTitle === 'IQOMAH'
+        ) {
+          if (countdownTimer) {
+            countdownTimer.classList.add('countdown-prayer-theme');
+          }
+        }
+
+        // WAKTU BERBUKA menampilkan PUASA pada baris timer.
+        // PUASA mengikuti warna tema.
+        if (normalizedTitle === 'WAKTU BERBUKA') {
+          if (countdownTimer) {
+            countdownTimer.classList.add('countdown-prayer-theme');
+          }
+        }
+
+        // WAKTU IMSAK menampilkan IMSAK pada baris timer.
+        // Tetap mengikuti warna tema.
+        // MENUJU IQOMAH dan MENUJU IMSAK sudah diberi warna tema
+        // langsung melalui formatCountdownTitleHtml_().
+      }
+
+      let activeState =
+        null;
+
+      // =======================================================
+      // COUNTDOWN FINAL
+      //
+      // RAMADAN:
+      // >25 menit sebelum SUBUH -> MENUJU SHOLAT SUBUH
+      // 25-10 menit sebelum SUBUH -> MENUJU IMSAK
+      // waktu IMSAK -> WAKTU / IMSAK
+      // setelah IMSAK -> MENUJU SHOLAT SUBUH
+      // waktu ADZAN -> ADZAN / SUBUH
+      // -> MENUJU IQOMAH -> IQOMAH
+      // -> +15 MENIT -> MENUJU DZUHUR -> ...
+      //
+      // ADZAN semua sholat:
+      // baris atas ADZAN, baris bawah nama sholat aktif.
+      //
+      // Audio scheduler TIDAK diubah.
+      // =======================================================
+
+      for (
+        let i = 0;
+        i < prayerList.length;
+        i++
+      ) {
+
+        const p =
+          prayerList[i];
+
+        // TERBIT hanya dipakai untuk kartu/highlight.
+        // Countdown tidak pernah berhenti di TERBIT.
+        if (p.name === 'TERBIT') {
+          continue;
+        }
+
+        const pSec =
+          p.seconds;
+
+        // =====================================================
+        // PENGAMAN FASE SHOLAT YANG SUDAH SELESAI
+        //
+        // Countdown tidak boleh tetap berada pada SUBUH/DZUHUR
+        // berjam-jam setelah waktunya lewat hanya karena data
+        // computed audio/iqomah belum tersedia atau tidak valid.
+        //
+        // Setelah 30 menit dari waktu sholat asli, fase countdown
+        // sholat tersebut dianggap selesai dan loop wajib mencari
+        // sholat berikutnya. Batas ini lebih panjang dari:
+        // Adzan + jeda iqomah + iqomah + 15 menit display.
+        // Audio scheduler tetap berjalan terpisah dan TIDAK diubah.
+        // =====================================================
+        const MAX_PRAYER_DISPLAY_AGE_SEC = 30 * 60;
+
+        // KHUSUS RAMADAN:
+        // Setelah fase WAKTU SHOLAT ASHAR (+15 menit setelah IQOMAH)
+        // berakhir, countdown tetap menampilkan MENUJU SHOLAT MAGHRIB
+        // sampai 5 menit sebelum waktu Maghrib.
+        // Karena jarak Ashar -> Maghrib bisa lebih dari 30 menit,
+        // Ashar harus tetap diproses sampai batas khusus tersebut.
+        let keepRamadanAsharUntilMaghrib = false;
+
+        if (
+          isRamadanDisplay() &&
+          p.name === 'ASHAR'
+        ) {
+          const maghribPrayerForAshar =
+            prayerList.find(function(prayer) {
+              return prayer.name === 'MAGHRIB';
+            });
+
+          if (maghribPrayerForAshar) {
+            const maghribFiveMinuteStartSec =
+              Number(maghribPrayerForAshar.seconds) - (5 * 60);
+
+            keepRamadanAsharUntilMaghrib =
+              nowSeconds < maghribFiveMinuteStartSec;
+          }
+        }
+
+        if (
+          nowSeconds >= pSec + MAX_PRAYER_DISPLAY_AGE_SEC &&
+          !keepRamadanAsharUntilMaghrib
+        ) {
+          continue;
+        }
+
+        const displayName =
+          isFridayWita() && p.name === 'DZUHUR'
+            ? "JUM'AT"
+            : p.name;
+
+        const computedSchedules =
+          WEB_APP_STATE.audio.computedSchedules instanceof Map
+            ? WEB_APP_STATE.audio.computedSchedules
+            : new Map();
+
+        const computed =
+          computedSchedules.get(p.name);
+
+        const events =
+          computed && Array.isArray(computed.events)
+            ? computed.events
+            : [];
+
+        const adzanEvent =
+          events.find(function(event) {
+            const eventName =
+              String(event.eventName || '').trim().toUpperCase();
+            return (
+              eventName === 'ADZAN' ||
+              eventName === 'ADZAN-BIASA' ||
+              eventName === 'ADZAN-SUBUH'
+            );
+          });
+
+        const doaEvent =
+          events.find(function(event) {
+            const eventName =
+              String(event.eventName || '').trim().toUpperCase();
+            return (
+              eventName === 'DOA' ||
+              eventName === 'DOA-ADZAN'
+            );
+          });
+
+        // DOA-ADZAN adalah batas awal countdown MENUJU IQOMAH.
+        // Countdown berjalan selama GAP DOA-ADZAN -> BEEP (3 menit)
+        // sampai target IQOMAH. BEEP tetap mengikuti scheduler audio.
+        const doaAdzanEvent =
+          events.find(function(event) {
+            const eventName =
+              String(event.eventName || '').trim().toUpperCase();
+            return (
+              eventName === 'DOA-ADZAN' ||
+              eventName === 'DOA'
+            );
+          });
+
+        const iqomahEvent =
+          events.find(function(event) {
+            return String(event.eventName || '').toUpperCase() === 'IQOMAH';
+          });
+
+        // Normalnya countdown mengikuti waktu sholat asli.
+        // Khusus Ramadan Maghrib, sirine dimulai tepat pada waktu
+        // Maghrib dan Adzan berlangsung setelah sirine selesai.
+        const ramadanMaghribAdzanEvent =
+          isRamadanDisplay() &&
+          p.name === 'MAGHRIB'
+            ? adzanEvent
+            : null;
+
+        // =======================================================
+        // ANCHOR DISPLAY ADZAN
+        //
+        // DISPLAY countdown selalu menuju WAKTU SHOLAT asli (pSec).
+        // Audio scheduler boleh mempunyai rangkaian Tarhim/Beep
+        // sebelum Adzan, tetapi rangkaian audio tersebut TIDAK
+        // menjadi target countdown display.
+        //
+        // Pengecualian hanya RAMADAN MAGHRIB: pada Ramadan,
+        // Adzan Maghrib memang dimulai setelah rangkaian pembuka
+        // (termasuk sirine), sehingga display Adzan mengikuti
+        // anchor Adzan khusus Maghrib.
+        // =======================================================
+        const isRamadanMaghribDisplay =
+          isRamadanDisplay() &&
+          p.name === 'MAGHRIB' &&
+          ramadanMaghribAdzanEvent &&
+          Number.isFinite(Number(ramadanMaghribAdzanEvent.targetSec));
+
+        const adzanStartSec =
+          isRamadanMaghribDisplay
+            ? Number(ramadanMaghribAdzanEvent.targetSec)
+            : Number(pSec);
+
+        // Durasi ADZAN boleh mengikuti schedule audio yang sudah ada,
+        // tetapi batas akhir DISPLAY selalu dihitung dari anchor
+        // DISPLAY ADZAN di atas. Jika metadata audio belum tersedia
+        // atau tidak valid, gunakan fallback 180 detik.
+        const computedAdzanDurationSec =
+          adzanEvent &&
+          Number.isFinite(Number(adzanEvent.targetSec)) &&
+          Number.isFinite(Number(adzanEvent.endSec)) &&
+          Number(adzanEvent.endSec) > Number(adzanEvent.targetSec)
+            ? Number(adzanEvent.endSec) - Number(adzanEvent.targetSec)
+            : 180;
+
+        const adzanEndSec =
+          adzanStartSec + computedAdzanDurationSec;
+
+        const doaEndSec =
+          doaEvent && Number.isFinite(Number(doaEvent.endSec))
+            ? Number(doaEvent.endSec)
+            : adzanEndSec;
+
+        const iqomahTimeSec =
+          iqomahEvent && Number.isFinite(Number(iqomahEvent.targetSec))
+            ? Number(iqomahEvent.targetSec)
+            : doaEndSec + (p.iqomahDelay || 0);
+
+        const iqomahEndSec =
+          iqomahEvent && Number.isFinite(Number(iqomahEvent.endSec))
+            ? Number(iqomahEvent.endSec)
+            : iqomahTimeSec + 180;
+
+        // KHUSUS RAMADAN MAGHRIB:
+        // Jika metadata IQOMAH dari scheduler berada sebelum ADZAN
+        // selesai, countdown display tidak boleh langsung melompat
+        // ke sholat berikutnya (ISYA). Audio scheduler TIDAK diubah.
+        // Display harus selalu mengikuti urutan:
+        // ADZAN -> MENUJU IQOMAH -> IQOMAH -> +15 menit.
+        // ANCHOR IQOMAH DISPLAY FINAL
+        //
+        // IQOMAH tidak boleh pernah berada sebelum ADZAN selesai.
+        // Jika metadata scheduler belum lengkap/tidak konsisten,
+        // gunakan akhir DOA-ADZAN sebagai batas awal, lalu fallback
+        // ke akhir ADZAN. Ini berlaku untuk SEMUA SHOLAT, bukan hanya
+        // Ramadan Maghrib.
+        //
+        // Tujuannya mencegah transisi seperti:
+        // ADZAN ASHAR -> langsung MENUJU WAKTU BERBUKA.
+        const minimumIqomahTimeSec =
+          Math.max(
+            adzanEndSec,
+            doaEndSec
+          );
+
+        const displayIqomahTimeSec =
+          Math.max(
+            Number(iqomahTimeSec),
+            minimumIqomahTimeSec
+          );
+
+        // AKHIR IQOMAH DISPLAY HARUS MENGIKUTI AKHIR AUDIO IQOMAH.
+        // Jangan lagi memaksa IQOMAH tampil minimal 180 detik.
+        // Jika event IQOMAH memiliki target + endSec yang valid dan
+        // endSec berada setelah waktu mulai IQOMAH, gunakan endSec persis.
+        // Fallback 180 detik hanya dipakai bila metadata endSec tidak tersedia
+        // atau tidak valid.
+        const rawIqomahEndSec =
+          Number(iqomahEndSec);
+
+        const hasValidIqomahAudioEnd =
+          Number.isFinite(rawIqomahEndSec) &&
+          rawIqomahEndSec > displayIqomahTimeSec;
+
+        const displayIqomahEndSec =
+          hasValidIqomahAudioEnd
+            ? rawIqomahEndSec
+            : displayIqomahTimeSec + 180;
+
+        // Setelah AUDIO IQOMAH selesai, WAKTU SHOLAT tampil tepat 15 menit.
+        // Ini hanya mengatur display/countdown; scheduler audio tidak diubah.
+        const afterIqomahSec =
+          displayIqomahEndSec + (15 * 60);
+
+        // PANEL C22 = AUTO:
+        // Layar hitam dimulai tepat 5 detik sebelum WAKTU IQOMAH
+        // dan berakhir 15 menit setelah AUDIO IQOMAH selesai.
+        //
+        // Berlaku untuk semua sholat, Ramadan maupun non-Ramadan.
+        // Audio/scheduler tidak diubah.
+        const panelBlackStartSec =
+          Math.max(
+            adzanStartSec,
+            displayIqomahTimeSec - 5
+          );
+
+        const panelBlackEndSec =
+          displayIqomahEndSec + (15 * 60);
+
+        if (
+          WEB_APP_STATE.panel.iqomahMode === 'AUTO' &&
+          p.hasIqomah &&
+          nowSeconds >= panelBlackStartSec &&
+          nowSeconds < panelBlackEndSec
+        ) {
+          panelBlackWindow = true;
+        }
+
+        if (
+          WEB_APP_STATE.panel.iqomahMode === 'SLEEP' &&
+          p.hasIqomah &&
+          nowSeconds >= panelBlackEndSec
+        ) {
+          panelSleepWindow = true;
+        }
+
+        // -------------------------------------------------------
+        // RAMADAN KHUSUS SUBUH
+        // -------------------------------------------------------
+        if (
+          isRamadanDisplay() &&
+          p.name === 'SUBUH'
+        ) {
+
+          const imsakStartSec =
+            pSec - (10 * 60);
+
+          // MENUJU IMSAK mulai 25 menit sebelum SUBUH.
+          // Waktu IMSAK sendiri tetap 10 menit sebelum SUBUH.
+          const menujuImsakStartSec =
+            pSec - (25 * 60);
+
+          const sirineDuration =
+            getSubuhSirineDuration();
+
+          const imsakEndSec =
+            imsakStartSec +
+            (sirineDuration > 0 ? sirineDuration : 60);
+
+          // Lebih dari 25 menit sebelum SUBUH:
+          // tetap countdown MENUJU SHOLAT SUBUH.
+          if (
+            nowSeconds < menujuImsakStartSec
+          ) {
+
+            const diff =
+              pSec - nowSeconds;
+
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const s = Math.floor(diff % 60);
+
+            activeState = {
+              title: 'MENUJU SHOLAT SUBUH',
+              timer:
+                String(h).padStart(2, '0') + ':' +
+                String(m).padStart(2, '0') + ':' +
+                String(s).padStart(2, '0'),
+              // Visual kartu SUBUH = data-prayer TERBIT.
+              prayerName: 'TERBIT'
+            };
+
+            break;
+          }
+
+          // 25 menit sampai 10 menit sebelum SUBUH:
+          // highlight pindah SUBUH -> IMSAK.
+          if (
+            nowSeconds >= menujuImsakStartSec &&
+            nowSeconds < imsakStartSec
+          ) {
+
+            const diff =
+              imsakStartSec - nowSeconds;
+
+            const m = Math.floor(diff / 60);
+            const s = Math.floor(diff % 60);
+
+            activeState = {
+              title: 'MENUJU IMSAK',
+              timer:
+                String(m).padStart(2, '0') + ':' +
+                String(s).padStart(2, '0'),
+              // Visual kartu IMSAK = data-prayer SUBUH.
+              prayerName: 'SUBUH'
+            };
+
+            break;
+          }
+
+          // Saat sirine/interval IMSAK.
+          if (
+            nowSeconds >= imsakStartSec &&
+            nowSeconds < imsakEndSec
+          ) {
+
+            const imsakRemaining =
+              Math.max(0, imsakEndSec - nowSeconds);
+
+            const imsakMinutes =
+              Math.floor(imsakRemaining / 60);
+            const imsakSeconds =
+              Math.floor(imsakRemaining % 60);
+
+            activeState = {
+              // KHUSUS IMSAK: jangan pernah membuat tampilan
+              // "WAKTU IMSAK / IMSAK". Judul tetap hanya
+              // "WAKTU IMSAK", sedangkan angka countdown berada
+              // di elemen timer.
+              title: 'WAKTU IMSAK',
+              timer:
+                String(imsakMinutes).padStart(2, '0') + ':' +
+                String(imsakSeconds).padStart(2, '0'),
+              // Visual kartu IMSAK = data-prayer SUBUH.
+              prayerName: 'SUBUH'
+            };
+
+            break;
+          }
+
+          // Setelah IMSAK sampai ADZAN SUBUH.
+          if (
+            nowSeconds >= imsakEndSec &&
+            nowSeconds < adzanStartSec
+          ) {
+
+            const diff =
+              adzanStartSec - nowSeconds;
+
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const s = Math.floor(diff % 60);
+
+            activeState = {
+              title: 'MENUJU SHOLAT SUBUH',
+              timer:
+                String(h).padStart(2, '0') + ':' +
+                String(m).padStart(2, '0') + ':' +
+                String(s).padStart(2, '0'),
+              // Visual kartu SUBUH = data-prayer TERBIT.
+              prayerName: 'TERBIT'
+            };
+
+            break;
+          }
+
+          // ADZAN SUBUH pada Ramadan mengikuti format contoh:
+          // baris atas ADZAN, baris bawah SUBUH.
+          if (
+            nowSeconds >= adzanStartSec &&
+            nowSeconds < adzanEndSec
+          ) {
+
+            activeState = {
+              title: 'ADZAN',
+              timer: 'SUBUH',
+              // Visual kartu SUBUH = data-prayer TERBIT.
+              prayerName: 'TERBIT'
+            };
+
+            break;
+          }
+
+          // Setelah adzan sampai IQOMAH.
+          if (
+            nowSeconds >= adzanEndSec &&
+            nowSeconds < iqomahTimeSec
+          ) {
+
+            const diff =
+              displayIqomahTimeSec - nowSeconds;
+
+            const m = Math.floor(diff / 60);
+            const s = Math.floor(diff % 60);
+
+            activeState = {
+              title: 'MENUJU IQOMAH',
+              timer:
+                String(m).padStart(2, '0') + ':' +
+                String(s).padStart(2, '0'),
+              // Visual kartu SUBUH = data-prayer TERBIT.
+              prayerName: 'TERBIT'
+            };
+
+            break;
+          }
+
+          // IQOMAH SUBUH.
+          if (
+            nowSeconds >= iqomahTimeSec &&
+            nowSeconds < iqomahEndSec
+          ) {
+
+            activeState = {
+              title: 'IQOMAH',
+              timer: 'SUBUH',
+              // Visual kartu SUBUH = data-prayer TERBIT.
+              prayerName: 'TERBIT'
+            };
+
+            break;
+          }
+
+          // Setelah AUDIO IQOMAH SUBUH selesai, tampilkan
+          // WAKTU SHOLAT / SUBUH tepat selama 15 menit.
+          if (
+            nowSeconds >= displayIqomahEndSec &&
+            nowSeconds < afterIqomahSec
+          ) {
+
+            activeState = {
+              title: formatCountdownPrayerTitle_('SUBUH', false),
+              timer: 'SUBUH',
+              prayerName: 'TERBIT'
+            };
+
+            break;
+          }
+
+          continue;
+        }
+
+        // -------------------------------------------------------
+        // RAMADAN KHUSUS MAGHRIB
+        // Timeline display:
+        // WAKTU BERBUKA 2 MENIT
+        // -> MENUJU ADZAN MAGHRIB 1 MENIT
+        // -> ADZAN MAGHRIB 3 MENIT
+        // -> MENUJU IQOMAH (ditangani logika umum berikutnya)
+        // -------------------------------------------------------
+        if (
+          isRamadanDisplay() &&
+          p.name === 'MAGHRIB'
+        ) {
+          const maghribAdzanEvent =
+            events.find(function(event) {
+              const eventName =
+                String(event.eventName || '').trim().toUpperCase();
+              return (
+                eventName === 'ADZAN' ||
+                eventName === 'ADZAN-BIASA' ||
+                eventName === 'ADZAN-SUBUH'
+              );
+            });
+
+          // DISPLAY RAMADAN MAGHRIB memakai timeline tetap:
+          // WAKTU BERBUKA 2 menit -> MENUJU MAGHRIB 1 menit
+          // -> ADZAN MAGHRIB 3 menit.
+          //
+          // Jangan memakai target ADZAN audio sebagai batas utama display.
+          // Scheduler audio dapat memiliki target yang sama dengan pSec
+          // (misalnya saat sequence/status tertentu), yang sebelumnya
+          // membuat seluruh fase BERBUKA/MENUJU MAGHRIB terlewati dan
+          // loop langsung mencari sholat berikutnya.
+          const audioMaghribAdzanStartSec =
+            maghribAdzanEvent &&
+            Number.isFinite(Number(maghribAdzanEvent.targetSec))
+              ? Number(maghribAdzanEvent.targetSec)
+              : NaN;
+
+          const maghribAdzanStartSec =
+            Number(pSec) + (3 * 60);
+
+          // FASE 1: WAKTU BERBUKA tepat 2 menit sejak waktu Maghrib.
+          const bukaEndSec = Number(pSec) + (2 * 60);
+
+          if (
+            nowSeconds >= Number(pSec) &&
+            nowSeconds < bukaEndSec &&
+            nowSeconds < maghribAdzanStartSec
+          ) {
+            activeState = {
+              title: 'WAKTU BERBUKA',
+              timer: 'PUASA',
+              prayerName: 'MAGHRIB'
+            };
+            break;
+          }
+
+          // FASE 2: countdown hanya 1 menit sebelum ADZAN MAGHRIB.
+          const menujuAdzanStartSec =
+            Number(pSec) + (2 * 60);
+
+          if (
+            nowSeconds >= menujuAdzanStartSec &&
+            nowSeconds < maghribAdzanStartSec
+          ) {
+            const diff = maghribAdzanStartSec - nowSeconds;
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const sec = Math.floor(diff % 60);
+
+            activeState = {
+              title: 'MENUJU MAGHRIB',
+              timer:
+                String(h).padStart(2, '0') + ':' +
+                String(m).padStart(2, '0') + ':' +
+                String(sec).padStart(2, '0'),
+              prayerName: 'MAGHRIB'
+            };
+            break;
+          }
+
+          // FASE 3: ADZAN MAGHRIB berlangsung 3 menit.
+          const maghribAdzanEndSec =
+            maghribAdzanStartSec + (3 * 60);
+
+          if (
+            nowSeconds >= maghribAdzanStartSec &&
+            nowSeconds < maghribAdzanEndSec
+          ) {
+            activeState = {
+              title: 'ADZAN',
+              timer: 'MAGHRIB',
+              prayerName: 'MAGHRIB'
+            };
+            break;
+          }
+        }
+
+        // NON-RAMADAN / SHOLAT SELAIN SUBUH PADA RAMADAN
+        // -------------------------------------------------------
+
+        // Sebelum WAKTU SHOLAT: countdown selalu menuju pSec.
+        // Jangan menggunakan anchor audio Adzan di sini.
+        // Dengan demikian Tarhim/Beep yang berjalan lebih dahulu
+        // tidak membuat countdown display berhenti pada waktu audio.
+        if (
+          nowSeconds < pSec
+        ) {
+
+          // Jika waktunya sudah lewat secara urutan hari, jangan
+          // mengambil sholat yang sudah selesai sebagai kandidat.
+          // Perulangan akan mencari sholat berikutnya.
+          const diff =
+            pSec - nowSeconds;
+
+          const h = Math.floor(diff / 3600);
+          const m = Math.floor((diff % 3600) / 60);
+          const s = Math.floor(diff % 60);
+
+          // RAMADAN MAGHRIB: sebelum waktu berbuka,
+          // countdown harus menuju WAKTU BERBUKA, bukan menuju sholat.
+          // Fase ini berakhir tepat saat pSec (waktu Maghrib/sirine).
+          const isRamadanMaghrib =
+            isRamadanDisplay() &&
+            p.name === 'MAGHRIB';
+
+          activeState = {
+            title: isRamadanMaghrib
+              ? 'MENUJU WAKTU BERBUKA'
+              : formatCountdownPrayerTitle_(
+                  (isFridayWita() && p.name === 'DZUHUR') ? "JUM'AT" : displayName,
+                  true
+                ),
+            timer:
+              String(h).padStart(2, '0') + ':' +
+              String(m).padStart(2, '0') + ':' +
+              String(s).padStart(2, '0'),
+            prayerName: p.name
+          };
+
+          break;
+        }
+
+        // ADZAN DISPLAY dimulai TEPAT pada WAKTU SHOLAT.
+        // Untuk sholat biasa: pSec.
+        // Ramadan Maghrib: anchor Adzan khusus Maghrib.
+        if (
+          nowSeconds >= adzanStartSec &&
+          nowSeconds < adzanEndSec
+        ) {
+
+          activeState = {
+            title: 'ADZAN',
+            timer: displayName,
+            prayerName: p.name
+          };
+
+          break;
+        }
+
+        // PENGUNCI TRANSISI SETELAH ADZAN.
+        // Ada jeda kecil antara akhir audio ADZAN dan akhir DOA-ADZAN.
+        // Pada interval ini tidak boleh ada state kosong, karena jika
+        // state kosong loop akan langsung mencari sholat berikutnya.
+        // Tahan display pada sholat yang sama sampai batas awal
+        // MENUJU IQOMAH tercapai. Audio tetap berjalan normal.
+        const menujuIqomahStartSec =
+          doaAdzanEvent &&
+          Number.isFinite(Number(doaAdzanEvent.endSec))
+            ? Number(doaAdzanEvent.endSec)
+            : adzanEndSec;
+
+        if (
+          p.hasIqomah &&
+          nowSeconds >= adzanEndSec &&
+          nowSeconds < menujuIqomahStartSec
+        ) {
+          activeState = {
+            title: 'ADZAN',
+            timer: displayName,
+            prayerName: p.name
+          };
+          break;
+        }
+
+        // MENUJU IQOMAH.
+        // Mulai setelah DOA-ADZAN selesai, yaitu masuk ke GAP
+        // DOA-ADZAN -> BEEP. Dengan GAP 3 menit, countdown
+        // menampilkan sisa waktu menuju IQOMAH secara nyata.
+        // Jika metadata IQOMAH tidak konsisten, anchor display yang
+        // sudah dinormalisasi tetap menjadi batas akhir fase ini.
+          doaAdzanEvent &&
+          Number.isFinite(Number(doaAdzanEvent.endSec))
+            ? Number(doaAdzanEvent.endSec)
+            : adzanEndSec;
+
+        if (
+          p.hasIqomah &&
+          nowSeconds >= menujuIqomahStartSec &&
+          nowSeconds < displayIqomahTimeSec
+        ) {
+
+          const diff =
+            displayIqomahTimeSec - nowSeconds;
+
+          const m = Math.floor(diff / 60);
+          const s = Math.floor(diff % 60);
+
+          activeState = {
+            title: 'MENUJU IQOMAH',
+            timer:
+              String(m).padStart(2, '0') + ':' +
+              String(s).padStart(2, '0'),
+            prayerName: p.name
+          };
+
+          break;
+        }
+
+        // IQOMAH: satu baris seperti ketentuan display saat ini.
+        if (
+          p.hasIqomah &&
+          nowSeconds >= displayIqomahTimeSec &&
+          nowSeconds < displayIqomahEndSec
+        ) {
+
+          activeState = {
+            title: 'IQOMAH',
+            timer:
+              (isFridayWita() && p.name === 'DZUHUR')
+                ? "JUM'AT"
+                : p.name,
+            prayerName: p.name
+          };
+
+          break;
+        }
+
+        // KHUSUS RAMADAN - SETELAH WAKTU SHOLAT ASHAR
+        // Setelah WAKTU SHOLAT ASHAR selesai (+15 menit setelah IQOMAH),
+        // jangan kembali menampilkan "MENUJU WAKTU BERBUKA".
+        // Tampilkan MENUJU SHOLAT MAGHRIB sampai 5 menit sebelum Maghrib.
+        // Pada batas 5 menit sebelum Maghrib, loop akan berpindah ke
+        // fase khusus MAGHRIB yang menampilkan MENUJU WAKTU BERBUKA.
+        if (
+          isRamadanDisplay() &&
+          p.name === 'ASHAR' &&
+          nowSeconds >= afterIqomahSec
+        ) {
+          const maghribPrayerAfterAshar =
+            prayerList.find(function(prayer) {
+              return prayer.name === 'MAGHRIB';
+            });
+
+          if (maghribPrayerAfterAshar) {
+            const maghribSecAfterAshar =
+              Number(maghribPrayerAfterAshar.seconds);
+
+            const fiveMinutesBeforeMaghribSec =
+              maghribSecAfterAshar - (5 * 60);
+
+            if (
+              nowSeconds < fiveMinutesBeforeMaghribSec
+            ) {
+              const diff =
+                maghribSecAfterAshar - nowSeconds;
+
+              const h =
+                Math.floor(diff / 3600);
+
+              const m =
+                Math.floor((diff % 3600) / 60);
+
+              const s =
+                Math.floor(diff % 60);
+
+              activeState = {
+                title: 'MENUJU SHOLAT MAGHRIB',
+                timer:
+                  String(h).padStart(2, '0') + ':' +
+                  String(m).padStart(2, '0') + ':' +
+                  String(s).padStart(2, '0'),
+                prayerName: 'MAGHRIB'
+              };
+
+              break;
+            }
+          }
+        }
+
+        // Setelah IQOMAH selesai, tampilkan
+        // SHOLAT / nama sholat aktif dengan style yang sama
+        // seperti ADZAN.
+        //
+        // KHUSUS HARI JUMAT:
+        // SHOLAT JUM'AT tetap ditampilkan sampai tepat 13:00 WITA.
+        // Setelah 13:00, countdown langsung berpindah ke ASHAR
+        // dan kartu juga mengikuti ASHAR.
+        const fridayTransitionSec =
+          13 * 3600;
+
+        const isFridayJumat =
+          isFridayWita() &&
+          p.name === 'DZUHUR';
+
+        if (
+          p.hasIqomah &&
+          nowSeconds >= displayIqomahEndSec &&
+          nowSeconds < afterIqomahSec &&
+          (
+            !isFridayJumat ||
+            nowSeconds < fridayTransitionSec
+          )
+        ) {
+
+          activeState = {
+            title: isFridayJumat
+              ? 'WAKTU SHOLAT'
+              : formatCountdownPrayerTitle_(
+                  displayName,
+                  false
+                ),
+            timer:
+              isFridayJumat
+                ? 'ASHAR'
+                : displayName,
+            prayerName: p.name
+          };
+
+          break;
+        }
+      }
+
+      // =======================================================
+      // NEXT PRAYER
+      // =======================================================
+
+      let nextPrayer =
+        null;
+
+      let nextSeconds =
+        null;
+
+      if (!activeState) {
+
+        // Cari SATU target berikutnya dari waktu sholat sebenarnya.
+        // TERBIT hanya kartu, bukan target sholat.
+        const countdownPrayers =
+          prayerList.filter(function(p) {
+            return p.name !== 'TERBIT';
+          });
+
+        for (
+          let i = 0;
+          i < countdownPrayers.length;
+          i++
+        ) {
+
+          const candidate =
+            countdownPrayers[i];
+
+          if (
+            candidate.seconds > nowSeconds
+          ) {
+
+            nextPrayer = candidate;
+            nextSeconds = candidate.seconds;
+            break;
+
+          }
+
+        }
+
+        // Semua sholat hari ini sudah lewat:
+        // target berikutnya adalah SUBUH hari berikutnya.
+        // +86400 membuat diff selalu positif dan mencegah
+        // countdown kembali memilih SUBUH hari ini.
+        if (!nextPrayer) {
+
+          const tomorrowSubuh =
+            countdownPrayers.find(function(p) {
+              return p.name === 'SUBUH';
+            });
+
+          if (tomorrowSubuh) {
+
+            nextPrayer = tomorrowSubuh;
+            nextSeconds =
+              tomorrowSubuh.seconds + 86400;
+
+          } else if (countdownPrayers.length > 0) {
+
+            nextPrayer = countdownPrayers[0];
+            nextSeconds =
+              countdownPrayers[0].seconds + 86400;
+
+          }
+
+        }
+
+        // Jangan menulis log setiap detik.
+        // Console DevTools pada TV dapat menahan object/string dan
+        // membuat main thread serta memori terus bertambah.
+
+      }
+
+
+      // =======================================================
+      // COUNTDOWN DISPLAY
+      // =======================================================
+
+      const countdownTitle =
+        document.getElementById(
+          'countdown-title'
+        );
+
+      const countdown =
+        document.getElementById(
+          'countdown'
+        );
+
+      if (activeState) {
+
+        // Event running text mengikuti fase countdown:
+        // - IMSAK/BERBUKA memakai teks khusus sampai fase display berakhir.
+        // - ADZAN/MENUJU IQOMAH/IQOMAH/+15 menit memakai
+        //   "WAKTU SHOLAT <NAMA> <KOTA> DAN SEKITARNYA".
+        // - MENUJU SHOLAT sebelum waktunya tetap memakai Event Sheet.
+        updatePrayerEventBanner_(activeState);
+
+        // Panel AUTO hanya menampilkan panel hitam pada window yang sudah
+        // dihitung scheduler. Isi panel hitam TIDAK mengambil judul
+        // countdown utama, sehingga tidak pernah menjadi:
+        // "WAKTU IMSAK KOTA DAN SEKITARNYA".
+        const panelBlackPrayerEl =
+          document.getElementById('panel-black-prayer');
+
+        const panelBlackCityEl =
+          document.getElementById('panel-black-city');
+
+        const activePrayerName =
+          String(activeState.prayerName || '').trim().toUpperCase();
+
+        let panelBlackPrayerName = activePrayerName;
+
+        // SUBUH: beberapa state visual memakai prayerName TERBIT.
+        // Untuk mode hitam, TERBIT tidak boleh ditampilkan sebagai
+        // nama sholat karena yang dimaksud adalah WAKTU SHOLAT SUBUH.
+        if (panelBlackPrayerName === 'TERBIT') {
+          panelBlackPrayerName = 'SUBUH';
+        }
+
+        // Khusus Imsak/Berbuka, gunakan jenis waktu dari state.
+        const activeTitleUpper =
+          String(activeState.title || '').replace(/\\s+/g, ' ').trim().toUpperCase();
+
+        if (activeTitleUpper.indexOf('WAKTU IMSAK') !== -1) {
+          panelBlackPrayerName = 'IMSAK';
+        } else if (activeTitleUpper.indexOf('WAKTU BERBUKA') !== -1) {
+          panelBlackPrayerName = 'BERBUKA';
+        } else if (
+          isFridayWita() &&
+          activePrayerName === 'DZUHUR'
+        ) {
+          panelBlackPrayerName = "JUM'AT";
+        }
+
+        // Sinkronkan isi panel hitam dengan state countdown AKTIF.
+        // Sebelumnya elemen ini hanya memiliki nilai HTML awal "SUBUH",
+        // sehingga pada malam hari black screen tetap menampilkan SUBUH.
+        if (panelBlackPrayerEl) {
+          panelBlackPrayerEl.textContent = panelBlackPrayerName || activePrayerName || '';
+        }
+
+        if (panelBlackCityEl) {
+          const blackCity =
+            String(
+              window.__MASJID_HEADER_CITY__ ||
+              getSelectedCity_() ||
+              ''
+            ).trim();
+          if (blackCity) {
+            panelBlackCityEl.textContent = blackCity;
+          }
+        }
+
+        const effectiveSleep =
+          updatePanelSleepMode_(
+            panelSleepWindow,
+            nowSeconds
+          );
+
+        setCountdownBlackMode(
+          effectiveSleep
+            ? false
+            : panelBlackWindow
+        );
+
+        // Countdown utama tetap dipelihara untuk state normal/audio.
+        // Saat panel hitam aktif, CSS hanya menampilkan panel-black-message.
+        const displayCountdownTitle =
+          ensureCountdownCityTitle_(activeState.title);
+
+        if (countdownTitle && displayCountdownTitle !== lastCountdownTitle) {
+          countdownTitle.innerHTML =
+            formatCountdownTitleHtml_(displayCountdownTitle);
+          updateCountdownTitleStyle(displayCountdownTitle);
+          lastCountdownTitle = displayCountdownTitle;
+        }
+
+        if (countdown && activeState.timer !== lastCountdownTimer) {
+          countdown.innerText = activeState.timer;
+          lastCountdownTimer = activeState.timer;
+        }
+
+        WEB_APP_STATE
+          .countdown
+          .active =
+          activeState;
+
+        // Sinkronkan kartu tepat dengan state countdown.
+        // Dengan demikian perpindahan IMSAK/SUBUH/ADZAN/IQOMAH
+        // terjadi pada batas waktu yang sama. Audio tidak diubah.
+        updatePrayerCardHighlight(
+          nowSeconds,
+          prayerList,
+          activeState.prayerName
+        );
+
+      } else {
+
+        // activeState dapat kosong tepat setelah fase SHOLAT selesai.
+        // Panel AUTO tetap mengikuti window waktu sampai
+        // 15 menit setelah IQOMAH selesai.
+        const effectiveSleep =
+          updatePanelSleepMode_(
+            panelSleepWindow,
+            nowSeconds
+          );
+
+        setCountdownBlackMode(
+          effectiveSleep
+            ? false
+            : panelBlackWindow
+        );
+
+        if (
+          nextPrayer &&
+          nextSeconds !== null
+        ) {
+
+        let diff =
+          nextSeconds -
+          nowSeconds;
+
+        if (diff < 0) {
+          diff += 86400;
+        }
+
+        let nextTitle;
+        let nextTimer;
+
+        // Setelah seluruh sholat hari ini selesai, SUBUH berikutnya
+        // tetap menjadi target countdown. Pada Ramadan, 25 menit
+        // sebelum SUBUH countdown berpindah ke MENUJU IMSAK.
+        if (
+          isRamadanDisplay() &&
+          nextPrayer.name === 'SUBUH'
+        ) {
+
+          const nextImsakSec =
+            nextSeconds - (10 * 60);
+
+          const nextMenujuImsakSec =
+            nextSeconds - (25 * 60);
+
+          const sirineDuration =
+            getSubuhSirineDuration();
+
+          const nextImsakEndSec =
+            nextImsakSec +
+            (sirineDuration > 0 ? sirineDuration : 60);
+
+          if (nowSeconds < nextMenujuImsakSec) {
+
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const s = Math.floor(diff % 60);
+
+            nextTitle = 'MENUJU SHOLAT SUBUH';
+            nextTimer =
+              String(h).padStart(2, '0') + ':' +
+              String(m).padStart(2, '0') + ':' +
+              String(s).padStart(2, '0');
+
+          } else if (nowSeconds < nextImsakSec) {
+
+            const imsakDiff =
+              nextImsakSec - nowSeconds;
+
+            const m = Math.floor(imsakDiff / 60);
+            const s = Math.floor(imsakDiff % 60);
+
+            nextTitle = 'MENUJU IMSAK';
+            nextTimer =
+              String(m).padStart(2, '0') + ':' +
+              String(s).padStart(2, '0');
+
+          } else if (nowSeconds < nextImsakEndSec) {
+
+            nextTitle = formatCountdownSpecialTitle_('WAKTU IMSAK');
+            nextTimer = 'IMSAK';
+
+          } else {
+
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const s = Math.floor(diff % 60);
+
+            nextTitle = 'MENUJU SHOLAT SUBUH';
+            nextTimer =
+              String(h).padStart(2, '0') + ':' +
+              String(m).padStart(2, '0') + ':' +
+              String(s).padStart(2, '0');
+
+          }
+
+        } else {
+
+          const hours =
+            Math.floor(
+              diff / 3600
+            );
+
+          const minutes =
+            Math.floor(
+              (diff % 3600) /
+              60
+            );
+
+          const seconds =
+            diff % 60;
+
+          const nextDisplayName =
+            isFridayWita() &&
+            nextPrayer.name === 'DZUHUR'
+              ? "JUM'AT"
+              : nextPrayer.name;
+
+          nextTitle =
+            (isFridayWita() && nextPrayer.name === 'DZUHUR')
+              ? "MENUJU SHOLAT JUM'AT"
+              : 'MENUJU SHOLAT ' + nextDisplayName;
+
+          nextTimer =
+            String(hours).padStart(2, '0') +
+            ':' +
+            String(minutes).padStart(2, '0') +
+            ':' +
+            String(seconds).padStart(2, '0');
+
+        }
+
+        nextTitle =
+          ensureCountdownCityTitle_(nextTitle);
+
+        // Pada cabang tanpa activeState, WAKTU IMSAK tetap dapat
+        // menjadi Event khusus karena state IMSAK berada pada
+        // perhitungan nextTitle. Fase MENUJU SHOLAT tidak mengambil alih.
+        updatePrayerEventBanner_({
+          title: nextTitle,
+          prayerName: nextPrayer.name
+        });
+
+        if (countdownTitle && nextTitle !== lastCountdownTitle) {
+          countdownTitle.innerHTML =
+            formatCountdownTitleHtml_(nextTitle);
+          updateCountdownTitleStyle(nextTitle);
+          lastCountdownTitle = nextTitle;
+        }
+
+        if (countdown && nextTimer !== lastCountdownTimer) {
+          countdown.innerText = nextTimer;
+          lastCountdownTimer = nextTimer;
+        }
+
+        // Tidak ada activeState pada cabang ini, tetapi kartu tetap
+        // mengikuti target countdown. Khusus Ramadan, saat 25 menit
+        // terakhir target bergeser ke IMSAK.
+        let synchronizedNextCard =
+          nextPrayer.name;
+
+        if (
+          isRamadanDisplay() &&
+          nextPrayer.name === 'SUBUH'
+        ) {
+
+          const nextImsakSec =
+            nextSeconds - (10 * 60);
+
+          const nextMenujuImsakSec =
+            nextSeconds - (25 * 60);
+
+          const sirineDuration =
+            getSubuhSirineDuration();
+
+          const nextImsakEndSec =
+            nextImsakSec +
+            (sirineDuration > 0 ? sirineDuration : 60);
+
+          if (
+            nowSeconds >= nextMenujuImsakSec &&
+            nowSeconds < nextImsakEndSec
+          ) {
+            synchronizedNextCard = 'SUBUH';
+          } else {
+            // Visual kartu SUBUH = data-prayer TERBIT.
+            synchronizedNextCard = 'TERBIT';
+          }
+
+        }
+
+        updatePrayerCardHighlight(
+          nowSeconds,
+          prayerList,
+          synchronizedNextCard
+        );
+
+        WEB_APP_STATE
+          .countdown
+          .active =
+          null;
+
+        }
+
+      }
+
+    }
+
+
+    // =========================================================
+    // DATE CHANGE
+    // =========================================================
+
+    function checkDateChange() {
+
+      const newDate =
+        getApiDate();
+
+      if (
+        newDate !==
+        WEB_APP_STATE.dateKey
+      ) {
+
+        WEB_APP_STATE.dateKey =
+          newDate;
+
+        WEB_APP_STATE
+          .prayer
+          .dateLoaded =
+          '';
+
+        prayerScheduleRetryCount = 0;
+
+        if (prayerScheduleRetryTimer) {
+          clearTimeout(prayerScheduleRetryTimer);
+          prayerScheduleRetryTimer = null;
+        }
+
+        WEB_APP_STATE
+          .countdown
+          .dateKey =
+          newDate;
+
+        WEB_APP_STATE
+          .countdown
+          .queue
+          .length = 0;
+
+        WEB_APP_STATE
+          .countdown
+          .active =
+          null;
+
+        // Refresh panels!C5:C10 terlebih dahulu. updateUI() akan
+        // meminta jadwal sholat untuk kota/timezone yang benar.
+        fetchSheetData();
+
+        // Refresh Event/Logo/QRIS segera saat hari berganti,
+        // tanpa menunggu interval polling 30 detik berikutnya.
+        loadEventRunningText();
+
+        updateGregorianDate();
+
+        updateHijriDate();
+
+        resetAudioForNewDate(
+          newDate
+        );
+
+        // Langsung hitung ulang tampilan setelah pergantian tanggal.
+        // Nama internal tetap DZUHUR, tetapi pada Jumat tampil JUM'AT.
+        updatePrayerCountdown();
+        updateEventCountdown();
+
+      }
+
+    }
+
+
+    // =========================================================
+    // AUTO REFRESH SAAT PERGANTIAN HARI
+    // Full reload hanya dilakukan sekali setelah tanggal WITA berubah.
+    // Tidak ada reload berkala setiap 1 jam, sehingga audio/YouTube
+    // tidak akan terputus di tengah rangkaian sholat.
+    // =========================================================
+
+    let autoRefreshTimer =
+      null;
+
+    // Pengaman: dalam satu page-load, reload hanya boleh terjadi
+    // satu kali untuk tanggal WITA yang sama.
+    let autoRefreshReloadedDate =
+      '';
+
+
+    function startAutoRefresh() {
+
+      if (autoRefreshTimer) {
+
+        clearTimeout(
+          autoRefreshTimer
+        );
+
+      }
+
+      function scheduleNextDayReload() {
+
+        const now =
+          getSynchronizedNow();
+
+        const timezone =
+          getSelectedTimezone();
+
+        const localParts =
+          new Intl.DateTimeFormat(
+            'en-GB',
+            {
+              timeZone: timezone,
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hourCycle: 'h23'
+            }
+          ).formatToParts(now);
+
+        const local = {};
+
+        localParts.forEach(function(part) {
+          if (part.type !== 'literal') {
+            local[part.type] = part.value;
+          }
+        });
+
+        const getTimezoneOffsetMs =
+          function(instant) {
+
+            const parts =
+              new Intl.DateTimeFormat(
+                'en-GB',
+                {
+                  timeZone: timezone,
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hourCycle: 'h23'
+                }
+              ).formatToParts(instant);
+
+            const p = {};
+
+            parts.forEach(function(part) {
+              if (part.type !== 'literal') {
+                p[part.type] = part.value;
+              }
+            });
+
+            const asUtc =
+              Date.UTC(
+                Number(p.year),
+                Number(p.month) - 1,
+                Number(p.day),
+                Number(p.hour),
+                Number(p.minute),
+                Number(p.second)
+              );
+
+            return asUtc - instant.getTime();
+
+          };
+
+        const localDateAtMidnight =
+          new Date(
+            Date.UTC(
+              Number(local.year),
+              Number(local.month) - 1,
+              Number(local.day) + 1,
+              0,
+              0,
+              5
+            )
+          );
+
+        const nextMidnightUtcMs =
+          localDateAtMidnight.getTime() -
+          getTimezoneOffsetMs(
+            localDateAtMidnight
+          );
+
+        const delay =
+          Math.max(
+            1000,
+            nextMidnightUtcMs -
+            now.getTime()
+          );
+
+        autoRefreshTimer =
+          setTimeout(
+            function() {
+
+              const currentDate =
+                getApiDate();
+
+              // Reload tepat satu kali setelah hari WITA berganti.
+              // Tidak ada reload berkala per jam/menit.
+              if (
+                autoRefreshReloadedDate === currentDate
+              ) {
+                return;
+              }
+
+              autoRefreshReloadedDate =
+                currentDate;
+
+              console.log(
+                '=== AUTO REFRESH PERGANTIAN HARI ' +
+                getSelectedTimezone() +
+                ': ' +
+                currentDate +
+                ' ==='
+              );
+
+              window.location.reload();
+
+            },
+            delay
+          );
+
+      }
+
+      scheduleNextDayReload();
+
+    }
+
+
+    // =========================================================
+    // INITIAL
+    // =========================================================
+
+    WEB_APP_STATE.dateKey =
+      getApiDate();
+
+    WEB_APP_STATE
+      .countdown
+      .dateKey =
+      WEB_APP_STATE.dateKey;
+
+    WEB_APP_STATE
+      .audio
+      .lastDate =
+      WEB_APP_STATE.dateKey;
+
+    const initialEventCountdownDisplay = document.getElementById('event-countdown-display');
+    const initialEventCountdownNumber = document.getElementById('event-countdown-number');
+    const initialEventCountdownLine1 = document.getElementById('event-countdown-line1');
+    const initialEventCountdownLine2 = document.getElementById('event-countdown-line2');
+
+    if (initialEventCountdownDisplay) {
+      initialEventCountdownDisplay.classList.remove('active');
+      initialEventCountdownDisplay.setAttribute('aria-hidden', 'true');
+    }
+    if (initialEventCountdownNumber) initialEventCountdownNumber.innerText = '';
+    if (initialEventCountdownLine1) initialEventCountdownLine1.innerText = '';
+    if (initialEventCountdownLine2) initialEventCountdownLine2.innerText = '';
+
+    setLogoMasjid(
+      DEFAULT_LOGO_MASJID
+    );
+
+    installAudioInteractionUnlock();
+
+    // REALTIME TICKER HARUS DIPASANG SEBELUM SEMUA PROSES STARTUP.
+    // Jika salah satu startup/API/audio melempar error atau bekerja lama,
+    // jam tetap memiliki jalur interval sendiri. Scheduler/audio tidak diubah.
+    setInterval(function() {
+      try {
+        updateClock();
+      } catch (clockError) {
+        console.warn('REALTIME CLOCK ERROR:', clockError);
+      }
+    }, 1000);
+
+    setInterval(function() {
+      try {
+        updatePrayerCountdown();
+
+        // G20=AUTO harus dievaluasi SETIAP DETIK.
+        // Sebelumnya kontrol YouTube hanya diperiksa saat startup/
+        // perubahan selector, sehingga ketika waktu masuk 5 menit
+        // sebelum Qiroah YouTube tetap UNMUTE.
+        if (
+          typeof updateYouTubeAudioStop === 'function'
+        ) {
+          const ytTime = getSelectedTimezoneTime_();
+          const ytNowSeconds =
+            (Number(ytTime.hour) * 3600) +
+            (Number(ytTime.minute) * 60) +
+            Number(ytTime.second);
+
+          updateYouTubeAudioStop(
+            ytNowSeconds,
+            getApiDate()
+          );
+        }
+      } catch (prayerTickError) {
+        console.warn('REALTIME COUNTDOWN/YOUTUBE ERROR:', prayerTickError);
+      }
+    }, 1000);
+
+    // Tick 1 detik memastikan pergantian tepat saat menit lokal berubah,
+    // meskipun setInterval 60 detik mengalami drift.
+    setInterval(function() {
+      try {
+        updateEventCountdown();
+      } catch (eventCountdownError) {
+        console.warn('EVENT COUNTDOWN ERROR:', eventCountdownError);
+      }
+    }, 1000);
+
+    // STARTUP: JANGAN menunggu internet/server untuk menampilkan kartu.
+    // Lokasi terakhir + cache kartu dipakai terlebih dahulu.
+    startAutoRefresh();
+
+    updateClock();
+    updateGregorianDate();
+    updateFridayPrayerDisplay();
+
+    const startupLocationLoaded = loadPanelLocationCache();
+
+    if (startupLocationLoaded) {
+      const startupLocalLoaded = loadPrayerCardCache();
+
+      if (startupLocalLoaded) {
+        // Tunda jalur countdown/audio saat startup agar timer realtime
+        // sudah terpasang dan tidak ikut tertahan oleh persiapan scheduler.
+        setTimeout(function() {
+          try {
+            updatePrayerCountdown();
+          } catch (startupCountdownError) {
+            console.warn('STARTUP COUNTDOWN DITUNDA:', startupCountdownError);
+          }
+        }, 0);
+      }
+
+      // GitHub cache menjadi refresh cepat setelah cache lokal.
+      loadGitHubPrayerCache()
+        .then(function(githubLoaded) {
+          if (githubLoaded) {
+            updatePrayerCountdown();
+          }
+
+          // API MuslimKita hanya refresh di belakang layar.
+          setTimeout(function() {
+            fetchPrayerSchedule();
+          }, 0);
+        })
+        .catch(function() {
+          setTimeout(function() {
+            fetchPrayerSchedule();
+          }, 0);
+        });
+    }
+
+    // Panel visual memakai snapshot lokal terlebih dahulu agar first paint
+    // tidak menunggu Apps Script. Data realtime tetap menyusul di background.
+    loadRealtimePanelsFastCache_();
+
+    // STARTUP RINGAN:
+    // Jalur yang diperlukan untuk menampilkan jadwal/kartu dijalankan lebih dulu.
+    // Request sekunder ditunda agar browser segera menyelesaikan first paint.
+    loadGitHubStage1Config_();
+
+    // Tunda request Sheet utama sedikit agar browser menyelesaikan
+    // first paint terlebih dahulu. Cache lokal + jadwal lokal tetap aktif.
+    setTimeout(function() {
+      fetchSheetData();
+    }, 900);
+
+    // Event banner dan Hijri bukan blocker untuk tampilan awal.
+    setTimeout(function() {
+      loadEventRunningText();
+      updateHijriDate();
+    }, 800);
+
+    // Panel kanan cukup disinkronkan setelah first paint.
+    // Interval tetap menjaga data realtime tanpa membebani startup.
+    setTimeout(function() {
+      startRealtimePanelsFast_();
+    }, 1500);
+
+    // Countdown event sudah memiliki tick realtime 1 detik di atas.
+    // Tidak perlu starter/polling kedua karena fungsi tersebut tidak ada.
+    // Sinkronisasi waktu internet adalah data tambahan.
+    setTimeout(function() {
+      syncInternetTime();
+    }, 2500);
+
+    // Unlock audio tetap ditunda; tidak boleh menghambat first paint.
+    setTimeout(
+      initAudioPermission,
+      1200
+    );
+
+
+    // INTERVAL realtime sudah dipasang sebelum startup di atas.
+
+    // =========================================================
+    // AUDIO CATCH-UP LIVE MONITOR
+    // =========================================================
+    // Tidak lagi menjalankan scan queue setiap 1 detik.
+    //
+    // Catch-up startup sudah ditangani oleh:
+    //   1. final catch-up setelah schedule selesai,
+    //   2. watchdog maksimal 20 detik,
+    //   3. updatePrayerCountdown()/processAudioQueue().
+    //
+    // Scan permanen 1 detik sebelumnya menyebabkan seluruh
+    // computedSchedules dipindai terus-menerus dan menghasilkan
+    // console log AUDIO CATCH-UP CHECK berulang. Pada TV/Chrome,
+    // aktivitas ini dapat menumpuk dan membuat UI semakin berat.
+    // Tidak mengubah timeline, durasi, urutan, GAP, ON/OFF,
+    // YouTube, atau audio yang sedang berjalan.
+    setInterval(
+      updateGregorianDate,
+      60000
+    );
+
+    // updateHijriDate() cukup dipanggil saat startup dan saat pergantian hari.
+    // Tidak perlu polling setiap 60 detik karena tanggal Hijri tidak berubah
+    // setiap menit. Ini juga menghindari request Apps Script tambahan
+    // tepat sekitar 60 detik setelah startup.
+
+    setInterval(
+      checkDateChange,
+      10000
+    );
+
+    // getDataFromSheet sudah mencakup data utama (audio config,
+    // lokasi, Event, dll). Panel visual, C22, dan YouTube memiliki
+    // polling ringan terpisah. 60 detik mengurangi request Spreadsheet
+    // yang berulang tanpa mengubah jalur realtime panel.
+    setInterval(
+      fetchSheetData,
+      60000
+    );
+
+    // Jalur khusus Petugas Sholat + KEUANGAN/QUR'BAN sudah dipasang
+    // di atas dan berjalan setiap 1 detik.
+
+    // Kontrol YouTube G20 dipisahkan dari tick countdown 1 detik.
+    // Ini mencegah evaluasi iframe/jadwal YouTube ikut membebani jalur
+    // jam + countdown. Timeline audio/scheduler tidak diubah.
+    setTimeout(function() {
+      startFastYouTubeControlPolling_();
+    }, 1600);
+
+    // C22 juga disinkronkan lewat jalur ringan terpisah.
+    setTimeout(function() {
+      startFastIqomahBlackModePolling_();
+    }, 2000);
+
+    // panels!C2 tetap diperiksa terpisah, tetapi tidak lagi ikut setiap
+    // getDataFromSheet(). 30 detik cukup cepat untuk perubahan AUTO/OFF
+    // dan mencegah request JSONP bertumpuk.
+    let panelDisplayModeRequestInFlight = false;
+    function pollPanelDisplayMode_() {
+      if (panelDisplayModeRequestInFlight) return;
+      panelDisplayModeRequestInFlight = true;
+
+      gasApiCall('getPanelDisplayMode')
+        .then(function(panelData) {
+          if (
+            panelData &&
+            typeof panelData === 'object' &&
+            panelData.mode !== undefined
+          ) {
+            const mode = String(panelData.mode || 'OFF').trim().toUpperCase();
+            setPanelDisplayMode(mode);
+          }
+        })
+        .catch(function(error) {
+          console.warn(
+            'PANELS C2 GAGAL:',
+            error && error.message ? error.message : error
+          );
+        })
+        .finally(function() {
+          panelDisplayModeRequestInFlight = false;
+        });
+    }
+
+    // C2 disinkronkan oleh realtime display config.
+
+    // Tema panels!C18 diperiksa terpisah agar perubahan HIJAU/MERAH/KUNING
+    // tidak menunggu reload halaman. Hanya visual, tidak menyentuh audio.
+    // C18 disinkronkan oleh realtime display config.
+
+    // Event running text disinkronkan oleh realtime display config.
+
+    setInterval(
+      function() {
+
+        WEB_APP_STATE
+          .prayer
+          .dateLoaded =
+          '';
+
+        fetchPrayerSchedule();
+
+      },
+      30 * 60 * 1000
+    );
+
+    // Sinkronisasi waktu internet setiap 6 jam.
+    // Tidak melakukan reload dan tidak menyentuh audio.
+    setInterval(
+      function() {
+        syncInternetTime();
+        applyPendingInternetTimeSync_();
+      },
+      INTERNET_TIME_SYNC_INTERVAL_MS
+    );
+
+    // Jika koreksi waktu tertahan karena audio aktif,
+    // cek kembali setelah rangkaian audio selesai.
+    setInterval(
+      function() {
+        applyPendingInternetTimeSync_();
+      },
+      1000
+    );
+
+  </script>
+
+
+</body>
+</html>
+
