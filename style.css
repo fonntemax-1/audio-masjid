@@ -1414,6 +1414,24 @@
     /* QUR'BAN: seluruh baris yang mengandung Kelompok/Sapi/Kambing
        otomatis KAPITAL, BOLD, font Khatib/Roboto, dan warna tema aktif.
        Hanya berlaku untuk sheet QUR'BAN. */
+    /* PENGURUS: isi rata kiri. Baris biasa italic, sedangkan baris
+       I/II/III..., 1./2./3...., Anggota:, Koordinator = bold + tema. */
+    .qurban-display .keuangan-table td.pengurus-scroll-text {
+      text-align: left !important;
+      font-style: italic !important;
+      font-weight: 500 !important;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      text-transform: none !important;
+    }
+
+    .qurban-display .keuangan-table td.pengurus-scroll-text.pengurus-highlight-row {
+      font-style: normal !important;
+      font-weight: 900 !important;
+      color: var(--theme-accent) !important;
+      -webkit-text-fill-color: var(--theme-accent) !important;
+    }
+
     .qurban-display .qurban-scroll-text.qurban-highlight-row,
     .qurban-display .qurban-scroll-text.qurban-highlight-row * {
       font-family: 'Roboto', sans-serif !important;
