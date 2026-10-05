@@ -6637,7 +6637,7 @@ function updateFridayPrayerDisplay() {
               // Contoh: 1. / 1, / 1) / 1: / 1 - / I. / II, / III)
               // serta baris "Pembina / Penasehat:".
               const isPengurusHighlight =
-                /^(?:(?:\d+|[IVXLCDM]+)(?:\s*[.,):;-]\s*|\s+|$)|Pembina\s*\/\s*Penasehat\s*:)/i.test(
+                /^(?:[-•]\s*)?(?:(?:\d+|[IVXLCDM]+)(?:\s*[.,):;-]\s*|\s+|$)|Pembina\s*\/\s*Penasehat\s*:)/i.test(
                   pengurusSource.trim()
                 );
 
