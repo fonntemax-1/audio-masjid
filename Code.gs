@@ -1199,29 +1199,21 @@ function getPanelEventCountdownConfig_() {
           }
         } else if (selectedKey === 'PENGURUS') {
           // PENGURUS: A1:A18 adalah area header/informasi.
-          // Realtime harus tetap membaca A19 ke bawah walaupun
-          // getLastRow() sesaat belum mencerminkan edit terakhir.
-          // Gunakan seluruh baris sheet lalu buang baris kosong di akhir.
-          const maxRows = selectedSheet.getMaxRows();
-          if (maxRows >= 19) {
+          // Realtime membaca hanya A19 sampai baris terakhir yang berisi data.
+          // Jangan membaca getMaxRows() karena dapat memaksa Apps Script
+          // memproses ribuan baris kosong pada setiap polling.
+          const lastPengurusRow = selectedSheet.getLastRow();
+          if (lastPengurusRow >= 19) {
             const pengurusRows = selectedSheet
-              .getRange(19, 1, maxRows - 18, 1)
+              .getRange(19, 1, lastPengurusRow - 18, 1)
               .getDisplayValues();
 
-            let lastPengurusIndex = pengurusRows.length - 1;
-            while (
-              lastPengurusIndex >= 0 &&
-              String(pengurusRows[lastPengurusIndex][0] == null ? '' : pengurusRows[lastPengurusIndex][0]).trim() === ''
-            ) {
-              lastPengurusIndex--;
-            }
-
-            for (let i = 0; i <= lastPengurusIndex; i++) {
+            pengurusRows.forEach(function(displayRow) {
               const text = String(
-                pengurusRows[i][0] == null ? '' : pengurusRows[i][0]
+                displayRow[0] == null ? '' : displayRow[0]
               ).trim();
               result.Keuangan.push([text, '']);
-            }
+            });
           }
         } else if (lastRow >= 4) {
           const rows = selectedSheet
@@ -4651,29 +4643,21 @@ function getRealtimePanelsFast() {
             });
         }
       } else if (selectedKey === 'PENGURUS') {
-        // PENGURUS realtime: baca A19 ke bawah berdasarkan jumlah baris
-        // sheet, bukan getLastRow(), agar edit yang baru tersimpan tidak
-        // menghasilkan snapshot kosong/terpotong.
-        const maxRows = selectedSheet.getMaxRows();
-        if (maxRows >= 19) {
+        // PENGURUS realtime: baca hanya A19 sampai baris terakhir
+        // yang benar-benar berisi data. Ini mencegah polling membaca
+        // ribuan baris kosong dari getMaxRows().
+        const lastPengurusRow = selectedSheet.getLastRow();
+        if (lastPengurusRow >= 19) {
           const pengurusRows = selectedSheet
-            .getRange(19, 1, maxRows - 18, 1)
+            .getRange(19, 1, lastPengurusRow - 18, 1)
             .getDisplayValues();
 
-          let lastPengurusIndex = pengurusRows.length - 1;
-          while (
-            lastPengurusIndex >= 0 &&
-            String(pengurusRows[lastPengurusIndex][0] == null ? '' : pengurusRows[lastPengurusIndex][0]).trim() === ''
-          ) {
-            lastPengurusIndex--;
-          }
-
-          for (let i = 0; i <= lastPengurusIndex; i++) {
+          pengurusRows.forEach(function(displayRow) {
             rows.push([
-              String(pengurusRows[i][0] == null ? '' : pengurusRows[i][0]).trim(),
+              String(displayRow[0] == null ? '' : displayRow[0]).trim(),
               ''
             ]);
-          }
+          });
         }
       } else if (lastRow >= 4) {
         selectedSheet.getRange(4, 1, lastRow - 3, 2).getDisplayValues()
@@ -4853,28 +4837,19 @@ function getPanelKeuanganSource() {
   } else if (selectedKey === 'PENGURUS') {
     // PENGURUS mengikuti format QURBAN.
     // A1:A18 adalah area header/informasi; scrolling dimulai dari A19.
-    // Jangan memakai getLastRow() karena saat edit berlangsung nilai
-    // terakhir dapat belum terlihat pada snapshot Apps Script.
-    const maxRows = selectedSheet.getMaxRows();
-    if (maxRows >= 19) {
+    // Baca hanya sampai baris terakhir yang berisi data.
+    const lastPengurusRow = selectedSheet.getLastRow();
+    if (lastPengurusRow >= 19) {
       const pengurusRows = selectedSheet
-        .getRange(19, 1, maxRows - 18, 1)
+        .getRange(19, 1, lastPengurusRow - 18, 1)
         .getDisplayValues();
 
-      let lastPengurusIndex = pengurusRows.length - 1;
-      while (
-        lastPengurusIndex >= 0 &&
-        String(pengurusRows[lastPengurusIndex][0] == null ? '' : pengurusRows[lastPengurusIndex][0]).trim() === ''
-      ) {
-        lastPengurusIndex--;
-      }
-
-      for (let i = 0; i <= lastPengurusIndex; i++) {
+      pengurusRows.forEach(function(displayRow) {
         rows.push([
-          String(pengurusRows[i][0] == null ? '' : pengurusRows[i][0]).trim(),
+          String(displayRow[0] == null ? '' : displayRow[0]).trim(),
           ''
         ]);
-      }
+      });
     }
   } else if (lastRow >= 4) {
     selectedSheet.getRange(4, 1, lastRow - 3, 2).getDisplayValues()
