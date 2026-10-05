@@ -5185,6 +5185,163 @@ function provisionMasjidTemplate_(spreadsheetId, masjidId, routing) {
 }
 
 
+
+/* =========================================================
+ * LICENSE SYSTEM
+ * =========================================================
+ * License dibuat server-side berdasarkan identitas tenant:
+ * NAMA_MESJID + KOTA + PROVINSI + TIMEZONE.
+ *
+ * Secret hanya disimpan di Script Properties.
+ * Master hanya menyimpan LICENSE_HASH.
+ * Jika nama/lokasi/timezone berubah, license lama otomatis tidak cocok.
+ * ========================================================= */
+
+function normalizeLicenseIdentity_(name, city, province, timezone) {
+  return [
+    String(name || '').trim().toLowerCase(),
+    String(city || '').trim().toLowerCase(),
+    String(province || '').trim().toLowerCase(),
+    String(timezone || '').trim().toLowerCase()
+  ].join('|');
+}
+
+function ensureLicenseSecret_() {
+  const props = PropertiesService.getScriptProperties();
+  let secret = String(props.getProperty('LICENSE_SECRET') || '').trim();
+
+  if (!secret) {
+    secret =
+      Utilities.getUuid() + '-' +
+      Utilities.getUuid() + '-' +
+      Utilities.getUuid();
+
+    props.setProperty('LICENSE_SECRET', secret);
+  }
+
+  return secret;
+}
+
+function bytesToHex_(bytes) {
+  return bytes.map(function(byte) {
+    const value = byte < 0 ? byte + 256 : byte;
+    return ('0' + value.toString(16)).slice(-2);
+  }).join('');
+}
+
+function hashLicense_(license) {
+  const bytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    String(license || ''),
+    Utilities.Charset.UTF_8
+  );
+
+  return bytesToHex_(bytes);
+}
+
+function generateMasjidLicense_(name, city, province, timezone) {
+  const identity = normalizeLicenseIdentity_(
+    name, city, province, timezone
+  );
+  const secret = ensureLicenseSecret_();
+
+  const signature = Utilities.computeHmacSha256Signature(
+    identity,
+    secret,
+    Utilities.Charset.UTF_8
+  );
+
+  const token = Utilities.base64EncodeWebSafe(signature)
+    .replace(/=+$/g, '');
+
+  return 'TVS1-' + token;
+}
+
+function findMasjidRowByRouting_(routing) {
+  const master = getMasterSpreadsheet_();
+  const sheet = master.getSheetByName('MASJID');
+  if (!sheet) throw new Error('Sheet Master MASJID belum dibuat.');
+
+  const wanted = String(routing || '').trim().toLowerCase();
+  if (!wanted) return null;
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return null;
+
+  const rows = sheet.getRange(2, 1, lastRow - 1, 12).getDisplayValues();
+
+  for (let i = 0; i < rows.length; i++) {
+    if (String(rows[i][5] || '').trim().toLowerCase() === wanted) {
+      return {
+        rowNumber: i + 2,
+        id: rows[i][0],
+        name: rows[i][1],
+        city: rows[i][2],
+        province: rows[i][3],
+        timezone: rows[i][4],
+        routing: rows[i][5],
+        spreadsheetId: rows[i][6],
+        licenseHash: rows[i][7],
+        licenseStatus: rows[i][8]
+      };
+    }
+  }
+
+  return null;
+}
+
+function validateMasjidLicense_(routing, license) {
+  const row = findMasjidRowByRouting_(routing);
+
+  if (!row) {
+    return {
+      success: false,
+      valid: false,
+      error: 'ROUTING_MASJID_TIDAK_TERDAFTAR.'
+    };
+  }
+
+  if (String(row.licenseStatus || 'ACTIVE').trim().toUpperCase() !== 'ACTIVE') {
+    return {
+      success: false,
+      valid: false,
+      error: 'LICENSE_TIDAK_AKTIF.'
+    };
+  }
+
+  const supplied = String(license || '').trim();
+  if (!supplied) {
+    return {
+      success: true,
+      valid: false,
+      error: 'LICENSE_BELUM_DIBERIKAN.'
+    };
+  }
+
+  const expected = hashLicense_(supplied);
+  const valid = expected === String(row.licenseHash || '').trim().toLowerCase();
+
+  return {
+    success: true,
+    valid: valid,
+    id: row.id,
+    routing: row.routing,
+    spreadsheetId: row.spreadsheetId,
+    error: valid ? '' : 'LICENSE_TIDAK_VALID.'
+  };
+}
+
+function setupLicenseSystem() {
+  const secret = ensureLicenseSecret_();
+
+  return {
+    success: true,
+    configured: !!secret,
+    message: 'LICENSE_SECRET sudah tersedia di Script Properties.'
+  };
+}
+
+
 function registerNewMasjid(name, city, province, timezone) {
   name = String(name || '').trim();
   city = String(city || '').trim();
@@ -5219,26 +5376,36 @@ function registerMasjid_(name, city, province, timezone, spreadsheetId) {
   const sheet = master.getSheetByName('MASJID');
   if (!sheet) throw new Error('Sheet Master MASJID belum dibuat.');
 
-  const id = nextMasjidId_(sheet);
-  const base = slugifyMasjidRouting_(name, city);
-  const routing = uniqueMasjidRouting_(sheet, base);
-  const now = new Date();
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
 
-  sheet.appendRow([
-    id, name, city, province, timezone, routing, spreadsheetId,
-    '', 'ACTIVE', '', now, now
-  ]);
+  try {
+    const id = nextMasjidId_(sheet);
+    const base = slugifyMasjidRouting_(name, city);
+    const routing = uniqueMasjidRouting_(sheet, base);
+    const license = generateMasjidLicense_(name, city, province, timezone);
+    const licenseHash = hashLicense_(license);
+    const now = new Date();
 
-  return {
-    success: true,
-    id: id,
-    namaMesjid: name,
-    kota: city,
-    provinsi: province,
-    timezone: timezone,
-    routing: routing,
-    spreadsheetId: spreadsheetId
-  };
+    sheet.appendRow([
+      id, name, city, province, timezone, routing, spreadsheetId,
+      licenseHash, 'ACTIVE', '', now, now
+    ]);
+
+    return {
+      success: true,
+      id: id,
+      namaMesjid: name,
+      kota: city,
+      provinsi: province,
+      timezone: timezone,
+      routing: routing,
+      spreadsheetId: spreadsheetId,
+      license: license
+    };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function getMasjidByRouting_(routing) {
