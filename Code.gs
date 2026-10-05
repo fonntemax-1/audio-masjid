@@ -4643,13 +4643,13 @@ function getRealtimePanelsFast() {
             });
         }
       } else if (selectedKey === 'PENGURUS') {
-        // PENGURUS realtime: baca hanya A19 sampai baris terakhir
-        // yang benar-benar berisi data. Ini mencegah polling membaca
-        // ribuan baris kosong dari getMaxRows().
+        // PENGURUS realtime: baca A5 sampai baris terakhir yang
+        // benar-benar berisi data. getLastRow() menjadi batas dinamis,
+        // sehingga tidak ada batas jumlah baris dari sisi program.
         const lastPengurusRow = selectedSheet.getLastRow();
-        if (lastPengurusRow >= 19) {
+        if (lastPengurusRow >= 5) {
           const pengurusRows = selectedSheet
-            .getRange(19, 1, lastPengurusRow - 18, 1)
+            .getRange(5, 1, lastPengurusRow - 4, 1)
             .getDisplayValues();
 
           pengurusRows.forEach(function(displayRow) {
@@ -4836,12 +4836,12 @@ function getPanelKeuanganSource() {
     }
   } else if (selectedKey === 'PENGURUS') {
     // PENGURUS mengikuti format QURBAN.
-    // A1:A18 adalah area header/informasi; scrolling dimulai dari A19.
-    // Baca hanya sampai baris terakhir yang berisi data.
+    // A1:A4 adalah header; data/scrolling dimulai dari A5.
+    // Batas bawah dinamis mengikuti baris terakhir yang berisi data.
     const lastPengurusRow = selectedSheet.getLastRow();
-    if (lastPengurusRow >= 19) {
+    if (lastPengurusRow >= 5) {
       const pengurusRows = selectedSheet
-        .getRange(19, 1, lastPengurusRow - 18, 1)
+        .getRange(5, 1, lastPengurusRow - 4, 1)
         .getDisplayValues();
 
       pengurusRows.forEach(function(displayRow) {
