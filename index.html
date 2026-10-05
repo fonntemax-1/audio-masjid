@@ -8212,23 +8212,16 @@ function updateFridayPrayerDisplay() {
 
       const todayMs = dateKeyToUtcMs_(todayKey);
 
+      // START/END/STATUS sepenuhnya berasal dari Spreadsheet.
+      // START hanya menjadi data konfigurasi; countdown dihitung menuju END.
+      // Tidak memfilter berdasarkan START, dan START boleh sama dengan END.
       let activeConfigs = configs.map(function(config) {
         const startKey = String(config.start || '').trim();
         const endKey = String(config.end || '').trim();
         const status = String(config.status || '').trim().toUpperCase();
-
-        const startMs = dateKeyToUtcMs_(startKey);
         const endMs = dateKeyToUtcMs_(endKey);
 
-        if (status !== 'ON' ||
-            !Number.isFinite(startMs) ||
-            !Number.isFinite(endMs) ||
-            endMs <= startMs) {
-          return null;
-        }
-
-        // Aktif mulai START sampai H-1 dari END.
-        if (todayMs < startMs || todayMs >= endMs) {
+        if (status !== 'ON' || !Number.isFinite(endMs)) {
           return null;
         }
 
@@ -8240,7 +8233,7 @@ function updateFridayPrayerDisplay() {
 
         return {
           row: Number(config.row),
-          event: String(config.event || '').trim(),
+          event: '',
           start: startKey,
           end: endKey,
           status: status,
@@ -8269,18 +8262,15 @@ function updateFridayPrayerDisplay() {
           String(customConfig.start || '').trim();
         const customEndKey =
           String(customConfig.end || '').trim();
-        const customStartMs =
-          dateKeyToUtcMs_(customStartKey);
         const customEndMs =
           dateKeyToUtcMs_(customEndKey);
 
+        // Additional Countdown: B64:B... adalah teks dinamis.
+        // START/END/ON/OFF tetap sepenuhnya dari Spreadsheet.
+        // Tidak ada filter START terhadap hari ini; countdown menuju END.
         if (customStatus !== 'ON' ||
             customText === '' ||
-            !Number.isFinite(customStartMs) ||
-            !Number.isFinite(customEndMs) ||
-            customEndMs <= customStartMs ||
-            todayMs < customStartMs ||
-            todayMs >= customEndMs) {
+            !Number.isFinite(customEndMs)) {
           return;
         }
 
@@ -8441,10 +8431,10 @@ function updateFridayPrayerDisplay() {
       // Identitas countdown ditentukan MUTLAK dari nomor baris.
       // C = START, D = END, E = STATUS ON/OFF.
       const eventTextByRow = {
-        60: { line1: 'HARI', line2: 'menuju Ramadhan' },
-        61: { line1: 'HARI', line2: 'menuju Lailatul Qadr' },
-        62: { line1: 'HARI', line2: 'menuju Idul Fitri' },
-        63: { line1: 'HARI', line2: 'menuju Idul Adha' }
+        60: { line1: 'HARI', line2: 'MENUJU RAMADHAN' },
+        61: { line1: 'HARI', line2: "MENUJU LAILATUL QAD'R" },
+        62: { line1: 'HARI', line2: 'MENUJU IDUL FITRI' },
+        63: { line1: 'HARI', line2: 'MENUJU IDUL ADHA' }
       };
 
       if (Number(active.row) >= 64) {
