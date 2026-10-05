@@ -5980,6 +5980,15 @@ function updateFridayPrayerDisplay() {
                 : []
             );
 
+      WEB_APP_STATE.event.countdownCustom =
+        data && data.EventCountdownCustom
+          ? data.EventCountdownCustom
+          : (
+              data && data.data && data.data.EventCountdownCustom
+                ? data.data.EventCountdownCustom
+                : null
+            );
+
       console.log(
         'EVENT DATA DITERIMA:',
         {
@@ -8114,7 +8123,7 @@ function updateFridayPrayerDisplay() {
 
       const todayMs = dateKeyToUtcMs_(todayKey);
 
-      const activeConfigs = configs.map(function(config) {
+      let activeConfigs = configs.map(function(config) {
         const startKey = String(config.start || '').trim();
         const endKey = String(config.end || '').trim();
         const status = String(config.status || '').trim().toUpperCase();
@@ -8153,6 +8162,42 @@ function updateFridayPrayerDisplay() {
       .sort(function(a, b) {
         return a.row - b.row;
       });
+
+      // COUNTDOWN CUSTOM panels!B64:E64 memiliki prioritas tertinggi.
+      // Jika ON dan hari ini berada dari START sampai H-1 END,
+      // countdown custom tampil sendiri dan tidak dirotasi dengan C60:E63.
+      const customConfig = WEB_APP_STATE.event.countdownCustom;
+      if (customConfig && typeof customConfig === 'object') {
+        const customStatus = String(customConfig.status || '').trim().toUpperCase();
+        const customText = String(customConfig.event || '').trim();
+        const customStartKey = String(customConfig.start || '').trim();
+        const customEndKey = String(customConfig.end || '').trim();
+        const customStartMs = dateKeyToUtcMs_(customStartKey);
+        const customEndMs = dateKeyToUtcMs_(customEndKey);
+
+        if (customStatus === 'ON' &&
+            customText !== '' &&
+            Number.isFinite(customStartMs) &&
+            Number.isFinite(customEndMs) &&
+            customEndMs > customStartMs &&
+            todayMs >= customStartMs &&
+            todayMs < customEndMs) {
+          const customDiffDays = Math.round(
+            (customEndMs - todayMs) / 86400000
+          );
+
+          if (customDiffDays > 0) {
+            activeConfigs = [{
+              row: 64,
+              event: customText,
+              start: customStartKey,
+              end: customEndKey,
+              status: 'ON',
+              diffDays: customDiffDays
+            }];
+          }
+        }
+      }
 
       if (activeConfigs.length === 0) {
         display.classList.remove('active');
@@ -8248,6 +8293,13 @@ function updateFridayPrayerDisplay() {
         62: { line1: 'HARI', line2: 'menuju Idul Fitri' },
         63: { line1: 'HARI', line2: 'menuju Idul Adha' }
       };
+
+      if (active.row === 64) {
+        eventTextByRow[64] = {
+          line1: 'HARI',
+          line2: String(active.event || '')
+        };
+      }
 
       const text = eventTextByRow[active.row];
 
