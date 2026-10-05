@@ -6601,7 +6601,7 @@ function updateFridayPrayerDisplay() {
               // PENGURUS: baris tertentu seluruhnya BOLD + warna tema.
               const pengurusSource = qurbanText;
               const isPengurusHighlight =
-                /(^|\\s)(?:[IVXLCDM]+\\.?|\\d+\\.)($|\\s)|Anggota:|Koordinator/i
+                /(^|\s)(?:[IVXLCDM]+\.?|\d+\.)($|\s)|Anggota:|Koordinator/i
                   .test(pengurusSource);
 
               td.className = 'qurban-scroll-text pengurus-scroll-text';
