@@ -666,12 +666,12 @@ function getPanelEventCountdownConfig_() {
       const text = String(display || raw || '').trim();
       if (!text) return '';
 
-      let m = text.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+      let m = text.match(/^(\d{1,2})[\\/.-](\d{1,2})[\\/.-](\d{4})$/);
       if (m) {
         return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
       }
 
-      m = text.match(/^(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})$/);
+      m = text.match(/^(\d{4})[\\/.-](\d{1,2})[\\/.-](\d{1,2})$/);
       if (m) {
         return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
       }
@@ -700,88 +700,12 @@ function getPanelEventCountdownConfig_() {
   return result;
 }
 
-// =========================================================
-// COUNTDOWN CUSTOM - panels!B64:E64
-// B64 = TEXT CUSTOM, C64 = START, D64 = END, E64 = ON/OFF.
-// =========================================================
-function getPanelEventCountdownCustomConfig_() {
-  try {
-    const ss = getSpreadsheet();
-    const sheet = ss.getSheetByName('panels');
-    if (!sheet) return [];
-
-    const startRow = 64;
-    const lastRow = Math.max(startRow, sheet.getLastRow());
-    const numRows = lastRow - startRow + 1;
-    const range = sheet.getRange(startRow, 2, numRows, 4); // B:E
-    const values = range.getValues() || [];
-    const displays = range.getDisplayValues() || [];
-    const spreadsheetTimezone =
-      ss.getSpreadsheetTimeZone() ||
-      Session.getScriptTimeZone() ||
-      'Asia/Makassar';
-
-    function normalizeDate_(raw, display) {
-      if (raw instanceof Date && !isNaN(raw.getTime())) {
-        return Utilities.formatDate(raw, spreadsheetTimezone, 'yyyy-MM-dd');
-      }
-
-      const text = String(display || raw || '').trim();
-      if (!text) return '';
-
-      let m = text.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
-      if (m) {
-        return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
-      }
-
-      m = text.match(/^(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})$/);
-      if (m) {
-        return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
-      }
-
-      return '';
-    }
-
-    return values.map(function(row, index) {
-      const displayRow = displays[index] || [];
-      const text = String(
-        row[0] == null ? (displayRow[0] || '') : row[0]
-      ).trim();
-      const start = normalizeDate_(row[1], displayRow[1]);
-      const end = normalizeDate_(row[2], displayRow[2]);
-      const status = String(
-        row[3] == null ? (displayRow[3] || '') : row[3]
-      ).trim().toUpperCase();
-
-      return {
-        row: startRow + index,
-        event: text,
-        start: start,
-        end: end,
-        status: status === 'ON' ? 'ON' : 'OFF'
-      };
-    }).filter(function(config) {
-      return config.event !== '' ||
-             config.start !== '' ||
-             config.end !== '' ||
-             config.status === 'ON';
-    });
-  } catch (error) {
-    Logger.log('PANELS COUNTDOWN CUSTOM B64:E ERROR: ' + (error && error.message ? error.message : error));
-    return [];
-  }
-}
-
 // Event: A=EVENT, B=ANGKA DURASI HITUNGAN HARI, C=STATUS, D=KETERANGAN.
     // Kolom B adalah angka konfigurasi; kolom D hanya keterangan.
     result.Event = [];
 
     // Countdown baru: panels!C60:E63 adalah satu-satunya sumber konfigurasi.
     result.EventCountdown = getPanelEventCountdownConfig_();
-
-    // Countdown custom dinamis: panels!B64:E ke bawah.
-    // B=text, C=start, D=end, E=ON/OFF.
-    result.EventCountdownCustom = getPanelEventCountdownCustomConfig_();
 
     const targetSheets = [
       'Nama_Mesjid',
