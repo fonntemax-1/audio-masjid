@@ -8252,7 +8252,7 @@ function updateFridayPrayerDisplay() {
         return a.row - b.row;
       });
 
-      // COUNTDOWN CUSTOM DINAMIS: panels!B65:E ke bawah.
+      // COUNTDOWN CUSTOM DINAMIS: panels!B64:E ke bawah.
       // E60:E64 sudah menjadi satu queue utama; baris 65+ adalah custom lanjutan.
       // Semua item ON + aktif dimasukkan ke antrian. Item diputar 30 detik.
       const customConfigs = Array.isArray(WEB_APP_STATE.event.countdownCustom)
@@ -8317,7 +8317,7 @@ function updateFridayPrayerDisplay() {
       /*
        * ANTRIAN DINAMIS 30 DETIK.
        *
-       * E60:E64 + custom countdown B65:E ke bawah diputar dalam SATU queue.
+       * E60:E63 + custom countdown B64:E ke bawah diputar dalam SATU queue.
        * Satu item tampil 30 detik, lalu pindah ke item berikutnya.
        * Urutan mengikuti nomor baris dan otomatis menyesuaikan ketika
        * item ON/OFF atau periode aktif berubah.
