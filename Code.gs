@@ -4571,7 +4571,12 @@ function getRealtimePanelsFast() {
     const panelValues = panels.getRange('C26:C32').getDisplayValues();
     const selectorRaw = String((panelValues[0] || [])[0] || 'KEUANGAN').trim();
     const selectorKey = selectorRaw.toUpperCase().replace(/[\s’‘']/g, '');
-    const selectedKey = selectorKey === 'QURBAN' ? 'QURBAN' : 'KEUANGAN';
+    const selectedKey =
+      selectorKey === 'QURBAN'
+        ? 'QURBAN'
+        : selectorKey === 'PENGURUS'
+          ? 'PENGURUS'
+          : 'KEUANGAN';
 
     const jenis = String((panelValues[2] || [])[0] || '').trim().toUpperCase();
     const kegiatanValues = [
@@ -4605,14 +4610,22 @@ function getRealtimePanelsFast() {
       date = String(selectedSheet.getRange('A2').getDisplayValue() || '')
         .replace(/^(0)(\d)(\s)/, '$2$3');
       a3 = String(selectedSheet.getRange('A3').getDisplayValue() || '').trim();
-      headerStyles = selectedKey === 'QURBAN'
-        ? getQurbanHeaderStyles_(selectedSheet)
-        : null;
+      headerStyles =
+        (selectedKey === 'QURBAN' || selectedKey === 'PENGURUS')
+          ? getQurbanHeaderStyles_(selectedSheet)
+          : null;
 
       const lastRow = selectedSheet.getLastRow();
       if (selectedKey === 'QURBAN') {
         if (lastRow >= 5) {
           selectedSheet.getRange(5, 1, lastRow - 4, 1).getDisplayValues()
+            .forEach(function(row) {
+              rows.push([String(row[0] == null ? '' : row[0]).trim(), '']);
+            });
+        }
+      } else if (selectedKey === 'PENGURUS') {
+        if (lastRow >= 4) {
+          selectedSheet.getRange(4, 1, lastRow - 3, 1).getDisplayValues()
             .forEach(function(row) {
               rows.push([String(row[0] == null ? '' : row[0]).trim(), '']);
             });
