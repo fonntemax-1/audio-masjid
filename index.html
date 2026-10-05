@@ -250,6 +250,13 @@
   font-style:italic !important;
   font-weight:400 !important;
 }
+
+#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text .pengurus-highlight-row,
+#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text .pengurus-highlight-row *{
+  font-weight:700 !important;
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+}
 </style>
 </head>
 
@@ -6617,19 +6624,27 @@ function updateFridayPrayerDisplay() {
 
             if (selectorKey === 'PENGURUS') {
               // PENGURUS:
-              // - seluruh isi baris NORMAL (tidak bold, tidak italic).
-              // - hanya teks setelah "tugas :" / "tugas:" yang ITALIC.
-              // - bagian sebelum "tugas :" tetap NORMAL.
-              // - warna dan penekanan khusus angka/judul sebelumnya
-              //   tidak lagi diterapkan.
+              // Default seluruh baris NORMAL.
+              // Baris yang diawali angka Arab (1., 2., 3., ...)
+              // atau angka Romawi (I., II., III., ...) menjadi BOLD + tema.
+              // Baris "Pembina / Penasehat:" juga BOLD + tema.
+              // Aturan Tugas: teks setelah "Tugas:" tetap ITALIC.
               const pengurusSource = qurbanText;
 
-              td.className = 'qurban-scroll-text pengurus-scroll-text';
+              const isPengurusHighlight =
+                /^(?:\d+\s*[.)]|[IVXLCDM]+\s*[.)]|Pembina\s*\/\s*Penasehat\s*:)/i.test(
+                  pengurusSource.trim()
+                );
+
+              td.className =
+                'qurban-scroll-text pengurus-scroll-text' +
+                (isPengurusHighlight ? ' pengurus-highlight-row' : '');
               td.style.textAlign = 'left';
-              td.style.fontWeight = '400';
+              td.style.fontWeight = isPengurusHighlight ? '700' : '400';
               td.style.fontStyle = 'normal';
-              td.style.color = 'inherit';
-              td.style.webkitTextFillColor = 'inherit';
+              td.style.color = isPengurusHighlight ? 'var(--theme-accent)' : 'inherit';
+              td.style.webkitTextFillColor =
+                isPengurusHighlight ? 'var(--theme-accent)' : 'inherit';
 
               const tugasMatch =
                 pengurusSource.match(/^(.*?\btugas\s*:\s*)(.*)$/i);
@@ -6642,7 +6657,11 @@ function updateFridayPrayerDisplay() {
                 italicSpan.textContent = tugasMatch[2];
                 italicSpan.className = 'pengurus-tugas-italic';
                 italicSpan.style.fontStyle = 'italic';
-                italicSpan.style.fontWeight = '400';
+                italicSpan.style.fontWeight = isPengurusHighlight ? '700' : '400';
+                if (isPengurusHighlight) {
+                  italicSpan.style.color = 'var(--theme-accent)';
+                  italicSpan.style.webkitTextFillColor = 'var(--theme-accent)';
+                }
 
                 td.appendChild(normalSpan);
                 td.appendChild(italicSpan);
