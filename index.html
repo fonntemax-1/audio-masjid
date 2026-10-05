@@ -199,30 +199,30 @@
   mask-position:200% 0;
   -webkit-mask-repeat:no-repeat;
   mask-repeat:no-repeat;
-  /* 12 detik per sapuan + 5 detik jeda, lalu arah dibalik */
-  animation:masjidHeaderThinWhiteSweep 34s linear infinite;
+  /* 10 detik kanan → kiri + 3 detik berhenti + 10 detik kiri → kanan + 3 detik berhenti */
+  animation:masjidHeaderThinWhiteSweep 26s linear infinite;
 }
 @keyframes masjidHeaderThinWhiteSweep{
-  /* 12 detik: sapuan pertama */
+  /* 10 detik: sapuan kanan → kiri */
   0%{
     -webkit-mask-position:100% 0;
     mask-position:100% 0;
   }
-  35.294%{
+  38.462%{
     -webkit-mask-position:0% 0;
     mask-position:0% 0;
   }
-  /* 5 detik berhenti */
+  /* 3 detik berhenti */
   50%{
     -webkit-mask-position:0% 0;
     mask-position:0% 0;
   }
-  /* 12 detik: sapuan balik */
-  85.294%{
+  /* 10 detik: sapuan kiri → kanan */
+  88.462%{
     -webkit-mask-position:100% 0;
     mask-position:100% 0;
   }
-  /* 5 detik berhenti */
+  /* 3 detik berhenti */
   100%{
     -webkit-mask-position:100% 0;
     mask-position:100% 0;
