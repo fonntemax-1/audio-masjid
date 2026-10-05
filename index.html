@@ -4985,6 +4985,18 @@ function updateFridayPrayerDisplay() {
       const a3 = String(source.a3 || '');
       const rows = Array.isArray(source.rows) ? source.rows : [];
 
+      // Saat Google Sheets sedang menyimpan perubahan PENGURUS,
+      // endpoint dapat sesaat mengirim array yang panjang tetapi
+      // seluruh baris masih kosong. Jangan mengganti tampilan valid
+      // dengan tabel kosong selama snapshot sementara tersebut.
+      const hasVisiblePengurusRows = rows.some(function(row) {
+        return row && String(row[0] == null ? '' : row[0]).trim() !== '';
+      });
+      if (incomingSelector === 'PENGURUS' && !hasVisiblePengurusRows) {
+        console.log('PENGURUS REALTIME: snapshot kosong sementara diabaikan.');
+        return;
+      }
+
       const finTitle = document.getElementById('fin-title');
       if (finTitle) {
         finTitle.innerText = title.trim();
@@ -6611,14 +6623,19 @@ function updateFridayPrayerDisplay() {
       // mengosongkan tampilan yang sedang aktif karena akan membuat
       // seluruh tabel PENGURUS hilang selama satu siklus polling.
       // Data lama dipertahankan sampai snapshot PENGURUS berisi data baru.
-      if (
-        selectorKey === 'PENGURUS' &&
-        (!Array.isArray(rows) || rows.length === 0)
-      ) {
-        console.log(
-          'PENGURUS REALTIME: snapshot kosong sementara - tampilan lama dipertahankan.'
-        );
-        return;
+      if (selectorKey === 'PENGURUS') {
+        const hasVisiblePengurusRows =
+          Array.isArray(rows) &&
+          rows.some(function(row) {
+            return row && String(row[0] == null ? '' : row[0]).trim() !== '';
+          });
+
+        if (!hasVisiblePengurusRows) {
+          console.log(
+            'PENGURUS REALTIME: snapshot kosong sementara - tampilan lama dipertahankan.'
+          );
+          return;
+        }
       }
 
       content.innerHTML = '';
@@ -15823,5 +15840,4 @@ function setCountdownBlackMode(enabled) {
 
 </body>
 </html>
-
 
