@@ -236,9 +236,11 @@
 
 <style id="pengurus-font-normal-final">
 /* PENGURUS:
-   - Default seluruh isi NORMAL.
-   - Baris bernomor Arab/Romawi dan "Pembina / Penasehat:" = BOLD + warna tema.
-   - Jika ada "Tugas:", hanya teks setelah "Tugas:" = ITALIC.
+   - Seluruh isi NORMAL secara default.
+   - HANYA label jabatan berikut yang BOLD + warna tema:
+     Pelindung:, Ketua:, Wakil Ketua:, Sekretaris:, Bendahara:,
+     Tugas:, Koordinator:, Anggota:, Marbot / Kaum Masjid:
+   - Khusus Tugas:, teks setelah ":" tetap NORMAL ITALIC + putih.
 */
 #fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text,
 #fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text *{
@@ -250,10 +252,9 @@
   -webkit-text-fill-color:#ffffff !important;
 }
 
-/* PENTING: pengurus-highlight-row berada pada TD yang sama
-   dengan pengurus-scroll-text, bukan elemen turunannya. */
-#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text.pengurus-highlight-row,
-#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text.pengurus-highlight-row *{
+#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text .pengurus-role-label,
+#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text .pengurus-tugas-label{
+  font-style:normal !important;
   font-weight:700 !important;
   color:var(--theme-accent) !important;
   -webkit-text-fill-color:var(--theme-accent) !important;
@@ -264,13 +265,6 @@
   font-weight:400 !important;
   color:#ffffff !important;
   -webkit-text-fill-color:#ffffff !important;
-}
-
-#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text.pengurus-highlight-row .pengurus-tugas-italic{
-  font-style:italic !important;
-  font-weight:700 !important;
-  color:var(--theme-accent) !important;
-  -webkit-text-fill-color:var(--theme-accent) !important;
 }
 </style>
 </head>
@@ -6639,54 +6633,81 @@ function updateFridayPrayerDisplay() {
 
             if (selectorKey === 'PENGURUS') {
               // PENGURUS:
-              // Default seluruh baris NORMAL.
-              // Baris yang diawali angka Arab (1., 2., 3., ...)
-              // atau angka Romawi (I., II., III., ...) menjadi BOLD + tema.
-              // Baris "Pembina / Penasehat:" juga BOLD + tema.
-              // Aturan Tugas: teks setelah "Tugas:" tetap ITALIC.
-              const pengurusSource = qurbanText;
-
-              // PENGURUS: seluruh baris menjadi BOLD + warna tema
-              // bila diawali nomor Arab / Romawi, dengan atau tanpa
-              // tanda titik, koma, kurung, titik dua, atau strip.
-              // Contoh: 1. / 1, / 1) / 1: / 1 - / I. / II, / III)
-              // serta baris "Pembina / Penasehat:".
-              const isPengurusHighlight =
-                /^(?:[-•]\s*)?(?:(?:\d+|[IVXLCDM]+)(?:\s*[.,):;-]\s*|\s+|$)|Pembina\s*\/\s*Penasehat\s*:)/i.test(
-                  pengurusSource.trim()
-                );
-
+              // Seluruh isi normal. Hanya label jabatan tertentu
+              // yang dibuat BOLD + warna tema.
+              // Khusus "Tugas:", teks setelah ":" dibuat ITALIC normal.
               td.className =
-                'qurban-scroll-text pengurus-scroll-text' +
-                (isPengurusHighlight ? ' pengurus-highlight-row' : '');
+                'qurban-scroll-text pengurus-scroll-text';
               td.style.textAlign = 'left';
-              td.style.fontWeight = isPengurusHighlight ? '700' : '400';
+              td.style.fontWeight = '400';
               td.style.fontStyle = 'normal';
-              td.style.color = isPengurusHighlight ? 'var(--theme-accent)' : 'inherit';
-              td.style.webkitTextFillColor =
-                isPengurusHighlight ? 'var(--theme-accent)' : 'inherit';
+              td.style.color = '#ffffff';
+              td.style.webkitTextFillColor = '#ffffff';
 
-              const tugasMatch =
-                pengurusSource.match(/^(.*?\btugas\s*:\s*)(.*)$/i);
+              const rolePattern =
+                /(Pelindung:|Ketua:|Wakil Ketua:|Sekretaris:|Bendahara:|Tugas:|Koordinator:|Anggota:|Marbot\s*\/\s*Kaum Masjid:)/gi;
 
-              if (tugasMatch) {
-                const normalSpan = document.createElement('span');
-                normalSpan.textContent = tugasMatch[1];
+              let lastIndex = 0;
+              let match;
 
-                const italicSpan = document.createElement('span');
-                italicSpan.textContent = tugasMatch[2];
-                italicSpan.className = 'pengurus-tugas-italic';
-                italicSpan.style.fontStyle = 'italic';
-                italicSpan.style.fontWeight = isPengurusHighlight ? '700' : '400';
-                if (isPengurusHighlight) {
-                  italicSpan.style.color = 'var(--theme-accent)';
-                  italicSpan.style.webkitTextFillColor = 'var(--theme-accent)';
+              while ((match = rolePattern.exec(qurbanText)) !== null) {
+                if (match.index > lastIndex) {
+                  td.appendChild(
+                    document.createTextNode(
+                      qurbanText.slice(lastIndex, match.index)
+                    )
+                  );
                 }
 
-                td.appendChild(normalSpan);
-                td.appendChild(italicSpan);
-              } else {
-                td.textContent = pengurusSource;
+                const label = match[0];
+                const isTugas =
+                  /^Tugas\s*:/i.test(label);
+
+                const labelSpan =
+                  document.createElement('span');
+
+                labelSpan.className =
+                  isTugas
+                    ? 'pengurus-tugas-label'
+                    : 'pengurus-role-label';
+
+                labelSpan.textContent = label;
+                td.appendChild(labelSpan);
+
+                lastIndex =
+                  match.index + label.length;
+
+                if (isTugas) {
+                  // HANYA teks setelah "Tugas:" yang italic normal.
+                  const tugasText =
+                    qurbanText.slice(lastIndex);
+
+                  if (tugasText) {
+                    const italicSpan =
+                      document.createElement('span');
+
+                    italicSpan.className =
+                      'pengurus-tugas-italic';
+
+                    italicSpan.textContent =
+                      tugasText;
+
+                    td.appendChild(italicSpan);
+                  }
+
+                  lastIndex =
+                    qurbanText.length;
+
+                  break;
+                }
+              }
+
+              if (lastIndex < qurbanText.length) {
+                td.appendChild(
+                  document.createTextNode(
+                    qurbanText.slice(lastIndex)
+                  )
+                );
               }
 
               tr.appendChild(td);
