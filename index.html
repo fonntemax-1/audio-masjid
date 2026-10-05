@@ -6969,12 +6969,16 @@ function updateFridayPrayerDisplay() {
         table
       );
 
-      // PENGURUS: setiap snapshot baru dari A19 ke bawah harus
-      // memulai scrolling kembali dari baris pertama.
-      // Panel lain mempertahankan perilaku scrolling sebelumnya.
+      // PENGURUS realtime: ketika data A19 ke bawah berubah,
+      // tabel dibangun ulang tetapi posisi scrolling SAAT INI
+      // dipertahankan. Jangan kembali ke baris pertama.
+      // Animasi dihitung ulang agar perubahan tinggi tabel tetap aman.
       setTimeout(
         function() {
-          startKeuanganScroll(selectorKey === 'PENGURUS');
+          startKeuanganScroll(
+            selectorKey === 'PENGURUS',
+            selectorKey === 'PENGURUS'
+          );
         },
         500
       );
@@ -7000,7 +7004,7 @@ function updateFridayPrayerDisplay() {
     let keuanganScrollStartTimer = null;
 
 
-    function startKeuanganScroll(forceRestart) {
+    function startKeuanganScroll(forceRestart, preservePosition) {
 
       const area =
         document.getElementById(
@@ -7014,10 +7018,6 @@ function updateFridayPrayerDisplay() {
 
       if (!area || !content) return;
 
-      keuanganPos = 0;
-      content.style.transform = 'translate3d(0,0,0)';
-      content.style.visibility = 'hidden';
-
       const finPanelBox =
         document.getElementById('fin-panel-box');
 
@@ -7027,15 +7027,22 @@ function updateFridayPrayerDisplay() {
 
       const currentMode = isQurbanScroll ? 'QURBAN' : 'KEUANGAN';
 
-      // Realtime refresh boleh memperbarui isi tabel, tetapi TIDAK
-      // boleh membuat loop scrolling baru setiap kali data datang.
-      // Ini sangat penting pada browser TV agar main thread tidak penuh
-      // oleh cancel/requestAnimationFrame berulang.
+      // Jika loop masih valid dan tidak diminta restart, jangan sentuh
+      // posisi scroll. Ini mencegah polling realtime mengembalikan
+      // tabel ke TOP.
       if (!forceRestart &&
           keuanganAnimId &&
           keuanganScrollMode === currentMode) {
         return;
       }
+
+      // Simpan posisi sebelum animasi lama dihentikan. Khusus PENGURUS,
+      // posisi ini dipakai lagi setelah DOM tabel diperbarui.
+      const savedPosition =
+        preservePosition &&
+        Number.isFinite(Number(keuanganPos))
+          ? Number(keuanganPos)
+          : 0;
 
       if (keuanganAnimId) {
         cancelAnimationFrame(keuanganAnimId);
@@ -7043,6 +7050,14 @@ function updateFridayPrayerDisplay() {
       }
 
       keuanganScrollMode = currentMode;
+
+      keuanganPos = preservePosition
+        ? savedPosition
+        : 0;
+
+      content.style.transform =
+        'translate3d(0,' + keuanganPos + 'px,0)';
+      content.style.visibility = 'hidden';
 
       // Jarak visual khusus QUR'BAN harus dihitung dari FONT TANGGAL A3,
       // bukan dari font isi tabel.
@@ -7147,6 +7162,22 @@ function updateFridayPrayerDisplay() {
       }
 
       const loopDistance = loopHeight + gapHeight;
+
+      // Jika tabel PENGURUS bertambah/berkurang panjangnya saat update,
+      // posisi lama mungkin berada di luar siklus baru. Normalisasi
+      // posisi agar tetap dekat dengan posisi sebelumnya tanpa loncat TOP.
+      if (
+        preservePosition &&
+        loopDistance > 0 &&
+        Math.abs(keuanganPos) >= loopDistance
+      ) {
+        keuanganPos =
+          -(Math.abs(keuanganPos) % loopDistance);
+      }
+
+      content.style.transform =
+        'translate3d(0,' + keuanganPos + 'px,0)';
+
       const speed = 0.2;
       let lastFrame = 0;
 
