@@ -7973,6 +7973,11 @@ function updateFridayPrayerDisplay() {
     let eventCountdownFlashLastSlot_ = '';
     let eventCountdownFlashLastState_ = '';
 
+    // State rotasi countdown custom dipertahankan di memory browser.
+    // Polling Sheet/API tidak boleh mengembalikan antrian ke item pertama.
+    let eventCountdownRotationLastSlot_ = null;
+    let eventCountdownRotationRow_ = null;
+
     (function installEventCountdownFlash_() {
       if (document.getElementById('event-countdown-flash-style')) return;
 
@@ -8345,10 +8350,54 @@ function updateFridayPrayerDisplay() {
       const queueForRotation =
         hasCustomQueue ? customQueue : activeConfigs;
 
-      const active =
-        queueForRotation[
-          rotationSlot % queueForRotation.length
-        ];
+      /*
+       * ROTASI STABIL 30 DETIK
+       *
+       * Jangan menentukan item hanya dengan:
+       *   rotationSlot % queue.length
+       *
+       * karena ketika Sheet/API melakukan refresh dan jumlah item berubah,
+       * hasil modulo dapat meloncat atau terlihat berhenti di item terakhir.
+       *
+       * Di sini posisi aktif disimpan berdasarkan nomor baris. Selama item
+       * masih aktif, polling tidak mengubah item yang sedang tampil.
+       * Tepat saat masuk slot 30 detik berikutnya, pindah ke item berikutnya.
+       * Setelah item terakhir, index kembali ke item pertama.
+       */
+      let active = null;
+
+      if (queueForRotation.length > 0) {
+        let currentIndex = -1;
+
+        if (eventCountdownRotationRow_ !== null) {
+          currentIndex = queueForRotation.findIndex(function(config) {
+            return Number(config.row) ===
+              Number(eventCountdownRotationRow_);
+          });
+        }
+
+        const isNewRotationSlot =
+          eventCountdownRotationLastSlot_ === null ||
+          eventCountdownRotationLastSlot_ !== rotationSlot;
+
+        if (currentIndex < 0) {
+          // Startup atau item sebelumnya sudah OFF/expired.
+          // Mulai dari item pertama yang masih aktif.
+          currentIndex = 0;
+        } else if (isNewRotationSlot) {
+          // Masuk slot 30 detik baru: lanjut satu item.
+          currentIndex =
+            (currentIndex + 1) % queueForRotation.length;
+        }
+
+        active = queueForRotation[currentIndex];
+
+        eventCountdownRotationRow_ =
+          Number(active.row);
+
+        eventCountdownRotationLastSlot_ =
+          rotationSlot;
+      }
 
 
       // Flash saat countdown baru muncul/berganti, dan setiap 30 detik.
