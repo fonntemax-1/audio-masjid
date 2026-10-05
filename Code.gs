@@ -5198,6 +5198,10 @@ function registerNewMasjid(name, city, province, timezone) {
   const spreadsheetId = createMasjidSpreadsheet_(name, city);
   const result = registerMasjid_(name, city, province, timezone, spreadsheetId);
 
+  // Setelah ID dan routing terbentuk, langsung pasang identitas tenant
+  // ke Spreadsheet baru. Tidak mengisi data operasional.
+  provisionMasjidTemplate_(spreadsheetId, result.id, result.routing);
+
   return result;
 }
 
