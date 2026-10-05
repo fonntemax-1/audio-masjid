@@ -6598,24 +6598,38 @@ function updateFridayPrayerDisplay() {
               /(Kelompok|Sapi|Kambing)/i.test(qurbanText);
 
             if (selectorKey === 'PENGURUS') {
-              // PENGURUS: baris tertentu seluruhnya BOLD + warna tema.
+              // PENGURUS:
+              // - seluruh isi baris NORMAL (tidak bold, tidak italic).
+              // - hanya teks setelah "tugas :" / "tugas:" yang ITALIC.
+              // - bagian sebelum "tugas :" tetap NORMAL.
+              // - warna dan penekanan khusus angka/judul sebelumnya
+              //   tidak lagi diterapkan.
               const pengurusSource = qurbanText;
-              const isPengurusHighlight =
-                /(^|\s)(?:[IVXLCDM]+\.?|\d+\.)($|\s)|Anggota:|Koordinator/i
-                  .test(pengurusSource);
 
               td.className = 'qurban-scroll-text pengurus-scroll-text';
               td.style.textAlign = 'left';
-              td.style.fontStyle = 'italic';
+              td.style.fontWeight = '400';
+              td.style.fontStyle = 'normal';
+              td.style.color = 'inherit';
+              td.style.webkitTextFillColor = 'inherit';
 
-              if (isPengurusHighlight) {
-                td.style.fontWeight = '900';
-                td.style.fontStyle = 'normal';
-                td.style.color = 'var(--theme-accent)';
-                td.style.webkitTextFillColor = 'var(--theme-accent)';
+              const tugasMatch =
+                pengurusSource.match(/^(.*?\btugas\s*:\s*)(.*)$/i);
+
+              if (tugasMatch) {
+                const normalSpan = document.createElement('span');
+                normalSpan.textContent = tugasMatch[1];
+
+                const italicSpan = document.createElement('span');
+                italicSpan.textContent = tugasMatch[2];
+                italicSpan.style.fontStyle = 'italic';
+                italicSpan.style.fontWeight = '400';
+
+                td.appendChild(normalSpan);
+                td.appendChild(italicSpan);
+              } else {
+                td.textContent = pengurusSource;
               }
-
-              td.textContent = pengurusSource;
 
               tr.appendChild(td);
               table.appendChild(tr);
