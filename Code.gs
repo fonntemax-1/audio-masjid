@@ -650,9 +650,7 @@ function getPanelEventCountdownConfig_() {
     const sheet = ss.getSheetByName('panels');
     if (!sheet) return result;
 
-    // E60:E64 adalah SATU sumber countdown utama.
-    // B = nama/text, C = START, D = END, E = ON/OFF.
-    const range = sheet.getRange('B60:E64');
+    const range = sheet.getRange('C60:E63');
     const values = range.getValues();
     const displays = range.getDisplayValues();
     const spreadsheetTimezone =
@@ -680,27 +678,27 @@ function getPanelEventCountdownConfig_() {
     values.forEach(function(row, index) {
       const sheetRow = 60 + index;
       const displayRow = displays[index] || [];
-      const start = normalizeDate_(row[1], displayRow[1]);
-      const end = normalizeDate_(row[2], displayRow[2]);
-      const status = String(row[3] == null ? displayRow[3] || '' : row[3]).trim().toUpperCase();
+      const start = normalizeDate_(row[0], displayRow[0]);
+      const end = normalizeDate_(row[1], displayRow[1]);
+      const status = String(row[2] == null ? displayRow[2] || '' : row[2]).trim().toUpperCase();
 
       result.push({
         row: sheetRow,
-        event: String(row[0] == null ? displayRow[0] || '' : row[0]).trim(),
+        event: String(sheet.getRange('B' + sheetRow).getDisplayValue() || '').trim(),
         start: start,
         end: end,
         status: status === 'ON' ? 'ON' : 'OFF'
       });
     });
   } catch (error) {
-    Logger.log('PANELS COUNTDOWN B60:E64 ERROR: ' + (error && error.message ? error.message : error));
+    Logger.log('PANELS COUNTDOWN C60:E63 ERROR: ' + (error && error.message ? error.message : error));
   }
   return result;
 }
 
 // =========================================================
-// COUNTDOWN CUSTOM DINAMIS - panels!B65:E ke bawah
-// Baris 60-64 sudah ditangani sebagai SATU queue utama.
+// COUNTDOWN CUSTOM DINAMIS - panels!B64:E ke bawah
+// Baris 64 tetap menjadi custom countdown dan masuk ke queue frontend yang sama.
 // =========================================================
 function getPanelEventCountdownCustomConfig_() {
   try {
@@ -708,7 +706,7 @@ function getPanelEventCountdownCustomConfig_() {
     const sheet = ss.getSheetByName('panels');
     if (!sheet) return [];
 
-    const startRow = 65;
+    const startRow = 64;
     const lastRow = Math.max(startRow, sheet.getLastRow());
     const numRows = lastRow - startRow + 1;
     const range = sheet.getRange(startRow, 2, numRows, 4);
@@ -754,7 +752,7 @@ function getPanelEventCountdownCustomConfig_() {
       return config.event !== '' || config.start !== '' || config.end !== '' || config.status === 'ON';
     });
   } catch (error) {
-    Logger.log('PANELS COUNTDOWN CUSTOM B65:E ERROR: ' + (error && error.message ? error.message : error));
+    Logger.log('PANELS COUNTDOWN CUSTOM B64:E ERROR: ' + (error && error.message ? error.message : error));
     return [];
   }
 }
