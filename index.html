@@ -4911,6 +4911,9 @@ function updateFridayPrayerDisplay() {
     function applyPanelKeuanganSourceFast_(source) {
       if (!source || typeof source !== 'object') return;
       const selector = String(source.selector || 'KEUANGAN').trim().toUpperCase();
+      const isQurban = selector === 'QURBAN';
+      const isPengurus = selector === 'PENGURUS';
+      const isQurbanStyle = isQurban || isPengurus;
       const title = String(source.title || '');
       const date = String(source.date || '');
       const a3 = String(source.a3 || '');
@@ -4919,7 +4922,7 @@ function updateFridayPrayerDisplay() {
       const finTitle = document.getElementById('fin-title');
       if (finTitle) {
         finTitle.innerText = title.trim();
-        if (selector === 'QURBAN') {
+        if (isQurbanStyle) {
           // Font/layout A1 diambil dari QURBAN!A1.
           finTitle.style.color = 'var(--theme-accent)';
           finTitle.style.webkitTextFillColor = 'var(--theme-accent)';
@@ -4937,7 +4940,11 @@ function updateFridayPrayerDisplay() {
 
       const finSub = document.getElementById('fin-sub');
       if (finSub) {
-        if (selector === 'QURBAN') {
+        if (isPengurus) {
+          currentKeuanganGregorianDate_ = '';
+          keuanganDateConversionToken_++;
+          finSub.innerText = date.trim();
+        } else if (isQurban) {
           currentKeuanganGregorianDate_ = '';
           keuanganDateConversionToken_++;
           finSub.innerText = ('MASJID ' + date.trim()).trim();
@@ -4946,8 +4953,8 @@ function updateFridayPrayerDisplay() {
           renderKeuanganDateHeader_(currentKeuanganGregorianDate_);
         }
 
-        if (selector === 'QURBAN') {
-          // Font/layout A2 diambil dari QURBAN!A2.
+        if (isQurbanStyle) {
+          // Font/layout A2 mengikuti format QURBAN untuk QURBAN/PENGURUS.
           finSub.style.color = 'var(--theme-accent)';
           finSub.style.webkitTextFillColor = 'var(--theme-accent)';
         } else {
@@ -4966,9 +4973,14 @@ function updateFridayPrayerDisplay() {
       const finExtra = document.getElementById('fin-extra');
       if (finExtra) {
         currentQurbanGregorianDate_ =
-          selector === 'QURBAN' ? a3.trim() : '';
+          isQurban ? a3.trim() : '';
 
-        if (selector === 'QURBAN') {
+        if (isPengurus) {
+          finExtra.innerText = a3.trim();
+          finExtra.style.display = a3.trim() ? 'block' : 'none';
+          finExtra.style.setProperty('color', 'var(--theme-accent)', 'important');
+          finExtra.style.setProperty('-webkit-text-fill-color', 'var(--theme-accent)', 'important');
+        } else if (isQurban) {
           // Saat berpindah dari KEUANGAN, fin-sub masih membawa
           // border-bottom tanggal KEUANGAN. Bersihkan divider lama
           // sebelum menampilkan A2/A3 QURBAN agar tidak ada garis
@@ -4992,13 +5004,13 @@ function updateFridayPrayerDisplay() {
 
       const finPanelBox = document.getElementById('fin-panel-box');
       if (finPanelBox) {
-        finPanelBox.classList.toggle('qurban-display', selector === 'QURBAN');
+        finPanelBox.classList.toggle('qurban-display', isQurbanStyle);
         if (selector === 'QURBAN') {
 }
       }
 
       updateKeuangan(rows, date, selector);
-      if (selector === 'QURBAN') {
+      if (isQurbanStyle) {
         requestAnimationFrame(function() { fitQurbanHeaderText_(); });
       }
 
@@ -6488,10 +6500,12 @@ function updateFridayPrayerDisplay() {
       keuanganTanggal,
       keuanganSelector
     ) {
-      const isQurban =
+      const selectorKey =
         String(keuanganSelector || 'KEUANGAN')
           .trim()
-          .toUpperCase() === 'QURBAN';
+          .toUpperCase();
+      const isQurban =
+        selectorKey === 'QURBAN' || selectorKey === 'PENGURUS';
 
       const content =
         document.getElementById(
