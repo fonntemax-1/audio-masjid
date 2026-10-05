@@ -5082,6 +5082,43 @@ function uniqueMasjidRouting_(sheet, baseRouting) {
   return base + n;
 }
 
+function createMasjidSpreadsheet_(name, city) {
+  name = String(name || '').trim();
+  city = String(city || '').trim();
+  if (!name) throw new Error('Nama masjid wajib diisi.');
+
+  const ss = SpreadsheetApp.create('TV-Sholat - ' + name + (city ? ' - ' + city : ''));
+  const defaultSheet = ss.getSheets()[0];
+  defaultSheet.setName('panels');
+
+  const standardSheets = [
+    'Adzan', 'Nama_Mesjid', 'Keuangan', 'infaq',
+    "Jum'at", 'Event', 'Running_Text', 'youtube', "QUR'BAN"
+  ];
+
+  standardSheets.forEach(function(sheetName) {
+    if (!ss.getSheetByName(sheetName)) ss.insertSheet(sheetName);
+  });
+
+  return ss.getId();
+}
+
+function registerNewMasjid(name, city, province, timezone) {
+  name = String(name || '').trim();
+  city = String(city || '').trim();
+  province = String(province || '').trim();
+  timezone = String(timezone || '').trim();
+
+  if (!name || !city) {
+    throw new Error('NAMA_MESJID dan KOTA wajib diisi.');
+  }
+
+  const spreadsheetId = createMasjidSpreadsheet_(name, city);
+  const result = registerMasjid_(name, city, province, timezone, spreadsheetId);
+
+  return result;
+}
+
 function registerMasjid_(name, city, province, timezone, spreadsheetId) {
   name = String(name || '').trim();
   city = String(city || '').trim();
