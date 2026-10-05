@@ -233,6 +233,24 @@
 }
 </style>
 
+
+<style id="pengurus-font-normal-final">
+/* PENGURUS: seluruh isi normal. HANYA teks setelah "Tugas:" italic. */
+#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text,
+#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text *{
+  font-family:inherit !important;
+  font-style:normal !important;
+  font-weight:400 !important;
+  text-transform:none !important;
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+}
+
+#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text .pengurus-tugas-italic{
+  font-style:italic !important;
+  font-weight:400 !important;
+}
+</style>
 </head>
 
 <body>
@@ -6622,6 +6640,7 @@ function updateFridayPrayerDisplay() {
 
                 const italicSpan = document.createElement('span');
                 italicSpan.textContent = tugasMatch[2];
+                italicSpan.className = 'pengurus-tugas-italic';
                 italicSpan.style.fontStyle = 'italic';
                 italicSpan.style.fontWeight = '400';
 
