@@ -1198,14 +1198,13 @@ function getPanelEventCountdownConfig_() {
               });
           }
         } else if (selectedKey === 'PENGURUS') {
-          // PENGURUS: A1:A18 adalah area header/informasi.
-          // Realtime membaca hanya A19 sampai baris terakhir yang berisi data.
-          // Jangan membaca getMaxRows() karena dapat memaksa Apps Script
-          // memproses ribuan baris kosong pada setiap polling.
+          // PENGURUS: A1:A4 adalah header tetap; data dimulai dari A5.
+          // Batas bawah dinamis mengikuti getLastRow(), tanpa batas jumlah
+          // baris dari sisi program dan tanpa membaca getMaxRows().
           const lastPengurusRow = selectedSheet.getLastRow();
-          if (lastPengurusRow >= 19) {
+          if (lastPengurusRow >= 5) {
             const pengurusRows = selectedSheet
-              .getRange(19, 1, lastPengurusRow - 18, 1)
+              .getRange(5, 1, lastPengurusRow - 4, 1)
               .getDisplayValues();
 
             pengurusRows.forEach(function(displayRow) {
