@@ -666,12 +666,12 @@ function getPanelEventCountdownConfig_() {
       const text = String(display || raw || '').trim();
       if (!text) return '';
 
-      let m = text.match(/^(\d{1,2})[\\/.-](\d{1,2})[\\/.-](\d{4})$/);
+      let m = text.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
       if (m) {
         return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
       }
 
-      m = text.match(/^(\d{4})[\\/.-](\d{1,2})[\\/.-](\d{1,2})$/);
+      m = text.match(/^(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})$/);
       if (m) {
         return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
       }
@@ -731,7 +731,7 @@ function getPanelEventCountdownCustomConfig_() {
         return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
       }
 
-      m = text.match(/^(\\d{4})[\\/.-](\\d{1,2})[\\/.-](\\d{1,2})$/);
+      m = text.match(/^(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})$/);
       if (m) {
         return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
       }
