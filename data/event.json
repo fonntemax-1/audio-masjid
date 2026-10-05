@@ -1,36 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-05T00:28:32.337Z",
+  "updatedAt": "2026-10-05T06:04:05.774Z",
   "enabled": true,
   "source": "Google Sheets via Apps Script sync",
-  "Event": [
-    {
-      "row": 8,
-      "event": "countdown ramadhan",
-      "days": 164,
-      "status": "AUTO",
-      "description": "menuju Ramadhan"
-    },
-    {
-      "row": 9,
-      "event": "countdown malam lailatul qadr",
-      "days": 10,
-      "status": "AUTO",
-      "description": "menuju Lailatul Qadr"
-    },
-    {
-      "row": 10,
-      "event": "countdown idul fitri",
-      "days": 7,
-      "status": "AUTO",
-      "description": "menuju Idul Fitri"
-    },
-    {
-      "row": 11,
-      "event": "countdown idul adha",
-      "days": 7,
-      "status": "AUTO",
-      "description": "7 hari sebelum 10 Dzulhijjah"
-    }
-  ]
+  "Event": []
 }
