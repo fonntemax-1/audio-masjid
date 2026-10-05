@@ -8327,18 +8327,12 @@ function updateFridayPrayerDisplay() {
       const rotationSlot =
         (localDayNumber * 2880) + halfMinuteSlot;
 
-      const hasCustomQueue =
-        activeConfigs.some(function(config) {
-          return Number(config.row) >= 64;
-        });
-
-      const customQueue =
-        activeConfigs.filter(function(config) {
-          return Number(config.row) >= 64;
-        });
-
-      const queueForRotation =
-        hasCustomQueue ? customQueue : activeConfigs;
+      // Semua countdown ON berada dalam SATU antrean.
+      // Custom Text hanya mengubah isi teks pada baris >= 64,
+      // bukan menggantikan antrean 4 event utama.
+      // Urutan tetap berdasarkan nomor baris: 60, 61, 62, 63, 64, ...
+      // lalu kembali ke item pertama secara looping 30 detik.
+      const queueForRotation = activeConfigs;
 
       /*
        * ROTASI STABIL 30 DETIK
