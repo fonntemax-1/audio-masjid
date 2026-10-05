@@ -6585,6 +6585,22 @@ function updateFridayPrayerDisplay() {
 
       if (!content) return;
 
+      // PENGURUS realtime:
+      // Saat Google Sheets sedang diproses setelah edit, Apps Script
+      // dapat sesaat mengembalikan rows=[]/belum lengkap. Jangan
+      // mengosongkan tampilan yang sedang aktif karena akan membuat
+      // seluruh tabel PENGURUS hilang selama satu siklus polling.
+      // Data lama dipertahankan sampai snapshot PENGURUS berisi data baru.
+      if (
+        selectorKey === 'PENGURUS' &&
+        (!Array.isArray(rows) || rows.length === 0)
+      ) {
+        console.log(
+          'PENGURUS REALTIME: snapshot kosong sementara - tampilan lama dipertahankan.'
+        );
+        return;
+      }
+
       content.innerHTML = '';
 
       if (
