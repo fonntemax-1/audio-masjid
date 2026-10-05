@@ -667,10 +667,14 @@ function getPanelEventCountdownConfig_() {
       if (!text) return '';
 
       let m = text.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
-      if (m) return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
+      if (m) {
+        return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
+      }
 
       m = text.match(/^(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})$/);
-      if (m) return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
+      if (m) {
+        return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
+      }
 
       return '';
     }
@@ -697,8 +701,8 @@ function getPanelEventCountdownConfig_() {
 }
 
 // =========================================================
-// COUNTDOWN CUSTOM DINAMIS - panels!B64:E ke bawah
-// Baris 64 tetap menjadi custom countdown dan masuk ke queue frontend yang sama.
+// COUNTDOWN CUSTOM - panels!B64:E64
+// B64 = TEXT CUSTOM, C64 = START, D64 = END, E64 = ON/OFF.
 // =========================================================
 function getPanelEventCountdownCustomConfig_() {
   try {
@@ -709,7 +713,7 @@ function getPanelEventCountdownCustomConfig_() {
     const startRow = 64;
     const lastRow = Math.max(startRow, sheet.getLastRow());
     const numRows = lastRow - startRow + 1;
-    const range = sheet.getRange(startRow, 2, numRows, 4);
+    const range = sheet.getRange(startRow, 2, numRows, 4); // B:E
     const values = range.getValues() || [];
     const displays = range.getDisplayValues() || [];
     const spreadsheetTimezone =
@@ -726,20 +730,28 @@ function getPanelEventCountdownCustomConfig_() {
       if (!text) return '';
 
       let m = text.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
-      if (m) return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
+      if (m) {
+        return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
+      }
 
       m = text.match(/^(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})$/);
-      if (m) return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
+      if (m) {
+        return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
+      }
 
       return '';
     }
 
     return values.map(function(row, index) {
       const displayRow = displays[index] || [];
-      const text = String(row[0] == null ? displayRow[0] || '' : row[0]).trim();
+      const text = String(
+        row[0] == null ? (displayRow[0] || '') : row[0]
+      ).trim();
       const start = normalizeDate_(row[1], displayRow[1]);
       const end = normalizeDate_(row[2], displayRow[2]);
-      const status = String(row[3] == null ? displayRow[3] || '' : row[3]).trim().toUpperCase();
+      const status = String(
+        row[3] == null ? (displayRow[3] || '') : row[3]
+      ).trim().toUpperCase();
 
       return {
         row: startRow + index,
@@ -749,7 +761,10 @@ function getPanelEventCountdownCustomConfig_() {
         status: status === 'ON' ? 'ON' : 'OFF'
       };
     }).filter(function(config) {
-      return config.event !== '' || config.start !== '' || config.end !== '' || config.status === 'ON';
+      return config.event !== '' ||
+             config.start !== '' ||
+             config.end !== '' ||
+             config.status === 'ON';
     });
   } catch (error) {
     Logger.log('PANELS COUNTDOWN CUSTOM B64:E ERROR: ' + (error && error.message ? error.message : error));
