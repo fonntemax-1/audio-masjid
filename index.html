@@ -8404,7 +8404,8 @@ function updateFridayPrayerDisplay() {
       const activeStateKey =
         String(active.row) + '|' +
         String(active.end) + '|' +
-        String(active.diffDays);
+        String(active.diffDays) + '|' +
+        String(rotationSlot);
 
       const fiveSecondSlot =
         String(todayKey) + '|' +
