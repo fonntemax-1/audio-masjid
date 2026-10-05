@@ -6631,8 +6631,13 @@ function updateFridayPrayerDisplay() {
               // Aturan Tugas: teks setelah "Tugas:" tetap ITALIC.
               const pengurusSource = qurbanText;
 
+              // PENGURUS: seluruh baris menjadi BOLD + warna tema
+              // bila diawali nomor Arab / Romawi, dengan atau tanpa
+              // tanda titik, koma, kurung, titik dua, atau strip.
+              // Contoh: 1. / 1, / 1) / 1: / 1 - / I. / II, / III)
+              // serta baris "Pembina / Penasehat:".
               const isPengurusHighlight =
-                /^(?:\d+\s*[.)]|[IVXLCDM]+\s*[.)]|Pembina\s*\/\s*Penasehat\s*:)/i.test(
+                /^(?:(?:\d+|[IVXLCDM]+)(?:\s*[.,):;-]\s*|\s+|$)|Pembina\s*\/\s*Penasehat\s*:)/i.test(
                   pengurusSource.trim()
                 );
 
