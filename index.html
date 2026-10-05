@@ -199,16 +199,29 @@
   mask-position:200% 0;
   -webkit-mask-repeat:no-repeat;
   mask-repeat:no-repeat;
-  animation:masjidHeaderThinWhiteSweep 9s linear infinite;
+  /* 12 detik per sapuan + 5 detik jeda, lalu arah dibalik */
+  animation:masjidHeaderThinWhiteSweep 34s linear infinite;
 }
 @keyframes masjidHeaderThinWhiteSweep{
-  0%,18%{
+  /* 12s: kanan -> kiri */
+  0%,35.294%{
     -webkit-mask-position:200% 0;
     mask-position:200% 0;
   }
-  62%,100%{
+  /* 5s berhenti di kiri */
+  50%{
     -webkit-mask-position:-60% 0;
     mask-position:-60% 0;
+  }
+  /* 12s: kiri -> kanan */
+  85.294%{
+    -webkit-mask-position:200% 0;
+    mask-position:200% 0;
+  }
+  /* 5s berhenti di kanan */
+  100%{
+    -webkit-mask-position:200% 0;
+    mask-position:200% 0;
   }
 }
 @media (prefers-reduced-motion:reduce){
