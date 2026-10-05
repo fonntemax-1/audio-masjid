@@ -10,6 +10,10 @@
 // =========================================================
 
 function doGet(e) {
+  // MULTI-MASJID: simpan routing hanya selama request ini.
+  // Routing dikirim frontend sebagai ?routing=... .
+  setCurrentMasjidRouting_(e && e.parameter ? e.parameter.routing : '');
+
   // API GitHub Pages ditangani oleh API.gs.
   const params = e && e.parameter ? e.parameter : {};
 
@@ -179,6 +183,20 @@ function getLokasiPanels() {
 
 
 function getSpreadsheet() {
+  // MULTI-MASJID:
+  // Jika request membawa routing, Spreadsheet dipilih dari Master.
+  // Jika belum ada routing (mode lama), tetap gunakan SPREADSHEET_ID
+  // agar instalasi Masjid Al Mujahidin saat ini tidak rusak.
+  const routing = getCurrentMasjidRouting_();
+
+  if (routing) {
+    const spreadsheetId = getSpreadsheetIdByRouting_(routing);
+    if (!spreadsheetId) {
+      throw new Error('ROUTING_MASJID_TIDAK_TERDAFTAR: ' + routing);
+    }
+    return SpreadsheetApp.openById(spreadsheetId);
+  }
+
   const spreadsheetId =
     PropertiesService
       .getScriptProperties()
@@ -186,12 +204,11 @@ function getSpreadsheet() {
 
   if (!spreadsheetId) {
     throw new Error(
-      'SPREADSHEET_ID belum diisi pada Script Properties.'
+      'SPREADSHEET_ID belum diisi pada Script Properties dan routing masjid belum diberikan.'
     );
   }
 
-  return SpreadsheetApp
-    .openById(spreadsheetId);
+  return SpreadsheetApp.openById(spreadsheetId);
 }
 
 
@@ -4940,3 +4957,162 @@ function getPanelKeuanganSource() {
   return { selector: selectedKey, title: title, date: date, a3: a3, rows: rows, headerStyles: headerStyles };
 }
 
+
+
+// =========================================================
+// MULTI-MASJID FOUNDATION
+// =========================================================
+// Master Spreadsheet hanya menyimpan registry/routing.
+// Spreadsheet operasional tetap terpisah untuk setiap masjid.
+//
+// Script Property:
+// MASTER_SPREADSHEET_ID = ID Spreadsheet Master
+//
+// Sheet Master!MASJID:
+// A ID
+// B NAMA_MESJID
+// C KOTA
+// D PROVINSI
+// E TIMEZONE
+// F ROUTING
+// G SPREADSHEET_ID
+// H LICENSE_HASH
+// I LICENSE_STATUS
+// J DEVICE_TOKEN
+// K CREATED
+// L UPDATED
+//
+// ID Masjid dibuat AUTO oleh sistem dan tidak berubah ketika nama/lokasi
+// berubah. Routing dan license adalah atribut yang dapat berubah.
+// =========================================================
+
+function setCurrentMasjidRouting_(routing) {
+  routing = String(routing || '').trim().toLowerCase();
+  // Simpan hanya karakter aman untuk routing.
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(routing)) routing = '';
+  PropertiesService.getScriptProperties().setProperty('_CURRENT_REQUEST_ROUTING', routing);
+}
+
+function getCurrentMasjidRouting_() {
+  return String(
+    PropertiesService.getScriptProperties().getProperty('_CURRENT_REQUEST_ROUTING') || ''
+  ).trim().toLowerCase();
+}
+
+function getMasterSpreadsheet_() {
+  const masterId = String(
+    PropertiesService.getScriptProperties().getProperty('MASTER_SPREADSHEET_ID') || ''
+  ).trim();
+
+  if (!masterId) {
+    throw new Error('MASTER_SPREADSHEET_ID belum diisi pada Script Properties.');
+  }
+
+  return SpreadsheetApp.openById(masterId);
+}
+
+function getSpreadsheetIdByRouting_(routing) {
+  const master = getMasterSpreadsheet_();
+  const sheet = master.getSheetByName('MASJID');
+
+  if (!sheet) {
+    throw new Error('Sheet Master MASJID belum dibuat.');
+  }
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return '';
+
+  const rows = sheet.getRange(2, 1, lastRow - 1, 12).getDisplayValues();
+  const wanted = String(routing || '').trim().toLowerCase();
+
+  for (let i = 0; i < rows.length; i++) {
+    const rowRouting = String(rows[i][5] || '').trim().toLowerCase();
+    const status = String(rows[i][8] || 'ACTIVE').trim().toUpperCase();
+    if (rowRouting === wanted && status !== 'INACTIVE') {
+      return String(rows[i][6] || '').trim();
+    }
+  }
+
+  return '';
+}
+
+function slugifyMasjidRouting_(name, city) {
+  const source = String(name || '') + '-' + String(city || '');
+  return source
+    .normalize('NFD')
+    .replace(/[\\u0300-\\u036f]/g, '')
+    .toLowerCase()
+    .replace(/masjid/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-+/g, '-');
+}
+
+function nextMasjidId_(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 'M0001';
+
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getDisplayValues();
+  let max = 0;
+  ids.forEach(function(row) {
+    const m = String(row[0] || '').trim().match(/^M(\\d+)$/i);
+    if (m) max = Math.max(max, Number(m[1]));
+  });
+  return 'M' + String(max + 1).padStart(4, '0');
+}
+
+function uniqueMasjidRouting_(sheet, baseRouting) {
+  const base = String(baseRouting || '').trim().toLowerCase();
+  if (!base) throw new Error('Routing tidak dapat dibuat dari nama/lokasi kosong.');
+
+  const lastRow = sheet.getLastRow();
+  const used = {};
+  if (lastRow >= 2) {
+    sheet.getRange(2, 6, lastRow - 1, 1).getDisplayValues().forEach(function(row) {
+      const value = String(row[0] || '').trim().toLowerCase();
+      if (value) used[value] = true;
+    });
+  }
+
+  if (!used[base]) return base;
+
+  let n = 1;
+  while (used[base + n]) n++;
+  return base + n;
+}
+
+function setupMasterSpreadsheet() {
+  const props = PropertiesService.getScriptProperties();
+  let masterId = String(props.getProperty('MASTER_SPREADSHEET_ID') || '').trim();
+
+  if (masterId) {
+    return { success: true, created: false, spreadsheetId: masterId };
+  }
+
+  const master = SpreadsheetApp.create('TV-Sholat - MASTER');
+  const sheet = master.getSheets()[0];
+  sheet.setName('MASJID');
+  sheet.getRange(1, 1, 1, 12).setValues([[
+    'ID','NAMA_MESJID','KOTA','PROVINSI','TIMEZONE','ROUTING',
+    'SPREADSHEET_ID','LICENSE_HASH','LICENSE_STATUS','DEVICE_TOKEN','CREATED','UPDATED'
+  ]]);
+  sheet.setFrozenRows(1);
+
+  const config = master.insertSheet('KONFIG');
+  config.getRange(1, 1, 1, 2).setValues([['KEY','VALUE']]);
+  config.getRange(2, 1, 4, 2).setValues([
+    ['APP_NAME','TV-Sholat'],
+    ['API_VERSION','1.0'],
+    ['DEFAULT_TIMEZONE','Asia/Makassar'],
+    ['DEFAULT_STATUS','ACTIVE']
+  ]);
+
+  props.setProperty('MASTER_SPREADSHEET_ID', master.getId());
+
+  return {
+    success: true,
+    created: true,
+    spreadsheetId: master.getId(),
+    url: master.getUrl()
+  };
+}
