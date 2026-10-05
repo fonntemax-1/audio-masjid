@@ -4747,9 +4747,12 @@ function getPanelKeuanganSource() {
     .toUpperCase()
     .replace(/[\\s’‘']/g, '');
 
-  const selectedKey = selectorKey === 'QURBAN'
-    ? 'QURBAN'
-    : 'KEUANGAN';
+  const selectedKey =
+    selectorKey === 'QURBAN'
+      ? 'QURBAN'
+      : selectorKey === 'PENGURUS'
+        ? 'PENGURUS'
+        : 'KEUANGAN';
 
   let selectedSheet = null;
   ss.getSheets().some(function(sheet) {
@@ -4771,9 +4774,10 @@ function getPanelKeuanganSource() {
   const date = String(selectedSheet.getRange('A2').getDisplayValue() || '')
     .replace(/^(0)(\\d)(\\s)/, '$2$3');
   const a3 = String(selectedSheet.getRange('A3').getDisplayValue() || '').trim();
-  const headerStyles = selectedKey === 'QURBAN'
-    ? getQurbanHeaderStyles_(selectedSheet)
-    : null;
+  const headerStyles =
+    (selectedKey === 'QURBAN' || selectedKey === 'PENGURUS')
+      ? getQurbanHeaderStyles_(selectedSheet)
+      : null;
   const rows = [];
   const lastRow = selectedSheet.getLastRow();
 
@@ -4782,6 +4786,15 @@ function getPanelKeuanganSource() {
     // Baris kosong dipertahankan agar spasi mengikuti spreadsheet.
     if (lastRow >= 5) {
       selectedSheet.getRange(5, 1, lastRow - 4, 1).getDisplayValues()
+        .forEach(function(displayRow) {
+          rows.push([String(displayRow[0] == null ? '' : displayRow[0]).trim(), '']);
+        });
+    }
+  } else if (selectedKey === 'PENGURUS') {
+    // PENGURUS mengikuti format QURBAN, tetapi A1:A4 semuanya adalah teks:
+    // A1 judul, A2 subjudul, A3 teks, A4 teks pertama yang masuk area scroll.
+    if (lastRow >= 4) {
+      selectedSheet.getRange(4, 1, lastRow - 3, 1).getDisplayValues()
         .forEach(function(displayRow) {
           rows.push([String(displayRow[0] == null ? '' : displayRow[0]).trim(), '']);
         });
