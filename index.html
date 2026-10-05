@@ -8294,13 +8294,9 @@ function updateFridayPrayerDisplay() {
         });
       });
 
-      activeConfigs = activeConfigs
-        .filter(function(config) {
-          return Number(config.row) >= 64;
-        })
-        .sort(function(a, b) {
-          return a.row - b.row;
-        });
+      activeConfigs = activeConfigs.sort(function(a, b) {
+        return a.row - b.row;
+      });
       if (activeConfigs.length === 0) {
         display.classList.remove('active');
         display.classList.remove('event-countdown-flash');
