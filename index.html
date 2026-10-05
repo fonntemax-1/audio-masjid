@@ -5980,14 +5980,19 @@ function updateFridayPrayerDisplay() {
                 : []
             );
 
-      WEB_APP_STATE.event.countdownCustom =
-        data && data.EventCountdownCustom
+      const rawCountdownCustom =
+        data && data.EventCountdownCustom !== undefined
           ? data.EventCountdownCustom
           : (
-              data && data.data && data.data.EventCountdownCustom
+              data && data.data && data.data.EventCountdownCustom !== undefined
                 ? data.data.EventCountdownCustom
-                : null
+                : []
             );
+
+      WEB_APP_STATE.event.countdownCustom =
+        Array.isArray(rawCountdownCustom)
+          ? rawCountdownCustom
+          : (rawCountdownCustom ? [rawCountdownCustom] : []);
 
       console.log(
         'EVENT DATA DITERIMA:',
@@ -8242,42 +8247,60 @@ function updateFridayPrayerDisplay() {
         return a.row - b.row;
       });
 
-      // COUNTDOWN CUSTOM panels!B64:E64 memiliki prioritas tertinggi.
-      // Jika ON dan hari ini berada dari START sampai H-1 END,
-      // countdown custom tampil sendiri dan tidak dirotasi dengan C60:E63.
-      const customConfig = WEB_APP_STATE.event.countdownCustom;
-      if (customConfig && typeof customConfig === 'object') {
-        const customStatus = String(customConfig.status || '').trim().toUpperCase();
-        const customText = String(customConfig.event || '').trim();
-        const customStartKey = String(customConfig.start || '').trim();
-        const customEndKey = String(customConfig.end || '').trim();
-        const customStartMs = dateKeyToUtcMs_(customStartKey);
-        const customEndMs = dateKeyToUtcMs_(customEndKey);
+      // COUNTDOWN CUSTOM DINAMIS: panels!B64:E ke bawah.
+      // Semua item ON + aktif dimasukkan ke antrian. Item diputar 30 detik.
+      const customConfigs = Array.isArray(WEB_APP_STATE.event.countdownCustom)
+        ? WEB_APP_STATE.event.countdownCustom
+        : [];
 
-        if (customStatus === 'ON' &&
-            customText !== '' &&
-            Number.isFinite(customStartMs) &&
-            Number.isFinite(customEndMs) &&
-            customEndMs > customStartMs &&
-            todayMs >= customStartMs &&
-            todayMs < customEndMs) {
-          const customDiffDays = Math.round(
-            (customEndMs - todayMs) / 86400000
-          );
+      customConfigs.forEach(function(customConfig) {
+        if (!customConfig || typeof customConfig !== 'object') return;
 
-          if (customDiffDays > 0) {
-            activeConfigs = [{
-              row: 64,
-              event: customText,
-              start: customStartKey,
-              end: customEndKey,
-              status: 'ON',
-              diffDays: customDiffDays
-            }];
-          }
+        const customStatus =
+          String(customConfig.status || '').trim().toUpperCase();
+        const customText =
+          String(customConfig.event || '').trim();
+        const customStartKey =
+          String(customConfig.start || '').trim();
+        const customEndKey =
+          String(customConfig.end || '').trim();
+        const customStartMs =
+          dateKeyToUtcMs_(customStartKey);
+        const customEndMs =
+          dateKeyToUtcMs_(customEndKey);
+
+        if (customStatus !== 'ON' ||
+            customText === '' ||
+            !Number.isFinite(customStartMs) ||
+            !Number.isFinite(customEndMs) ||
+            customEndMs <= customStartMs ||
+            todayMs < customStartMs ||
+            todayMs >= customEndMs) {
+          return;
         }
-      }
 
+        const customDiffDays =
+          Math.round((customEndMs - todayMs) / 86400000);
+
+        if (customDiffDays <= 0) return;
+
+        activeConfigs.push({
+          row: Number(customConfig.row),
+          event: customText,
+          start: customStartKey,
+          end: customEndKey,
+          status: 'ON',
+          diffDays: customDiffDays
+        });
+      });
+
+      activeConfigs = activeConfigs
+        .filter(function(config) {
+          return Number(config.row) >= 64;
+        })
+        .sort(function(a, b) {
+          return a.row - b.row;
+        });
       if (activeConfigs.length === 0) {
         display.classList.remove('active');
         display.classList.remove('event-countdown-flash');
@@ -8290,41 +8313,47 @@ function updateFridayPrayerDisplay() {
       }
 
       /*
-       * ROTASI BERDASARKAN MENIT TIMEZONE LOKASI AKTIF.
+       * ANTRIAN DINAMIS 30 DETIK.
        *
-       * getSelectedTimezoneTime_() adalah sumber waktu aplikasi, sehingga
-       * pergantian selalu mengikuti timezone lokasi aktif.
-       *
-       * Contoh 2 countdown aktif:
-       * menit lokal 10:15 -> item pertama
-       * menit lokal 10:16 -> item kedua
-       * menit lokal 10:17 -> item pertama
+       * Semua custom countdown aktif (B64:E ke bawah) diputar berurutan.
+       * Satu item tampil 30 detik, lalu pindah ke item berikutnya.
+       * Urutan mengikuti nomor baris dan otomatis menyesuaikan ketika
+       * item ON/OFF atau periode aktif berubah.
        */
-      const minuteSlot =
-        Math.floor(
-          (
-            Number(now.hour) * 60 +
-            Number(now.minute)
-          )
-        );
+      const secondsOfDay =
+        (Number(now.hour) * 3600) +
+        (Number(now.minute) * 60) +
+        Number(now.second);
 
-      /*
-       * Agar urutan tetap konsisten terhadap kalender timezone aktif dan tidak
-       * berubah saat halaman reload, gunakan jumlah hari sejak
-       * kalender lokal (tanggal netral UTC) sebagai bagian slot rotasi.
-       */
+      const halfMinuteSlot =
+        Math.floor(secondsOfDay / 30);
+
       const localDayNumber =
         Math.floor(
           dateKeyToUtcMs_(todayKey) / 86400000
         );
 
       const rotationSlot =
-        (localDayNumber * 1440) + minuteSlot;
+        (localDayNumber * 2880) + halfMinuteSlot;
+
+      const hasCustomQueue =
+        activeConfigs.some(function(config) {
+          return Number(config.row) >= 64;
+        });
+
+      const customQueue =
+        activeConfigs.filter(function(config) {
+          return Number(config.row) >= 64;
+        });
+
+      const queueForRotation =
+        hasCustomQueue ? customQueue : activeConfigs;
 
       const active =
-        activeConfigs[
-          rotationSlot % activeConfigs.length
+        queueForRotation[
+          rotationSlot % queueForRotation.length
         ];
+
 
       // Flash saat countdown baru muncul/berganti, dan setiap 30 detik.
       const activeStateKey =
@@ -8373,8 +8402,8 @@ function updateFridayPrayerDisplay() {
         63: { line1: 'HARI', line2: 'menuju Idul Adha' }
       };
 
-      if (active.row === 64) {
-        eventTextByRow[64] = {
+      if (Number(active.row) >= 64) {
+        eventTextByRow[active.row] = {
           line1: 'HARI',
           line2: String(active.event || '')
         };
