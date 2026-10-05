@@ -2747,26 +2747,12 @@ body[data-display-theme="kuning"] .date-box .hijri-text {
   -webkit-text-fill-color: #ffcc00 !important;
 }
 
-/* KUNING: gambar/bentuk bulan mengikuti warna nama MESJID. */
+/* KUNING: hanya warna bulan mengikuti warna tema.
+   Bentuk/fase bulan tetap memakai aturan .moon-* utama,
+   sama persis seperti tema HIJAU dan MERAH. */
 :root[data-display-theme="kuning"] .header-moon,
 body[data-display-theme="kuning"] .header-moon {
   color: #ffcc00 !important;
-}
-:root[data-display-theme="kuning"] .header-moon::after,
-body[data-display-theme="kuning"] .header-moon::after,
-:root[data-display-theme="kuning"] .header-moon.moon-waxing-crescent::after,
-body[data-display-theme="kuning"] .header-moon.moon-waxing-crescent::after,
-:root[data-display-theme="kuning"] .header-moon.moon-waxing-gibbous::after,
-body[data-display-theme="kuning"] .header-moon.moon-waxing-gibbous::after,
-:root[data-display-theme="kuning"] .header-moon.moon-full::after,
-body[data-display-theme="kuning"] .header-moon.moon-full::after,
-:root[data-display-theme="kuning"] .header-moon.moon-waning-gibbous::after,
-body[data-display-theme="kuning"] .header-moon.moon-waning-gibbous::after,
-:root[data-display-theme="kuning"] .header-moon.moon-last-quarter::after,
-body[data-display-theme="kuning"] .header-moon.moon-last-quarter::after,
-:root[data-display-theme="kuning"] .header-moon.moon-waning-crescent::after,
-body[data-display-theme="kuning"] .header-moon.moon-waning-crescent::after {
-  background: #ffcc00 !important;
 }
 :root[data-display-theme="kuning"] .header-moon.moon-new::after,
 body[data-display-theme="kuning"] .header-moon.moon-new::after {
