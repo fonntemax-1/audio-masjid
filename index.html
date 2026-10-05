@@ -6038,8 +6038,11 @@ function updateFridayPrayerDisplay() {
         finTitle.innerText =
           String(data.KeuanganJudul || '').trim();
 
-        // QUR'BAN A1: format font dari Spreadsheet; warna dari tema.
-        if (keuanganSelector === 'QURBAN') {
+        // QUR'BAN / PENGURUS A1: gunakan format heading yang sama.
+        if (
+          keuanganSelector === 'QURBAN' ||
+          keuanganSelector === 'PENGURUS'
+        ) {
           finTitle.style.color = 'var(--theme-accent)';
           finTitle.style.webkitTextFillColor = 'var(--theme-accent)';
         } else {
@@ -6059,12 +6062,20 @@ function updateFridayPrayerDisplay() {
           'fin-sub'
         );
 
-      if (keuanganSelector === 'QURBAN') {
+      if (
+        keuanganSelector === 'QURBAN' ||
+        keuanganSelector === 'PENGURUS'
+      ) {
         requestAnimationFrame(function() { fitQurbanHeaderText_(); });
       }
 
       if (finSub) {
-        if (keuanganSelector === 'QURBAN') {
+        if (keuanganSelector === 'PENGURUS') {
+          currentKeuanganGregorianDate_ = '';
+          keuanganDateConversionToken_++;
+          finSub.innerText =
+            String(data.KeuanganTanggal || '').trim();
+        } else if (keuanganSelector === 'QURBAN') {
           currentKeuanganGregorianDate_ = '';
           keuanganDateConversionToken_++;
           finSub.innerText =
@@ -6075,8 +6086,11 @@ function updateFridayPrayerDisplay() {
           renderKeuanganDateHeader_(currentKeuanganGregorianDate_);
         }
 
-        if (keuanganSelector === 'QURBAN') {
-          // QUR'BAN A2: format font dari Spreadsheet; warna dari tema.
+        if (
+          keuanganSelector === 'QURBAN' ||
+          keuanganSelector === 'PENGURUS'
+        ) {
+          // PENGURUS memakai format heading QUR'BAN.
           finSub.style.color = 'var(--theme-accent)';
           finSub.style.webkitTextFillColor = 'var(--theme-accent)';
         } else {
@@ -6103,7 +6117,13 @@ function updateFridayPrayerDisplay() {
             ? a3
             : '';
 
-        if (keuanganSelector === 'QURBAN' && a3) {
+        if (keuanganSelector === 'PENGURUS') {
+          finExtra.innerText = a3;
+          finExtra.style.display = a3 ? 'block' : 'none';
+          finExtra.style.setProperty('color', 'var(--theme-accent)', 'important');
+          finExtra.style.setProperty('-webkit-text-fill-color', 'var(--theme-accent)', 'important');
+          applyQurbanDatePattern_();
+        } else if (keuanganSelector === 'QURBAN' && a3) {
           // Bersihkan garis divider tanggal KEUANGAN yang tersisa
           // sebelum render A2/A3 QURBAN.
           finSub.style.setProperty(
@@ -6125,9 +6145,13 @@ function updateFridayPrayerDisplay() {
       if (finPanelBox) {
         finPanelBox.classList.toggle(
           'qurban-display',
-          keuanganSelector === 'QURBAN'
+          keuanganSelector === 'QURBAN' ||
+          keuanganSelector === 'PENGURUS'
         );
-        if (keuanganSelector === 'QURBAN') {
+        if (
+          keuanganSelector === 'QURBAN' ||
+          keuanganSelector === 'PENGURUS'
+        ) {
 }
       }
 
