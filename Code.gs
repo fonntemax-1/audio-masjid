@@ -1153,9 +1153,12 @@ function getPanelEventCountdownConfig_() {
         .toUpperCase()
         .replace(/[\s’‘'\`]/g, '');
 
-      const selectedKey = selectorKey === 'QURBAN'
-        ? 'QURBAN'
-        : 'KEUANGAN';
+      const selectedKey =
+        selectorKey === 'QURBAN'
+          ? 'QURBAN'
+          : selectorKey === 'PENGURUS'
+            ? 'PENGURUS'
+            : 'KEUANGAN';
 
       result.KeuanganSelector = selectedKey;
 
@@ -1181,20 +1184,30 @@ function getPanelEventCountdownConfig_() {
         const lastRow = selectedSheet.getLastRow();
 
         if (selectedKey === 'QURBAN') {
-          // QUR'BAN: A1, "MASJID " + A2, A3 adalah header tetap.
-          // A4 sengaja dilewati. Scrolling dimulai dari A5 saja.
+          // QUR'BAN: A1, A2, A3 adalah header tetap. A4 dilewati.
+          // Scrolling dimulai dari A5.
           if (lastRow >= 5) {
             selectedSheet
               .getRange(5, 1, lastRow - 4, 1)
               .getDisplayValues()
               .forEach(function(displayRow) {
-                // JANGAN membuang baris kosong.
-                // Spasi/blank row di spreadsheet harus tetap menjadi
-                // jarak visual antar teks pada panel QUR'BAN.
                 const text = String(
                   displayRow[0] == null ? '' : displayRow[0]
                 ).trim();
-
+                result.Keuangan.push([text, '']);
+              });
+          }
+        } else if (selectedKey === 'PENGURUS') {
+          // PENGURUS: A1, A2, A3 adalah header seperti QUR'BAN.
+          // A4 menjadi baris scrolling terakhir untuk data A1:A4.
+          if (lastRow >= 4) {
+            selectedSheet
+              .getRange(4, 1, lastRow - 3, 1)
+              .getDisplayValues()
+              .forEach(function(displayRow) {
+                const text = String(
+                  displayRow[0] == null ? '' : displayRow[0]
+                ).trim();
                 result.Keuangan.push([text, '']);
               });
           }
