@@ -6908,9 +6908,13 @@ function updateFridayPrayerDisplay() {
         table
       );
 
-      // Scrolling default: hanya satu tabel, tanpa clone/ganda.
+      // PENGURUS: setiap snapshot baru dari A19 ke bawah harus
+      // memulai scrolling kembali dari baris pertama.
+      // Panel lain mempertahankan perilaku scrolling sebelumnya.
       setTimeout(
-        startKeuanganScroll,
+        function() {
+          startKeuanganScroll(selectorKey === 'PENGURUS');
+        },
         500
       );
 
