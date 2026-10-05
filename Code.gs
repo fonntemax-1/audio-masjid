@@ -5087,7 +5087,11 @@ function createMasjidSpreadsheet_(name, city) {
   city = String(city || '').trim();
   if (!name) throw new Error('Nama masjid wajib diisi.');
 
-  const ss = SpreadsheetApp.create('TV-Sholat - ' + name + (city ? ' - ' + city : ''));
+  const ss = SpreadsheetApp.create('TV Signage Masjid - ' + name + (city ? ' - ' + city : ''));
+
+  // Template hanya membuat struktur sheet standar.
+  // Data, formula, format, dan konfigurasi operasional diisi kemudian
+  // melalui proses provisioning template yang terkontrol.
   const defaultSheet = ss.getSheets()[0];
   defaultSheet.setName('panels');
 
@@ -5100,8 +5104,45 @@ function createMasjidSpreadsheet_(name, city) {
     if (!ss.getSheetByName(sheetName)) ss.insertSheet(sheetName);
   });
 
+  const configSheet = ss.getSheetByName('KONFIG_TENANT') || ss.insertSheet('KONFIG_TENANT');
+  configSheet.clear();
+  configSheet.getRange(1, 1, 1, 2).setValues([['KEY', 'VALUE']]);
+  configSheet.getRange(2, 1, 5, 2).setValues([
+    ['APP_NAME', 'TV Signage Masjid'],
+    ['TEMPLATE_VERSION', '1.0'],
+    ['TENANT_STATUS', 'ACTIVE'],
+    ['MASJID_ID', ''],
+    ['ROUTING', '']
+  ]);
+
   return ss.getId();
 }
+
+function provisionMasjidTemplate_(spreadsheetId, masjidId, routing) {
+  spreadsheetId = String(spreadsheetId || '').trim();
+  masjidId = String(masjidId || '').trim();
+  routing = String(routing || '').trim();
+
+  if (!spreadsheetId) throw new Error('Spreadsheet ID wajib diisi.');
+
+  const ss = SpreadsheetApp.openById(spreadsheetId);
+  const configSheet = ss.getSheetByName('KONFIG_TENANT') || ss.insertSheet('KONFIG_TENANT');
+
+  configSheet.getRange(2, 2).setValue('TV Signage Masjid');
+  configSheet.getRange(3, 2).setValue('1.0');
+  configSheet.getRange(4, 2).setValue('ACTIVE');
+  configSheet.getRange(5, 2).setValue(masjidId);
+  configSheet.getRange(6, 2).setValue(routing);
+
+  return {
+    success: true,
+    spreadsheetId: spreadsheetId,
+    masjidId: masjidId,
+    routing: routing,
+    templateVersion: '1.0'
+  };
+}
+
 
 function registerNewMasjid(name, city, province, timezone) {
   name = String(name || '').trim();
