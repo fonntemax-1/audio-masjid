@@ -147,47 +147,15 @@
 </style>
 
 <style id="header-text-white-highlight">
-/* Highlight putih tipis yang berjalan di NAMA MASJID.
-   Warna asli text tetap dipertahankan; hanya ada kilatan putih tipis. */
-#nama_masjid{
-  background-image:linear-gradient(
-    110deg,
-    var(--theme-accent) 0%,
-    var(--theme-accent) 47%,
-    rgba(255,255,255,0.92) 49.2%,
-    rgba(255,255,255,0.92) 50.8%,
-    var(--theme-accent) 53%,
-    var(--theme-accent) 100%
-  ) !important;
-  background-size:260% 100% !important;
-  background-position:200% 0 !important;
-  background-repeat:no-repeat !important;
-  background-clip:text !important;
-  -webkit-background-clip:text !important;
-  -webkit-text-fill-color:transparent !important;
-  animation:masjidHeaderWhiteHighlight 4.8s linear infinite !important;
-}
-@keyframes masjidHeaderWhiteHighlight{
-  0%,18%{background-position:200% 0;}
-  62%,100%{background-position:-60% 0;}
-}
-@media (prefers-reduced-motion: reduce){
-  #nama_masjid{
-    background-image:none !important;
-    background-clip:border-box !important;
-    -webkit-background-clip:border-box !important;
-    -webkit-text-fill-color:var(--theme-accent) !important;
-    animation:none !important;
-  }
-}
-<style id="header-text-white-highlight-fix">
-/* Highlight putih tipis sebagai lapisan terpisah.
-   Text asli tetap memakai warna/theme dan shadow aslinya. */
+/* Highlight putih tipis berjalan di atas warna asli header.
+   Warna tema tetap terlihat penuh; hanya garis putih tipis yang menyapu. */
 #nama_masjid{
   position:relative !important;
+  background:transparent !important;
   background-image:none !important;
   background-clip:border-box !important;
   -webkit-background-clip:border-box !important;
+  color:var(--theme-accent) !important;
   -webkit-text-fill-color:var(--theme-accent) !important;
   animation:none !important;
 }
@@ -196,37 +164,31 @@
   position:absolute;
   inset:0;
   display:block;
-  color:#ffffff;
-  -webkit-text-fill-color:#ffffff;
+  pointer-events:none;
+  z-index:2;
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
   font:inherit;
-  font-size:inherit;
-  font-weight:inherit;
-  line-height:inherit;
   letter-spacing:inherit;
+  line-height:inherit;
   text-transform:inherit;
   text-align:inherit;
   white-space:nowrap;
-  pointer-events:none;
-  z-index:2;
-  opacity:.9;
-  -webkit-mask-image:linear-gradient(
-    110deg,
+  opacity:.95;
+  -webkit-mask-image:linear-gradient(110deg,
     transparent 0%,
-    transparent 47%,
-    #000 49.3%,
-    #000 50.7%,
-    transparent 53%,
-    transparent 100%
-  );
-  mask-image:linear-gradient(
-    110deg,
+    transparent 48.8%,
+    #000 49.6%,
+    #000 50.4%,
+    transparent 51.2%,
+    transparent 100%);
+  mask-image:linear-gradient(110deg,
     transparent 0%,
-    transparent 47%,
-    #000 49.3%,
-    #000 50.7%,
-    transparent 53%,
-    transparent 100%
-  );
+    transparent 48.8%,
+    #000 49.6%,
+    #000 50.4%,
+    transparent 51.2%,
+    transparent 100%);
   -webkit-mask-size:260% 100%;
   mask-size:260% 100%;
   -webkit-mask-position:200% 0;
@@ -246,12 +208,8 @@
   }
 }
 @media (prefers-reduced-motion:reduce){
-  #nama_masjid::after{
-    display:none;
-  }
+  #nama_masjid::after{display:none;}
 }
-</style>
-
 </style>
 
 </head>
