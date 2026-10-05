@@ -6096,13 +6096,39 @@ function updateFridayPrayerDisplay() {
       }
 
 
+      // Panel kanan C26 memiliki jalur realtime khusus.
+      // Jangan pernah menganggap selector yang tidak dikirim API
+      // sebagai KEUANGAN, karena deployment Apps Script lama dapat
+      // sesaat belum mengirim KeuanganSelector. Default KEUANGAN
+      // sebelumnya menyebabkan PENGURUS tertimpa/kosong pada polling
+      // utama getDataFromSheet().
+      const currentFinPanelBoxForSelector =
+        document.getElementById('fin-panel-box');
+
+      const currentFinPanelSelector =
+        currentFinPanelBoxForSelector
+          ? String(currentFinPanelBoxForSelector.dataset.panelSelector || '')
+              .trim()
+              .toUpperCase()
+          : '';
+
+      const hasKeuanganSelector =
+        Object.prototype.hasOwnProperty.call(
+          data,
+          'KeuanganSelector'
+        );
+
+      const incomingKeuanganSelector =
+        hasKeuanganSelector
+          ? String(data.KeuanganSelector || '')
+              .trim()
+              .toUpperCase()
+          : '';
+
       const keuanganSelector =
-        String(
-          data.KeuanganSelector ||
-          'KEUANGAN'
-        )
-          .trim()
-          .toUpperCase();
+        incomingKeuanganSelector ||
+        currentFinPanelSelector ||
+        '';
 
       // =======================================================
       // KEUANGAN
