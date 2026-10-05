@@ -619,6 +619,25 @@
     let audioCatchUpWatchdogDate = '';
     let audioCatchUpWatchdogUntil = 0;
 
+    function getMasjidRoutingFromUrl_() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const explicit = (params.get('masjid') || params.get('routing') || '').trim().toLowerCase();
+        if (/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(explicit)) return explicit;
+
+        // Dukungan path: /mujahidin-bpn atau /audio-masjid/mujahidin-bpn
+        const parts = window.location.pathname.split('/').filter(Boolean);
+        const candidate = parts.length ? parts[parts.length - 1].toLowerCase() : '';
+        if (
+          candidate &&
+          candidate !== 'index.html' &&
+          candidate !== 'audio-masjid' &&
+          /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(candidate)
+        ) return candidate;
+      } catch (e) {}
+      return '';
+    }
+
     function gasApiCall(action, params) {
 
       return new Promise(function(resolve, reject) {
@@ -642,6 +661,13 @@
         // Cache-buster: Apps Script JSONP harus selalu mengambil
         // data Spreadsheet terbaru. Tidak mengubah payload/action.
         query.set('_ts', String(Date.now()));
+
+        // Routing tenant ditambahkan otomatis oleh frontend.
+        // Tidak mengubah action/data lama.
+        const currentRouting = getMasjidRoutingFromUrl_();
+        if (currentRouting) {
+          query.set('routing', currentRouting);
+        }
 
         if (params && typeof params === 'object') {
           Object.keys(params).forEach(function(key) {
