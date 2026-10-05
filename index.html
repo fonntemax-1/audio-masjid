@@ -235,7 +235,11 @@
 
 
 <style id="pengurus-font-normal-final">
-/* PENGURUS: seluruh isi normal. HANYA teks setelah "Tugas:" italic. */
+/* PENGURUS:
+   - Default seluruh isi NORMAL.
+   - Baris bernomor Arab/Romawi dan "Pembina / Penasehat:" = BOLD + warna tema.
+   - Jika ada "Tugas:", hanya teks setelah "Tugas:" = ITALIC.
+*/
 #fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text,
 #fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text *{
   font-family:inherit !important;
@@ -246,13 +250,24 @@
   -webkit-text-fill-color:#ffffff !important;
 }
 
+/* PENTING: pengurus-highlight-row berada pada TD yang sama
+   dengan pengurus-scroll-text, bukan elemen turunannya. */
+#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text.pengurus-highlight-row,
+#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text.pengurus-highlight-row *{
+  font-weight:700 !important;
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+}
+
 #fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text .pengurus-tugas-italic{
   font-style:italic !important;
   font-weight:400 !important;
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
 }
 
-#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text .pengurus-highlight-row,
-#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text .pengurus-highlight-row *{
+#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text.pengurus-highlight-row .pengurus-tugas-italic{
+  font-style:italic !important;
   font-weight:700 !important;
   color:var(--theme-accent) !important;
   -webkit-text-fill-color:var(--theme-accent) !important;
