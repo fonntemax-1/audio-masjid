@@ -260,6 +260,19 @@
   -webkit-text-fill-color:var(--theme-accent) !important;
 }
 
+/* PENGURUS — baris penomoran/kelompok:
+   Hanya jika baris diawali angka Romawi, angka biasa,
+   atau "Pembina / Penasehat:" maka SATU BARIS PENUH
+   menjadi BOLD + warna tema. Font family/model lainnya
+   tetap mengikuti format PENGURUS yang sudah ada. */
+#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text.pengurus-highlight-row,
+#fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text.pengurus-highlight-row *{
+  font-style:normal !important;
+  font-weight:700 !important;
+  color:var(--theme-accent) !important;
+  -webkit-text-fill-color:var(--theme-accent) !important;
+}
+
 #fin-panel-box.qurban-display .keuangan-table .pengurus-scroll-text .pengurus-tugas-italic{
   font-style:italic !important;
   font-weight:400 !important;
@@ -6643,6 +6656,17 @@ function updateFridayPrayerDisplay() {
               td.style.fontStyle = 'normal';
               td.style.color = '#ffffff';
               td.style.webkitTextFillColor = '#ffffff';
+
+              // Baris PENGURUS yang diawali:
+              // I, II, III, ... / 1, 2, 3, ... / Pembina / Penasehat:
+              // seluruh baris dibuat BOLD + warna tema.
+              // Tidak mengubah font-family/model font lainnya.
+              const pengurusHighlightRowPattern =
+                /^\s*(?:(?:[IVXLCDM]+)(?:[.)]|\s)|(?:\d+)(?:[.)]|\s)|Pembina\s*\/\s*Penasehat\s*:)/i;
+
+              if (pengurusHighlightRowPattern.test(qurbanText)) {
+                td.classList.add('pengurus-highlight-row');
+              }
 
               const rolePattern =
                 /(Pelindung:|Ketua:|Wakil Ketua:|Sekretaris:|Bendahara:|Tugas:|Koordinator:|Anggota:|Marbot\s*\/\s*Kaum Masjid:)/gi;
