@@ -4986,17 +4986,18 @@ function getPanelKeuanganSource() {
 // berubah. Routing dan license adalah atribut yang dapat berubah.
 // =========================================================
 
+var CURRENT_REQUEST_ROUTING_ = '';
+
 function setCurrentMasjidRouting_(routing) {
   routing = String(routing || '').trim().toLowerCase();
-  // Simpan hanya karakter aman untuk routing.
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(routing)) routing = '';
-  PropertiesService.getScriptProperties().setProperty('_CURRENT_REQUEST_ROUTING', routing);
+  // Global variable berlaku hanya selama satu eksekusi request.
+  // Jangan gunakan Script Properties untuk routing request karena beberapa
+  // TV dapat mengakses API secara bersamaan.
+  CURRENT_REQUEST_ROUTING_ = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(routing) ? routing : '';
 }
 
 function getCurrentMasjidRouting_() {
-  return String(
-    PropertiesService.getScriptProperties().getProperty('_CURRENT_REQUEST_ROUTING') || ''
-  ).trim().toLowerCase();
+  return String(CURRENT_REQUEST_ROUTING_ || '').trim().toLowerCase();
 }
 
 function getMasterSpreadsheet_() {
