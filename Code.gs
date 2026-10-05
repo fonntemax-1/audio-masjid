@@ -1198,11 +1198,11 @@ function getPanelEventCountdownConfig_() {
               });
           }
         } else if (selectedKey === 'PENGURUS') {
-          // PENGURUS: A1, A2, A3 adalah header seperti QUR'BAN.
-          // A4 menjadi baris scrolling terakhir untuk data A1:A4.
-          if (lastRow >= 4) {
+          // PENGURUS: A1:A18 adalah area header/informasi.
+          // Data yang ditampilkan dan di-scroll hanya A19 sampai baris terakhir.
+          if (lastRow >= 19) {
             selectedSheet
-              .getRange(4, 1, lastRow - 3, 1)
+              .getRange(19, 1, lastRow - 18, 1)
               .getDisplayValues()
               .forEach(function(displayRow) {
                 const text = String(
@@ -4637,8 +4637,9 @@ function getRealtimePanelsFast() {
             });
         }
       } else if (selectedKey === 'PENGURUS') {
-        if (lastRow >= 4) {
-          selectedSheet.getRange(4, 1, lastRow - 3, 1).getDisplayValues()
+        // PENGURUS realtime: hanya A19 sampai baris terakhir.
+        if (lastRow >= 19) {
+          selectedSheet.getRange(19, 1, lastRow - 18, 1).getDisplayValues()
             .forEach(function(row) {
               rows.push([String(row[0] == null ? '' : row[0]).trim(), '']);
             });
@@ -4817,10 +4818,10 @@ function getPanelKeuanganSource() {
         });
     }
   } else if (selectedKey === 'PENGURUS') {
-    // PENGURUS mengikuti format QURBAN, tetapi A1:A4 semuanya adalah teks:
-    // A1 judul, A2 subjudul, A3 teks, A4 teks pertama yang masuk area scroll.
-    if (lastRow >= 4) {
-      selectedSheet.getRange(4, 1, lastRow - 3, 1).getDisplayValues()
+    // PENGURUS mengikuti format QURBAN.
+    // A1:A18 adalah area header/informasi; scrolling dimulai dari A19.
+    if (lastRow >= 19) {
+      selectedSheet.getRange(19, 1, lastRow - 18, 1).getDisplayValues()
         .forEach(function(displayRow) {
           rows.push([String(displayRow[0] == null ? '' : displayRow[0]).trim(), '']);
         });
