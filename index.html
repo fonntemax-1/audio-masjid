@@ -10402,8 +10402,6 @@ function updateFridayPrayerDisplay() {
 
       // Jika metadata untuk tipe audio yang sama sedang dimuat oleh
       // schedule sholat lain, ikut menunggu Promise yang sama.
-      // Ini menjaga urutan/timeline tetap sequential per schedule,
-      // tetapi mencegah request metadata yang sama dibuat berulang.
       if (WEB_APP_STATE.audio.durationPromises.has(type)) {
         return WEB_APP_STATE.audio.durationPromises.get(type);
       }
@@ -10415,36 +10413,40 @@ function updateFridayPrayerDisplay() {
       }
 
       const durationPromise = new Promise(function(resolve) {
-        const probe = new Audio();
-        let done = false;
+        let attempt = 0;
+        let settled = false;
+        let probe = null;
 
-        function finish(value) {
-          if (done) return;
-          done = true;
-          const duration = Number(value);
-          const safe = Number.isFinite(duration) && duration > 0 ? duration : 0;
-          if (safe > 0) WEB_APP_STATE.audio.durationCache.set(type, safe);
-          resolve(safe);
-        }
-
-        probe.preload = 'metadata';
-
-        function cleanup() {
-          probe.onloadedmetadata = null;
-          probe.onerror = null;
-          probe.onabort = null;
-        }
-
-        function finishSafe(value, isError) {
-          if (done) return;
-          done = true;
-
+        function finish(value, isError) {
+          if (settled) return;
           const duration = Number(value);
           const safe =
             Number.isFinite(duration) && duration > 0
               ? duration
               : 0;
 
+          if (safe > 0) {
+            settled = true;
+            WEB_APP_STATE.audio.durationCache.set(type, safe);
+            resolve(safe);
+            return;
+          }
+
+          // Chrome/Windows kadang dapat mengembalikan
+          // ERR_CACHE_OPERATION_NOT_SUPPORTED pada probe metadata pertama.
+          // Coba sekali lagi dengan URL cache-busting agar metadata dibaca
+          // dari request baru tanpa mengubah URL audio konfigurasi utama.
+          if (isError && attempt === 0) {
+            attempt++;
+            console.warn(
+              'AUDIO DURASI: retry metadata dengan cache-bypass:',
+              type
+            );
+            setTimeout(startProbe, 150);
+            return;
+          }
+
+          settled = true;
           if (isError) {
             console.warn(
               'AUDIO DURASI: gagal membaca metadata:',
@@ -10452,37 +10454,57 @@ function updateFridayPrayerDisplay() {
               url
             );
           }
+          resolve(0);
+        }
 
-          if (safe > 0) {
-            WEB_APP_STATE.audio.durationCache.set(type, safe);
+        function startProbe() {
+          if (settled) return;
+
+          if (probe) {
+            probe.onloadedmetadata = null;
+            probe.onerror = null;
+            probe.onabort = null;
+            try {
+              probe.removeAttribute('src');
+              probe.load();
+            } catch (_) {}
           }
 
-          cleanup();
-          resolve(safe);
+          probe = new Audio();
+          probe.preload = 'metadata';
+
+          probe.onloadedmetadata = function() {
+            finish(probe.duration, false);
+          };
+
+          probe.onerror = function() {
+            finish(0, true);
+          };
+
+          probe.onabort = function() {
+            finish(0, true);
+          };
+
+          try {
+            const probeUrl =
+              attempt > 0
+                ? url + (url.indexOf('?') >= 0 ? '&' : '?') +
+                  'meta_retry=' + Date.now()
+                : url;
+
+            probe.src = probeUrl;
+            probe.load();
+          } catch (error) {
+            console.warn(
+              'AUDIO DURASI: exception metadata:',
+              type,
+              error
+            );
+            finish(0, true);
+          }
         }
 
-        // Setelah loadedmetadata berhasil, listener error dilepas
-        // sebelum src dibersihkan agar hasil durasi valid tidak
-        // diikuti false error dari proses cleanup.
-        probe.onloadedmetadata = function() {
-          finishSafe(probe.duration, false);
-        };
-
-        probe.onerror = function() {
-          finishSafe(0, true);
-        };
-
-        probe.onabort = function() {
-          finishSafe(0, true);
-        };
-
-        try {
-          probe.src = url;
-          probe.load();
-        } catch (error) {
-          console.warn('AUDIO DURASI: exception metadata:', type, error);
-          finishSafe(0, true);
-        }
+        startProbe();
       });
 
       WEB_APP_STATE.audio.durationPromises.set(type, durationPromise);
