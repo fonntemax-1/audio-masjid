@@ -651,12 +651,12 @@ function normalizePanelCountdownDate_(raw, display, spreadsheetTimezone) {
   const text = String(display || raw || '').trim();
   if (!text) return '';
 
-  let m = text.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})$/);
+  let m = text.match(/^(\d{1,2})[\\/.-](\d{1,2})[\\/.-](\d{4})$/);
   if (m) {
     return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
   }
 
-  m = text.match(/^(\\d{4})[\\/.-](\\d{1,2})[\\/.-](\\d{1,2})$/);
+  m = text.match(/^(\d{4})[\\/.-](\d{1,2})[\\/.-](\d{1,2})$/);
   if (m) {
     return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
   }
@@ -747,7 +747,8 @@ function getPanelEventCountdownCustomConfig_() {
     result.Event = [];
 
     // Countdown baru: panels!C60:E63 adalah satu-satunya sumber konfigurasi.
-    result.EventCountdown = getPanelEventCountdownConfig_();\n    result.EventCountdownCustom = getPanelEventCountdownCustomConfig_();
+    result.EventCountdown = getPanelEventCountdownConfig_();
+    result.EventCountdownCustom = getPanelEventCountdownCustomConfig_();
 
     const targetSheets = [
       'Nama_Mesjid',
@@ -925,7 +926,7 @@ function getPanelEventCountdownCustomConfig_() {
 
           result.KeuanganTanggal =
             keuanganTanggalDisplay.replace(
-              /^(0)(\\d)(\\s)/,
+              /^(0)(\d)(\\s)/,
               '$2$3'
             );
 
@@ -3162,7 +3163,7 @@ function isCompletePrayerSchedule_(jadwal) {
   for (let i = 0; i < fields.length; i++) {
     const value = String(jadwal[fields[i]] || '').trim();
 
-    if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(value)) {
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) {
       return false;
     }
   }
@@ -4884,7 +4885,7 @@ function getPanelKeuanganSource() {
 
   const title = String(selectedSheet.getRange('A1').getDisplayValue() || '').trim();
   const date = String(selectedSheet.getRange('A2').getDisplayValue() || '')
-    .replace(/^(0)(\\d)(\\s)/, '$2$3');
+    .replace(/^(0)(\d)(\\s)/, '$2$3');
   const a3 = String(selectedSheet.getRange('A3').getDisplayValue() || '').trim();
   const headerStyles =
     (selectedKey === 'QURBAN' || selectedKey === 'PENGURUS')
