@@ -4957,7 +4957,26 @@ function updateFridayPrayerDisplay() {
 
     function applyPanelKeuanganSourceFast_(source) {
       if (!source || typeof source !== 'object') return;
-      const selector = String(source.selector || 'KEUANGAN').trim().toUpperCase();
+      const incomingSelector = String(source.selector || '').trim().toUpperCase();
+      const currentBox = document.getElementById('fin-panel-box');
+      const currentIsPengurus =
+        !!currentBox && currentBox.classList.contains('qurban-display') &&
+        String(currentBox.dataset.panelSelector || '').toUpperCase() === 'PENGURUS';
+
+      // Saat Sheets baru selesai menyimpan C26, snapshot realtime dapat
+      // sesaat datang kosong dan Code.gs fallback ke KEUANGAN. Jangan
+      // mengganti PENGURUS yang sedang tampil dengan snapshot sementara.
+      if (!incomingSelector) return;
+      if (
+        currentIsPengurus &&
+        incomingSelector === 'KEUANGAN' &&
+        (!Array.isArray(source.rows) || source.rows.length === 0)
+      ) {
+        console.log('PENGURUS REALTIME: snapshot sementara diabaikan; tampilan lama dipertahankan.');
+        return;
+      }
+
+      const selector = incomingSelector;
       const isQurban = selector === 'QURBAN';
       const isPengurus = selector === 'PENGURUS';
       const isQurbanStyle = isQurban || isPengurus;
@@ -5052,6 +5071,7 @@ function updateFridayPrayerDisplay() {
       const finPanelBox = document.getElementById('fin-panel-box');
       if (finPanelBox) {
         finPanelBox.classList.toggle('qurban-display', isQurbanStyle);
+        finPanelBox.dataset.panelSelector = selector;
         if (selector === 'QURBAN') {
 }
       }
