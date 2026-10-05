@@ -6597,6 +6597,54 @@ function updateFridayPrayerDisplay() {
             const isQurbanHighlight =
               /(Kelompok|Sapi|Kambing)/i.test(qurbanText);
 
+            if (selectorKey === 'PENGURUS') {
+              // PENGURUS:
+              // - seluruh isi baris rata kiri dan italic;
+              // - penanda I, II, III, ... dan 1., 2., 3., ... bold + warna tema;
+              // - "Anggota:" dan "Koordinator" bold + warna tema;
+              // - khusus kata "tugas" saja bold + warna tema,
+              //   sedangkan teks setelahnya tetap italic normal.
+              const pengurusSource = qurbanText;
+              const tokenRegex =
+                /\\b(?:[IVXLCDM]+(?:\\.)?|\\d+\\.)\\b|\\bAnggota:\\b|\\bKoordinator\\b|\\btugas\\b/gi;
+
+              td.className = 'qurban-scroll-text pengurus-scroll-text';
+              td.style.textAlign = 'left';
+              td.style.fontStyle = 'italic';
+
+              let lastIndex = 0;
+              let match;
+
+              while ((match = tokenRegex.exec(pengurusSource)) !== null) {
+                if (match.index > lastIndex) {
+                  const normal = document.createElement('span');
+                  normal.textContent =
+                    pengurusSource.slice(lastIndex, match.index);
+                  td.appendChild(normal);
+                }
+
+                const strong = document.createElement('span');
+                strong.textContent = match[0];
+                strong.style.fontWeight = '900';
+                strong.style.fontStyle = 'normal';
+                strong.style.color = 'var(--theme-accent)';
+                strong.style.webkitTextFillColor = 'var(--theme-accent)';
+                td.appendChild(strong);
+
+                lastIndex = match.index + match[0].length;
+              }
+
+              if (lastIndex < pengurusSource.length) {
+                const normal = document.createElement('span');
+                normal.textContent = pengurusSource.slice(lastIndex);
+                td.appendChild(normal);
+              }
+
+              tr.appendChild(td);
+              table.appendChild(tr);
+              return;
+            }
+
             td.innerHTML = escapedQurbanText;
             td.className =
               'qurban-scroll-text' +
