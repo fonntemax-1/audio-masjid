@@ -8102,8 +8102,87 @@ function updateFridayPrayerDisplay() {
         ? WEB_APP_STATE.event.countdownConfigs
         : [];
 
-      const timezone = getSelectedTimezone();
-      const now = getSelectedTimezoneTime_();
+      // TIMEZONE KHUSUS COUNTDOWN:
+      // Prioritaskan timezone lokasi yang dikirim Panels!C5/C10.
+      // Jika field timezone kosong/tidak valid, gunakan zona WIB/WITA/WIT
+      // sebagai fallback. Ini mencegah countdown tetap memakai WITA
+      // ketika lokasi diganti ke WIB atau WIT.
+      function getCountdownTimezone_() {
+        const location =
+          WEB_APP_STATE &&
+          WEB_APP_STATE.location
+            ? WEB_APP_STATE.location
+            : {};
+
+        const explicitTimezone =
+          String(location.timezone || '').trim();
+
+        const zone =
+          String(location.zona || '').trim().toUpperCase();
+
+        const zoneTimezoneMap = {
+          WIB: 'Asia/Jakarta',
+          WITA: 'Asia/Makassar',
+          WIT: 'Asia/Jayapura'
+        };
+
+        const fallbackTimezone =
+          zoneTimezoneMap[zone] ||
+          'Asia/Makassar';
+
+        if (explicitTimezone) {
+          try {
+            // Validasi timezone dari Sheet tanpa mengubah state aplikasi.
+            new Intl.DateTimeFormat(
+              'en-GB',
+              { timeZone: explicitTimezone }
+            ).format(new Date());
+
+            return explicitTimezone;
+          } catch (timezoneError) {
+            console.warn(
+              'COUNTDOWN TIMEZONE TIDAK VALID, FALLBACK ZONA:',
+              explicitTimezone,
+              '->',
+              fallbackTimezone
+            );
+          }
+        }
+
+        return fallbackTimezone;
+      }
+
+      const timezone = getCountdownTimezone_();
+
+      // Ambil tanggal/jam LOKAL COUNTDOWN dari timezone yang sama.
+      // Jangan memakai timezone browser/Windows.
+      const countdownFormatter =
+        new Intl.DateTimeFormat(
+          'en-GB',
+          {
+            timeZone: timezone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hourCycle: 'h23'
+          }
+        );
+
+      const countdownParts =
+        countdownFormatter.formatToParts(
+          getSynchronizedNow()
+        );
+
+      const now = {};
+
+      countdownParts.forEach(function(part) {
+        if (part.type !== 'literal') {
+          now[part.type] = part.value;
+        }
+      });
 
       function dateKeyToUtcMs_(key) {
         const parts = String(key || '').split('-').map(Number);
@@ -8232,7 +8311,7 @@ function updateFridayPrayerDisplay() {
       /*
        * Agar urutan tetap konsisten terhadap kalender timezone aktif dan tidak
        * berubah saat halaman reload, gunakan jumlah hari sejak
-       * epoch WITA sebagai bagian slot rotasi.
+       * kalender lokal (tanggal netral UTC) sebagai bagian slot rotasi.
        */
       const localDayNumber =
         Math.floor(
