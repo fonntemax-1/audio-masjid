@@ -7059,7 +7059,14 @@ function updateFridayPrayerDisplay() {
 
       firstBlock = content.firstElementChild;
 
-      if (!firstBlock || firstBlock.tagName !== 'TABLE') return;
+      // PENTING: refresh data PENGURUS menyembunyikan content sementara
+      // untuk pengukuran. Jika tabel ternyata tidak perlu scrolling,
+      // fungsi lama langsung return sebelum visibility dikembalikan,
+      // sehingga tabel terlihat hilang setelah update Spreadsheet.
+      if (!firstBlock || firstBlock.tagName !== 'TABLE') {
+        content.style.visibility = 'visible';
+        return;
+      }
 
       const loopSpacer = content.children[1];
       const loopHeight =
@@ -7073,6 +7080,7 @@ function updateFridayPrayerDisplay() {
       if (loopHeight <= area.clientHeight) {
         content.style.transform = 'translate3d(0,0,0)';
         content.style.willChange = 'auto';
+        content.style.visibility = 'visible';
         keuanganAnimId = null;
         return;
       }
