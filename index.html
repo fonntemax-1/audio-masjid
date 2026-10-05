@@ -146,6 +146,42 @@
 }
 </style>
 
+<style id="header-text-white-highlight">
+/* Highlight putih tipis yang berjalan di NAMA MASJID.
+   Warna asli text tetap dipertahankan; hanya ada kilatan putih tipis. */
+#nama_masjid{
+  background-image:linear-gradient(
+    110deg,
+    var(--theme-accent) 0%,
+    var(--theme-accent) 47%,
+    rgba(255,255,255,0.92) 49.2%,
+    rgba(255,255,255,0.92) 50.8%,
+    var(--theme-accent) 53%,
+    var(--theme-accent) 100%
+  ) !important;
+  background-size:260% 100% !important;
+  background-position:200% 0 !important;
+  background-repeat:no-repeat !important;
+  background-clip:text !important;
+  -webkit-background-clip:text !important;
+  -webkit-text-fill-color:transparent !important;
+  animation:masjidHeaderWhiteHighlight 4.8s linear infinite !important;
+}
+@keyframes masjidHeaderWhiteHighlight{
+  0%,18%{background-position:200% 0;}
+  62%,100%{background-position:-60% 0;}
+}
+@media (prefers-reduced-motion: reduce){
+  #nama_masjid{
+    background-image:none !important;
+    background-clip:border-box !important;
+    -webkit-background-clip:border-box !important;
+    -webkit-text-fill-color:var(--theme-accent) !important;
+    animation:none !important;
+  }
+}
+</style>
+
 </head>
 
 <body>
