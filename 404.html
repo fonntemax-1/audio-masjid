@@ -6,19 +6,24 @@
   <script>
     (function () {
       try {
-        var params = new URLSearchParams(window.location.search);
-        var routing = (params.get('routing') || params.get('masjid') || '').trim().toLowerCase();
+        var path = window.location.pathname || '';
+        var parts = path.split('/').filter(Boolean);
+        var candidate = parts.length ? parts[parts.length - 1].toLowerCase() : '';
 
-        if (/^m\d+$/.test(routing)) {
-          var path = window.location.pathname;
-          if (!path.endsWith('/')) path += '/';
-          window.history.replaceState(
-            { shortMasjidRouting: routing },
-            '',
-            path + routing
-          );
+        // GitHub Pages mengirim /m0010 ke 404.html.
+        // Arahkan kembali ke index.html dengan routing tenant.
+        if (/^m\d+$/.test(candidate)) {
+          var base = path.substring(0, path.lastIndexOf('/'));
+          if (!base) base = '/';
+          var target = base.replace(/\/$/, '') + '/?routing=' + encodeURIComponent(candidate);
+          window.location.replace(target);
+          return;
         }
-      } catch (e) {}
+
+        window.location.replace('./index.html');
+      } catch (e) {
+        window.location.replace('./index.html');
+      }
     })();
   </script>
 </head>
