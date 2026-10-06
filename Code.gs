@@ -274,6 +274,63 @@ function validateMasjidLicenseBinding_(routing) {
 }
 
 
+function enforceTenantIdentityMirror_(ss, identity) {
+  if (!ss || !identity) return;
+
+  const sheet = ss.getSheetByName('panels');
+  if (!sheet) return;
+
+  // C5 dan C14 adalah kota yang diterima pada saat provisioning.
+  // Setelah tenant dibuat, keduanya menjadi mirror identitas Master.
+  // C6:C10 selalu dihitung server dari kota Master dan tidak boleh
+  // ditentukan tenant. C12 juga merupakan mirror nama Master.
+  const expected = [
+    String(identity.kota || '').trim(),
+    String(identity.provinsi || '').trim(),
+    String(identity.zona || '').trim(),
+    String(identity.timezone || '').trim(),
+    String(identity.gmt || '').trim(),
+    slugifyMasjidRouting_(identity.namaMesjid, identity.kota)
+  ];
+
+  const current = sheet.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+
+  const currentName = String(sheet.getRange('C12').getDisplayValue() || '').trim();
+  const currentCity = String(sheet.getRange('C14').getDisplayValue() || '').trim();
+
+  let mismatch = currentName !== String(identity.namaMesjid || '').trim();
+  mismatch = mismatch || currentCity !== String(identity.kota || '').trim();
+
+  for (let i = 0; i < expected.length; i++) {
+    if (current[i] !== expected[i]) {
+      mismatch = true;
+      break;
+    }
+  }
+
+  if (!mismatch) return;
+
+  // Server-side repair: perubahan manual tenant pada identitas tidak
+  // pernah menjadi sumber kebenaran dan langsung dikembalikan ke Master.
+  sheet.getRange('C5:C10').setValues(expected.map(function(value) {
+    return [value];
+  }));
+  sheet.getRange('C12').setValue(String(identity.namaMesjid || '').trim());
+  sheet.getRange('C14').setValue(String(identity.kota || '').trim());
+
+  Logger.log(
+    'TENANT IDENTITY MIRROR DIPULIHKAN DARI MASTER: ' +
+    JSON.stringify({
+      id: identity.id,
+      kota: identity.kota,
+      namaMesjid: identity.namaMesjid
+    })
+  );
+}
+
+
 function getSpreadsheet() {
   // MULTI-MASJID:
   // Jika request membawa routing, Spreadsheet dipilih dari Master.
@@ -285,7 +342,15 @@ function getSpreadsheet() {
 
   if (routing) {
     const binding = validateMasjidLicenseBinding_(routing);
-    return SpreadsheetApp.openById(binding.spreadsheetId);
+    const ss = SpreadsheetApp.openById(binding.spreadsheetId);
+
+    // Identitas tenant tidak dipercaya dari panels setelah provisioning.
+    // Jika Owner/Editor berhasil mengubah C5:C10/C12/C14, server
+    // memulihkan mirror dari Master sebelum data dipakai API.
+    const masterIdentity = getCurrentTenantMasterIdentity_();
+    enforceTenantIdentityMirror_(ss, masterIdentity);
+
+    return ss;
   }
 
   const spreadsheetId =
