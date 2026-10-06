@@ -522,10 +522,11 @@ function getDataFromSheet() {
         }
       });
 
-      // NAMA tetap kompatibel dengan panels!C12.
-      result.Nama =
-        headerData.NAMA ||
-        String(headerSheet.getRange('C12').getDisplayValue() || '').trim();
+      // Nama header MASJID selalu langsung dari panels!C12.
+      // Tidak menggunakan label B12 agar C12 menjadi single source of truth.
+      result.Nama = String(
+        headerSheet.getRange('C12').getDisplayValue() || ''
+      ).trim();
 
       // Header utama selalu mengambil langsung dari panels!C13:C15.
       result.Alamat = String(headerSheet.getRange('C13').getDisplayValue() || '').trim();
@@ -4633,7 +4634,8 @@ function getRealtimeDisplayConfig() {
       Youtube: youtube,
       YoutubeStatus: ['ON','OFF','AUTO','STOP'].indexOf(youtubeStatusRaw) >= 0 ? youtubeStatusRaw : 'AUTO',
       IqomahMode: c22Raw === 'AUTO' ? 'AUTO' : c22Raw === 'SLEEP' ? 'SLEEP' : 'OFF',
-      Nama: header.NAMA || cell(12,3),
+      // Nama header MASJID selalu langsung dari panels!C12.
+      Nama: cell(12,3),
       Alamat: header.ALAMAT || '',
       Kota: header.KOTA || '',
       'No. Telp': header['NO HP'] || '',
