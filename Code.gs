@@ -253,6 +253,15 @@ function getSpreadsheet() {
 }
 
 
+function testMasjidLicenseBinding() {
+  const routing = 'tv-signage-test-balikpapan';
+  const result = validateMasjidLicenseBinding_(routing);
+
+  Logger.log('LICENSE BINDING TEST = ' + JSON.stringify(result));
+  return result;
+}
+
+
 // =========================================================
 // AMBIL DATA SHEET
 // =========================================================
