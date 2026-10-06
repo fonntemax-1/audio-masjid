@@ -5080,14 +5080,17 @@ function getSpreadsheetIdByRouting_(routing) {
 
 function slugifyMasjidRouting_(name, city) {
   const source = String(name || '') + '-' + String(city || '');
+
+  // Bentuk routing secara deterministik tanpa regex Unicode yang kompleks.
+  // Kata "masjid" dihilangkan sebagai satu token.
   return source
     .normalize('NFD')
-    .replace(/[\\u0300-\\u036f]/g, '')
     .toLowerCase()
-    .replace(/masjid/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .replace(/-+/g, '-');
+    .split(/[^a-z0-9]+/)
+    .filter(function(token) {
+      return token && token !== 'masjid';
+    })
+    .join('-');
 }
 
 function nextMasjidId_(sheet) {
@@ -5097,7 +5100,7 @@ function nextMasjidId_(sheet) {
   const ids = sheet.getRange(2, 1, lastRow - 1, 1).getDisplayValues();
   let max = 0;
   ids.forEach(function(row) {
-    const m = String(row[0] || '').trim().match(/^M(\\d+)$/i);
+    const m = String(row[0] || '').trim().match(/^M(\d+)$/i);
     if (m) max = Math.max(max, Number(m[1]));
   });
   return 'M' + String(max + 1).padStart(4, '0');
