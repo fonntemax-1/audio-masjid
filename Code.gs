@@ -5272,11 +5272,8 @@ function getTenantLocationByCity_(city) {
     zona: getZonaWaktuFromTimezone_(timezone),
     timezone: timezone,
     gmt: getGmtLabelFromTimezone_(timezone),
-    slug: key
-      .normalize('NFD')
-      .replace(/[\\u0300-\\u036f]/g, '')
+    slug: String(key || '')
       .toLowerCase()
-      .replace(/[()]/g, '')
       .replace(/[^a-z0-9\\s-]/g, '')
       .trim()
       .replace(/\\s+/g, '-')
