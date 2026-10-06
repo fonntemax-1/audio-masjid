@@ -219,6 +219,7 @@ function validateMasjidLicenseBinding_(routing) {
     valid: true,
     id: row.id,
     routing: row.routing,
+    shortUrl: getMasjidShortUrl_(row.id),
     spreadsheetId: spreadsheetId
   };
 }
@@ -5523,7 +5524,10 @@ function findMasjidRowByRouting_(routing) {
   const rows = sheet.getRange(2, 1, lastRow - 1, 12).getDisplayValues();
 
   for (let i = 0; i < rows.length; i++) {
-    if (String(rows[i][5] || '').trim().toLowerCase() === wanted) {
+    const rowRouting = String(rows[i][5] || '').trim().toLowerCase();
+    const rowId = String(rows[i][0] || '').trim().toLowerCase();
+
+    if (rowRouting === wanted || rowId === wanted) {
       return {
         rowNumber: i + 2,
         id: rows[i][0],
@@ -5532,6 +5536,7 @@ function findMasjidRowByRouting_(routing) {
         province: rows[i][3],
         timezone: rows[i][4],
         routing: rows[i][5],
+        shortUrl: getMasjidShortUrl_(rows[i][0]),
         spreadsheetId: rows[i][6],
         licenseHash: rows[i][7],
         licenseStatus: rows[i][8]
@@ -5744,12 +5749,22 @@ function registerMasjid_(name, city, province, timezone, spreadsheetId) {
       provinsi: province,
       timezone: timezone,
       routing: routing,
+      shortUrl: getMasjidShortUrl_(id),
       spreadsheetId: spreadsheetId,
       license: license
     };
   } finally {
     lock.releaseLock();
   }
+}
+
+function getMasjidShortUrl_(id) {
+  const value = String(id || '').trim().toLowerCase();
+  if (!/^m\d+$/.test(value)) {
+    throw new Error('ID_MASJID_TIDAK_VALID: ' + id);
+  }
+
+  return 'https://fonntemax-1.github.io/audio-masjid/' + value;
 }
 
 function getMasjidByRouting_(routing) {
@@ -5765,8 +5780,13 @@ function getMasjidByRouting_(routing) {
 
   const rows = sheet.getRange(2, 1, lastRow - 1, 12).getDisplayValues();
   for (let i = 0; i < rows.length; i++) {
+    const rowRouting = String(rows[i][5] || '').trim().toLowerCase();
+    const rowId = String(rows[i][0] || '').trim().toLowerCase();
+
+    // Alias URL pendek /m0010 menggunakan ID Masjid.
+    // Routing asli tetap menjadi identitas internal tenant.
     if (
-      String(rows[i][5] || '').trim().toLowerCase() === wanted &&
+      (rowRouting === wanted || rowId === wanted) &&
       String(rows[i][8] || 'ACTIVE').trim().toUpperCase() !== 'INACTIVE'
     ) {
       return {
