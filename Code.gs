@@ -143,7 +143,13 @@ function getCurrentTenantMasterIdentity_() {
     throw new Error('TENANT_IDENTITY_TIDAK_DITEMUKAN: ' + routing);
   }
 
-  if (String(row.licenseStatus || 'ACTIVE').trim().toUpperCase() !== 'ACTIVE') {
+  const licenseStatus = String(row.licenseStatus || 'ACTIVE').trim().toUpperCase();
+
+  if (licenseStatus === 'DEMO' && isDemoLicenseExpired_(row.created)) {
+    throw new Error('LICENSE_DEMO_EXPIRED: masa DEMO 7 hari telah berakhir untuk ' + routing);
+  }
+
+  if (licenseStatus !== 'ACTIVE' && licenseStatus !== 'DEMO') {
     throw new Error('LICENSE_TIDAK_AKTIF: ' + routing);
   }
 
@@ -269,8 +275,18 @@ function validateMasjidLicenseBinding_(routing) {
     id: row.id,
     routing: row.routing,
     shortUrl: getMasjidShortUrl_(row.id),
-    spreadsheetId: spreadsheetId
+    spreadsheetId: spreadsheetId,
+    licenseStatus: licenseStatus,
+    demoExpired: false
   };
+}
+
+
+function isDemoLicenseExpired_(createdValue) {
+  const created = createdValue instanceof Date ? createdValue : new Date(createdValue);
+  if (isNaN(created.getTime())) return true;
+  const DEMO_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+  return (new Date().getTime() - created.getTime()) >= DEMO_DURATION_MS;
 }
 
 
@@ -5476,7 +5492,11 @@ function getTenantMasterIdentityBySpreadsheetId_(spreadsheetId) {
   for (let i = 0; i < rows.length; i++) {
     if (String(rows[i][6] || '').trim() !== wanted) continue;
 
-    if (String(rows[i][8] || 'ACTIVE').trim().toUpperCase() !== 'ACTIVE') {
+    const tenantStatus = String(rows[i][8] || 'ACTIVE').trim().toUpperCase();
+    if (tenantStatus === 'DEMO' && isDemoLicenseExpired_(rows[i][10])) {
+      throw new Error('LICENSE_DEMO_EXPIRED: ' + rows[i][0]);
+    }
+    if (tenantStatus !== 'ACTIVE' && tenantStatus !== 'DEMO') {
       throw new Error('LICENSE_TIDAK_AKTIF: ' + rows[i][0]);
     }
 
@@ -5778,7 +5798,8 @@ function findMasjidRowByRouting_(routing) {
         shortUrl: getMasjidShortUrl_(rows[i][0]),
         spreadsheetId: rows[i][6],
         licenseHash: rows[i][7],
-        licenseStatus: rows[i][8]
+        licenseStatus: rows[i][8],
+        created: rows[i][10]
       };
     }
   }
@@ -5797,12 +5818,12 @@ function validateMasjidLicense_(routing, license) {
     };
   }
 
-  if (String(row.licenseStatus || 'ACTIVE').trim().toUpperCase() !== 'ACTIVE') {
-    return {
-      success: false,
-      valid: false,
-      error: 'LICENSE_TIDAK_AKTIF.'
-    };
+  const licenseStatus = String(row.licenseStatus || 'ACTIVE').trim().toUpperCase();
+  if (licenseStatus === 'DEMO' && isDemoLicenseExpired_(row.created)) {
+    return { success: false, valid: false, error: 'LICENSE_DEMO_EXPIRED.' };
+  }
+  if (licenseStatus !== 'ACTIVE' && licenseStatus !== 'DEMO') {
+    return { success: false, valid: false, error: 'LICENSE_TIDAK_AKTIF.' };
   }
 
   const supplied = String(license || '').trim();
@@ -5989,10 +6010,13 @@ function registerMasjid_(name, city, province, timezone, spreadsheetId) {
     const license = generateMasjidLicense_(name, city, province, timezone);
     const licenseHash = hashLicense_(license);
     const now = new Date();
+    const shortUrl = getMasjidShortUrl_(id);
+
+    ensureMasterShortUrlColumn_(sheet);
 
     sheet.appendRow([
       id, name, city, province, timezone, routing, spreadsheetId,
-      licenseHash, 'ACTIVE', '', now, now
+      licenseHash, 'DEMO', '', now, now, shortUrl
     ]);
 
     return {
@@ -6019,6 +6043,19 @@ function getMasjidShortUrl_(id) {
   }
 
   return 'https://fonntemax-1.github.io/audio-masjid/' + value;
+}
+
+function ensureMasterShortUrlColumn_(sheet) {
+  if (!sheet) throw new Error('Sheet Master MASJID belum dibuat.');
+  sheet.getRange('M1').setValue('SHORT_URL');
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getDisplayValues();
+  const shortUrls = ids.map(function(row) {
+    const id = String(row[0] || '').trim();
+    return [id ? getMasjidShortUrl_(id) : ''];
+  });
+  sheet.getRange(2, 13, shortUrls.length, 1).setValues(shortUrls);
 }
 
 function getMasjidByRouting_(routing) {
@@ -6066,7 +6103,7 @@ function ensureMasterLicenseStatusValidation_(sheet) {
   const statusRange = sheet.getRange('I2:I');
   const rule = SpreadsheetApp.newDataValidation()
     .requireValueInList(
-      ['ACTIVE', 'SUSPENDED', 'REVOKE'],
+      ['ACTIVE', 'DEMO', 'SUSPENDED', 'REVOKE'],
       true
     )
     .setAllowInvalid(false)
@@ -6099,6 +6136,7 @@ function setupMasterSpreadsheet() {
     }
 
     ensureMasterLicenseStatusValidation_(existingSheet);
+    ensureMasterShortUrlColumn_(existingSheet);
 
     return {
       success: true,
@@ -6110,16 +6148,17 @@ function setupMasterSpreadsheet() {
   const master = SpreadsheetApp.create('TV-Sholat - MASTER');
   const sheet = master.getSheets()[0];
   sheet.setName('MASJID');
-  sheet.getRange(1, 1, 1, 12).setValues([[
+  sheet.getRange(1, 1, 1, 13).setValues([[
     'ID','NAMA_MESJID','KOTA','PROVINSI','TIMEZONE','ROUTING',
-    'SPREADSHEET_ID','LICENSE_HASH','LICENSE_STATUS','DEVICE_TOKEN','CREATED','UPDATED'
+    'SPREADSHEET_ID','LICENSE_HASH','LICENSE_STATUS','DEVICE_TOKEN','CREATED','UPDATED','SHORT_URL'
   ]]);
   sheet.setFrozenRows(1);
 
   // LICENSE_STATUS per tenant menggunakan dropdown:
-  // ACTIVE / SUSPENDED / REVOKE.
-  // Tenant baru tetap dibuat ACTIVE secara otomatis.
+  // ACTIVE / DEMO / SUSPENDED / REVOKE.
+  // Tenant baru dibuat DEMO selama 7 hari.
   ensureMasterLicenseStatusValidation_(sheet);
+  ensureMasterShortUrlColumn_(sheet);
 
   const config = master.insertSheet('KONFIG');
   config.getRange(1, 1, 1, 2).setValues([['KEY','VALUE']]);
