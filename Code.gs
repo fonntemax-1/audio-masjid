@@ -5377,13 +5377,23 @@ function configureCopiedMasjidIdentity_(
     throw new Error('Spreadsheet hasil copy tidak memiliki sheet panels.');
   }
 
+  // Gunakan satu sumber kebenaran lokasi yang sama dengan
+  // sinkronisasi lokasi tenant. Jangan menulis C5:C10 dari
+  // parameter provisioning secara terpisah karena template
+  // dapat membawa nilai lokasi lama.
+  const location = getTenantLocationByCity_(city);
+
+  if (!location) {
+    throw new Error('KOTA tidak ditemukan pada daftar lokasi: ' + city);
+  }
+
   panels.getRange('C5:C10').setValues([
-    [city],
-    [province],
-    [getZonaWaktuFromTimezone_(timezone)],
-    [timezone],
-    [getGmtLabelFromTimezone_(timezone)],
-    [routing]
+    [location.kota],
+    [location.provinsi],
+    [location.zona],
+    [location.timezone],
+    [location.gmt],
+    [location.slug]
   ]);
 
   panels.getRange('C12').setValue(name);
