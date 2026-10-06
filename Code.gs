@@ -5715,6 +5715,9 @@ function registerMasjid_(name, city, province, timezone, spreadsheetId) {
   const sheet = master.getSheetByName('MASJID');
   if (!sheet) throw new Error('Sheet Master MASJID belum dibuat.');
 
+  // Pastikan setiap ID tenant memiliki selector LICENSE_STATUS.
+  ensureMasterLicenseStatusValidation_(sheet);
+
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
 
@@ -5779,12 +5782,42 @@ function getMasjidByRouting_(routing) {
   return null;
 }
 
+function ensureMasterLicenseStatusValidation_(sheet) {
+  if (!sheet) {
+    throw new Error('Sheet Master MASJID belum dibuat.');
+  }
+
+  const statusRange = sheet.getRange('I2:I');
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(
+      ['ACTIVE', 'SUSPENDED', 'REVOKE'],
+      true
+    )
+    .setAllowInvalid(false)
+    .build();
+
+  statusRange.setDataValidation(rule);
+}
+
 function setupMasterSpreadsheet() {
   const props = PropertiesService.getScriptProperties();
   let masterId = String(props.getProperty('MASTER_SPREADSHEET_ID') || '').trim();
 
   if (masterId) {
-    return { success: true, created: false, spreadsheetId: masterId };
+    const existingMaster = SpreadsheetApp.openById(masterId);
+    const existingSheet = existingMaster.getSheetByName('MASJID');
+
+    if (!existingSheet) {
+      throw new Error('Sheet Master MASJID belum dibuat.');
+    }
+
+    ensureMasterLicenseStatusValidation_(existingSheet);
+
+    return {
+      success: true,
+      created: false,
+      spreadsheetId: masterId
+    };
   }
 
   const master = SpreadsheetApp.create('TV-Sholat - MASTER');
@@ -5795,6 +5828,11 @@ function setupMasterSpreadsheet() {
     'SPREADSHEET_ID','LICENSE_HASH','LICENSE_STATUS','DEVICE_TOKEN','CREATED','UPDATED'
   ]]);
   sheet.setFrozenRows(1);
+
+  // LICENSE_STATUS per tenant menggunakan dropdown:
+  // ACTIVE / SUSPENDED / REVOKE.
+  // Tenant baru tetap dibuat ACTIVE secara otomatis.
+  ensureMasterLicenseStatusValidation_(sheet);
 
   const config = master.insertSheet('KONFIG');
   config.getRange(1, 1, 1, 2).setValues([['KEY','VALUE']]);
