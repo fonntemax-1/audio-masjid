@@ -245,9 +245,11 @@ function validateMasjidLicenseBinding_(routing) {
   }
 
   const licenseStatus = String(row.licenseStatus || 'ACTIVE').trim().toUpperCase();
+
   if (licenseStatus === 'DEMO' && isDemoLicenseExpired_(row.created)) {
     throw new Error('LICENSE_DEMO_EXPIRED: masa DEMO 7 hari telah berakhir untuk ' + routing);
   }
+
   if (licenseStatus !== 'ACTIVE' && licenseStatus !== 'DEMO') {
     throw new Error('LICENSE_TIDAK_AKTIF: ' + routing);
   }
