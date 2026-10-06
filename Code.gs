@@ -5131,36 +5131,35 @@ function createMasjidSpreadsheet_(name, city) {
   city = String(city || '').trim();
   if (!name) throw new Error('Nama masjid wajib diisi.');
 
-  const ss = SpreadsheetApp.create('TV Signage Masjid - ' + name + (city ? ' - ' + city : ''));
+  const ss = SpreadsheetApp.create(
+    'TV Signage Masjid - ' + name + (city ? ' - ' + city : '')
+  );
 
-  // Template hanya membuat struktur sheet standar.
-  // Data, formula, format, dan konfigurasi operasional diisi kemudian
-  // melalui proses provisioning template yang terkontrol.
+  // Semua sheet operasional dibuat sejak awal agar tenant baru
+  // langsung memiliki struktur yang dikenali oleh Code.gs.
   const defaultSheet = ss.getSheets()[0];
   defaultSheet.setName('panels');
 
   const standardSheets = [
-    'Adzan', 'Nama_Mesjid', 'Keuangan', 'infaq',
-    "Jum'at", 'Event', 'Running_Text', 'youtube', "QUR'BAN"
+    'Adzan',
+    'Nama_Mesjid',
+    'Keuangan',
+    'infaq',
+    "Jum'at",
+    'Event',
+    'Running_Text',
+    'youtube',
+    "QUR'BAN",
+    'PENGURUS'
   ];
 
   standardSheets.forEach(function(sheetName) {
     if (!ss.getSheetByName(sheetName)) ss.insertSheet(sheetName);
   });
 
-  const configSheet = ss.getSheetByName('KONFIG_TENANT') || ss.insertSheet('KONFIG_TENANT');
-  configSheet.clear();
-  configSheet.getRange(1, 1, 1, 2).setValues([['KEY', 'VALUE']]);
-  configSheet.getRange(2, 1, 5, 2).setValues([
-    ['APP_NAME', 'TV Signage Masjid'],
-    ['TEMPLATE_VERSION', '1.0'],
-    ['TENANT_STATUS', 'ACTIVE'],
-    ['MASJID_ID', ''],
-    ['ROUTING', '']
-  ]);
-
   return ss.getId();
 }
+
 
 function provisionMasjidTemplate_(spreadsheetId, masjidId, routing) {
   spreadsheetId = String(spreadsheetId || '').trim();
@@ -5171,63 +5170,340 @@ function provisionMasjidTemplate_(spreadsheetId, masjidId, routing) {
 
   const ss = SpreadsheetApp.openById(spreadsheetId);
 
-  // Struktur standar TV Signage Masjid.
-  // Hanya membuat header/label dasar; tidak mengisi data operasional.
-  const schemas = {
-    'panels': [
-      ['PARAMETER', 'KETERANGAN', 'NILAI'],
-      ['LOKASI', 'Kota', ''],
-      ['LOKASI', 'Provinsi', ''],
-      ['LOKASI', 'Zona', ''],
-      ['LOKASI', 'Timezone', ''],
-      ['LOKASI', 'GMT', ''],
-      ['LOKASI', 'Slug', ''],
-      ['DISPLAY', 'Countdown Mode', ''],
-      ['DISPLAY', 'Tema', ''],
-      ['DISPLAY', 'YouTube URL', ''],
-      ['DISPLAY', 'YouTube Control', ''],
-      ['DISPLAY', 'Iqomah Black Mode', '']
-    ],
-    'Adzan': [['PARAMETER', 'NILAI']],
-    'Nama_Mesjid': [['PARAMETER', 'NILAI']],
-    'Keuangan': [['DATA', 'NILAI']],
-    'infaq': [['DATA', 'NILAI']],
-    "Jum'at": [['DATA', 'NILAI']],
-    'Event': [['DATA', 'NILAI']],
-    'Running_Text': [['DATA', 'NILAI']],
-    'youtube': [['PARAMETER', 'NILAI']],
-    "QUR'BAN": [['DATA', 'NILAI']]
+  // ==========================================================
+  // TEMPLATE TENANT
+  // ==========================================================
+  // Prinsip:
+  // 1. Membuat struktur lengkap yang dibaca oleh TV Signage.
+  // 2. Tidak menyalin data operasional tenant lain.
+  // 3. Aman dijalankan ulang: tidak menghapus data yang sudah ada.
+  // 4. Nilai default hanya berupa kontrol sistem umum.
+  // ==========================================================
+
+  const getOrCreate = function(name) {
+    return ss.getSheetByName(name) || ss.insertSheet(name);
   };
 
-  Object.keys(schemas).forEach(function(sheetName) {
-    const sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
-    const schema = schemas[sheetName];
+  const writeIfEmpty = function(sheet, rangeA1, values) {
+    const range = sheet.getRange(rangeA1);
+    const current = range.getDisplayValues();
+    let hasContent = false;
 
-    // Jangan menghapus data jika provisioning dijalankan ulang.
-    if (sheet.getLastRow() === 0) {
-      sheet.getRange(1, 1, schema.length, schema[0].length).setValues(schema);
+    for (let r = 0; r < current.length; r++) {
+      for (let col = 0; col < current[r].length; col++) {
+        if (String(current[r][col] || '').trim() !== '') {
+          hasContent = true;
+          break;
+        }
+      }
+      if (hasContent) break;
+    }
+
+    if (!hasContent) range.setValues(values);
+  };
+
+  // ----------------------------------------------------------
+  // SHEET PANELS
+  // ----------------------------------------------------------
+  const panels = getOrCreate('panels');
+
+  writeIfEmpty(panels, 'B2:C10', [
+    ['MODE DISPLAY', 'OFF'],
+    ['',''],
+    ['',''],
+    ['KOTA', ''],
+    ['PROVINSI', ''],
+    ['ZONA', ''],
+    ['TIMEZONE', ''],
+    ['GMT', ''],
+    ['SLUG', '']
+  ]);
+
+  writeIfEmpty(panels, 'B12:C22', [
+    ['NAMA', ''],
+    ['ALAMAT', ''],
+    ['KOTA', ''],
+    ['NO HP', ''],
+    ['SLOGAN', ''],
+    ['WEBSITE', ''],
+    ['INFO LAINNYA', ''],
+    ['',''],
+    ['TEMA', 'KUNING'],
+    ['',''],
+    ['YOUTUBE URL', '']
+  ]);
+
+  // G20 adalah selector YouTube. C20 tetap URL YouTube.
+  if (!String(panels.getRange('G20').getDisplayValue() || '').trim()) {
+    panels.getRange('G20').setValue('AUTO');
+  }
+
+  if (!String(panels.getRange('C22').getDisplayValue() || '').trim()) {
+    panels.getRange('C22').setValue('OFF');
+  }
+
+  writeIfEmpty(panels, 'B26:C43', [
+    ['PANEL KANAN', 'KEUANGAN'],
+    ['',''],
+    ['JENIS KEGIATAN', "SHOLAT JUM'AT"],
+    ['',''],
+    ['',''],
+    ['',''],
+    ['',''],
+    ['',''],
+    ['EVENT 1', ''],
+    ['EVENT 2', ''],
+    ['EVENT 3', ''],
+    ['EVENT 4', ''],
+    ['INFAQ MODE', 'OFF'],
+    ['INFAQ TEXT 1', ''],
+    ['INFAQ TEXT 2', ''],
+    ['',''],
+    ['',''],
+    ['',''],
+    ['','']
+  ]);
+
+  // Selector panel kanan.
+  const panelSelector = panels.getRange('C26');
+  if (!String(panelSelector.getDisplayValue() || '').trim()) {
+    panelSelector.setValue('KEUANGAN');
+  }
+  panelSelector.setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(['KEUANGAN', "QUR'BAN", 'PENGURUS'], true)
+      .setAllowInvalid(false)
+      .build()
+  );
+
+  // Selector kegiatan.
+  const kegiatanSelector = panels.getRange('C28');
+  if (!String(kegiatanSelector.getDisplayValue() || '').trim()) {
+    kegiatanSelector.setValue("SHOLAT JUM'AT");
+  }
+  kegiatanSelector.setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(PANEL_KEGIATAN_OPTIONS_, true)
+      .setAllowInvalid(false)
+      .build()
+  );
+
+  // Label kegiatan standar; data C29:C32 tetap kosong/manual.
+  panels.getRange('B29:B32').setValues([
+    ['Tanggal'],
+    ['Khatib'],
+    ['Imam'],
+    ['Bilal']
+  ]);
+  panels.getRange('C29:C32').setNumberFormat('dd/MM/yyyy');
+
+  // Event running text pada B35:B39.
+  writeIfEmpty(panels, 'B35:B39', [
+    [''],
+    [''],
+    [''],
+    [''],
+    ['']
+  ]);
+
+  // Konfigurasi countdown event: C60:E63.
+  writeIfEmpty(panels, 'B60:E63', [
+    ['EVENT', 'START', 'END', 'STATUS'],
+    ['', '', '', 'OFF'],
+    ['', '', '', 'OFF'],
+    ['', '', '', 'OFF']
+  ]);
+
+  // Custom countdown mulai B64:E.
+  writeIfEmpty(panels, 'B64:E64', [
+    ['EVENT', 'START', 'END', 'STATUS']
+  ]);
+
+  // ----------------------------------------------------------
+  // SHEET ADZAN
+  // ----------------------------------------------------------
+  const adzan = getOrCreate('Adzan');
+  writeIfEmpty(adzan, 'A1:B18', [
+    ['KEY', 'URL AUDIO'],
+    ['beep', ''],
+    ['adzan-subuh', ''],
+    ['adzan-biasa', ''],
+    ['tarhim', ''],
+    ['iqomah', ''],
+    ['doa', ''],
+    ['sirine', ''],
+    ['qiroah-1', ''],
+    ['qiroah-2', ''],
+    ['qiroah-3', ''],
+    ['qiroah-4', ''],
+    ['qiroah-5', ''],
+    ['doa-adzan', ''],
+    ['doa-puasa', ''],
+    ['doa-buka', ''],
+    ['', ''],
+    ['', '']
+  ]);
+
+  // Struktur sequence final yang dibaca parser:
+  // E:F, H:I, J:K, M:N, P:Q, S:T, V:W, Y:Z.
+  const adzanHeaders = [
+    ['D1', 'NO'], ['E1', 'SUBUH RAMADHAN'], ['F1', 'STATUS'],
+    ['H1', 'SUBUH BIASA'], ['I1', 'STATUS'],
+    ['J1', 'DZUHUR'], ['K1', 'STATUS'],
+    ['M1', 'ASHAR'], ['N1', 'STATUS'],
+    ['P1', 'MAGHRIB RAMADHAN'], ['Q1', 'STATUS'],
+    ['S1', 'MAGHRIB BIASA'], ['T1', 'STATUS'],
+    ['V1', 'ISYA'], ['W1', 'STATUS'],
+    ['Y1', "JUM'AT"], ['Z1', 'STATUS']
+  ];
+  adzanHeaders.forEach(function(item) {
+    if (!String(adzan.getRange(item[0]).getDisplayValue() || '').trim()) {
+      adzan.getRange(item[0]).setValue(item[1]);
     }
   });
 
-  const configSheet = ss.getSheetByName('KONFIG_TENANT') || ss.insertSheet('KONFIG_TENANT');
-  configSheet.getRange(1, 1, 1, 2).setValues([['KEY', 'VALUE']]);
-  configSheet.getRange(2, 1, 5, 2).setValues([
+  // ----------------------------------------------------------
+  // SHEET KEUANGAN
+  // ----------------------------------------------------------
+  const keuangan = getOrCreate('Keuangan');
+  writeIfEmpty(keuangan, 'A1:B3', [
+    ['LAPORAN KEUANGAN', ''],
+    ['Tanggal', ''],
+    ['URAIAN', 'JUMLAH']
+  ]);
+
+  // ----------------------------------------------------------
+  // SHEET QUR'BAN
+  // ----------------------------------------------------------
+  const qurban = getOrCreate("QUR'BAN");
+  writeIfEmpty(qurban, 'A1:A5', [
+    ['QUR\'BAN'],
+    [''],
+    ['KELOMPOK / HEWAN'],
+    [''],
+    ['']
+  ]);
+
+  // ----------------------------------------------------------
+  // SHEET PENGURUS
+  // ----------------------------------------------------------
+  const pengurus = getOrCreate('PENGURUS');
+  writeIfEmpty(pengurus, 'A1:A19', [
+    ['PENGURUS'],
+    [''],
+    [''],
+    [''],
+    [''],
+    [''],
+    [''],
+    [''],
+    [''],
+    [''],
+    [''],
+    [''],
+    [''],
+    [''],
+    [''],
+    [''],
+    [''],
+    [''],
+    ['']
+  ]);
+
+  // Data pengurus memang dimulai dari A19 menurut frontend/backend.
+  if (!String(pengurus.getRange('A19').getDisplayValue() || '').trim()) {
+    pengurus.getRange('A19').setValue('');
+  }
+
+  // ----------------------------------------------------------
+  // SHEET INFAQ
+  // ----------------------------------------------------------
+  const infaq = getOrCreate('infaq');
+  writeIfEmpty(infaq, 'A1:B3', [
+    ['TEXT 1', ''],
+    ['TEXT 2', ''],
+    ['IMAGE / QRIS', '']
+  ]);
+
+  // ----------------------------------------------------------
+  // SHEET JUM'AT
+  // ----------------------------------------------------------
+  const jumat = getOrCreate("Jum'at");
+  writeIfEmpty(jumat, 'A1:B5', [
+    ['PARAMETER', 'NILAI'],
+    ['Tanggal', ''],
+    ['Khatib', ''],
+    ['Imam', ''],
+    ['Muadzin', '']
+  ]);
+
+  // ----------------------------------------------------------
+  // SHEET EVENT
+  // ----------------------------------------------------------
+  const event = getOrCreate('Event');
+  writeIfEmpty(event, 'A1:D11', [
+    ['EVENT', 'HARI', 'STATUS', 'KETERANGAN'],
+    ['','','',''],
+    ['','','',''],
+    ['','','',''],
+    ['','','',''],
+    ['','','',''],
+    ['','','',''],
+    ['','','',''],
+    ['','','',''],
+    ['','','',''],
+    ['','','','']
+  ]);
+
+  // ----------------------------------------------------------
+  // SHEET RUNNING TEXT
+  // ----------------------------------------------------------
+  const running = getOrCreate('Running_Text');
+  writeIfEmpty(running, 'A1:B5', [
+    ['NO', 'RUNNING TEXT'],
+    ['', ''],
+    ['', ''],
+    ['', ''],
+    ['', '']
+  ]);
+
+  // ----------------------------------------------------------
+  // SHEET YOUTUBE
+  // ----------------------------------------------------------
+  const youtube = getOrCreate('youtube');
+  writeIfEmpty(youtube, 'A1:C2', [
+    ['PARAMETER', 'URL YOUTUBE', 'STATUS'],
+    ['', '', 'AUTO']
+  ]);
+
+  if (!String(youtube.getRange('C1').getDisplayValue() || '').trim()) {
+    youtube.getRange('C1').setValue('AUTO');
+  }
+
+  // ----------------------------------------------------------
+  // IDENTITAS TENANT
+  // ----------------------------------------------------------
+  const configSheet = getOrCreate('KONFIG_TENANT');
+  writeIfEmpty(configSheet, 'A1:B6', [
+    ['KEY', 'VALUE'],
     ['APP_NAME', 'TV Signage Masjid'],
-    ['TEMPLATE_VERSION', '1.0'],
+    ['TEMPLATE_VERSION', '2.0'],
     ['TENANT_STATUS', 'ACTIVE'],
     ['MASJID_ID', masjidId],
     ['ROUTING', routing]
   ]);
+
+  // Selalu perbarui metadata tenant yang memang berasal dari Master.
+  configSheet.getRange('B5:B6').setValues([[masjidId], [routing]]);
 
   return {
     success: true,
     spreadsheetId: spreadsheetId,
     masjidId: masjidId,
     routing: routing,
-    templateVersion: '1.0'
+    templateVersion: '2.0'
   };
 }
-
 
 
 /* =========================================================
