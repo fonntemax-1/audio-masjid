@@ -5422,9 +5422,81 @@ function syncTenantLocationByCity_(spreadsheetId, city) {
 }
 
 function onTenantLocationEdit(e) {
-  // Legacy trigger handler. Identity tenant sekarang dikunci saat provisioning.
-  // Tidak ada sinkronisasi lokasi berbasis edit manual.
-  return;
+  // Installable onEdit trigger tenant.
+  // Jika Owner/Editor mengubah C5:C10, C12, atau C14, perubahan
+  // langsung dikembalikan ke identitas Master untuk Spreadsheet ini.
+  if (!e || !e.source) return;
+
+  try {
+    const ss = e.source;
+    const spreadsheetId = String(ss.getId() || '').trim();
+    if (!spreadsheetId) return;
+
+    const sheet = e.range && e.range.getSheet ? e.range.getSheet() : null;
+    if (!sheet || sheet.getName() !== 'panels') return;
+
+    const row = e.range.getRow();
+    const col = e.range.getColumn();
+    const lastRow = e.range.getLastRow();
+    const lastCol = e.range.getLastColumn();
+
+    // Hanya pantau C5:C10, C12, C14.
+    const touchesIdentity =
+      col <= 3 && lastCol >= 3 &&
+      (
+        (row <= 10 && lastRow >= 5) ||
+        (row <= 12 && lastRow >= 12) ||
+        (row <= 14 && lastRow >= 14)
+      );
+
+    if (!touchesIdentity) return;
+
+    const identity = getTenantMasterIdentityBySpreadsheetId_(spreadsheetId);
+    if (!identity) return;
+
+    enforceTenantIdentityMirror_(ss, identity);
+  } catch (error) {
+    Logger.log('TENANT IDENTITY ONEDIT ERROR: ' + error.message);
+  }
+}
+
+function getTenantMasterIdentityBySpreadsheetId_(spreadsheetId) {
+  const wanted = String(spreadsheetId || '').trim();
+  if (!wanted) return null;
+
+  const master = getMasterSpreadsheet_();
+  const sheet = master.getSheetByName('MASJID');
+  if (!sheet) throw new Error('Sheet Master MASJID belum dibuat.');
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return null;
+
+  const rows = sheet.getRange(2, 1, lastRow - 1, 12).getDisplayValues();
+
+  for (let i = 0; i < rows.length; i++) {
+    if (String(rows[i][6] || '').trim() !== wanted) continue;
+
+    if (String(rows[i][8] || 'ACTIVE').trim().toUpperCase() !== 'ACTIVE') {
+      throw new Error('LICENSE_TIDAK_AKTIF: ' + rows[i][0]);
+    }
+
+    const timezone = String(rows[i][4] || '').trim();
+
+    return {
+      id: String(rows[i][0] || '').trim(),
+      namaMesjid: String(rows[i][1] || '').trim(),
+      kota: String(rows[i][2] || '').trim(),
+      provinsi: String(rows[i][3] || '').trim(),
+      timezone: timezone,
+      zona: getZonaWaktuFromTimezone_(timezone),
+      gmt: getGmtLabelFromTimezone_(timezone),
+      routing: String(rows[i][5] || '').trim(),
+      spreadsheetId: wanted,
+      shortUrl: getMasjidShortUrl_(rows[i][0])
+    };
+  }
+
+  return null;
 }
 
 function setupTenantLocationEditTrigger_(spreadsheetId) {
@@ -5509,9 +5581,11 @@ function configureCopiedMasjidIdentity_(
   ss.setSpreadsheetTimeZone(lockedTimezone);
 
   // Setelah provisioning selesai, identitas tenant dikunci.
-  // Tidak lagi memasang trigger perubahan kota karena C5:C10 adalah
-  // identitas server-side dan bukan setting yang boleh diedit tenant.
   protectTenantIdentityRanges_(spreadsheetId);
+
+  // Pasang installable onEdit trigger agar perubahan manual pada
+  // C5:C10, C12, atau C14 langsung dipulihkan dari Master.
+  setupTenantLocationEditTrigger_(spreadsheetId);
 
   return {
     success: true,
