@@ -5220,19 +5220,16 @@ function provisionMasjidTemplate_(spreadsheetId, masjidId, routing) {
   ]);
 
   // Header panel menggunakan koordinat yang memang dibaca frontend.
-  writeIfEmpty(panels, 'B12:C18', [
+  writeIfEmpty(panels, 'B12:C17', [
     ['NAMA', ''],
     ['ALAMAT', ''],
     ['KOTA', ''],
     ['NO HP', ''],
     ['SLOGAN', ''],
-    ['WEBSITE', ''],
-    ['INFO LAINNYA', '']
+    ['WEBSITE', '']
   ]);
 
-  writeIfEmpty(panels, 'B18:C18', [['INFO LAINNYA', '']]);
   writeIfEmpty(panels, 'B20:C20', [['YOUTUBE URL', '']]);
-  writeIfEmpty(panels, 'B18:C18', [['INFO LAINNYA', '']]);
   if (!String(panels.getRange('C18').getDisplayValue() || '').trim()) {
     panels.getRange('C18').setValue('KUNING');
   }
