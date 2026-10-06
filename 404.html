@@ -9,16 +9,30 @@
         var params = new URLSearchParams(window.location.search);
         var routing = (params.get('routing') || params.get('masjid') || '').trim().toLowerCase();
 
+        // GitHub Pages mengirim URL /m0010 ke 404.html.
+        // Kembalikan request ke index.html sambil membawa ID tenant.
+        // index.html kemudian memulihkan URL browser menjadi /m0010.
         if (/^m\d+$/.test(routing)) {
-          var path = window.location.pathname;
-          if (!path.endsWith('/')) path += '/';
-          window.history.replaceState(
-            { shortMasjidRouting: routing },
-            '',
-            path + routing
+          window.location.replace(
+            './?routing=' + encodeURIComponent(routing)
           );
+          return;
         }
-      } catch (e) {}
+
+        var path = window.location.pathname.replace(/\/$/, '');
+        var match = path.match(/\/(m\d+)$/i);
+
+        if (match) {
+          window.location.replace(
+            './?routing=' + encodeURIComponent(match[1].toLowerCase())
+          );
+          return;
+        }
+
+        window.location.replace('./');
+      } catch (e) {
+        window.location.replace('./');
+      }
     })();
   </script>
 </head>
