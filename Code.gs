@@ -5180,6 +5180,188 @@ function createMasjidSpreadsheet_(name, city) {
   return template.copy(copyName).getId();
 }
 
+
+// =========================================================
+// SINKRONISASI LOKASI TENANT
+// panels!C5 menjadi sumber pilihan kota.
+// Saat kota berubah, C6:C10 disinkronkan otomatis:
+// PROVINSI, ZONA, TIMEZONE, GMT, SLUG.
+// Spreadsheet timezone juga ikut diubah.
+// =========================================================
+
+function getTenantLocationByCity_(city) {
+  const key = String(city || '').trim();
+  if (!key) return null;
+
+  const provinceCities = {
+  "Aceh": ["Banda Aceh","Lhokseumawe","Langsa","Sabang","Sigli","Subulussalam"],
+  "Bali": ["Denpasar","Singaraja","Tabanan","Gianyar","Klungkung"],
+  "Bangka Belitung": ["Tanjung Pandan (Belitung)"],
+  "Banten": ["Tangerang","Tangerang Selatan","Serang","Cilegon","Lebak","Pandeglang"],
+  "Bengkulu": ["Bengkulu"],
+  "DI Yogyakarta": ["Yogyakarta","Bantul","Gunungkidul","Kulon Progo","Sleman"],
+  "DKI Jakarta": ["DKI Jakarta","Jakarta Utara","Jakarta Selatan","Jakarta Barat","Jakarta Timur","Jakarta Pusat"],
+  "Gorontalo": ["Gorontalo","Limboto"],
+  "Jambi": ["Jambi","Sungai Penuh"],
+  "Jawa Barat": ["Bandung","Bekasi","Depok","Bogor","Cimahi","Tasikmalaya","Cirebon","Sukabumi","Cianjur","Garut","Indramayu","Karawang","Kuningan","Majalengka","Purwakarta","Subang","Sumedang","Ciamis","Banjar","Pangandaran"],
+  "Jawa Tengah": ["Semarang","Surakarta (Solo)","Magelang","Pekalongan","Tegal","Salatiga","Banjarnegara","Banyumas","Purwokerto","Batang","Blora","Boyolali","Brebes","Cilacap","Demak","Grobogan","Jepara","Karanganyar","Kebumen","Kendal","Klaten","Kudus","Pati","Pemalang","Purbalingga","Purworejo","Rembang","Sragen","Sukoharjo","Temanggung","Wonogiri","Wonosobo"],
+  "Jawa Timur": ["Surabaya","Malang","Kediri","Madiun","Mojokerto","Blitar","Probolinggo","Pasuruan","Batu","Banyuwangi","Bojonegoro","Bondowoso","Gresik","Jember","Jombang","Lamongan","Lumajang","Magetan","Nganjuk","Ngawi","Pacitan","Pamekasan","Ponorogo","Sampang","Sidoarjo","Situbondo","Sumenep","Trenggalek","Tuban","Tulungagung","Bangkalan"],
+  "Kalimantan Barat": ["Pontianak","Singkawang","Ketapang"],
+  "Kalimantan Selatan": ["Banjarmasin","Banjarbaru","Martapura"],
+  "Kalimantan Tengah": ["Palangka Raya","Sampit"],
+  "Kalimantan Timur": ["Samarinda","Balikpapan","Bontang"],
+  "Kalimantan Utara": ["Tarakan"],
+  "Kepulauan Riau": ["Batam","Tanjungpinang","Tanjung Pinang","Karimun"],
+  "Lampung": ["Bandar Lampung","Metro"],
+  "Maluku": ["Ambon","Tual"],
+  "Maluku Utara": ["Tidore"],
+  "Nusa Tenggara Barat": ["Mataram","Bima","Sumbawa Besar"],
+  "Nusa Tenggara Timur": ["Kupang","Ende","Maumere","Labuan Bajo"],
+  "Papua": ["Jayapura","Biak"],
+  "Papua Barat": ["Manokwari","Fak-Fak"],
+  "Papua Barat Daya": ["Sorong"],
+  "Papua Pegunungan": ["Wamena"],
+  "Papua Selatan": ["Merauke"],
+  "Papua Tengah": ["Nabire","Timika"],
+  "Riau": ["Pekanbaru","Dumai","Kampar","Pelalawan"],
+  "Sulawesi Selatan": ["Makassar","Parepare","Palopo","Watampone (Bone)"],
+  "Sulawesi Tengah": ["Palu","Luwuk","Poso"],
+  "Sulawesi Tenggara": ["Kendari","Bau-Bau"],
+  "Sulawesi Utara": ["Manado","Bitung","Tomohon","Kotamobagu"],
+  "Sumatera Barat": ["Padang","Bukittinggi","Payakumbuh","Solok","Pariaman"],
+  "Sumatera Selatan": ["Palembang","Lubuklinggau","Prabumulih","Pagar Alam"],
+  "Sumatera Utara": ["Medan","Binjai","Pematangsiantar","Tebing Tinggi","Deli Serdang","Pematang Siantar","Padangsidempuan"]
+  };
+
+  const timezoneByProvince = {
+    "Aceh":"Asia/Jakarta","Bali":"Asia/Makassar","Bangka Belitung":"Asia/Jakarta",
+    "Banten":"Asia/Jakarta","Bengkulu":"Asia/Jakarta","DI Yogyakarta":"Asia/Jakarta",
+    "DKI Jakarta":"Asia/Jakarta","Gorontalo":"Asia/Makassar","Jambi":"Asia/Jakarta",
+    "Jawa Barat":"Asia/Jakarta","Jawa Tengah":"Asia/Jakarta","Jawa Timur":"Asia/Jakarta",
+    "Kalimantan Barat":"Asia/Makassar","Kalimantan Selatan":"Asia/Makassar",
+    "Kalimantan Tengah":"Asia/Makassar","Kalimantan Timur":"Asia/Makassar",
+    "Kalimantan Utara":"Asia/Makassar","Kepulauan Riau":"Asia/Jakarta",
+    "Lampung":"Asia/Jakarta","Maluku":"Asia/Jayapura","Maluku Utara":"Asia/Jayapura",
+    "Nusa Tenggara Barat":"Asia/Makassar","Nusa Tenggara Timur":"Asia/Makassar",
+    "Papua":"Asia/Jayapura","Papua Barat":"Asia/Jayapura",
+    "Papua Barat Daya":"Asia/Jayapura","Papua Pegunungan":"Asia/Jayapura",
+    "Papua Selatan":"Asia/Jayapura","Papua Tengah":"Asia/Jayapura",
+    "Riau":"Asia/Jakarta","Sulawesi Selatan":"Asia/Makassar",
+    "Sulawesi Tengah":"Asia/Makassar","Sulawesi Tenggara":"Asia/Makassar",
+    "Sulawesi Utara":"Asia/Makassar","Sumatera Barat":"Asia/Jakarta",
+    "Sumatera Selatan":"Asia/Jakarta","Sumatera Utara":"Asia/Jakarta"
+  };
+
+  let province = '';
+  Object.keys(provinceCities).some(function(p) {
+    if (provinceCities[p].indexOf(key) !== -1) {
+      province = p;
+      return true;
+    }
+    return false;
+  });
+
+  if (!province) return null;
+
+  const timezone = timezoneByProvince[province] || '';
+  if (!timezone) return null;
+
+  return {
+    kota: key,
+    provinsi: province,
+    zona: getZonaWaktuFromTimezone_(timezone),
+    timezone: timezone,
+    gmt: getGmtLabelFromTimezone_(timezone),
+    slug: key
+      .normalize('NFD')
+      .replace(/[\\u0300-\\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[()]/g, '')
+      .replace(/[^a-z0-9\\s-]/g, '')
+      .trim()
+      .replace(/\\s+/g, '-')
+  };
+}
+
+function syncTenantLocationByCity_(spreadsheetId, city) {
+  const ss = SpreadsheetApp.openById(String(spreadsheetId || '').trim());
+  const panels = ss.getSheetByName('panels');
+
+  if (!panels) {
+    throw new Error('Spreadsheet tenant tidak memiliki sheet panels.');
+  }
+
+  const location = getTenantLocationByCity_(city);
+
+  if (!location) {
+    throw new Error('KOTA tidak ditemukan pada daftar lokasi: ' + city);
+  }
+
+  panels.getRange('C5:C10').setValues([
+    [location.kota],
+    [location.provinsi],
+    [location.zona],
+    [location.timezone],
+    [location.gmt],
+    [location.slug]
+  ]);
+
+  ss.setSpreadsheetTimeZone(location.timezone);
+
+  return location;
+}
+
+function onTenantLocationEdit(e) {
+  if (!e || !e.range) return;
+
+  const range = e.range;
+  const sheet = range.getSheet();
+
+  if (sheet.getName() !== 'panels') return;
+  if (range.getA1Notation() !== 'C5') return;
+
+  try {
+    syncTenantLocationByCity_(sheet.getParent().getId(), range.getDisplayValue());
+  } catch (error) {
+    Logger.log('SYNC LOKASI TENANT ERROR: ' + error.message);
+  }
+}
+
+function setupTenantLocationEditTrigger_(spreadsheetId) {
+  spreadsheetId = String(spreadsheetId || '').trim();
+
+  if (!spreadsheetId) {
+    throw new Error('Spreadsheet ID tenant wajib diisi.');
+  }
+
+  const ss = SpreadsheetApp.openById(spreadsheetId);
+
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    if (
+      trigger.getHandlerFunction() === 'onTenantLocationEdit' &&
+      trigger.getTriggerSourceId &&
+      String(trigger.getTriggerSourceId()) === spreadsheetId
+    ) {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+
+  ScriptApp.newTrigger('onTenantLocationEdit')
+    .forSpreadsheet(ss)
+    .onEdit()
+    .create();
+
+  return {
+    success: true,
+    spreadsheetId: spreadsheetId,
+    handler: 'onTenantLocationEdit'
+  };
+}
+
+function setupTenantLocationEditTrigger(spreadsheetId) {
+  return setupTenantLocationEditTrigger_(spreadsheetId);
+}
+
 function configureCopiedMasjidIdentity_(
   spreadsheetId,
   name,
@@ -5215,6 +5397,8 @@ function configureCopiedMasjidIdentity_(
   if (timezone) {
     ss.setSpreadsheetTimeZone(timezone);
   }
+
+  setupTenantLocationEditTrigger_(spreadsheetId);
 
   return {
     success: true,
