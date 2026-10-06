@@ -5099,7 +5099,7 @@ function nextMasjidId_(sheet) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return 'M0001';
 
-  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getDisplayValues();
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
   let max = 0;
   ids.forEach(function(row) {
     const m = String(row[0] || '').trim().match(/^M(\d+)$/i);
