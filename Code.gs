@@ -5715,6 +5715,9 @@ function registerMasjid_(name, city, province, timezone, spreadsheetId) {
   const sheet = master.getSheetByName('MASJID');
   if (!sheet) throw new Error('Sheet Master MASJID belum dibuat.');
 
+  // Pastikan setiap ID tenant memiliki selector LICENSE_STATUS.
+  ensureMasterLicenseStatusValidation_(sheet);
+
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
 
