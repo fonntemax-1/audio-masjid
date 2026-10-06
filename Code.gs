@@ -182,19 +182,60 @@ function getLokasiPanels() {
 }
 
 
+function validateMasjidLicenseBinding_(routing) {
+  const row = findMasjidRowByRouting_(routing);
+
+  if (!row) {
+    throw new Error('ROUTING_MASJID_TIDAK_TERDAFTAR: ' + routing);
+  }
+
+  if (String(row.licenseStatus || 'ACTIVE').trim().toUpperCase() !== 'ACTIVE') {
+    throw new Error('LICENSE_TIDAK_AKTIF: ' + routing);
+  }
+
+  const spreadsheetId = String(row.spreadsheetId || '').trim();
+  if (!spreadsheetId) {
+    throw new Error('SPREADSHEET_ID_TENANT_TIDAK_TERDAFTAR: ' + routing);
+  }
+
+  const storedHash = String(row.licenseHash || '').trim().toLowerCase();
+  if (!storedHash) {
+    throw new Error('LICENSE_TENANT_TIDAK_VALID: LICENSE_HASH kosong untuk ' + routing);
+  }
+
+  const currentLicense = generateMasjidLicense_(
+    row.name,
+    row.city,
+    row.province,
+    row.timezone
+  );
+  const currentHash = hashLicense_(currentLicense);
+
+  if (storedHash !== currentHash) {
+    throw new Error('LICENSE_TENANT_TIDAK_VALID: identitas tenant atau license hash tidak cocok untuk ' + routing);
+  }
+
+  return {
+    valid: true,
+    id: row.id,
+    routing: row.routing,
+    spreadsheetId: spreadsheetId
+  };
+}
+
+
 function getSpreadsheet() {
   // MULTI-MASJID:
   // Jika request membawa routing, Spreadsheet dipilih dari Master.
+  // License tenant divalidasi SERVER-SIDE sebelum Spreadsheet dibuka.
+  // Public viewer tidak perlu mengirim license.
   // Jika belum ada routing (mode lama), tetap gunakan SPREADSHEET_ID
-  // agar instalasi Masjid Al Mujahidin saat ini tidak rusak.
+  // agar instalasi lama tidak rusak.
   const routing = getCurrentMasjidRouting_();
 
   if (routing) {
-    const spreadsheetId = getSpreadsheetIdByRouting_(routing);
-    if (!spreadsheetId) {
-      throw new Error('ROUTING_MASJID_TIDAK_TERDAFTAR: ' + routing);
-    }
-    return SpreadsheetApp.openById(spreadsheetId);
+    const binding = validateMasjidLicenseBinding_(routing);
+    return SpreadsheetApp.openById(binding.spreadsheetId);
   }
 
   const spreadsheetId =
