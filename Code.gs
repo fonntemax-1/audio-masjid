@@ -5093,6 +5093,17 @@ function slugifyMasjidRouting_(name, city) {
     .join('-');
 }
 
+function testSlugifyRouting() {
+  const hasil = slugifyMasjidRouting_(
+    'TV Signage Masjid Test',
+    'Balikpapan'
+  );
+
+  Logger.log('HASIL ROUTING = ' + hasil);
+  return hasil;
+}
+
+
 function nextMasjidId_(sheet) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return 'M0001';
