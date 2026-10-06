@@ -5099,13 +5099,13 @@ function nextMasjidId_(sheet) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return 'M0001';
 
-  // Kolom A pada Master MASJID adalah typed column.
-  // Jangan membaca cell typed column dengan getValues()/getDisplayValues().
-  // ID tenant dibuat permanen dan berurutan, sehingga nomor berikutnya
-  // dapat ditentukan dari jumlah baris data Master tanpa membaca kolom A.
-  const nextNumber = lastRow;
-
-  return 'M' + String(nextNumber).padStart(4, '0');
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  let max = 0;
+  ids.forEach(function(row) {
+    const m = String(row[0] || '').trim().match(/^M(\d+)$/i);
+    if (m) max = Math.max(max, Number(m[1]));
+  });
+  return 'M' + String(max + 1).padStart(4, '0');
 }
 
 function uniqueMasjidRouting_(sheet, baseRouting) {
@@ -5798,7 +5798,18 @@ function ensureMasterLicenseStatusValidation_(sheet) {
     .setAllowInvalid(false)
     .build();
 
-  statusRange.setDataValidation(rule);
+  try {
+    // Google Sheets Table/typed column dapat menolak setDataValidation().
+    // Flush di dalam try agar error typed-column tidak tertunda ke operasi
+    // berikutnya (misalnya nextMasjidId_).
+    statusRange.setDataValidation(rule);
+    SpreadsheetApp.flush();
+  } catch (error) {
+    Logger.log(
+      'MASTER LICENSE STATUS: kolom I adalah typed column/table; ' +
+      'validasi range dilewati. ' + error.message
+    );
+  }
 }
 
 function setupMasterSpreadsheet() {
