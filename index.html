@@ -5485,7 +5485,7 @@ function updateFridayPrayerDisplay() {
       const nameEl = document.getElementById('nama_masjid');
       if (nameEl && data.Nama !== undefined) {
         const nama = String(data.Nama || '').trim();
-        nameEl.innerText = nama ? (/^MASJID\b/i.test(nama) ? nama : 'MASJID ' + nama) : '';
+        nameEl.innerText = nama;
         nameEl.setAttribute('data-highlight-text', nameEl.innerText);
         updateLogoPositionResponsive_();
       }
@@ -6079,10 +6079,7 @@ function updateFridayPrayerDisplay() {
         if (element) {
           const nama = String(data.Nama || '').trim();
 
-          element.innerText =
-            nama
-              ? (/^MASJID\\b/i.test(nama) ? nama : 'MASJID ' + nama)
-              : '';
+          element.innerText = nama;
 
           element.setAttribute('data-highlight-text', element.innerText);
           updateLogoPositionResponsive_();
