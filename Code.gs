@@ -5169,337 +5169,246 @@ function provisionMasjidTemplate_(spreadsheetId, masjidId, routing) {
   if (!spreadsheetId) throw new Error('Spreadsheet ID wajib diisi.');
 
   const ss = SpreadsheetApp.openById(spreadsheetId);
-
-  // ==========================================================
-  // TEMPLATE TENANT
-  // ==========================================================
-  // Prinsip:
-  // 1. Membuat struktur lengkap yang dibaca oleh TV Signage.
-  // 2. Tidak menyalin data operasional tenant lain.
-  // 3. Aman dijalankan ulang: tidak menghapus data yang sudah ada.
-  // 4. Nilai default hanya berupa kontrol sistem umum.
-  // ==========================================================
-
   const getOrCreate = function(name) {
     return ss.getSheetByName(name) || ss.insertSheet(name);
   };
 
-  const writeIfEmpty = function(sheet, rangeA1, values) {
-    const range = sheet.getRange(rangeA1);
-    const current = range.getDisplayValues();
-    let hasContent = false;
-
-    for (let r = 0; r < current.length; r++) {
-      for (let col = 0; col < current[r].length; col++) {
-        if (String(current[r][col] || '').trim() !== '') {
-          hasContent = true;
-          break;
-        }
-      }
-      if (hasContent) break;
-    }
-
-    if (!hasContent) range.setValues(values);
-  };
-
-  // ----------------------------------------------------------
-  // SHEET PANELS
-  // ----------------------------------------------------------
+  // ==========================================================
+  // PANELS — EXACT BLUEPRINT DARI Database-TV_Sholat
+  // ==========================================================
   const panels = getOrCreate('panels');
 
-  writeIfEmpty(panels, 'B2:C10', [
-    ['MODE DISPLAY', 'OFF'],
-    ['',''],
-    ['',''],
-    ['KOTA', ''],
-    ['PROVINSI', ''],
-    ['ZONA', ''],
-    ['TIMEZONE', ''],
-    ['GMT', ''],
-    ['SLUG', '']
+  // Struktur fisik spreadsheet asli.
+  panels.setColumnWidth(1, 46);
+  panels.setColumnWidth(2, 219);
+  panels.setColumnWidth(3, 165);
+  panels.setColumnWidth(4, 120);
+  panels.setColumnWidth(5, 109);
+  panels.setColumnWidth(6, 92);
+  panels.setColumnWidth(7, 95);
+  panels.setColumnWidth(8, 80);
+  panels.setColumnWidth(9, 66);
+  panels.setColumnWidth(10, 143);
+  panels.setColumnWidth(11, 66);
+  panels.setColumnWidth(12, 118);
+  panels.setColumnWidth(13, 66);
+  panels.setColumnWidth(14, 100);
+  panels.setColumnWidth(15, 66);
+  panels.setColumnWidth(16, 80);
+  panels.setColumnWidth(17, 66);
+
+  panels.setFrozenRows(0);
+  panels.setFrozenColumns(0);
+
+  // Template tenant baru tidak membawa data identitas tenant sumber.
+  // Hanya struktur, kontrol, formula, format, dan default sistem.
+  const base = panels.getRange('B5:Q64');
+  base.setFontFamily('Arial')
+      .setFontSize(10)
+      .setFontWeight('normal')
+      .setFontColor('#000000')
+      .setBackground('#ffffff')
+      .setHorizontalAlignment('left')
+      .setVerticalAlignment('bottom')
+      .setWrapStrategy(SpreadsheetApp.WrapStrategy.OVERFLOW);
+
+  panels.getRange('B5:B10').setValues([
+    ['KOTA'], ['PROVINSI'], ['ZONA WAKTU'], ['TIMEZONE'], ['GMT'], ['SLUG']
   ]);
 
-  // Header panel menggunakan koordinat yang memang dibaca frontend.
-  writeIfEmpty(panels, 'B12:C17', [
-    ['NAMA', ''],
-    ['ALAMAT', ''],
-    ['KOTA', ''],
-    ['NO HP', ''],
-    ['SLOGAN', ''],
-    ['WEBSITE', '']
+  panels.getRange('B12:B16').setValues([
+    ['NAMA'], ['ALAMAT'], ['KOTA'], ['NO HP'], ['SLOGAN']
   ]);
 
-  writeIfEmpty(panels, 'B20:C20', [['YOUTUBE URL', '']]);
-  if (!String(panels.getRange('C18').getDisplayValue() || '').trim()) {
-    panels.getRange('C18').setValue('KUNING');
-  }
+  panels.getRange('B18:C18').setValues([['TEMA WARNA', 'KUNING']]);
+  panels.getRange('B20:C20').setValues([['LINK VIDEO DISPLAY', '']]);
+  panels.getRange('G20').setValue('AUTO');
+  panels.getRange('B22:C22').setValues([['DISPLAY MODE', 'OFF']]);
+  panels.getRange('B24').setValue('LIVE STREAMING');
+  panels.getRange('G24').setValue('OFF');
 
-  // G20 adalah selector YouTube. C20 tetap URL YouTube.
-  if (!String(panels.getRange('G20').getDisplayValue() || '').trim()) {
-    panels.getRange('G20').setValue('AUTO');
-  }
+  panels.getRange('B26:C26').setValues([['TABEL 1', 'PENGURUS']]);
+  panels.getRange('B28:C28').setValues([['PETUGAS', "SHOLAT JUM'AT"]]);
 
-  if (!String(panels.getRange('B22').getDisplayValue() || '').trim()) {
-    panels.getRange('B22').setValue('IQOMAH BLACK MODE');
-  }
-  if (!String(panels.getRange('C22').getDisplayValue() || '').trim()) {
-    panels.getRange('C22').setValue('OFF');
-  }
+  panels.getRange('B29:B32').setFormulas([
+    ['=IF($C$28="SHOLAT JUM\'AT";"Tanggal";IF($C$28="SHOLAT TARAWIH";"Tanggal";IF($C$28="SHOLAT IDUL FITRI";"Tanggal";IF($C$28="SHOLAT IDUL ADHA";"Tanggal";""))))'],
+    ['=IF($C$28="SHOLAT JUM\'AT";"Khatib";IF($C$28="SHOLAT TARAWIH";"Imam";IF($C$28="SHOLAT IDUL FITRI";"Khatib";IF($C$28="SHOLAT IDUL ADHA";"Khatib";""))))'],
+    ['=IF($C$28="SHOLAT JUM\'AT";"Imam";IF($C$28="SHOLAT TARAWIH";"Bilal";IF($C$28="SHOLAT IDUL FITRI";"Imam";IF($C$28="SHOLAT IDUL ADHA";"Imam";""))))'],
+    ['=IF($C$28="SHOLAT JUM\'AT";"Bilal";IF($C$28="SHOLAT TARAWIH";"Kultum";IF($C$28="SHOLAT IDUL FITRI";"Bilal";IF($C$28="SHOLAT IDUL ADHA";"Bilal";""))))']
+  ]);
 
-  // Struktur panel kanan, kegiatan, event, dan infaq mengikuti
-  // koordinat final yang digunakan endpoint realtime.
-  if (!String(panels.getRange('B26').getDisplayValue() || '').trim()) panels.getRange('B26').setValue('PANEL KANAN');
-  if (!String(panels.getRange('C26').getDisplayValue() || '').trim()) panels.getRange('C26').setValue('KEUANGAN');
-  if (!String(panels.getRange('B28').getDisplayValue() || '').trim()) panels.getRange('B28').setValue('JENIS KEGIATAN');
+  panels.getRange('B35:B38').setValues([[''], [''], [''], ['']]);
+  panels.getRange('B35:B38').setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+  panels.getRange('B39').clearContent();
 
-  writeIfEmpty(panels, 'B35:B39', [[''], [''], [''], [''], ['']]);
+  panels.getRange('B41:C43').setValues([
+    ['INFAQ & SHADAQAH', 'AUTO'],
+    ['No.Rek', ''],
+    ['Nama', '']
+  ]);
 
-  if (!String(panels.getRange('B41').getDisplayValue() || '').trim()) panels.getRange('B41').setValue('INFAQ MODE');
-  if (!String(panels.getRange('C41').getDisplayValue() || '').trim()) panels.getRange('C41').setValue('OFF');
-  if (!String(panels.getRange('B42').getDisplayValue() || '').trim()) panels.getRange('B42').setValue('INFAQ TEXT 1');
-  if (!String(panels.getRange('B43').getDisplayValue() || '').trim()) panels.getRange('B43').setValue('INFAQ TEXT 2');
+  // Header audio/status sesuai blueprint asli.
+  panels.getRange('B45:Q45').setValues([[
+    'SUBUH RAMADHAN','STATUS','SUBUH BIASA','STATUS','DZUHUR','STATUS',
+    'ASHAR','STATUS','MAGRIB RAMADHAN','STATUS','MAGRIB BIASA','STATUS',
+    'ISYA','STATUS',"JUM'AT",'STATUS'
+  ]]);
 
-  // Selector panel kanan.
-  const panelSelector = panels.getRange('C26');
-  if (!String(panelSelector.getDisplayValue() || '').trim()) {
-    panelSelector.setValue('KEUANGAN');
-  }
-  panelSelector.setDataValidation(
+  panels.getRange('B46:Q55').setValues([
+    ['qiroah-1','ON','qiroah-2','ON','qiroah-3','ON','qiroah-3','ON','qiroah-4','ON','qiroah-5','ON','qiroah-4','ON',"qiroah-4",'ON'],
+    ['tarhim','ON','tarhim','ON','tarhim','ON','tarhim','ON','tarhim','ON','tarhim','ON','tarhim','ON','adzan-biasa','ON'],
+    ['sirine','ON','beep','ON','beep','ON','beep','ON','sirine','ON','beep','ON','beep','ON','',''],
+    ['doa-puasa','ON','adzan-subuh','ON','adzan-biasa','ON','adzan-biasa','ON','doa-buka','ON','adzan-biasa','ON','adzan-biasa','ON','',''],
+    ['tarhim','ON','doa-adzan','ON','doa-adzan','ON','doa-adzan','ON','beep','ON','doa-adzan','ON','doa-adzan','ON','',''],
+    ['beep','ON','beep','ON','beep','ON','beep','ON','iqomah','ON','beep','ON','beep','ON','',''],
+    ['iqomah','ON','iqomah','ON','iqomah','ON','iqomah','ON','doa-adzan','ON','iqomah','ON','iqomah','ON','',''],
+    ['doa-adzan','ON','','','','','','','','','','','','','',''],
+    ['beep','ON','','','','','','','','','','','','','',''],
+    ['iqomah','ON','','','','','','','','','','','','','','']
+  ]);
+
+  panels.getRange('B57:C57').setValues([['Takbiran ', 'OFF']]);
+
+  panels.getRange('B59:E64').setValues([
+    ['COUTDOWN EVENT','MULAI','AKHIR','STATUS'],
+    ['MENUJU RAMADHAN','','','ON'],
+    ["MENUJU LAILATUL QAD'R",'','','OFF'],
+    ['MENUJU IDUL FITRI','','','OFF'],
+    ['MENUJU IDUL ADHA','','','OFF'],
+    ['MILAD GILANG ','','','OFF']
+  ]);
+
+  // Format tanggal countdown dan tanggal kegiatan.
+  panels.getRange('C29').setNumberFormat('d" "mmmm" "yyyy');
+  panels.getRange('C60:D64').setNumberFormat('d" "mmmm" "yyyy');
+
+  // Default city dari Master tenant. C5 adalah dropdown kota 187 item.
+  const cities = ["Banda Aceh","Lhokseumawe","Langsa","Sabang","Sigli","Subulussalam","Denpasar","Singaraja","Tabanan","Gianyar","Klungkung","Tanjung Pandan (Belitung)","Tangerang","Tangerang Selatan","Serang","Cilegon","Lebak","Pandeglang","Bengkulu","Yogyakarta","Bantul","Gunungkidul","Kulon Progo","Sleman","DKI Jakarta","Jakarta Utara","Jakarta Selatan","Jakarta Barat","Jakarta Timur","Jakarta Pusat","Gorontalo","Limboto","Jambi","Sungai Penuh","Bandung","Bekasi","Depok","Bogor","Cimahi","Tasikmalaya","Cirebon","Sukabumi","Cianjur","Garut","Indramayu","Karawang","Kuningan","Majalengka","Purwakarta","Subang","Sumedang","Ciamis","Banjar","Pangandaran","Semarang","Surakarta (Solo)","Magelang","Pekalongan","Tegal","Salatiga","Banjarnegara","Banyumas","Purwokerto","Batang","Blora","Boyolali","Brebes","Cilacap","Demak","Grobogan","Jepara","Karanganyar","Kebumen","Kendal","Klaten","Kudus","Pati","Pemalang","Purbalingga","Purworejo","Rembang","Sragen","Sukoharjo","Temanggung","Wonogiri","Wonosobo","Surabaya","Malang","Kediri","Madiun","Mojokerto","Blitar","Probolinggo","Pasuruan","Batu","Banyuwangi","Bojonegoro","Bondowoso","Gresik","Jember","Jombang","Lamongan","Lumajang","Magetan","Nganjuk","Ngawi","Pacitan","Pamekasan","Ponorogo","Sampang","Sidoarjo","Situbondo","Sumenep","Trenggalek","Tuban","Tulungagung","Bangkalan","Pontianak","Singkawang","Ketapang","Banjarmasin","Banjarbaru","Martapura","Palangka Raya","Sampit","Samarinda","Balikpapan","Bontang","Tarakan","Batam","Tanjungpinang","Tanjung Pinang","Karimun","Bandar Lampung","Metro","Ambon","Tual","Tidore","Mataram","Bima","Sumbawa Besar","Kupang","Ende","Maumere","Labuan Bajo","Jayapura","Biak","Manokwari","Fak-Fak","Sorong","Wamena","Merauke","Nabire","Timika","Pekanbaru","Dumai","Kampar","Pelalawan","Makassar","Parepare","Palopo","Watampone (Bone)","Palu","Luwuk","Poso","Kendari","Bau-Bau","Manado","Bitung","Tomohon","Kotamobagu","Padang","Bukittinggi","Payakumbuh","Solok","Pariaman","Palembang","Lubuklinggau","Prabumulih","Pagar Alam","Medan","Binjai","Pematangsiantar","Tebing Tinggi","Deli Serdang","Pematang Siantar","Padangsidempuan"];
+  const cityRule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(cities, true)
+    .setAllowInvalid(false)
+    .build();
+  panels.getRange('C5').setDataValidation(cityRule);
+
+  // Dropdown kontrol exact blueprint.
+  panels.getRange('C18').setDataValidation(
     SpreadsheetApp.newDataValidation()
-      .requireValueInList(['KEUANGAN', "QUR'BAN", 'PENGURUS'], true)
-      .setAllowInvalid(false)
-      .build()
+      .requireValueInList(['HIJAU','MERAH','KUNING'], true)
+      .setAllowInvalid(false).build()
   );
-
-  // Selector kegiatan.
-  const kegiatanSelector = panels.getRange('C28');
-  if (!String(kegiatanSelector.getDisplayValue() || '').trim()) {
-    kegiatanSelector.setValue("SHOLAT JUM'AT");
-  }
-  kegiatanSelector.setDataValidation(
+  panels.getRange('G20').setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(['ON','OFF','AUTO','STOP'], true)
+      .setAllowInvalid(false).build()
+  );
+  panels.getRange('C22').setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(['AUTO','OFF','SLEEP'], true)
+      .setAllowInvalid(false).build()
+  );
+  panels.getRange('G24').setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(['ON','OFF'], true)
+      .setAllowInvalid(false).build()
+  );
+  panels.getRange('C26').setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(['KEUANGAN',"QUR'BAN",'PENGURUS'], true)
+      .setAllowInvalid(false).build()
+  );
+  panels.getRange('C28').setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireValueInList(PANEL_KEGIATAN_OPTIONS_, true)
-      .setAllowInvalid(false)
-      .build()
+      .setAllowInvalid(false).build()
+  );
+  panels.getRange('C41').setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(['AUTO','OFF'], true)
+      .setAllowInvalid(false).build()
   );
 
-  // Label kegiatan standar; data C29:C32 tetap kosong/manual.
-  panels.getRange('B29:B32').setValues([
-    ['Tanggal'],
-    ['Khatib'],
-    ['Imam'],
-    ['Bilal']
-  ]);
-  panels.getRange('C29:C32').setNumberFormat('dd/MM/yyyy');
+  const onOffRanges = ['C46:C55','E46:E55','G46:G55','I46:I55','K46:K55','M46:M55','O46:O55','Q46:Q55'];
+  onOffRanges.forEach(function(a1) {
+    panels.getRange(a1).setDataValidation(
+      SpreadsheetApp.newDataValidation()
+        .requireValueInList(['ON','OFF'], true)
+        .setAllowInvalid(false).build()
+    );
+  });
+  panels.getRange('C57').setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(['ON','OFF'], true)
+      .setAllowInvalid(false).build()
+  );
+  panels.getRange('E60:E64').setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(['ON','OFF'], true)
+      .setAllowInvalid(false).build()
+  );
 
-  // Event running text pada B35:B39.
-  writeIfEmpty(panels, 'B35:B39', [
-    [''],
-    [''],
-    [''],
-    [''],
-    ['']
-  ]);
-
-  // Konfigurasi countdown event: C60:E63.
-  writeIfEmpty(panels, 'B60:E63', [
-    ['EVENT', 'START', 'END', 'STATUS'],
-    ['', '', '', 'OFF'],
-    ['', '', '', 'OFF'],
-    ['', '', '', 'OFF']
-  ]);
-
-  // Custom countdown mulai B64:E.
-  writeIfEmpty(panels, 'B64:E64', [
-    ['EVENT', 'START', 'END', 'STATUS']
-  ]);
-
-  // ----------------------------------------------------------
-  // SHEET ADZAN
-  // ----------------------------------------------------------
-  const adzan = getOrCreate('Adzan');
-  writeIfEmpty(adzan, 'A1:B18', [
-    ['KEY', 'URL AUDIO'],
-    ['beep', ''],
-    ['adzan-subuh', ''],
-    ['adzan-biasa', ''],
-    ['tarhim', ''],
-    ['iqomah', ''],
-    ['doa', ''],
-    ['sirine', ''],
-    ['qiroah-1', ''],
-    ['qiroah-2', ''],
-    ['qiroah-3', ''],
-    ['qiroah-4', ''],
-    ['qiroah-5', ''],
-    ['doa-adzan', ''],
-    ['doa-puasa', ''],
-    ['doa-buka', ''],
-    ['', ''],
-    ['', '']
-  ]);
-
-  // Struktur sequence final yang dibaca parser:
-  // E:F, H:I, J:K, M:N, P:Q, S:T, V:W, Y:Z.
-  const adzanHeaders = [
-    ['D1', 'NO'], ['E1', 'SUBUH RAMADHAN'], ['F1', 'STATUS'],
-    ['H1', 'SUBUH BIASA'], ['I1', 'STATUS'],
-    ['J1', 'DZUHUR'], ['K1', 'STATUS'],
-    ['M1', 'ASHAR'], ['N1', 'STATUS'],
-    ['P1', 'MAGHRIB RAMADHAN'], ['Q1', 'STATUS'],
-    ['S1', 'MAGHRIB BIASA'], ['T1', 'STATUS'],
-    ['V1', 'ISYA'], ['W1', 'STATUS'],
-    ['Y1', "JUM'AT"], ['Z1', 'STATUS']
-  ];
-  adzanHeaders.forEach(function(item) {
-    if (!String(adzan.getRange(item[0]).getDisplayValue() || '').trim()) {
-      adzan.getRange(item[0]).setValue(item[1]);
-    }
+  // Style heading/selector cells sesuai hasil export.
+  ['B5','B12','B18','B20','B22','B24','B26','B28','B34'].forEach(function(a1) {
+    panels.getRange(a1)
+      .setFontFamily('Arial').setFontSize(10).setFontWeight('bold')
+      .setFontColor('#000000').setBackground('#00ff00')
+      .setHorizontalAlignment('left').setVerticalAlignment('bottom')
+      .setWrapStrategy(SpreadsheetApp.WrapStrategy.OVERFLOW);
   });
 
-  // ----------------------------------------------------------
-  // SHEET KEUANGAN
-  // ----------------------------------------------------------
-  const keuangan = getOrCreate('Keuangan');
-  writeIfEmpty(keuangan, 'A1:B3', [
-    ['LAPORAN KEUANGAN', ''],
-    ['Tanggal', ''],
-    ['URAIAN', 'JUMLAH']
-  ]);
+  panels.getRange('B34').setValue('EVENT RUNNING TEXT');
+  panels.getRange('C5').setBackground('#c9daf8').setFontWeight('bold');
+  panels.getRange('C28')
+    .setFontFamily('Arial').setFontSize(10).setFontWeight('bold')
+    .setBackground('#bcd1e5').setHorizontalAlignment('center');
 
-  // ----------------------------------------------------------
-  // SHEET QUR'BAN
-  // ----------------------------------------------------------
-  const qurban = getOrCreate("QUR'BAN");
-  writeIfEmpty(qurban, 'A1:A5', [
-    ['QUR\'BAN'],
-    [''],
-    ['KELOMPOK / HEWAN'],
-    [''],
-    ['']
-  ]);
+  panels.getRange('B30:B32').setFontSize(11);
+  panels.getRange('B29').setFontSize(10);
 
-  // ----------------------------------------------------------
-  // SHEET PENGURUS
-  // ----------------------------------------------------------
-  const pengurus = getOrCreate('PENGURUS');
-  writeIfEmpty(pengurus, 'A1:A19', [
-    ['PENGURUS'],
-    [''],
-    [''],
-    [''],
-    [''],
-    [''],
-    [''],
-    [''],
-    [''],
-    [''],
-    [''],
-    [''],
-    [''],
-    [''],
-    [''],
-    [''],
-    [''],
-    [''],
-    ['']
-  ]);
+  panels.getRange('B45:Q45')
+    .setFontFamily('Arial').setFontSize(10).setFontWeight('bold')
+    .setBackground('#cfe2f3').setHorizontalAlignment('center');
+  panels.getRange('B59:E59')
+    .setFontFamily('Arial').setFontSize(10).setFontWeight('bold')
+    .setBackground('#ffff00').setHorizontalAlignment('center');
+  panels.getRange('B64').setBackground('#cfe2f3');
 
-  // Data pengurus memang dimulai dari A19 menurut frontend/backend.
-  if (!String(pengurus.getRange('A19').getDisplayValue() || '').trim()) {
-    pengurus.getRange('A19').setValue('');
-  }
+  // Header/audio text alignment.
+  panels.getRange('C29:C32').setHorizontalAlignment('left');
+  panels.getRange('B46:Q55').setHorizontalAlignment('left');
+  panels.getRange('B59:B64').setHorizontalAlignment('left');
+  panels.getRange('C60:E64').setHorizontalAlignment('left');
 
-  // ----------------------------------------------------------
-  // SHEET INFAQ
-  // ----------------------------------------------------------
-  const infaq = getOrCreate('infaq');
-  writeIfEmpty(infaq, 'A1:B3', [
-    ['TEXT 1', ''],
-    ['TEXT 2', ''],
-    ['IMAGE / QRIS', '']
-  ]);
-
-  // ----------------------------------------------------------
-  // SHEET JUM'AT
-  // ----------------------------------------------------------
-  const jumat = getOrCreate("Jum'at");
-  writeIfEmpty(jumat, 'A1:B5', [
-    ['PARAMETER', 'NILAI'],
-    ['Tanggal', ''],
-    ['Khatib', ''],
-    ['Imam', ''],
-    ['Muadzin', '']
-  ]);
-
-  // ----------------------------------------------------------
-  // SHEET EVENT
-  // ----------------------------------------------------------
-  const event = getOrCreate('Event');
-  writeIfEmpty(event, 'A1:D11', [
-    ['EVENT', 'HARI', 'STATUS', 'KETERANGAN'],
-    ['','','',''],
-    ['','','',''],
-    ['','','',''],
-    ['','','',''],
-    ['','','',''],
-    ['','','',''],
-    ['','','',''],
-    ['','','',''],
-    ['','','',''],
-    ['','','','']
-  ]);
-
-  // ----------------------------------------------------------
-  // SHEET RUNNING TEXT
-  // ----------------------------------------------------------
-  const running = getOrCreate('Running_Text');
-  writeIfEmpty(running, 'A1:B5', [
-    ['NO', 'RUNNING TEXT'],
-    ['', ''],
-    ['', ''],
-    ['', ''],
-    ['', '']
-  ]);
-
-  // ----------------------------------------------------------
-  // SHEET YOUTUBE
-  // ----------------------------------------------------------
-  const youtube = getOrCreate('youtube');
-  writeIfEmpty(youtube, 'A1:C2', [
-    ['PARAMETER', 'URL YOUTUBE', 'STATUS'],
-    ['', '', 'AUTO']
-  ]);
-
-  if (!String(youtube.getRange('C1').getDisplayValue() || '').trim()) {
-    youtube.getRange('C1').setValue('AUTO');
-  }
-
-  // ----------------------------------------------------------
-  // IDENTITAS TENANT
-  // ----------------------------------------------------------
+  // Metadata tenant tetap diperbarui, tanpa memasukkan data operasional.
   const configSheet = getOrCreate('KONFIG_TENANT');
-  writeIfEmpty(configSheet, 'A1:B6', [
-    ['KEY', 'VALUE'],
-    ['APP_NAME', 'TV Signage Masjid'],
-    ['TEMPLATE_VERSION', '2.0'],
-    ['TENANT_STATUS', 'ACTIVE'],
-    ['MASJID_ID', masjidId],
-    ['ROUTING', routing]
-  ]);
-
-  // Selalu perbarui metadata tenant yang memang berasal dari Master.
-  configSheet.getRange('B5:B6').setValues([[masjidId], [routing]]);
+  if (configSheet.getLastRow() === 0) {
+    configSheet.getRange('A1:B6').setValues([
+      ['KEY','VALUE'],
+      ['APP_NAME','TV Signage Masjid'],
+      ['TEMPLATE_VERSION','3.0'],
+      ['TENANT_STATUS','ACTIVE'],
+      ['MASJID_ID',masjidId],
+      ['ROUTING',routing]
+    ]);
+  } else {
+    if (!String(configSheet.getRange('A1').getDisplayValue() || '').trim()) {
+      configSheet.getRange('A1:B6').setValues([
+        ['KEY','VALUE'],['APP_NAME','TV Signage Masjid'],['TEMPLATE_VERSION','3.0'],
+        ['TENANT_STATUS','ACTIVE'],['MASJID_ID',masjidId],['ROUTING',routing]
+      ]);
+    }
+    configSheet.getRange('B3').setValue('3.0');
+    configSheet.getRange('B4').setValue('ACTIVE');
+    configSheet.getRange('B5:B6').setValues([[masjidId],[routing]]);
+  }
 
   return {
     success: true,
     spreadsheetId: spreadsheetId,
     masjidId: masjidId,
     routing: routing,
-    templateVersion: '2.0'
+    templateVersion: '3.0'
   };
 }
-
 
 /* =========================================================
  * LICENSE SYSTEM
