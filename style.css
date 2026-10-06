@@ -3570,3 +3570,14 @@ body[data-display-theme="kuning"] .prayer-time {
     background-position: -120% 0;
   }
 }
+
+/* INFAQ & SHADAQAH: warna judul selalu mengikuti tema C18.
+   Override akhir agar aturan warna statis lama tidak mengambil alih. */
+.infaq-left-title,
+#infaq-left-widget .infaq-left-title,
+.petugas-infaq-title,
+#petugas-infaq-display .petugas-infaq-title {
+  color: var(--theme-accent) !important;
+  -webkit-text-fill-color: var(--theme-accent) !important;
+}
+
