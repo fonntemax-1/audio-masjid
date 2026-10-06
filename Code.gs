@@ -5165,70 +5165,37 @@ function provisionMasjidTemplate_(spreadsheetId, masjidId, routing) {
   spreadsheetId = String(spreadsheetId || '').trim();
   masjidId = String(masjidId || '').trim();
   routing = String(routing || '').trim();
-
   if (!spreadsheetId) throw new Error('Spreadsheet ID wajib diisi.');
 
   const ss = SpreadsheetApp.openById(spreadsheetId);
   const getOrCreate = function(name) {
     return ss.getSheetByName(name) || ss.insertSheet(name);
   };
-
-  // ==========================================================
-  // PANELS — EXACT BLUEPRINT DARI Database-TV_Sholat
-  // ==========================================================
   const panels = getOrCreate('panels');
 
-  // Struktur fisik spreadsheet asli.
-  panels.setColumnWidth(1, 46);
-  panels.setColumnWidth(2, 219);
-  panels.setColumnWidth(3, 165);
-  panels.setColumnWidth(4, 120);
-  panels.setColumnWidth(5, 109);
-  panels.setColumnWidth(6, 92);
-  panels.setColumnWidth(7, 95);
-  panels.setColumnWidth(8, 80);
-  panels.setColumnWidth(9, 66);
-  panels.setColumnWidth(10, 143);
-  panels.setColumnWidth(11, 66);
-  panels.setColumnWidth(12, 118);
-  panels.setColumnWidth(13, 66);
-  panels.setColumnWidth(14, 100);
-  panels.setColumnWidth(15, 66);
-  panels.setColumnWidth(16, 80);
-  panels.setColumnWidth(17, 66);
+  // PANELS EXACT BLUEPRINT — Database-TV_Sholat / panels compact export.
+  panels.setColumnWidth(1,46); panels.setColumnWidth(2,219); panels.setColumnWidth(3,165);
+  panels.setColumnWidth(4,120); panels.setColumnWidth(5,109); panels.setColumnWidth(6,92);
+  panels.setColumnWidth(7,95); panels.setColumnWidth(8,80); panels.setColumnWidth(9,66);
+  panels.setColumnWidth(10,143); panels.setColumnWidth(11,66); panels.setColumnWidth(12,118);
+  panels.setColumnWidth(13,66); panels.setColumnWidth(14,100); panels.setColumnWidth(15,66);
+  panels.setColumnWidth(16,80); panels.setColumnWidth(17,66);
+  panels.setFrozenRows(0); panels.setFrozenColumns(0);
 
-  panels.setFrozenRows(0);
-  panels.setFrozenColumns(0);
-
-  // Template tenant baru tidak membawa data identitas tenant sumber.
-  // Hanya struktur, kontrol, formula, format, dan default sistem.
-  const base = panels.getRange('B5:Q64');
-  base.setFontFamily('Arial')
-      .setFontSize(10)
-      .setFontWeight('normal')
-      .setFontColor('#000000')
-      .setBackground('#ffffff')
-      .setHorizontalAlignment('left')
-      .setVerticalAlignment('bottom')
+  const base=panels.getRange('B5:Q64');
+  base.setFontFamily('Arial').setFontSize(10).setFontWeight('normal').setFontColor('#000000')
+      .setBackground('#ffffff').setHorizontalAlignment('left').setVerticalAlignment('bottom')
       .setWrapStrategy(SpreadsheetApp.WrapStrategy.OVERFLOW);
 
-  panels.getRange('B5:B10').setValues([
-    ['KOTA'], ['PROVINSI'], ['ZONA WAKTU'], ['TIMEZONE'], ['GMT'], ['SLUG']
-  ]);
-
-  panels.getRange('B12:B16').setValues([
-    ['NAMA'], ['ALAMAT'], ['KOTA'], ['NO HP'], ['SLOGAN']
-  ]);
-
-  panels.getRange('B18:C18').setValues([['TEMA WARNA', 'KUNING']]);
-  panels.getRange('B20:C20').setValues([['LINK VIDEO DISPLAY', '']]);
+  panels.getRange('B5:B10').setValues([['KOTA'],['PROVINSI'],['ZONA WAKTU'],['TIMEZONE'],['GMT'],['SLUG']]);
+  panels.getRange('B12:B16').setValues([['NAMA'],['ALAMAT'],['KOTA'],['NO HP'],['SLOGAN']]);
+  panels.getRange('B18:C18').setValues([['TEMA WARNA','KUNING']]);
+  panels.getRange('B20:C20').setValues([['LINK VIDEO DISPLAY','']]);
   panels.getRange('G20').setValue('AUTO');
-  panels.getRange('B22:C22').setValues([['DISPLAY MODE', 'OFF']]);
-  panels.getRange('B24').setValue('LIVE STREAMING');
-  panels.getRange('G24').setValue('OFF');
-
-  panels.getRange('B26:C26').setValues([['TABEL 1', 'PENGURUS']]);
-  panels.getRange('B28:C28').setValues([['PETUGAS', "SHOLAT JUM'AT"]]);
+  panels.getRange('B22:C22').setValues([['DISPLAY MODE','OFF']]);
+  panels.getRange('B24').setValue('LIVE STREAMING'); panels.getRange('G24').setValue('OFF');
+  panels.getRange('B26:C26').setValues([['TABEL 1','PENGURUS']]);
+  panels.getRange('B28:C28').setValues([['PETUGAS',"SHOLAT JUM'AT"]]);
 
   panels.getRange('B29:B32').setFormulas([
     ['=IF($C$28="SHOLAT JUM\'AT";"Tanggal";IF($C$28="SHOLAT TARAWIH";"Tanggal";IF($C$28="SHOLAT IDUL FITRI";"Tanggal";IF($C$28="SHOLAT IDUL ADHA";"Tanggal";""))))'],
@@ -5236,24 +5203,14 @@ function provisionMasjidTemplate_(spreadsheetId, masjidId, routing) {
     ['=IF($C$28="SHOLAT JUM\'AT";"Imam";IF($C$28="SHOLAT TARAWIH";"Bilal";IF($C$28="SHOLAT IDUL FITRI";"Imam";IF($C$28="SHOLAT IDUL ADHA";"Imam";""))))'],
     ['=IF($C$28="SHOLAT JUM\'AT";"Bilal";IF($C$28="SHOLAT TARAWIH";"Kultum";IF($C$28="SHOLAT IDUL FITRI";"Bilal";IF($C$28="SHOLAT IDUL ADHA";"Bilal";""))))']
   ]);
+  panels.getRange('B35:B39').clearContent();
+  panels.getRange('B35:B39').setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+  panels.getRange('B41:C43').setValues([['INFAQ & SHADAQAH','AUTO'],['No.Rek',''],['Nama','']]);
 
-  panels.getRange('B35:B38').setValues([[''], [''], [''], ['']]);
-  panels.getRange('B35:B38').setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
-  panels.getRange('B39').clearContent();
-
-  panels.getRange('B41:C43').setValues([
-    ['INFAQ & SHADAQAH', 'AUTO'],
-    ['No.Rek', ''],
-    ['Nama', '']
-  ]);
-
-  // Header audio/status sesuai blueprint asli.
   panels.getRange('B45:Q45').setValues([[
-    'SUBUH RAMADHAN','STATUS','SUBUH BIASA','STATUS','DZUHUR','STATUS',
-    'ASHAR','STATUS','MAGRIB RAMADHAN','STATUS','MAGRIB BIASA','STATUS',
-    'ISYA','STATUS',"JUM'AT",'STATUS'
+    'SUBUH RAMADHAN','STATUS','SUBUH BIASA','STATUS','DZUHUR','STATUS','ASHAR','STATUS',
+    'MAGRIB RAMADHAN','STATUS','MAGRIB BIASA','STATUS','ISYA','STATUS',"JUM'AT",'STATUS'
   ]]);
-
   panels.getRange('B46:Q55').setValues([
     ['qiroah-1','ON','qiroah-2','ON','qiroah-3','ON','qiroah-3','ON','qiroah-4','ON','qiroah-5','ON','qiroah-4','ON',"qiroah-4",'ON'],
     ['tarhim','ON','tarhim','ON','tarhim','ON','tarhim','ON','tarhim','ON','tarhim','ON','tarhim','ON','adzan-biasa','ON'],
@@ -5266,9 +5223,7 @@ function provisionMasjidTemplate_(spreadsheetId, masjidId, routing) {
     ['beep','ON','','','','','','','','','','','','','',''],
     ['iqomah','ON','','','','','','','','','','','','','','']
   ]);
-
-  panels.getRange('B57:C57').setValues([['Takbiran ', 'OFF']]);
-
+  panels.getRange('B57:C57').setValues([['Takbiran ','OFF']]);
   panels.getRange('B59:E64').setValues([
     ['COUTDOWN EVENT','MULAI','AKHIR','STATUS'],
     ['MENUJU RAMADHAN','','','ON'],
@@ -5277,137 +5232,54 @@ function provisionMasjidTemplate_(spreadsheetId, masjidId, routing) {
     ['MENUJU IDUL ADHA','','','OFF'],
     ['MILAD GILANG ','','','OFF']
   ]);
-
-  // Format tanggal countdown dan tanggal kegiatan.
   panels.getRange('C29').setNumberFormat('d" "mmmm" "yyyy');
   panels.getRange('C60:D64').setNumberFormat('d" "mmmm" "yyyy');
 
-  // Default city dari Master tenant. C5 adalah dropdown kota 187 item.
-  const cities = ["Banda Aceh","Lhokseumawe","Langsa","Sabang","Sigli","Subulussalam","Denpasar","Singaraja","Tabanan","Gianyar","Klungkung","Tanjung Pandan (Belitung)","Tangerang","Tangerang Selatan","Serang","Cilegon","Lebak","Pandeglang","Bengkulu","Yogyakarta","Bantul","Gunungkidul","Kulon Progo","Sleman","DKI Jakarta","Jakarta Utara","Jakarta Selatan","Jakarta Barat","Jakarta Timur","Jakarta Pusat","Gorontalo","Limboto","Jambi","Sungai Penuh","Bandung","Bekasi","Depok","Bogor","Cimahi","Tasikmalaya","Cirebon","Sukabumi","Cianjur","Garut","Indramayu","Karawang","Kuningan","Majalengka","Purwakarta","Subang","Sumedang","Ciamis","Banjar","Pangandaran","Semarang","Surakarta (Solo)","Magelang","Pekalongan","Tegal","Salatiga","Banjarnegara","Banyumas","Purwokerto","Batang","Blora","Boyolali","Brebes","Cilacap","Demak","Grobogan","Jepara","Karanganyar","Kebumen","Kendal","Klaten","Kudus","Pati","Pemalang","Purbalingga","Purworejo","Rembang","Sragen","Sukoharjo","Temanggung","Wonogiri","Wonosobo","Surabaya","Malang","Kediri","Madiun","Mojokerto","Blitar","Probolinggo","Pasuruan","Batu","Banyuwangi","Bojonegoro","Bondowoso","Gresik","Jember","Jombang","Lamongan","Lumajang","Magetan","Nganjuk","Ngawi","Pacitan","Pamekasan","Ponorogo","Sampang","Sidoarjo","Situbondo","Sumenep","Trenggalek","Tuban","Tulungagung","Bangkalan","Pontianak","Singkawang","Ketapang","Banjarmasin","Banjarbaru","Martapura","Palangka Raya","Sampit","Samarinda","Balikpapan","Bontang","Tarakan","Batam","Tanjungpinang","Tanjung Pinang","Karimun","Bandar Lampung","Metro","Ambon","Tual","Tidore","Mataram","Bima","Sumbawa Besar","Kupang","Ende","Maumere","Labuan Bajo","Jayapura","Biak","Manokwari","Fak-Fak","Sorong","Wamena","Merauke","Nabire","Timika","Pekanbaru","Dumai","Kampar","Pelalawan","Makassar","Parepare","Palopo","Watampone (Bone)","Palu","Luwuk","Poso","Kendari","Bau-Bau","Manado","Bitung","Tomohon","Kotamobagu","Padang","Bukittinggi","Payakumbuh","Solok","Pariaman","Palembang","Lubuklinggau","Prabumulih","Pagar Alam","Medan","Binjai","Pematangsiantar","Tebing Tinggi","Deli Serdang","Pematang Siantar","Padangsidempuan"];
-  const cityRule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(cities, true)
-    .setAllowInvalid(false)
-    .build();
-  panels.getRange('C5').setDataValidation(cityRule);
-
-  // Dropdown kontrol exact blueprint.
-  panels.getRange('C18').setDataValidation(
-    SpreadsheetApp.newDataValidation()
-      .requireValueInList(['HIJAU','MERAH','KUNING'], true)
-      .setAllowInvalid(false).build()
-  );
-  panels.getRange('G20').setDataValidation(
-    SpreadsheetApp.newDataValidation()
-      .requireValueInList(['ON','OFF','AUTO','STOP'], true)
-      .setAllowInvalid(false).build()
-  );
-  panels.getRange('C22').setDataValidation(
-    SpreadsheetApp.newDataValidation()
-      .requireValueInList(['AUTO','OFF','SLEEP'], true)
-      .setAllowInvalid(false).build()
-  );
-  panels.getRange('G24').setDataValidation(
-    SpreadsheetApp.newDataValidation()
-      .requireValueInList(['ON','OFF'], true)
-      .setAllowInvalid(false).build()
-  );
-  panels.getRange('C26').setDataValidation(
-    SpreadsheetApp.newDataValidation()
-      .requireValueInList(['KEUANGAN',"QUR'BAN",'PENGURUS'], true)
-      .setAllowInvalid(false).build()
-  );
-  panels.getRange('C28').setDataValidation(
-    SpreadsheetApp.newDataValidation()
-      .requireValueInList(PANEL_KEGIATAN_OPTIONS_, true)
-      .setAllowInvalid(false).build()
-  );
-  panels.getRange('C41').setDataValidation(
-    SpreadsheetApp.newDataValidation()
-      .requireValueInList(['AUTO','OFF'], true)
-      .setAllowInvalid(false).build()
-  );
-
-  const onOffRanges = ['C46:C55','E46:E55','G46:G55','I46:I55','K46:K55','M46:M55','O46:O55','Q46:Q55'];
-  onOffRanges.forEach(function(a1) {
-    panels.getRange(a1).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['ON','OFF'], true)
-        .setAllowInvalid(false).build()
-    );
+  const cities=["Banda Aceh","Lhokseumawe","Langsa","Sabang","Sigli","Subulussalam","Denpasar","Singaraja","Tabanan","Gianyar","Klungkung","Tanjung Pandan (Belitung)","Tangerang","Tangerang Selatan","Serang","Cilegon","Lebak","Pandeglang","Bengkulu","Yogyakarta","Bantul","Gunungkidul","Kulon Progo","Sleman","DKI Jakarta","Jakarta Utara","Jakarta Selatan","Jakarta Barat","Jakarta Timur","Jakarta Pusat","Gorontalo","Limboto","Jambi","Sungai Penuh","Bandung","Bekasi","Depok","Bogor","Cimahi","Tasikmalaya","Cirebon","Sukabumi","Cianjur","Garut","Indramayu","Karawang","Kuningan","Majalengka","Purwakarta","Subang","Sumedang","Ciamis","Banjar","Pangandaran","Semarang","Surakarta (Solo)","Magelang","Pekalongan","Tegal","Salatiga","Banjarnegara","Banyumas","Purwokerto","Batang","Blora","Boyolali","Brebes","Cilacap","Demak","Grobogan","Jepara","Karanganyar","Kebumen","Kendal","Klaten","Kudus","Pati","Pemalang","Purbalingga","Purworejo","Rembang","Sragen","Sukoharjo","Temanggung","Wonogiri","Wonosobo","Surabaya","Malang","Kediri","Madiun","Mojokerto","Blitar","Probolinggo","Pasuruan","Batu","Banyuwangi","Bojonegoro","Bondowoso","Gresik","Jember","Jombang","Lamongan","Lumajang","Magetan","Nganjuk","Ngawi","Pacitan","Pamekasan","Ponorogo","Sampang","Sidoarjo","Situbondo","Sumenep","Trenggalek","Tuban","Tulungagung","Bangkalan","Pontianak","Singkawang","Ketapang","Banjarmasin","Banjarbaru","Martapura","Palangka Raya","Sampit","Samarinda","Balikpapan","Bontang","Tarakan","Batam","Tanjungpinang","Tanjung Pinang","Karimun","Bandar Lampung","Metro","Ambon","Tual","Tidore","Mataram","Bima","Sumbawa Besar","Kupang","Ende","Maumere","Labuan Bajo","Jayapura","Biak","Manokwari","Fak-Fak","Sorong","Wamena","Merauke","Nabire","Timika","Pekanbaru","Dumai","Kampar","Pelalawan","Makassar","Parepare","Palopo","Watampone (Bone)","Palu","Luwuk","Poso","Kendari","Bau-Bau","Manado","Bitung","Tomohon","Kotamobagu","Padang","Bukittinggi","Payakumbuh","Solok","Pariaman","Palembang","Lubuklinggau","Prabumulih","Pagar Alam","Medan","Binjai","Pematangsiantar","Tebing Tinggi","Deli Serdang","Pematang Siantar","Padangsidempuan"];
+  const listRule=function(values){
+    return SpreadsheetApp.newDataValidation().requireValueInList(values,true).setAllowInvalid(false).build();
+  };
+  panels.getRange('C5').setDataValidation(listRule(cities));
+  panels.getRange('C18').setDataValidation(listRule(['HIJAU','MERAH','KUNING']));
+  panels.getRange('G20').setDataValidation(listRule(['ON','OFF','AUTO','STOP']));
+  panels.getRange('C22').setDataValidation(listRule(['AUTO','OFF','SLEEP']));
+  panels.getRange('G24').setDataValidation(listRule(['ON','OFF']));
+  panels.getRange('C26').setDataValidation(listRule(['KEUANGAN',"QUR'BAN",'PENGURUS']));
+  panels.getRange('C28').setDataValidation(listRule(PANEL_KEGIATAN_OPTIONS_));
+  panels.getRange('C41').setDataValidation(listRule(['AUTO','OFF']));
+  ['C','E','G','I','K','M','O','Q'].forEach(function(col){
+    panels.getRange(col+'46:'+col+'55').setDataValidation(listRule(['ON','OFF']));
   });
-  panels.getRange('C57').setDataValidation(
-    SpreadsheetApp.newDataValidation()
-      .requireValueInList(['ON','OFF'], true)
-      .setAllowInvalid(false).build()
-  );
-  panels.getRange('E60:E64').setDataValidation(
-    SpreadsheetApp.newDataValidation()
-      .requireValueInList(['ON','OFF'], true)
-      .setAllowInvalid(false).build()
-  );
+  panels.getRange('C57').setDataValidation(listRule(['ON','OFF']));
+  panels.getRange('E60:E64').setDataValidation(listRule(['ON','OFF']));
 
-  // Style heading/selector cells sesuai hasil export.
-  ['B5','B12','B18','B20','B22','B24','B26','B28','B34'].forEach(function(a1) {
-    panels.getRange(a1)
-      .setFontFamily('Arial').setFontSize(10).setFontWeight('bold')
+  ['B5','B12','B18','B20','B22','B24','B26','B28','B34'].forEach(function(a1){
+    panels.getRange(a1).setFontFamily('Arial').setFontSize(10).setFontWeight('bold')
       .setFontColor('#000000').setBackground('#00ff00')
       .setHorizontalAlignment('left').setVerticalAlignment('bottom')
       .setWrapStrategy(SpreadsheetApp.WrapStrategy.OVERFLOW);
   });
-
   panels.getRange('B34').setValue('EVENT RUNNING TEXT');
   panels.getRange('C5').setBackground('#c9daf8').setFontWeight('bold');
-  panels.getRange('C28')
-    .setFontFamily('Arial').setFontSize(10).setFontWeight('bold')
+  panels.getRange('C28').setFontFamily('Arial').setFontSize(10).setFontWeight('bold')
     .setBackground('#bcd1e5').setHorizontalAlignment('center');
-
   panels.getRange('B30:B32').setFontSize(11);
-  panels.getRange('B29').setFontSize(10);
-
-  panels.getRange('B45:Q45')
-    .setFontFamily('Arial').setFontSize(10).setFontWeight('bold')
+  panels.getRange('B45:Q45').setFontFamily('Arial').setFontSize(10).setFontWeight('bold')
     .setBackground('#cfe2f3').setHorizontalAlignment('center');
-  panels.getRange('B59:E59')
-    .setFontFamily('Arial').setFontSize(10).setFontWeight('bold')
+  panels.getRange('B59:E59').setFontFamily('Arial').setFontSize(10).setFontWeight('bold')
     .setBackground('#ffff00').setHorizontalAlignment('center');
   panels.getRange('B64').setBackground('#cfe2f3');
 
-  // Header/audio text alignment.
-  panels.getRange('C29:C32').setHorizontalAlignment('left');
-  panels.getRange('B46:Q55').setHorizontalAlignment('left');
-  panels.getRange('B59:B64').setHorizontalAlignment('left');
-  panels.getRange('C60:E64').setHorizontalAlignment('left');
-
-  // Metadata tenant tetap diperbarui, tanpa memasukkan data operasional.
-  const configSheet = getOrCreate('KONFIG_TENANT');
-  if (configSheet.getLastRow() === 0) {
+  const configSheet=getOrCreate('KONFIG_TENANT');
+  if (!configSheet.getRange('A1').getDisplayValue()) {
     configSheet.getRange('A1:B6').setValues([
-      ['KEY','VALUE'],
-      ['APP_NAME','TV Signage Masjid'],
-      ['TEMPLATE_VERSION','3.0'],
-      ['TENANT_STATUS','ACTIVE'],
-      ['MASJID_ID',masjidId],
-      ['ROUTING',routing]
+      ['KEY','VALUE'],['APP_NAME','TV Signage Masjid'],['TEMPLATE_VERSION','3.0'],
+      ['TENANT_STATUS','ACTIVE'],['MASJID_ID',masjidId],['ROUTING',routing]
     ]);
   } else {
-    if (!String(configSheet.getRange('A1').getDisplayValue() || '').trim()) {
-      configSheet.getRange('A1:B6').setValues([
-        ['KEY','VALUE'],['APP_NAME','TV Signage Masjid'],['TEMPLATE_VERSION','3.0'],
-        ['TENANT_STATUS','ACTIVE'],['MASJID_ID',masjidId],['ROUTING',routing]
-      ]);
-    }
-    configSheet.getRange('B3').setValue('3.0');
-    configSheet.getRange('B4').setValue('ACTIVE');
-    configSheet.getRange('B5:B6').setValues([[masjidId],[routing]]);
+    configSheet.getRange('B3:B6').setValues([['3.0'],['ACTIVE'],[masjidId],[routing]]);
   }
-
-  return {
-    success: true,
-    spreadsheetId: spreadsheetId,
-    masjidId: masjidId,
-    routing: routing,
-    templateVersion: '3.0'
-  };
+  return {success:true,spreadsheetId:spreadsheetId,masjidId:masjidId,routing:routing,templateVersion:'3.0'};
 }
 
 /* =========================================================
