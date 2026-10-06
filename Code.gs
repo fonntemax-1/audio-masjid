@@ -131,10 +131,59 @@ function getServerTime() {
 }
 
 
+
+function getCurrentTenantMasterIdentity_() {
+  const routing = getCurrentMasjidRouting_();
+
+  if (!routing) return null;
+
+  const row = findMasjidRowByRouting_(routing);
+
+  if (!row) {
+    throw new Error('TENANT_IDENTITY_TIDAK_DITEMUKAN: ' + routing);
+  }
+
+  if (String(row.licenseStatus || 'ACTIVE').trim().toUpperCase() !== 'ACTIVE') {
+    throw new Error('LICENSE_TIDAK_AKTIF: ' + routing);
+  }
+
+  // MASTER MASJID adalah satu-satunya sumber kebenaran identitas tenant.
+  // Jangan membaca NAMA/KOTA/PROVINSI/TIMEZONE dari Spreadsheet tenant
+  // untuk menentukan identitas atau menampilkan identitas publik.
+  return {
+    id: String(row.id || '').trim(),
+    namaMesjid: String(row.name || '').trim(),
+    kota: String(row.city || '').trim(),
+    provinsi: String(row.province || '').trim(),
+    timezone: String(row.timezone || '').trim(),
+    zona: getZonaWaktuFromTimezone_(row.timezone),
+    gmt: getGmtLabelFromTimezone_(row.timezone),
+    routing: String(row.routing || '').trim(),
+    spreadsheetId: String(row.spreadsheetId || '').trim(),
+    shortUrl: getMasjidShortUrl_(row.id)
+  };
+}
+
 function getLokasiPanels() {
 
   try {
 
+    const tenantIdentity = getCurrentTenantMasterIdentity_();
+
+    // Routing tenant aktif => identitas publik selalu berasal dari Master.
+    if (tenantIdentity) {
+      return {
+        success: true,
+        kota: tenantIdentity.kota,
+        provinsi: tenantIdentity.provinsi,
+        zona: tenantIdentity.zona,
+        timezone: tenantIdentity.timezone,
+        gmt: tenantIdentity.gmt,
+        slug: slugifyMasjidRouting_(tenantIdentity.namaMesjid, tenantIdentity.kota)
+      };
+    }
+
+    // Mode legacy tanpa routing tetap membaca panels seperti sebelumnya.
     const ss = getSpreadsheet();
     const sheet = ss.getSheetByName('panels');
 
@@ -1545,9 +1594,14 @@ function getPanelEventCountdownCustomConfig_() {
           }
         });
 
-        result.Nama = headerFinal.NAMA || result.Nama || '';
+        const tenantIdentityFinal = getCurrentTenantMasterIdentity_();
+        result.Nama = tenantIdentityFinal
+          ? tenantIdentityFinal.namaMesjid
+          : (headerFinal.NAMA || result.Nama || '');
         result.Alamat = headerFinal.ALAMAT || '';
-        result.Kota = headerFinal.KOTA || '';
+        result.Kota = tenantIdentityFinal
+          ? tenantIdentityFinal.kota
+          : (headerFinal.KOTA || '');
         result['No. Telp'] = headerFinal['NO HP'] || '';
         result.Website = headerFinal.WEBSITE || '';
         result.InfoLainnya = headerFinal['INFO LAINNYA'] || '';
@@ -4586,7 +4640,17 @@ function getRealtimeDisplayConfig() {
       return String((grid[row - 2] || [])[col - 2] || '').trim();
     };
 
-    const location = [cell(5,3), cell(6,3), cell(7,3), cell(8,3), cell(9,3), cell(10,3)];
+    const tenantIdentity = getCurrentTenantMasterIdentity_();
+    const location = tenantIdentity
+      ? [
+          tenantIdentity.kota,
+          tenantIdentity.provinsi,
+          tenantIdentity.zona,
+          tenantIdentity.timezone,
+          tenantIdentity.gmt,
+          slugifyMasjidRouting_(tenantIdentity.namaMesjid, tenantIdentity.kota)
+        ]
+      : [cell(5,3), cell(6,3), cell(7,3), cell(8,3), cell(9,3), cell(10,3)];
     const c18 = cell(18,3);
     const youtube = cell(20,3);
     const youtubeStatusRaw = cell(20,7).toUpperCase();
@@ -4636,9 +4700,10 @@ function getRealtimeDisplayConfig() {
       YoutubeStatus: ['ON','OFF','AUTO','STOP'].indexOf(youtubeStatusRaw) >= 0 ? youtubeStatusRaw : 'AUTO',
       IqomahMode: c22Raw === 'AUTO' ? 'AUTO' : c22Raw === 'SLEEP' ? 'SLEEP' : 'OFF',
       // Nama header MASJID selalu langsung dari panels!C12.
-      Nama: cell(12,3),
+      // IDENTITAS TENANT DARI MASTER; alamat/kontak tetap operasional dari panels.
+      Nama: tenantIdentity ? tenantIdentity.namaMesjid : cell(12,3),
       Alamat: header.ALAMAT || '',
-      Kota: header.KOTA || '',
+      Kota: tenantIdentity ? tenantIdentity.kota : (header.KOTA || ''),
       'No. Telp': header['NO HP'] || '',
       Slogan: header.SLOGAN || '',
       Website: header.WEBSITE || '',
