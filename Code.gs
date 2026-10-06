@@ -5531,3 +5531,14 @@ function setupMasterSpreadsheet() {
     url: master.getUrl()
   };
 }
+
+// TEST TENANT REGISTRATION WRAPPER
+
+function testRegisterNewMasjid_() {
+  return registerNewMasjid(
+    'TV Signage Masjid Test',
+    'Balikpapan',
+    'Kalimantan Timur',
+    'Asia/Makassar'
+  );
+}
