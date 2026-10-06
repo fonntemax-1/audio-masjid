@@ -5219,50 +5219,48 @@ function provisionMasjidTemplate_(spreadsheetId, masjidId, routing) {
     ['SLUG', '']
   ]);
 
-  writeIfEmpty(panels, 'B12:C22', [
+  // Header panel menggunakan koordinat yang memang dibaca frontend.
+  writeIfEmpty(panels, 'B12:C18', [
     ['NAMA', ''],
     ['ALAMAT', ''],
     ['KOTA', ''],
     ['NO HP', ''],
     ['SLOGAN', ''],
     ['WEBSITE', ''],
-    ['INFO LAINNYA', ''],
-    ['',''],
-    ['TEMA', 'KUNING'],
-    ['',''],
-    ['YOUTUBE URL', '']
+    ['INFO LAINNYA', '']
   ]);
+
+  writeIfEmpty(panels, 'B18:C18', [['INFO LAINNYA', '']]);
+  writeIfEmpty(panels, 'B20:C20', [['YOUTUBE URL', '']]);
+  writeIfEmpty(panels, 'B18:C18', [['INFO LAINNYA', '']]);
+  if (!String(panels.getRange('C18').getDisplayValue() || '').trim()) {
+    panels.getRange('C18').setValue('KUNING');
+  }
 
   // G20 adalah selector YouTube. C20 tetap URL YouTube.
   if (!String(panels.getRange('G20').getDisplayValue() || '').trim()) {
     panels.getRange('G20').setValue('AUTO');
   }
 
+  if (!String(panels.getRange('B22').getDisplayValue() || '').trim()) {
+    panels.getRange('B22').setValue('IQOMAH BLACK MODE');
+  }
   if (!String(panels.getRange('C22').getDisplayValue() || '').trim()) {
     panels.getRange('C22').setValue('OFF');
   }
 
-  writeIfEmpty(panels, 'B26:C43', [
-    ['PANEL KANAN', 'KEUANGAN'],
-    ['',''],
-    ['JENIS KEGIATAN', "SHOLAT JUM'AT"],
-    ['',''],
-    ['',''],
-    ['',''],
-    ['',''],
-    ['',''],
-    ['EVENT 1', ''],
-    ['EVENT 2', ''],
-    ['EVENT 3', ''],
-    ['EVENT 4', ''],
-    ['INFAQ MODE', 'OFF'],
-    ['INFAQ TEXT 1', ''],
-    ['INFAQ TEXT 2', ''],
-    ['',''],
-    ['',''],
-    ['',''],
-    ['','']
-  ]);
+  // Struktur panel kanan, kegiatan, event, dan infaq mengikuti
+  // koordinat final yang digunakan endpoint realtime.
+  if (!String(panels.getRange('B26').getDisplayValue() || '').trim()) panels.getRange('B26').setValue('PANEL KANAN');
+  if (!String(panels.getRange('C26').getDisplayValue() || '').trim()) panels.getRange('C26').setValue('KEUANGAN');
+  if (!String(panels.getRange('B28').getDisplayValue() || '').trim()) panels.getRange('B28').setValue('JENIS KEGIATAN');
+
+  writeIfEmpty(panels, 'B35:B39', [[''], [''], [''], [''], ['']]);
+
+  if (!String(panels.getRange('B41').getDisplayValue() || '').trim()) panels.getRange('B41').setValue('INFAQ MODE');
+  if (!String(panels.getRange('C41').getDisplayValue() || '').trim()) panels.getRange('C41').setValue('OFF');
+  if (!String(panels.getRange('B42').getDisplayValue() || '').trim()) panels.getRange('B42').setValue('INFAQ TEXT 1');
+  if (!String(panels.getRange('B43').getDisplayValue() || '').trim()) panels.getRange('B43').setValue('INFAQ TEXT 2');
 
   // Selector panel kanan.
   const panelSelector = panels.getRange('C26');
