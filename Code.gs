@@ -5456,14 +5456,58 @@ function registerNewMasjid(name, city, province, timezone) {
     return result;
   } catch (error) {
     // Jangan meninggalkan copy tenant yatim bila provisioning gagal.
+    // Master hanya dihapus jika copy Spreadsheet berhasil dipindahkan ke Trash.
+    let copyCleaned = false;
+
     try {
       DriveApp.getFileById(spreadsheetId).setTrashed(true);
+      copyCleaned = true;
     } catch (cleanupError) {
       Logger.log('CLEANUP COPY GAGAL: ' + cleanupError.message);
     }
 
+    // Jika copy berhasil dibersihkan, hapus juga baris Master yang
+    // sempat dibuat sebelum konfigurasi tenant selesai.
+    if (copyCleaned) {
+      try {
+        removeMasjidRegistrationBySpreadsheetId_(spreadsheetId);
+      } catch (masterCleanupError) {
+        Logger.log(
+          'CLEANUP MASTER GAGAL: ' +
+          masterCleanupError.message
+        );
+      }
+    }
+
     throw error;
   }
+}
+
+function removeMasjidRegistrationBySpreadsheetId_(spreadsheetId) {
+  spreadsheetId = String(spreadsheetId || '').trim();
+
+  if (!spreadsheetId) return false;
+
+  const master = getMasterSpreadsheet_();
+  const sheet = master.getSheetByName('MASJID');
+
+  if (!sheet) {
+    throw new Error('Sheet Master MASJID belum dibuat.');
+  }
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return false;
+
+  const values = sheet.getRange(2, 7, lastRow - 1, 1).getDisplayValues();
+
+  for (let i = 0; i < values.length; i++) {
+    if (String(values[i][0] || '').trim() === spreadsheetId) {
+      sheet.deleteRow(i + 2);
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function registerMasjid_(name, city, province, timezone, spreadsheetId) {
