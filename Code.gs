@@ -5798,7 +5798,18 @@ function ensureMasterLicenseStatusValidation_(sheet) {
     .setAllowInvalid(false)
     .build();
 
-  statusRange.setDataValidation(rule);
+  try {
+    // Google Sheets Table/typed column dapat menolak setDataValidation().
+    // Flush di dalam try agar error typed-column tidak tertunda ke operasi
+    // berikutnya (misalnya nextMasjidId_).
+    statusRange.setDataValidation(rule);
+    SpreadsheetApp.flush();
+  } catch (error) {
+    Logger.log(
+      'MASTER LICENSE STATUS: kolom I adalah typed column/table; ' +
+      'validasi range dilewati. ' + error.message
+    );
+  }
 }
 
 function setupMasterSpreadsheet() {
