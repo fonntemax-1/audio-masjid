@@ -5284,47 +5284,17 @@ function getTenantLocationByCity_(city) {
 }
 
 function syncTenantLocationByCity_(spreadsheetId, city) {
-  const ss = SpreadsheetApp.openById(String(spreadsheetId || '').trim());
-  const panels = ss.getSheetByName('panels');
-
-  if (!panels) {
-    throw new Error('Spreadsheet tenant tidak memiliki sheet panels.');
-  }
-
-  const location = getTenantLocationByCity_(city);
-
-  if (!location) {
-    throw new Error('KOTA tidak ditemukan pada daftar lokasi: ' + city);
-  }
-
-  panels.getRange('C5:C10').setValues([
-    [location.kota],
-    [location.provinsi],
-    [location.zona],
-    [location.timezone],
-    [location.gmt],
-    [location.slug]
-  ]);
-
-  ss.setSpreadsheetTimeZone(location.timezone);
-
-  return location;
+  // Fungsi publik lama tetap dipertahankan untuk kompatibilitas,
+  // tetapi tidak lagi boleh mengubah identitas tenant setelah registrasi.
+  throw new Error(
+    'IDENTITAS_TENANT_TERKUNCI: kota/provinsi/zona/timezone/gmt/slug tidak dapat diubah.'
+  );
 }
 
 function onTenantLocationEdit(e) {
-  if (!e || !e.range) return;
-
-  const range = e.range;
-  const sheet = range.getSheet();
-
-  if (sheet.getName() !== 'panels') return;
-  if (range.getA1Notation() !== 'C5') return;
-
-  try {
-    syncTenantLocationByCity_(sheet.getParent().getId(), range.getDisplayValue());
-  } catch (error) {
-    Logger.log('SYNC LOKASI TENANT ERROR: ' + error.message);
-  }
+  // Legacy trigger handler. Identity tenant sekarang dikunci saat provisioning.
+  // Tidak ada sinkronisasi lokasi berbasis edit manual.
+  return;
 }
 
 function setupTenantLocationEditTrigger_(spreadsheetId) {
@@ -5377,15 +5347,15 @@ function configureCopiedMasjidIdentity_(
     throw new Error('Spreadsheet hasil copy tidak memiliki sheet panels.');
   }
 
-  // Gunakan satu sumber kebenaran lokasi yang sama dengan
-  // sinkronisasi lokasi tenant. Jangan menulis C5:C10 dari
-  // parameter provisioning secara terpisah karena template
-  // dapat membawa nilai lokasi lama.
+  // IDENTITAS TENANT DITENTUKAN SERVER-SIDE.
+  // Province/timezone/gmt/slug tidak boleh berasal dari input tenant.
   const location = getTenantLocationByCity_(city);
 
   if (!location) {
     throw new Error('KOTA tidak ditemukan pada daftar lokasi: ' + city);
   }
+
+  const lockedTimezone = location.timezone;
 
   panels.getRange('C5:C10').setValues([
     [location.kota],
@@ -5396,26 +5366,91 @@ function configureCopiedMasjidIdentity_(
     [location.slug]
   ]);
 
+  // Nama dan kota yang tampil di tenant harus persis sama dengan
+  // identitas yang didaftarkan melalui registerNewMasjid().
   panels.getRange('C12').setValue(name);
-  panels.getRange('C14').setValue(city);
+  panels.getRange('C14').setValue(location.kota);
 
-  // Data pribadi/identitas lokasi dari template tidak dibawa ke tenant baru.
+  // Data pribadi/identitas tambahan dari template tidak dibawa.
   panels.getRange('C13').clearContent();
   panels.getRange('C15').clearContent();
   panels.getRange('C16').clearContent();
 
-  if (timezone) {
-    ss.setSpreadsheetTimeZone(timezone);
-  }
+  ss.setSpreadsheetTimeZone(lockedTimezone);
 
-  setupTenantLocationEditTrigger_(spreadsheetId);
+  // Setelah provisioning selesai, identitas tenant dikunci.
+  // Tidak lagi memasang trigger perubahan kota karena C5:C10 adalah
+  // identitas server-side dan bukan setting yang boleh diedit tenant.
+  protectTenantIdentityRanges_(spreadsheetId);
 
   return {
     success: true,
     spreadsheetId: String(spreadsheetId),
     routing: routing,
-    timezone: timezone
+    timezone: lockedTimezone,
+    kota: location.kota,
+    provinsi: location.provinsi,
+    zona: location.zona,
+    gmt: location.gmt,
+    slug: location.slug,
+    identityLocked: true
   };
+}
+
+function protectTenantIdentityRanges_(spreadsheetId) {
+  const ss = SpreadsheetApp.openById(String(spreadsheetId || '').trim());
+  const panels = ss.getSheetByName('panels');
+
+  if (!panels) {
+    throw new Error('Spreadsheet tenant tidak memiliki sheet panels.');
+  }
+
+  // Hapus protection lama yang dibuat mekanisme tenant identity lock.
+  panels.getProtections(SpreadsheetApp.ProtectionType.RANGE).forEach(function(protection) {
+    const description = String(protection.getDescription() || '');
+    if (description.indexOf('TV-SHOLAT TENANT IDENTITY LOCK') === 0) {
+      protection.remove();
+    }
+  });
+
+  [
+    { range: 'C5:C10', description: 'TV-SHOLAT TENANT IDENTITY LOCK - LOKASI' },
+    { range: 'C12', description: 'TV-SHOLAT TENANT IDENTITY LOCK - NAMA' },
+    { range: 'C14', description: 'TV-SHOLAT TENANT IDENTITY LOCK - KOTA' }
+  ].forEach(function(item) {
+    const protection = panels.getRange(item.range).protect();
+    protection.setDescription(item.description);
+    protection.setWarningOnly(false);
+
+    // Pastikan hanya owner/script principal yang tetap memiliki akses edit.
+    // Jangan menambahkan editor lain pada protected range.
+    try {
+      const me = Session.getEffectiveUser();
+      if (me && me.getEmail()) {
+        protection.addEditor(me.getEmail());
+      }
+    } catch (error) {
+      Logger.log('IDENTITY LOCK EDITOR INFO: ' + error.message);
+    }
+
+    try {
+      const editors = protection.getEditors();
+      editors.forEach(function(editor) {
+        try {
+          const email = editor.getEmail();
+          if (email && email !== Session.getEffectiveUser().getEmail()) {
+            protection.removeEditor(email);
+          }
+        } catch (editorError) {
+          Logger.log('IDENTITY LOCK REMOVE EDITOR: ' + editorError.message);
+        }
+      });
+    } catch (error) {
+      Logger.log('IDENTITY LOCK EDITOR CLEANUP: ' + error.message);
+    }
+  });
+
+  return true;
 }
 
 function getZonaWaktuFromTimezone_(timezone) {
@@ -5617,41 +5652,56 @@ function setupLicenseSystem() {
 function registerNewMasjid(name, city, province, timezone) {
   name = String(name || '').trim();
   city = String(city || '').trim();
-  province = String(province || '').trim();
-  timezone = String(timezone || '').trim();
 
   if (!name || !city) {
     throw new Error('NAMA_MESJID dan KOTA wajib diisi.');
   }
 
-  if (!timezone) {
-    throw new Error('TIMEZONE wajib diisi.');
+  // Province/timezone yang mungkin dikirim caller sengaja tidak dijadikan
+  // sumber kebenaran. Semua identitas wilayah dihitung dari KOTA di server.
+  const location = getTenantLocationByCity_(city);
+  if (!location) {
+    throw new Error(
+      'KOTA tidak ditemukan pada daftar lokasi resmi: ' + city
+    );
   }
 
-  const spreadsheetId = createMasjidSpreadsheet_(name, city);
+  const lockedProvince = location.provinsi;
+  const lockedTimezone = location.timezone;
+
+  const spreadsheetId = createMasjidSpreadsheet_(name, location.kota);
 
   try {
-    // Hitung ID/routing/license dan tulis Master terlebih dahulu.
+    // ID/routing/license dibuat dari identitas yang sudah ditetapkan server.
     const result = registerMasjid_(
       name,
-      city,
-      province,
-      timezone,
+      location.kota,
+      lockedProvince,
+      lockedTimezone,
       spreadsheetId
     );
 
-    // Hanya mengganti identitas tenant; struktur, formula,
-    // validasi, format, dan sheet lain berasal dari template asli.
     configureCopiedMasjidIdentity_(
       spreadsheetId,
       name,
-      city,
-      province,
-      timezone,
+      location.kota,
+      lockedProvince,
+      lockedTimezone,
       result.routing
     );
 
-    return result;
+    return Object.assign({}, result, {
+      identity: {
+        namaMesjid: name,
+        kota: location.kota,
+        provinsi: location.provinsi,
+        zona: location.zona,
+        timezone: location.timezone,
+        gmt: location.gmt,
+        slug: location.slug,
+        locked: true
+      }
+    });
   } catch (error) {
     // Jangan meninggalkan copy tenant yatim bila provisioning gagal.
     // Master hanya dihapus jika copy Spreadsheet berhasil dipindahkan ke Trash.
