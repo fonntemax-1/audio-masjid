@@ -133,10 +133,6 @@ function handleGithubApiRequest_(params) {
         );
         break;
 
-      case 'diagnoseMasjidRouting':
-        result = diagnoseMasjidRouting_(String(params.routing || ''));
-        break;
-
       case 'ping':
         result = {
           status: 'OK',
