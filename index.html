@@ -657,45 +657,49 @@
       return '';
     }
 
-    // JSONP request guard:
-    // - Request identik tidak boleh berjalan dua kali bersamaan.
-    // - Hasil sangat singkat disimpan sebentar agar startup tidak meminta
-    //   endpoint yang sama berulang kali.
+    // JSONP request guard + single-flight queue.
+    // Startup sebelumnya membuka banyak <script> JSONP Apps Script
+    // secara bersamaan. Pada tenant, setiap request juga menjalankan
+    // validasi MASTER + pembukaan Spreadsheet sehingga request saling
+    // menahan dan callback sering tiba setelah timeout.
+    //
+    // Prinsip baru:
+    // 1. request identik tetap di-reuse;
+    // 2. hanya SATU request Apps Script aktif pada satu waktu;
+    // 3. request lain menunggu antrean, bukan membuat koneksi paralel;
+    // 4. callback tetap hidup sampai request benar-benar selesai/timeout;
+    // 5. cache singkat tetap dipertahankan.
     const gasApiInFlight = new Map();
     const gasApiShortCache = new Map();
+    const gasApiQueue = [];
+    let gasApiQueueRunning = false;
     const GAS_API_SHORT_CACHE_MS = 2000;
 
-    function gasApiCall(action, params) {
-      const currentRouting = getMasjidRoutingFromUrl_();
-      const normalizedParams = {};
+    function runNextGasApiRequest_() {
+      if (gasApiQueueRunning) return;
 
-      if (params && typeof params === 'object') {
-        Object.keys(params).sort().forEach(function(key) {
-          const value = params[key];
-          if (value !== undefined && value !== null) {
-            normalizedParams[key] = String(value);
-          }
+      const item = gasApiQueue.shift();
+
+      if (!item) return;
+
+      gasApiQueueRunning = true;
+
+      executeGasApiRequest_(item)
+        .then(item.resolve)
+        .catch(item.reject)
+        .finally(function() {
+          gasApiQueueRunning = false;
+          setTimeout(runNextGasApiRequest_, 0);
         });
-      }
+    }
 
-      const requestKey = JSON.stringify({
-        action: String(action || ''),
-        routing: currentRouting || '',
-        params: normalizedParams
-      });
+    function executeGasApiRequest_(item) {
+      return new Promise(function(resolve, reject) {
+        const action = item.action;
+        const requestKey = item.requestKey;
+        const normalizedParams = item.normalizedParams;
+        const currentRouting = item.routing;
 
-      if (gasApiInFlight.has(requestKey)) {
-        console.log('GAS API: request identik masih berjalan, reuse:', action);
-        return gasApiInFlight.get(requestKey);
-      }
-
-      const cached = gasApiShortCache.get(requestKey);
-      if (cached && (Date.now() - cached.savedAt) < GAS_API_SHORT_CACHE_MS) {
-        return Promise.resolve(cached.data);
-      }
-      gasApiShortCache.delete(requestKey);
-
-      const requestPromise = new Promise(function(resolve, reject) {
         const callbackName =
           '__GAS_API_CALLBACK_' + Date.now() + '_' + (++gasApiCallbackCounter);
 
@@ -718,7 +722,7 @@
         let finished = false;
         let timeoutId = null;
 
-        function cleanup(removeCallback) {
+        function finishRequest(removeCallback) {
           if (removeCallback) {
             try {
               delete window[callbackName];
@@ -735,9 +739,7 @@
             clearTimeout(timeoutId);
             timeoutId = null;
           }
-        }
 
-        function finishRequest() {
           gasApiInFlight.delete(requestKey);
         }
 
@@ -745,8 +747,7 @@
           if (finished) return;
 
           finished = true;
-          cleanup(true);
-          finishRequest();
+          finishRequest(true);
 
           if (!payload || payload.success !== true) {
             reject(new Error(
@@ -769,40 +770,108 @@
           if (finished) return;
 
           finished = true;
-          cleanup(true);
-          finishRequest();
+          finishRequest(true);
 
           reject(new Error('Gagal memuat Apps Script API.'));
         };
 
+        // Timeout dibuat cukup longgar untuk cold-start Apps Script.
+        // Karena queue hanya menjalankan satu request pada satu waktu,
+        // timeout ini tidak lagi dipakai untuk mengatasi request paralel.
         const apiTimeoutMs =
           action === 'getDataFromSheet'
-            ? 20000
+            ? 35000
             : action === 'getPrayerSchedule'
-              ? 22000
-              : (
-                  action === 'getRealtimePanelsFast' ||
-                  action === 'getYoutubeControl' ||
-                  action === 'getRealtimeDisplayConfig'
-                )
-                ? 18000
-                : 15000;
+              ? 35000
+              : 30000;
 
         timeoutId = setTimeout(function() {
           if (finished) return;
 
           finished = true;
-          cleanup(true);
-          finishRequest();
+
+          // Callback harus dihapus setelah timeout agar request macet
+          // tidak mengotori halaman. Respons yang datang setelah timeout
+          // akan diabaikan oleh Apps Script/browser.
+          finishRequest(true);
 
           reject(new Error('Timeout menghubungi Apps Script API.'));
         }, apiTimeoutMs);
 
         script.src = GAS_API_URL + '?' + query.toString();
+
+        console.log(
+          'GAS API QUEUE: mulai',
+          action,
+          'routing=', currentRouting || '(legacy)',
+          'queue=', gasApiQueue.length
+        );
+
         document.head.appendChild(script);
+      });
+    }
+
+    function gasApiCall(action, params) {
+      const currentRouting = getMasjidRoutingFromUrl_();
+      const normalizedParams = {};
+
+      if (params && typeof params === 'object') {
+        Object.keys(params).sort().forEach(function(key) {
+          const value = params[key];
+
+          if (value !== undefined && value !== null) {
+            normalizedParams[key] = String(value);
+          }
+        });
+      }
+
+      const requestKey = JSON.stringify({
+        action: String(action || ''),
+        routing: currentRouting || '',
+        params: normalizedParams
+      });
+
+      if (gasApiInFlight.has(requestKey)) {
+        console.log(
+          'GAS API: request identik masih berjalan, reuse:',
+          action
+        );
+
+        return gasApiInFlight.get(requestKey);
+      }
+
+      const cached = gasApiShortCache.get(requestKey);
+
+      if (
+        cached &&
+        (Date.now() - cached.savedAt) < GAS_API_SHORT_CACHE_MS
+      ) {
+        return Promise.resolve(cached.data);
+      }
+
+      gasApiShortCache.delete(requestKey);
+
+      const requestPromise = new Promise(function(resolve, reject) {
+        gasApiQueue.push({
+          action: String(action || ''),
+          routing: currentRouting || '',
+          normalizedParams: normalizedParams,
+          requestKey: requestKey,
+          resolve: resolve,
+          reject: reject
+        });
+
+        console.log(
+          'GAS API QUEUE: masuk',
+          action,
+          'posisi=', gasApiQueue.length
+        );
+
+        runNextGasApiRequest_();
       });
 
       gasApiInFlight.set(requestKey, requestPromise);
+
       return requestPromise;
     }
 
