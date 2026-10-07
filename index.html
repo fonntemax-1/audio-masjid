@@ -718,6 +718,10 @@
         const action = item.action;
         const requestKey = item.requestKey;
         const normalizedParams = item.normalizedParams;
+        const requestStartedAt = Date.now();
+        const queueWaitMs = item.queuedAt
+          ? Math.max(0, requestStartedAt - item.queuedAt)
+          : 0;
 
         const callbackName =
           '__GAS_API_CALLBACK_' + Date.now() + '_' + (++gasApiCallbackCounter);
@@ -774,10 +778,15 @@
 
           finished = true;
 
+          const requestTotalMs = Date.now() - requestStartedAt;
+
           console.log(
             'GAS API JSONP CALLBACK OK:',
             action,
-            'source=', 'original-spreadsheet'
+            'source=', 'original-spreadsheet',
+            'queueWaitMs=', queueWaitMs,
+            'backendTotalMs=', requestTotalMs,
+            'queuedAt=', item.queuedAt || null
           );
 
           finishRequest(true);
@@ -857,6 +866,9 @@
             'GAS API JSONP TIMEOUT:',
             action,
             'source=', 'original-spreadsheet',
+            'queueWaitMs=', queueWaitMs,
+            'elapsedMs=', Date.now() - requestStartedAt,
+            'queuedAt=', item.queuedAt || null,
             'url=', script.src
           );
 
@@ -926,6 +938,7 @@
 
           normalizedParams: normalizedParams,
           requestKey: requestKey,
+          queuedAt: Date.now(),
           resolve: resolve,
           reject: reject
         };
@@ -6130,7 +6143,10 @@ function updateFridayPrayerDisplay() {
       // data.data atau menggunakan huruf kecil. Semua bentuk ini
       // dinormalisasi tanpa menyentuh sistem audio.
       // =======================================================
-      let eventSource = stage1EventReady ? stage1EventRows : null;
+      let eventSource =
+        stage1EventReady && Array.isArray(stage1EventRows)
+          ? stage1EventRows
+          : null;
 
       if (!stage1EventReady && data && typeof data === 'object') {
         if (data.Event !== undefined) {
@@ -6190,8 +6206,22 @@ function updateFridayPrayerDisplay() {
         return [];
       }
 
-      const eventRows =
+      const normalizedIncomingEventRows =
         normalizeEventRows(eventSource);
+
+      // Jangan pernah menghapus Event yang sudah tersedia hanya karena
+      // snapshot Sheet utama sementara mengembalikan Event=[].
+      // Cache/config Event yang valid tetap dipertahankan sampai ada
+      // payload Event non-kosong yang benar-benar datang dari API.
+      const previousEventRows =
+        Array.isArray(WEB_APP_STATE.event.rows)
+          ? WEB_APP_STATE.event.rows
+          : [];
+
+      const eventRows =
+        normalizedIncomingEventRows.length > 0
+          ? normalizedIncomingEventRows
+          : previousEventRows;
 
       WEB_APP_STATE.event.rows =
         eventRows;
@@ -6250,7 +6280,12 @@ function updateFridayPrayerDisplay() {
 
       if (eventRows.length === 0) {
         console.warn(
-          'EVENT COUNTDOWN: TIDAK ADA BARIS EVENT DITERIMA DARI API.'
+          'EVENT COUNTDOWN: TIDAK ADA BARIS EVENT VALID; CACHE LAMA TETAP DIPERTAHANKAN.'
+        );
+      } else if (normalizedIncomingEventRows.length === 0 && previousEventRows.length > 0) {
+        console.log(
+          'EVENT COUNTDOWN: API mengirim Event kosong; memakai cache/baris Event sebelumnya:',
+          previousEventRows.length
         );
       }
 
