@@ -643,11 +643,14 @@
 
     // Startup tidak lagi menunggu request Apps Script satu per satu.
     // Request independen boleh berjalan bersamaan dengan batas aman.
+    // DATA dinaikkan menjadi 3 agar getDataFromSheet tidak menunggu
+    // getEventRunningText/getHijriDateFromApi saat reload. Request tetap
+    // dibatasi agar tidak membuka ledakan koneksi ke Apps Script.
     let gasApiControlQueueRunning = 0;
     let gasApiDataQueueRunning = 0;
 
     const GAS_API_CONTROL_CONCURRENCY = 3;
-    const GAS_API_DATA_CONCURRENCY = 2;
+    const GAS_API_DATA_CONCURRENCY = 3;
 
     const GAS_API_SHORT_CACHE_MS = 2000;
 
