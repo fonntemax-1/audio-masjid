@@ -133,6 +133,10 @@ function handleGithubApiRequest_(params) {
         );
         break;
 
+      case 'diagnoseTenantAccessSafe':
+        result = diagnoseTenantAccessSafe_(String(params.routing || params.tenant || params.masjid || ''));
+        break;
+
       case 'ping':
         result = {
           status: 'OK',
