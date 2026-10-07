@@ -4599,11 +4599,10 @@ function getRealtimeDisplayConfig() {
       Youtube: youtube,
       YoutubeStatus: ['ON','OFF','AUTO','STOP'].indexOf(youtubeStatusRaw) >= 0 ? youtubeStatusRaw : 'AUTO',
       IqomahMode: c22Raw === 'AUTO' ? 'AUTO' : c22Raw === 'SLEEP' ? 'SLEEP' : 'OFF',
-      // Nama header MASJID selalu langsung dari panels!C12.
-      // IDENTITAS TENANT DARI MASTER; alamat/kontak tetap operasional dari panels.
-      Nama: tenantIdentity ? tenantIdentity.namaMesjid : cell(12,3),
+      // SINGLE MASJID MODE: seluruh identitas langsung dari Spreadsheet ORIGINAL.
+      Nama: cell(12,3),
       Alamat: header.ALAMAT || '',
-      Kota: tenantIdentity ? tenantIdentity.kota : (header.KOTA || ''),
+      Kota: header.KOTA || '',
       'No. Telp': header['NO HP'] || '',
       Slogan: header.SLOGAN || '',
       Website: header.WEBSITE || '',
