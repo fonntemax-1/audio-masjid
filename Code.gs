@@ -2001,6 +2001,90 @@ function getPanelEventCountdownCustomConfig_() {
 }
 
 
+
+// =========================================================
+// DIAGNOSTIC: TEST GET DATA M0002 TANPA JSONP
+// =========================================================
+// Fungsi ini hanya untuk diagnosis backend. Tidak mengubah Spreadsheet,
+// tidak mengubah Script Properties, dan tidak mengubah scheduler/audio.
+function testM0002GetDataFromSheet() {
+  const started = new Date().getTime();
+  const routing = 'm0002';
+
+  Logger.log('=== TEST M0002 GET DATA FROM SHEET ===');
+  Logger.log('START = ' + new Date(started).toISOString());
+
+  try {
+    setCurrentMasjidRouting_(routing);
+    Logger.log('STEP 1 routing = ' + getCurrentMasjidRouting_());
+
+    const binding = getValidatedTenantBindingCached_(routing);
+    Logger.log('STEP 2 binding OK = ' + JSON.stringify({
+      id: binding.id,
+      routing: binding.routing,
+      spreadsheetId: binding.spreadsheetId,
+      licenseStatus: binding.licenseStatus
+    }));
+
+    const ss = SpreadsheetApp.openById(binding.spreadsheetId);
+    Logger.log('STEP 3 spreadsheet = ' + ss.getName() + ' / ' + ss.getId());
+
+    const sheetNames = ss.getSheets().map(function(sheet) {
+      return sheet.getName();
+    });
+    Logger.log('STEP 4 sheets = ' + JSON.stringify(sheetNames));
+
+    const required = [
+      'panels', 'keuangan', "qur'ban", 'pengurus',
+      'running_text', 'adzan', 'murotal'
+    ];
+
+    required.forEach(function(name) {
+      const t = new Date().getTime();
+      const sheet = getSheetCaseInsensitive_(ss, name);
+      if (!sheet) {
+        Logger.log('STEP SHEET ' + name + ' = TIDAK ADA (' + (new Date().getTime() - t) + ' ms)');
+        return;
+      }
+      Logger.log(
+        'STEP SHEET ' + name +
+        ' = OK rows=' + sheet.getLastRow() +
+        ' cols=' + sheet.getLastColumn() +
+        ' (' + (new Date().getTime() - t) + ' ms)'
+      );
+    });
+
+    Logger.log('STEP 5 sebelum getDataFromSheet()');
+    const before = new Date().getTime();
+
+    const result = getDataFromSheet();
+
+    const elapsed = new Date().getTime() - before;
+    Logger.log('STEP 6 getDataFromSheet SELESAI = ' + elapsed + ' ms');
+    Logger.log('RESULT KEYS = ' + JSON.stringify(Object.keys(result || {})));
+    Logger.log('RESULT SUMMARY = ' + JSON.stringify({
+      error: result && result.error ? result.error : '',
+      Nama: result && result.Nama ? result.Nama : '',
+      Kota: result && result.Kota ? result.Kota : '',
+      Keuangan: Array.isArray(result && result.Keuangan) ? result.Keuangan.length : -1,
+      Event: Array.isArray(result && result.Event) ? result.Event.length : -1,
+      RunningText: result && result.Running_Text !== undefined ? String(result.Running_Text).length : -1,
+      AudioSchedule: result && result.AudioSchedule ? Object.keys(result.AudioSchedule).length : -1
+    }));
+
+    Logger.log('TOTAL TEST = ' + (new Date().getTime() - started) + ' ms');
+    Logger.log('=== TEST M0002 GET DATA BERHASIL ===');
+    return result;
+
+  } catch (error) {
+    Logger.log('TEST ERROR = ' + (error && error.message ? error.message : String(error)));
+    Logger.log('TEST STACK = ' + (error && error.stack ? error.stack : ''));
+    Logger.log('TOTAL TEST GAGAL = ' + (new Date().getTime() - started) + ' ms');
+    Logger.log('=== TEST M0002 GET DATA GAGAL ===');
+    throw error;
+  }
+}
+
 // =========================================================
 // EVENT - PEMBACAAN EKSPLISIT UNTUK GITHUB API
 // =========================================================
