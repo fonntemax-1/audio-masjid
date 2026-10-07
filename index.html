@@ -3,25 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>TV Display Signage</title>
-  <script>
-    (function () {
-      try {
-        var params = new URLSearchParams(window.location.search);
-        var routing = (params.get('routing') || params.get('masjid') || params.get('tenant') || '').trim().toLowerCase();
-
-        if (/^m\d+$/.test(routing)) {
-          var basePath = window.location.pathname.replace(/\/?$/, '');
-          if (!/\/m\d+$/i.test(basePath)) {
-            window.history.replaceState(
-              { shortMasjidRouting: routing },
-              '',
-              basePath + '/' + routing
-            );
-          }
-        }
-      } catch (e) {}
-    })();
-  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Cinzel:wght@500;600;700;800&family=Great+Vibes&family=Montserrat:wght@400;500;600;700;800&family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
@@ -638,30 +619,9 @@
     let audioCatchUpWatchdogDate = '';
     let audioCatchUpWatchdogUntil = 0;
 
-    function getMasjidRoutingFromUrl_() {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const explicit = (params.get('masjid') || params.get('routing') || params.get('tenant') || '').trim().toLowerCase();
-        if (/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(explicit)) return explicit;
-
-        // Dukungan path: /mujahidin-bpn atau /audio-masjid/mujahidin-bpn
-        const parts = window.location.pathname.split('/').filter(Boolean);
-        const candidate = parts.length ? parts[parts.length - 1].toLowerCase() : '';
-        if (
-          candidate &&
-          candidate !== 'index.html' &&
-          candidate !== 'audio-masjid' &&
-          /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(candidate)
-        ) return candidate;
-      } catch (e) {}
-      return '';
-    }
-
     // JSONP request guard + single-flight queue.
     // Startup sebelumnya membuka banyak <script> JSONP Apps Script
-    // secara bersamaan. Pada tenant, setiap request juga menjalankan
-    // validasi MASTER + pembukaan Spreadsheet sehingga request saling
-    // menahan dan callback sering tiba setelah timeout.
+    // Semua request menggunakan satu Spreadsheet original.
     //
     // Prinsip baru:
     // 1. request identik tetap di-reuse;
@@ -747,7 +707,6 @@
         const action = item.action;
         const requestKey = item.requestKey;
         const normalizedParams = item.normalizedParams;
-        const currentRouting = item.routing;
 
         const callbackName =
           '__GAS_API_CALLBACK_' + Date.now() + '_' + (++gasApiCallbackCounter);
@@ -760,8 +719,6 @@
         query.set('callback', callbackName);
         query.set('_ts', String(Date.now()));
 
-        if (currentRouting) {
-          query.set('routing', currentRouting);
         }
 
         Object.keys(normalizedParams).forEach(function(key) {
@@ -811,7 +768,7 @@
           console.log(
             'GAS API JSONP CALLBACK OK:',
             action,
-            'routing=', currentRouting || '(legacy)'
+            'source=', 'original-spreadsheet'
           );
 
           finishRequest(true);
@@ -839,7 +796,7 @@
           console.log(
             'GAS API JSONP SCRIPT ONLOAD:',
             action,
-            'routing=', currentRouting || '(legacy)',
+            'source=', 'original-spreadsheet',
             'callback=', callbackName
           );
         };
@@ -852,7 +809,7 @@
             console.warn(
               'GAS API JSONP ONERROR SETELAH CALLBACK:',
               action,
-              'routing=', currentRouting || '(legacy)'
+              'source=', 'original-spreadsheet'
             );
             return;
           }
@@ -862,7 +819,7 @@
           console.error(
             'GAS API JSONP ONERROR:',
             action,
-            'routing=', currentRouting || '(legacy)',
+            'source=', 'original-spreadsheet',
             'url=', script.src,
             event || ''
           );
@@ -890,7 +847,7 @@
           console.error(
             'GAS API JSONP TIMEOUT:',
             action,
-            'routing=', currentRouting || '(legacy)',
+            'source=', 'original-spreadsheet',
             'url=', script.src
           );
 
@@ -904,7 +861,7 @@
         console.log(
           'GAS API QUEUE: mulai',
           action,
-          'routing=', currentRouting || '(legacy)',
+          'source=', 'original-spreadsheet',
           'queue=', (isRealtimeControlAction_(action)
             ? gasApiControlQueue.length
             : gasApiDataQueue.length)
@@ -915,7 +872,7 @@
     }
 
     function gasApiCall(action, params) {
-      const currentRouting = getMasjidRoutingFromUrl_();
+
       const normalizedParams = {};
 
       if (params && typeof params === 'object') {
@@ -930,7 +887,7 @@
 
       const requestKey = JSON.stringify({
         action: String(action || ''),
-        routing: currentRouting || '',
+
         params: normalizedParams
       });
 
@@ -957,7 +914,7 @@
       const requestPromise = new Promise(function(resolve, reject) {
         const requestItem = {
           action: String(action || ''),
-          routing: currentRouting || '',
+
           normalizedParams: normalizedParams,
           requestKey: requestKey,
           resolve: resolve,
