@@ -973,11 +973,13 @@
           const audioData = await audioResponse.json();
 
           if (audioData && audioData.enabled === true) {
-            // Stage 1 disimpan sebagai cache saja.
-            // Jangan mengambil alih scheduler yang sedang berjalan sebelum
-            // sequence GitHub terbukti 100% identik dengan konfigurasi lama.
+            // Stage 1 menjadi sumber startup cepat.
+            // Sequence tetap berasal dari hasil sinkronisasi Sheet Adzan ke GitHub.
+            // Apps Script realtime tetap dipanggil di background untuk refresh.
+            stage1AudioReady = true;
+            await setAudioConfig(audioData);
             console.log(
-              'STAGE 1 GITHUB AUDIO CACHE READY (NOT ACTIVE):',
+              'STAGE 1 GITHUB AUDIO CACHE ACTIVE:',
               audioData.updatedAt || ''
             );
           }
@@ -16188,13 +16190,13 @@ function setCountdownBlackMode(enabled) {
     // sedangkan snapshot besar getDataFromSheet ditunda agar first paint cepat.
     setTimeout(function() {
       loadAudioConfigFast_();
-    }, 900);
+    }, 3000);
 
     // Snapshot Sheet utama bukan blocker first paint.
     // Ia tetap berjalan sebagai sinkronisasi penuh di background.
     setTimeout(function() {
       fetchSheetData();
-    }, 5000);
+    }, 6000);
 
     // Event banner dan Hijri bukan blocker untuk tampilan awal.
     setTimeout(function() {
