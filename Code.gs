@@ -353,6 +353,107 @@ function enforceTenantIdentityMirror_(ss, identity) {
 }
 
 
+// =========================================================
+// SAFE TENANT DIAGNOSTIC
+// =========================================================
+// READ-ONLY: tidak menulis/merubah MASTER, tenant, license,
+// protection, identity, trigger, atau data Spreadsheet.
+// =========================================================
+function diagnoseTenantAccessSafe_(routing) {
+  const wanted = String(routing || '').trim().toLowerCase();
+  const result = {
+    success: false,
+    routing: wanted,
+    stage: '',
+    master: { ok: false },
+    tenant: { ok: false },
+    panels: { ok: false }
+  };
+
+  if (!wanted) {
+    result.stage = 'ROUTING_KOSONG';
+    result.error = 'Parameter routing/tenant wajib diisi.';
+    return result;
+  }
+
+  let row;
+  try {
+    const master = getMasterSpreadsheet_();
+    const masterSheet = master.getSheetByName('MASJID');
+    if (!masterSheet) throw new Error('Sheet MASJID tidak ditemukan di MASTER.');
+    result.master.ok = true;
+    result.master.spreadsheetId = master.getId();
+    result.master.sheet = 'MASJID';
+    row = findMasjidRowByRouting_(wanted);
+    result.master.found = !!row;
+  } catch (error) {
+    result.stage = 'MASTER';
+    result.error = error && error.message ? error.message : String(error);
+    return result;
+  }
+
+  if (!row) {
+    result.stage = 'ROUTING';
+    result.error = 'Tenant tidak ditemukan di MASTER: ' + wanted;
+    return result;
+  }
+
+  result.master.tenant = {
+    id: String(row.id || ''),
+    name: String(row.name || ''),
+    city: String(row.city || ''),
+    routing: String(row.routing || ''),
+    licenseStatus: String(row.licenseStatus || ''),
+    spreadsheetId: String(row.spreadsheetId || '')
+  };
+
+  let tenantSs;
+  try {
+    const tenantId = String(row.spreadsheetId || '').trim();
+    if (!tenantId) throw new Error('SPREADSHEET_ID tenant kosong.');
+    tenantSs = SpreadsheetApp.openById(tenantId);
+    result.tenant.ok = true;
+    result.tenant.spreadsheetId = tenantSs.getId();
+    result.tenant.name = tenantSs.getName();
+    result.tenant.url = tenantSs.getUrl();
+  } catch (error) {
+    result.stage = 'TENANT_OPEN';
+    result.error = error && error.message ? error.message : String(error);
+    return result;
+  }
+
+  try {
+    result.tenant.sheets = tenantSs.getSheets().map(function(sheet) {
+      return sheet.getName();
+    });
+
+    const panels = tenantSs.getSheetByName('panels');
+    if (!panels) {
+      result.stage = 'PANELS';
+      result.error = 'Sheet panels tidak ditemukan di Spreadsheet tenant.';
+      return result;
+    }
+
+    result.panels.ok = true;
+    result.panels.lastRow = panels.getLastRow();
+    result.panels.lastColumn = panels.getLastColumn();
+    result.panels.identity = panels.getRange('C5:C15').getDisplayValues().map(function(r) {
+      return String(r[0] || '').trim();
+    });
+    result.panels.theme = String(panels.getRange('C18').getDisplayValue() || '').trim();
+    result.panels.youtube = String(panels.getRange('C20').getDisplayValue() || '').trim();
+    result.panels.iqomahBlack = String(panels.getRange('C22').getDisplayValue() || '').trim();
+    result.success = true;
+    result.stage = 'OK';
+    return result;
+  } catch (error) {
+    result.stage = 'PANELS_READ';
+    result.error = error && error.message ? error.message : String(error);
+    return result;
+  }
+}
+
+
 function getSpreadsheet() {
   // MULTI-MASJID:
   // Jika request membawa routing, Spreadsheet dipilih dari Master.
