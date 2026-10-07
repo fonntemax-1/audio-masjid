@@ -815,6 +815,146 @@ function getPanelEventCountdownCustomConfig_() {
           return;
         }
 
+        // =====================================================
+        // SHEET KHUSUS: proses langsung tanpa getDataRange()
+        // getDataRange() sebelumnya membuat startup sangat lambat,
+        // terutama jika sheet memiliki banyak baris/kolom kosong terformat.
+        // =====================================================
+
+        if (sheetName === 'infaq') {
+          const infaqResult = [];
+
+          const textValues = sheet
+            .getRange('B1:B2')
+            .getDisplayValues();
+
+          textValues.forEach(function(row) {
+            const value = row && row.length > 0
+              ? String(row[0] || '').trim()
+              : '';
+
+            if (value !== '') {
+              infaqResult.push(value);
+            }
+          });
+
+          const imageCell = sheet.getRange('B3');
+          let imageUrl = '';
+
+          try {
+            const imageValue = imageCell.getValue();
+
+            if (
+              imageValue &&
+              typeof imageValue.getContentUrl === 'function'
+            ) {
+              imageUrl = String(
+                imageValue.getContentUrl() || ''
+              ).trim();
+            }
+          } catch (imageError) {
+            Logger.log(
+              'INFAQ B3 CellImage URL gagal dibaca: ' +
+              imageError.message
+            );
+          }
+
+          if (!imageUrl) {
+            try {
+              const displayValue = imageCell.getDisplayValue();
+
+              if (
+                displayValue &&
+                /^https?:\/\//i.test(displayValue.trim())
+              ) {
+                imageUrl = displayValue.trim();
+              }
+            } catch (displayError) {
+              Logger.log(
+                'INFAQ B3 display value gagal dibaca: ' +
+                displayError.message
+              );
+            }
+          }
+
+          if (imageUrl) {
+            infaqResult.push(imageUrl);
+          }
+
+          result.Infaq = infaqResult.map(function(value) {
+            return String(value == null ? '' : value);
+          });
+
+          return;
+        }
+
+        if (sheetName === 'Keuangan') {
+          result.Keuangan = [];
+
+          result.KeuanganJudul = String(
+            sheet.getRange('A1').getDisplayValue() || ''
+          ).trim();
+
+          const keuanganTanggalDisplay = String(
+            sheet.getRange('A2').getDisplayValue() || ''
+          );
+
+          result.KeuanganTanggal =
+            keuanganTanggalDisplay.replace(
+              /^(0)(\d)(\\s)/,
+              '$2$3'
+            );
+
+          const keuanganLastRow = sheet.getLastRow();
+
+          if (keuanganLastRow >= 4) {
+            const keuanganRows = sheet
+              .getRange(4, 1, keuanganLastRow - 3, 2)
+              .getDisplayValues();
+
+            keuanganRows.forEach(function(displayRow) {
+              const row = [
+                String(displayRow[0] == null ? '' : displayRow[0]).trim(),
+                String(displayRow[1] == null ? '' : displayRow[1]).trim()
+              ];
+
+              if (row[0] !== '' || row[1] !== '') {
+                result.Keuangan.push(row);
+              }
+            });
+          }
+
+          return;
+        }
+
+        if (sheetName === "Jum'at") {
+          // Jum'at tetap memakai parser lama karena struktur key/value.
+          // Namun hanya sheet ini yang masih membutuhkan getDataRange().
+          const data = sheet.getDataRange().getValues();
+
+          if (!data || data.length === 0) {
+            Logger.log('Sheet kosong: ' + sheetName);
+            return;
+          }
+
+          processJumatSheet(data, result);
+          return;
+        }
+
+        if (sheetName === 'Running_Text') {
+          processRunningTextSheet(sheet, result);
+          return;
+        }
+
+        if (sheetName === 'Adzan') {
+          processKeyAudioSheet(sheet, result);
+          processAdzanScheduleSheet(sheet, result);
+          processAdzanAudioStatusSheet(sheet, result);
+          return;
+        }
+
+        // Hanya sheet yang benar-benar memakai parser generik
+        // yang menggunakan getDataRange().
         const data = sheet.getDataRange().getValues();
 
         if (!data || data.length === 0) {
