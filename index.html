@@ -7,7 +7,7 @@
     (function () {
       try {
         var params = new URLSearchParams(window.location.search);
-        var routing = (params.get('routing') || params.get('masjid') || '').trim().toLowerCase();
+        var routing = (params.get('routing') || params.get('masjid') || params.get('tenant') || '').trim().toLowerCase();
 
         if (/^m\d+$/.test(routing)) {
           var basePath = window.location.pathname.replace(/\/?$/, '');
@@ -641,7 +641,7 @@
     function getMasjidRoutingFromUrl_() {
       try {
         const params = new URLSearchParams(window.location.search);
-        const explicit = (params.get('masjid') || params.get('routing') || '').trim().toLowerCase();
+        const explicit = (params.get('masjid') || params.get('routing') || params.get('tenant') || '').trim().toLowerCase();
         if (/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(explicit)) return explicit;
 
         // Dukungan path: /mujahidin-bpn atau /audio-masjid/mujahidin-bpn
