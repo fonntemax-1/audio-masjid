@@ -6037,7 +6037,6 @@ function registerMasjid_(name, city, province, timezone, spreadsheetId) {
       '',
       ''
     ]);
-    setMasterSpreadsheetLink_(sheet, sheet.getLastRow(), spreadsheetId);
 
     return {
       success: true,
