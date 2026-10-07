@@ -366,13 +366,7 @@ function getSpreadsheet() {
     const binding = validateMasjidLicenseBinding_(routing);
     const ss = SpreadsheetApp.openById(binding.spreadsheetId);
 
-    // Identitas tenant tidak dipercaya dari panels setelah provisioning.
-    // Jika Owner/Editor berhasil mengubah C5:C10/C12/C14, server
-    // memulihkan mirror dari Master sebelum data dipakai API.
-    const masterIdentity = getCurrentTenantMasterIdentity_();
-    enforceTenantIdentityMirror_(ss, masterIdentity);
-
-    return ss;
+    // Jangan menjalankan identity mirror pada setiap request API tenant.\n    // Pembacaan API harus cukup membuka Spreadsheet tenant yang sudah\n    // tervalidasi oleh Master. Mekanisme identity lock tetap berjalan\n    // melalui provisioning/onEdit, bukan pada setiap request TV.\n    return ss;
   }
 
   const spreadsheetId =
