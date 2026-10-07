@@ -132,31 +132,133 @@ function getServerTime() {
 
 
 
-function getCurrentTenantMasterIdentity_() {
-  const routing = getCurrentMasjidRouting_();
+// =========================================================
+// CACHE TENANT MASTER / LICENSE BINDING
+// =========================================================
+// Setiap request tenant sebelumnya harus membuka MASTER dan membaca
+// sheet MASJID sebelum Spreadsheet tenant dibuka. Pada startup TV,
+// hal ini terjadi berkali-kali dan membuat API JSONP lambat.
+//
+// Cache hanya menyimpan hasil binding yang SUDAH divalidasi:
+// routing -> identitas Master + spreadsheetId tenant.
+// Master tetap menjadi sumber kebenaran. Jika cache habis (60 detik),
+// validasi penuh dijalankan kembali.
+//
+// Cache 60 detik dipilih agar perubahan ACTIVE/DEMO/SUSPENDED/REVOKE
+// dari MASTER tetap terdeteksi cepat, tanpa mengorbankan performa
+// startup dan polling tenant.
+// =========================================================
+const TENANT_BINDING_CACHE_SECONDS_ = 60;
 
-  if (!routing) return null;
+function getValidatedTenantBindingCached_(routing) {
+  const wanted = String(routing || '').trim().toLowerCase();
 
-  const row = findMasjidRowByRouting_(routing);
+  if (!wanted) {
+    throw new Error('ROUTING_MASJID_KOSONG.');
+  }
+
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'tenant_binding_v1_' + wanted;
+
+  try {
+    const cached = cache.get(cacheKey);
+
+    if (cached) {
+      const binding = JSON.parse(cached);
+
+      if (
+        binding &&
+        binding.valid === true &&
+        String(binding.routing || '').trim().toLowerCase() === wanted
+      ) {
+        Logger.log(
+          'TENANT BINDING CACHE HIT: ' + wanted
+        );
+        return binding;
+      }
+    }
+  } catch (cacheReadError) {
+    Logger.log(
+      'TENANT BINDING CACHE READ GAGAL: ' +
+      cacheReadError.message
+    );
+  }
+
+  Logger.log(
+    'TENANT BINDING CACHE MISS: ' + wanted
+  );
+
+  const row = findMasjidRowByRouting_(wanted);
 
   if (!row) {
-    throw new Error('TENANT_IDENTITY_TIDAK_DITEMUKAN: ' + routing);
+    throw new Error(
+      'ROUTING_MASJID_TIDAK_TERDAFTAR: ' + wanted
+    );
   }
 
-  const licenseStatus = String(row.licenseStatus || 'ACTIVE').trim().toUpperCase();
+  const licenseStatus =
+    String(row.licenseStatus || 'ACTIVE')
+      .trim()
+      .toUpperCase();
 
-  if (licenseStatus === 'DEMO' && isDemoLicenseExpired_(row.created)) {
-    throw new Error('LICENSE_DEMO_EXPIRED: masa DEMO 7 hari telah berakhir untuk ' + routing);
+  if (
+    licenseStatus === 'DEMO' &&
+    isDemoLicenseExpired_(row.created)
+  ) {
+    throw new Error(
+      'LICENSE_DEMO_EXPIRED: masa DEMO 7 hari telah berakhir untuk ' +
+      wanted
+    );
   }
 
-  if (licenseStatus !== 'ACTIVE' && licenseStatus !== 'DEMO') {
-    throw new Error('LICENSE_TIDAK_AKTIF: ' + routing);
+  if (
+    licenseStatus !== 'ACTIVE' &&
+    licenseStatus !== 'DEMO'
+  ) {
+    throw new Error(
+      'LICENSE_TIDAK_AKTIF: ' + wanted
+    );
   }
 
-  // MASTER MASJID adalah satu-satunya sumber kebenaran identitas tenant.
-  // Jangan membaca NAMA/KOTA/PROVINSI/TIMEZONE dari Spreadsheet tenant
-  // untuk menentukan identitas atau menampilkan identitas publik.
-  return {
+  const spreadsheetId =
+    String(row.spreadsheetId || '').trim();
+
+  if (!spreadsheetId) {
+    throw new Error(
+      'SPREADSHEET_ID_TENANT_TIDAK_TERDAFTAR: ' + wanted
+    );
+  }
+
+  const storedHash =
+    String(row.licenseHash || '')
+      .trim()
+      .toLowerCase();
+
+  if (!storedHash) {
+    throw new Error(
+      'LICENSE_TENANT_TIDAK_VALID: LICENSE_HASH kosong untuk ' +
+      wanted
+    );
+  }
+
+  const currentLicense = generateMasjidLicense_(
+    row.name,
+    row.city,
+    row.province,
+    row.timezone
+  );
+
+  const currentHash = hashLicense_(currentLicense);
+
+  if (storedHash !== currentHash) {
+    throw new Error(
+      'LICENSE_TENANT_TIDAK_VALID: identitas tenant atau license hash tidak cocok untuk ' +
+      wanted
+    );
+  }
+
+  const binding = {
+    valid: true,
     id: String(row.id || '').trim(),
     namaMesjid: String(row.name || '').trim(),
     kota: String(row.city || '').trim(),
@@ -165,8 +267,53 @@ function getCurrentTenantMasterIdentity_() {
     zona: getZonaWaktuFromTimezone_(row.timezone),
     gmt: getGmtLabelFromTimezone_(row.timezone),
     routing: String(row.routing || '').trim(),
-    spreadsheetId: String(row.spreadsheetId || '').trim(),
-    shortUrl: getMasjidShortUrl_(row.id)
+    shortUrl: getMasjidShortUrl_(row.id),
+    spreadsheetId: spreadsheetId,
+    licenseStatus: licenseStatus,
+    demoExpired: false
+  };
+
+  try {
+    cache.put(
+      cacheKey,
+      JSON.stringify(binding),
+      TENANT_BINDING_CACHE_SECONDS_
+    );
+
+    Logger.log(
+      'TENANT BINDING CACHE STORE: ' + wanted
+    );
+  } catch (cacheWriteError) {
+    Logger.log(
+      'TENANT BINDING CACHE WRITE GAGAL: ' +
+      cacheWriteError.message
+    );
+  }
+
+  return binding;
+}
+
+function getCurrentTenantMasterIdentity_() {
+  const routing = getCurrentMasjidRouting_();
+
+  if (!routing) return null;
+
+  const binding = getValidatedTenantBindingCached_(routing);
+
+  // MASTER MASJID tetap satu-satunya sumber kebenaran identitas tenant.
+  // Tidak membaca identitas dari Spreadsheet tenant untuk menentukan
+  // nama/kota/provinsi/timezone publik.
+  return {
+    id: binding.id,
+    namaMesjid: binding.namaMesjid,
+    kota: binding.kota,
+    provinsi: binding.provinsi,
+    timezone: binding.timezone,
+    zona: binding.zona,
+    gmt: binding.gmt,
+    routing: binding.routing,
+    spreadsheetId: binding.spreadsheetId,
+    shortUrl: binding.shortUrl
   };
 }
 
@@ -238,53 +385,7 @@ function getLokasiPanels() {
 
 
 function validateMasjidLicenseBinding_(routing) {
-  const row = findMasjidRowByRouting_(routing);
-
-  if (!row) {
-    throw new Error('ROUTING_MASJID_TIDAK_TERDAFTAR: ' + routing);
-  }
-
-  const licenseStatus = String(row.licenseStatus || 'ACTIVE').trim().toUpperCase();
-
-  if (licenseStatus === 'DEMO' && isDemoLicenseExpired_(row.created)) {
-    throw new Error('LICENSE_DEMO_EXPIRED: masa DEMO 7 hari telah berakhir untuk ' + routing);
-  }
-
-  if (licenseStatus !== 'ACTIVE' && licenseStatus !== 'DEMO') {
-    throw new Error('LICENSE_TIDAK_AKTIF: ' + routing);
-  }
-
-  const spreadsheetId = String(row.spreadsheetId || '').trim();
-  if (!spreadsheetId) {
-    throw new Error('SPREADSHEET_ID_TENANT_TIDAK_TERDAFTAR: ' + routing);
-  }
-
-  const storedHash = String(row.licenseHash || '').trim().toLowerCase();
-  if (!storedHash) {
-    throw new Error('LICENSE_TENANT_TIDAK_VALID: LICENSE_HASH kosong untuk ' + routing);
-  }
-
-  const currentLicense = generateMasjidLicense_(
-    row.name,
-    row.city,
-    row.province,
-    row.timezone
-  );
-  const currentHash = hashLicense_(currentLicense);
-
-  if (storedHash !== currentHash) {
-    throw new Error('LICENSE_TENANT_TIDAK_VALID: identitas tenant atau license hash tidak cocok untuk ' + routing);
-  }
-
-  return {
-    valid: true,
-    id: row.id,
-    routing: row.routing,
-    shortUrl: getMasjidShortUrl_(row.id),
-    spreadsheetId: spreadsheetId,
-    licenseStatus: licenseStatus,
-    demoExpired: false
-  };
+  return getValidatedTenantBindingCached_(routing);
 }
 
 
@@ -464,7 +565,7 @@ function getSpreadsheet() {
   const routing = getCurrentMasjidRouting_();
 
   if (routing) {
-    const binding = validateMasjidLicenseBinding_(routing);
+    const binding = getValidatedTenantBindingCached_(routing);
     const ss = SpreadsheetApp.openById(binding.spreadsheetId);
 
     // Jangan menjalankan identity mirror pada setiap request API tenant.\n    // Pembacaan API harus cukup membuka Spreadsheet tenant yang sudah\n    // tervalidasi oleh Master. Mekanisme identity lock tetap berjalan\n    // melalui provisioning/onEdit, bukan pada setiap request TV.\n    return ss;
