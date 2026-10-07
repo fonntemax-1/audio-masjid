@@ -802,6 +802,35 @@ function getYoutubeControl() {
 }
 
 
+// =========================================================
+// LOOKUP SHEET CASE-INSENSITIVE
+// =========================================================
+// Google Sheets mempertahankan nama tab persis seperti dibuat di
+// Spreadsheet tenant. Template M0002 menggunakan beberapa nama tab
+// huruf kecil (mis. keuangan, adzan, running_text), sedangkan API lama
+// memakai kapitalisasi berbeda (Keuangan, Adzan, Running_Text).
+// Lookup ini membuat API tidak bergantung pada kapitalisasi nama tab.
+// Tidak mengubah nama tab dan tidak menulis data.
+function getSheetCaseInsensitive_(ss, sheetName) {
+  if (!ss) return null;
+
+  const wanted = String(sheetName || '').trim().toLowerCase();
+  if (!wanted) return null;
+
+  const sheets = ss.getSheets();
+
+  for (let i = 0; i < sheets.length; i++) {
+    const actualName = String(sheets[i].getName() || '').trim().toLowerCase();
+
+    if (actualName === wanted) {
+      return sheets[i];
+    }
+  }
+
+  return null;
+}
+
+
 function getDataFromSheet() {
   try {
     const ss = getSpreadsheet();
@@ -1161,7 +1190,8 @@ function getPanelEventCountdownCustomConfig_() {
       function(sheetName) {
 
         const sheet =
-          ss.getSheetByName(
+          getSheetCaseInsensitive_(
+            ss,
             sheetName
           );
 
