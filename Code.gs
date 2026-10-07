@@ -12,7 +12,7 @@
 function doGet(e) {
   // MULTI-MASJID: simpan routing hanya selama request ini.
   // Routing dikirim frontend sebagai ?routing=... .
-  setCurrentMasjidRouting_(e && e.parameter ? e.parameter.routing : '');
+  setCurrentMasjidRouting_(e && e.parameter ? (e.parameter.routing || e.parameter.masjid || e.parameter.tenant || '') : '');
 
   // API GitHub Pages ditangani oleh API.gs.
   const params = e && e.parameter ? e.parameter : {};
