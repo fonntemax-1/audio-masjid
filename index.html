@@ -657,50 +657,66 @@
       return '';
     }
 
+    // JSONP request guard:
+    // - Request identik tidak boleh berjalan dua kali bersamaan.
+    // - Hasil sangat singkat disimpan sebentar agar startup tidak meminta
+    //   endpoint yang sama berulang kali.
+    const gasApiInFlight = new Map();
+    const gasApiShortCache = new Map();
+    const GAS_API_SHORT_CACHE_MS = 2000;
+
     function gasApiCall(action, params) {
+      const currentRouting = getMasjidRoutingFromUrl_();
+      const normalizedParams = {};
 
-      return new Promise(function(resolve, reject) {
+      if (params && typeof params === 'object') {
+        Object.keys(params).sort().forEach(function(key) {
+          const value = params[key];
+          if (value !== undefined && value !== null) {
+            normalizedParams[key] = String(value);
+          }
+        });
+      }
 
+      const requestKey = JSON.stringify({
+        action: String(action || ''),
+        routing: currentRouting || '',
+        params: normalizedParams
+      });
+
+      if (gasApiInFlight.has(requestKey)) {
+        console.log('GAS API: request identik masih berjalan, reuse:', action);
+        return gasApiInFlight.get(requestKey);
+      }
+
+      const cached = gasApiShortCache.get(requestKey);
+      if (cached && (Date.now() - cached.savedAt) < GAS_API_SHORT_CACHE_MS) {
+        return Promise.resolve(cached.data);
+      }
+      gasApiShortCache.delete(requestKey);
+
+      const requestPromise = new Promise(function(resolve, reject) {
         const callbackName =
-          '__GAS_API_CALLBACK_' +
-          Date.now() +
-          '_' +
-          (++gasApiCallbackCounter);
+          '__GAS_API_CALLBACK_' + Date.now() + '_' + (++gasApiCallbackCounter);
 
-        const script =
-          document.createElement('script');
-
-        const query =
-          new URLSearchParams();
+        const script = document.createElement('script');
+        const query = new URLSearchParams();
 
         query.set('api', '1');
         query.set('action', action);
         query.set('callback', callbackName);
-
-        // Cache-buster: Apps Script JSONP harus selalu mengambil
-        // data Spreadsheet terbaru. Tidak mengubah payload/action.
         query.set('_ts', String(Date.now()));
 
-        // Routing tenant ditambahkan otomatis oleh frontend.
-        // Tidak mengubah action/data lama.
-        const currentRouting = getMasjidRoutingFromUrl_();
         if (currentRouting) {
           query.set('routing', currentRouting);
         }
 
-        if (params && typeof params === 'object') {
-          Object.keys(params).forEach(function(key) {
-            const value = params[key];
-            if (value !== undefined && value !== null) {
-              query.set(key, String(value));
-            }
-          });
-        }
+        Object.keys(normalizedParams).forEach(function(key) {
+          query.set(key, normalizedParams[key]);
+        });
 
         let finished = false;
         let timeoutId = null;
-
-        let lateCallbackCleanupTimer = null;
 
         function cleanup(removeCallback) {
           if (removeCallback) {
@@ -717,30 +733,20 @@
 
           if (timeoutId) {
             clearTimeout(timeoutId);
-          }
-
-          if (lateCallbackCleanupTimer) {
-            clearTimeout(lateCallbackCleanupTimer);
-            lateCallbackCleanupTimer = null;
+            timeoutId = null;
           }
         }
 
+        function finishRequest() {
+          gasApiInFlight.delete(requestKey);
+        }
+
         window[callbackName] = function(payload) {
-          // Jika respons JSONP datang setelah timeout, jangan sampai
-          // browser memanggil callback yang sudah dihapus. Callback
-          // sengaja dipertahankan sementara setelah timeout dan dibuang
-          // setelah respons terlambat masuk atau grace period berakhir.
-          if (finished) {
-            try {
-              delete window[callbackName];
-            } catch (e) {
-              window[callbackName] = undefined;
-            }
-            return;
-          }
+          if (finished) return;
 
           finished = true;
           cleanup(true);
+          finishRequest();
 
           if (!payload || payload.success !== true) {
             reject(new Error(
@@ -751,64 +757,53 @@
             return;
           }
 
+          gasApiShortCache.set(requestKey, {
+            savedAt: Date.now(),
+            data: payload.data
+          });
+
           resolve(payload.data);
         };
 
         script.onerror = function() {
           if (finished) return;
+
           finished = true;
           cleanup(true);
-          reject(new Error(
-            'Gagal memuat Apps Script API.'
-          ));
+          finishRequest();
+
+          reject(new Error('Gagal memuat Apps Script API.'));
         };
 
-        // Apps Script Web App dapat lambat beberapa detik saat cold start
-        // atau ketika beberapa JSONP request masuk bersamaan. Jangan
-        // menganggap request gagal hanya setelah 7-12 detik.
         const apiTimeoutMs =
           action === 'getDataFromSheet'
-            ? 25000
+            ? 20000
             : action === 'getPrayerSchedule'
-              ? 30000
+              ? 22000
               : (
                   action === 'getRealtimePanelsFast' ||
                   action === 'getYoutubeControl' ||
                   action === 'getRealtimeDisplayConfig'
                 )
-                ? 30000
-                : 20000;
+                ? 18000
+                : 15000;
 
         timeoutId = setTimeout(function() {
           if (finished) return;
+
           finished = true;
+          cleanup(true);
+          finishRequest();
 
-          // Apps Script dapat mengirim respons setelah timeout lokal.
-          // Jangan hapus callback JSONP seketika: respons terlambat
-          // akan memanggil callback yang masih hidup dan langsung
-          // membersihkan dirinya sendiri. Script tag tetap dibuang agar
-          // DOM tidak menumpuk.
-          cleanup(false);
-
-          lateCallbackCleanupTimer = setTimeout(function() {
-            try {
-              delete window[callbackName];
-            } catch (e) {
-              window[callbackName] = undefined;
-            }
-            lateCallbackCleanupTimer = null;
-          }, 60000);
-
-          reject(new Error(
-            'Timeout menghubungi Apps Script API.'
-          ));
+          reject(new Error('Timeout menghubungi Apps Script API.'));
         }, apiTimeoutMs);
 
-        script.src =
-          GAS_API_URL + '?' + query.toString();
-
+        script.src = GAS_API_URL + '?' + query.toString();
         document.head.appendChild(script);
       });
+
+      gasApiInFlight.set(requestKey, requestPromise);
+      return requestPromise;
     }
 
     async function loadGitHubStage1Config_() {
