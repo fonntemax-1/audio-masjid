@@ -671,26 +671,75 @@
     // 5. cache singkat tetap dipertahankan.
     const gasApiInFlight = new Map();
     const gasApiShortCache = new Map();
-    const gasApiQueue = [];
-    let gasApiQueueRunning = false;
+
+    // =========================================================
+    // API QUEUE TERPISAH
+    // =========================================================
+    // Kontrol display harus tetap responsif walaupun getDataFromSheet()
+    // sedang mengambil payload besar. Karena itu request realtime control
+    // memakai lane sendiri dan tidak menunggu queue data berat.
+    const gasApiControlQueue = [];
+    const gasApiDataQueue = [];
+    let gasApiControlQueueRunning = false;
+    let gasApiDataQueueRunning = false;
+
     const GAS_API_SHORT_CACHE_MS = 2000;
 
-    function runNextGasApiRequest_() {
-      if (gasApiQueueRunning) return;
+    const GAS_API_REALTIME_CONTROL_ACTIONS = new Set([
+      'getRealtimeDisplayConfig',
+      'getRealtimePanelsFast',
+      'getYoutubeControl',
+      'getPanelIqomahBlackMode',
+      'getDisplayThemeSetting',
+      'getPanelDisplayMode',
+      'getPanelKeuanganSource',
+      'getPanelKegiatan',
+      'getEventCountdownConfig'
+    ]);
 
-      const item = gasApiQueue.shift();
+    function isRealtimeControlAction_(action) {
+      return GAS_API_REALTIME_CONTROL_ACTIONS.has(String(action || ''));
+    }
 
+    function runNextGasApiControlRequest_() {
+      if (gasApiControlQueueRunning) return;
+
+      const item = gasApiControlQueue.shift();
       if (!item) return;
 
-      gasApiQueueRunning = true;
+      gasApiControlQueueRunning = true;
 
       executeGasApiRequest_(item)
         .then(item.resolve)
         .catch(item.reject)
         .finally(function() {
-          gasApiQueueRunning = false;
-          setTimeout(runNextGasApiRequest_, 0);
+          gasApiControlQueueRunning = false;
+          setTimeout(runNextGasApiControlRequest_, 0);
         });
+    }
+
+    function runNextGasApiDataRequest_() {
+      if (gasApiDataQueueRunning) return;
+
+      const item = gasApiDataQueue.shift();
+      if (!item) return;
+
+      gasApiDataQueueRunning = true;
+
+      executeGasApiRequest_(item)
+        .then(item.resolve)
+        .catch(item.reject)
+        .finally(function() {
+          gasApiDataQueueRunning = false;
+          setTimeout(runNextGasApiDataRequest_, 0);
+        });
+    }
+
+    function runNextGasApiRequest_() {
+      // Kompatibilitas dengan pemanggil lama.
+      // Masing-masing lane sekarang berjalan independen.
+      runNextGasApiControlRequest_();
+      runNextGasApiDataRequest_();
     }
 
     function executeGasApiRequest_(item) {
@@ -904,22 +953,34 @@
       gasApiShortCache.delete(requestKey);
 
       const requestPromise = new Promise(function(resolve, reject) {
-        gasApiQueue.push({
+        const requestItem = {
           action: String(action || ''),
           routing: currentRouting || '',
           normalizedParams: normalizedParams,
           requestKey: requestKey,
           resolve: resolve,
           reject: reject
-        });
+        };
+
+        const isRealtimeControl = isRealtimeControlAction_(action);
+        const targetQueue = isRealtimeControl
+          ? gasApiControlQueue
+          : gasApiDataQueue;
+
+        targetQueue.push(requestItem);
 
         console.log(
           'GAS API QUEUE: masuk',
           action,
-          'posisi=', gasApiQueue.length
+          'lane=', isRealtimeControl ? 'CONTROL' : 'DATA',
+          'posisi=', targetQueue.length
         );
 
-        runNextGasApiRequest_();
+        if (isRealtimeControl) {
+          runNextGasApiControlRequest_();
+        } else {
+          runNextGasApiDataRequest_();
+        }
       });
 
       gasApiInFlight.set(requestKey, requestPromise);
