@@ -793,21 +793,32 @@ function getPanelEventCountdownCustomConfig_() {
           return;
         }
 
-        const data =
-          sheet
-            .getDataRange()
-            .getValues();
+        // Event dan panels mempunyai pembacaan khusus.
+        // Hindari getDataRange() untuk keduanya agar startup lebih ringan.
+        if (sheetName === 'Event') {
+          result.Event = getEventSheetData_(ss);
+          return;
+        }
 
-        if (
-          !data ||
-          data.length === 0
-        ) {
+        if (sheetName === 'panels') {
+          const panelMode = String(
+            sheet.getRange('C2').getDisplayValue() || ''
+          ).trim().toUpperCase();
+
+          result.PanelMode = panelMode === 'AUTO' ? 'AUTO' : 'OFF';
 
           Logger.log(
-            'Sheet kosong: ' +
-            sheetName
+            'PANELS!C2 = [' + panelMode + '] => PanelMode = [' +
+            result.PanelMode + ']'
           );
 
+          return;
+        }
+
+        const data = sheet.getDataRange().getValues();
+
+        if (!data || data.length === 0) {
+          Logger.log('Sheet kosong: ' + sheetName);
           return;
         }
 
@@ -985,63 +996,6 @@ function getPanelEventCountdownCustomConfig_() {
             data,
             result
           );
-
-          return;
-        }
-
-
-        // =====================================================
-        // KHUSUS SHEET EVENT
-        // A = EVENT
-        // B = ANGKA DURASI HITUNGAN HARI
-        // C = STATUS ON/OFF
-        // D = KETERANGAN
-        // =====================================================
-
-        if (
-          sheetName === 'Event'
-        ) {
-
-          result.Event = [];
-
-          for (
-            let r = 1;
-            r < data.length;
-            r++
-          ) {
-
-            const row = data[r] || [];
-
-            const eventName =
-              String(row[0] == null ? '' : row[0]).trim();
-
-            const daysRaw =
-              row[1] == null ? '' : row[1];
-
-            const status =
-              String(row[2] == null ? '' : row[2]).trim().toUpperCase();
-
-            const description =
-              String(row[3] == null ? '' : row[3]).trim();
-
-            if (!eventName) {
-              continue;
-            }
-
-            let days =
-              Number(String(daysRaw).replace(',', '.').trim());
-
-            if (!Number.isFinite(days)) {
-              days = 0;
-            }
-
-            result.Event.push({
-              event: eventName,
-              days: days,
-              status: status,
-              description: description
-            });
-          }
 
           return;
         }
@@ -1368,11 +1322,10 @@ function getPanelEventCountdownCustomConfig_() {
 
 
     // =====================================================
-    // EVENT - BACA ULANG SECARA EKSPLISIT
+    // EVENT
     // =====================================================
-    // Ini menjadi sumber final result.Event untuk GitHub Pages.
-    // Tidak menyentuh AudioSchedule, AudioStatus, atau proses audio.
-    result.Event = getEventSheetData_(ss);
+    // Sudah dibaca sekali secara dinamis di loop targetSheets.
+    // Jangan baca ulang karena akan menambah latency Spreadsheet.
 
     // =====================================================
     // PASTIKAN EVENT SELALU ADA
@@ -1604,60 +1557,44 @@ function getPanelEventCountdownCustomConfig_() {
 // =========================================================
 function getEventSheetData_(ss) {
   const output = [];
-  const sheet = ss.getSheetByName('Event');
+  const sheet = getSheetCaseInsensitive_(ss, 'Event');
 
   if (!sheet) {
     Logger.log('EVENT: Sheet Event tidak ditemukan.');
     return output;
   }
 
-  // ==========================================================
-  // STRUKTUR EVENT YANG DIGUNAKAN DISPLAY
-  //
-  // A8:A11 = nama event
-  // B8:B11 = jumlah hari / batas mulai countdown
-  // C8:C11 = AUTO / OFF
-  //
-  // D tidak digunakan sebagai pengaturan countdown.
-  // ==========================================================
+  // EVENT dibaca dinamis dari seluruh baris yang benar-benar terisi.
+  // A = EVENT, B = ANGKA/DURASI HARI, C = STATUS, D = KETERANGAN.
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 1) {
+    Logger.log('EVENT: sheet kosong.');
+    return output;
+  }
 
-  const values =
-    sheet
-      .getRange(8, 1, 4, 4)
-      .getValues();
+  const values = sheet.getRange(1, 1, lastRow, 4).getValues();
 
   for (let r = 0; r < values.length; r++) {
     const row = values[r] || [];
-
-    const eventName =
-      String(row[0] == null ? '' : row[0]).trim();
-
+    const eventName = String(row[0] == null ? '' : row[0]).trim();
     if (!eventName) continue;
 
-    const daysRaw =
-      row[1] == null ? '' : row[1];
+    const headerKey = eventName.toUpperCase();
+    if (
+      headerKey === 'EVENT' ||
+      headerKey === 'NAMA EVENT' ||
+      headerKey === 'NAMA EVENT/KEGIATAN'
+    ) continue;
 
-    const status =
-      String(row[2] == null ? '' : row[2])
-        .trim()
-        .toUpperCase();
+    const daysRaw = row[1] == null ? '' : row[1];
+    const status = String(row[2] == null ? '' : row[2]).trim().toUpperCase();
+    const description = String(row[3] == null ? '' : row[3]).trim();
 
-    const description =
-      String(row[3] == null ? '' : row[3]).trim();
-
-    let days =
-      Number(
-        String(daysRaw)
-          .replace(',', '.')
-          .trim()
-      );
-
-    if (!Number.isFinite(days)) {
-      days = 0;
-    }
+    let days = Number(String(daysRaw).replace(',', '.').trim());
+    if (!Number.isFinite(days)) days = 0;
 
     output.push({
-      row: r + 8,
+      row: r + 1,
       event: eventName,
       days: days,
       status: status,
@@ -1666,8 +1603,9 @@ function getEventSheetData_(ss) {
   }
 
   Logger.log(
-    'EVENT B8:C11 READ = ' +
-    JSON.stringify(output)
+    'EVENT DINAMIS READ: lastRow=' + lastRow +
+    ' rows=' + output.length +
+    ' data=' + JSON.stringify(output)
   );
 
   return output;
