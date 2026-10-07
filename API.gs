@@ -161,10 +161,39 @@ function handleGithubApiRequest_(params) {
       ));
     }
 
-    return createJsonpResponse_(callback, {
+    // DIAGNOSTIC JSONP: ukur waktu dan ukuran payload sebelum dikirim.
+    // Tidak mengubah isi data, audio, scheduler, atau Spreadsheet.
+    var responseStartedAt = new Date().getTime();
+
+    var responsePayload = {
       success: true,
       data: result
+    };
+
+    var responseJson = JSON.stringify(responsePayload, function(key, value) {
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+      return value;
     });
+
+    Logger.log(
+      'API BRIDGE RESPONSE: action=' + action +
+      ' jsonChars=' + responseJson.length +
+      ' serializeMs=' + (new Date().getTime() - responseStartedAt)
+    );
+
+    var responseOutput =
+      String(callback) + '(' + responseJson + ');';
+
+    Logger.log(
+      'API BRIDGE RESPONSE: outputChars=' +
+      responseOutput.length
+    );
+
+    return ContentService
+      .createTextOutput(responseOutput)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
   } catch (error) {
     Logger.log('API BRIDGE ERROR: ' + (
       error && error.stack ? error.stack : String(error)
