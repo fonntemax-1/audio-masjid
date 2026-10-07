@@ -126,17 +126,6 @@ function handleGithubApiRequest_(params) {
         result = getYoutubeControlProtectionState();
         break;
 
-      case 'validateMasjidLicense':
-        result = validateMasjidLicense_(
-          String(params.routing || ''),
-          String(params.license || '')
-        );
-        break;
-
-      case 'diagnoseTenantAccessSafe':
-        result = diagnoseTenantAccessSafe_(String(params.routing || params.tenant || params.masjid || ''));
-        break;
-
       case 'ping':
         result = {
           status: 'OK',
