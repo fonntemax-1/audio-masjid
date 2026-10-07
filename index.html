@@ -5778,7 +5778,7 @@ function updateFridayPrayerDisplay() {
 
     // Jangan menembakkan request GAS bersamaan saat reload.
     // First paint memakai cache/local state; sinkronisasi kontrol menyusul.
-    setTimeout(pollRealtimeDisplayConfig_, 3000);
+    setTimeout(pollRealtimeDisplayConfig_, 8000);
     // Snapshot realtime adalah jalur utama sinkronisasi kontrol Spreadsheet.
     // Polling dibuat 1 detik agar perubahan C26/C28/C29:C32/B35:B39,
     // theme, header, C22, dan kontrol tampilan terasa hampir realtime.
@@ -16231,26 +16231,26 @@ function setCountdownBlackMode(enabled) {
     // Ia tetap berjalan sebagai sinkronisasi penuh di background.
     setTimeout(function() {
       fetchSheetData();
-    }, 6000);
+    }, 10000);
 
     // Event banner dan Hijri bukan blocker untuk tampilan awal.
     setTimeout(function() {
       loadEventRunningText();
       updateHijriDate();
-    }, 3500);
+    }, 8000);
 
     // Panel kanan cukup disinkronkan setelah first paint.
     // Interval tetap menjaga data realtime tanpa membebani startup.
     setTimeout(function() {
       startRealtimePanelsFast_();
-    }, 4000);
+    }, 9000);
 
     // Countdown event sudah memiliki tick realtime 1 detik di atas.
     // Tidak perlu starter/polling kedua karena fungsi tersebut tidak ada.
     // Sinkronisasi waktu internet adalah data tambahan.
     setTimeout(function() {
       syncInternetTime();
-    }, 2500);
+    }, 8000);
 
     // Unlock audio tetap ditunda; tidak boleh menghambat first paint.
     setTimeout(
@@ -16309,12 +16309,12 @@ function setCountdownBlackMode(enabled) {
     // jam + countdown. Timeline audio/scheduler tidak diubah.
     setTimeout(function() {
       startFastYouTubeControlPolling_();
-    }, 1600);
+    }, 9000);
 
     // C22 juga disinkronkan lewat jalur ringan terpisah.
     setTimeout(function() {
       startFastIqomahBlackModePolling_();
-    }, 2000);
+    }, 10000);
 
     // panels!C2 tetap diperiksa terpisah, tetapi tidak lagi ikut setiap
     // getDataFromSheet(). 30 detik cukup cepat untuk perubahan AUTO/OFF
