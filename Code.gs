@@ -5224,7 +5224,7 @@ function getSpreadsheetIdByRouting_(routing) {
 
   for (let i = 0; i < rows.length; i++) {
     const rowRouting = String(rows[i][5] || '').trim().toLowerCase();
-    const status = String(rows[i][8] || 'ACTIVE').trim().toUpperCase();
+    const status = String(rows[i][12] || 'ACTIVE').trim().toUpperCase();
     if (rowRouting === wanted && status !== 'INACTIVE') {
       return String(rows[i][6] || '').trim();
     }
@@ -6021,9 +6021,23 @@ function registerMasjid_(name, city, province, timezone, spreadsheetId) {
     ensureMasterShortUrlColumn_(sheet);
 
     sheet.appendRow([
-      id, name, city, province, timezone, routing, spreadsheetId,
-      licenseHash, 'DEMO', '', now, now, shortUrl
+      id,
+      name,
+      city,
+      province,
+      timezone,
+      routing,
+      spreadsheetId,
+      licenseHash,
+      '',
+      '',
+      now,
+      now,
+      'DEMO',
+      '',
+      ''
     ]);
+    setMasterSpreadsheetLink_(sheet, sheet.getLastRow(), spreadsheetId);
 
     return {
       success: true,
@@ -6053,7 +6067,7 @@ function getMasjidShortUrl_(id) {
 
 function ensureMasterShortUrlColumn_(sheet) {
   if (!sheet) throw new Error('Sheet Master MASJID belum dibuat.');
-  sheet.getRange('M1').setValue('SHORT_URL');
+  sheet.getRange('L1').setValue('SHORT_URL');
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return;
   const ids = sheet.getRange(2, 1, lastRow - 1, 1).getDisplayValues();
@@ -6061,7 +6075,7 @@ function ensureMasterShortUrlColumn_(sheet) {
     const id = String(row[0] || '').trim();
     return [id ? getMasjidShortUrl_(id) : ''];
   });
-  sheet.getRange(2, 13, shortUrls.length, 1).setValues(shortUrls);
+  sheet.getRange(2, 12, shortUrls.length, 1).setValues(shortUrls);
 }
 
 function getMasjidByRouting_(routing) {
@@ -6106,7 +6120,7 @@ function ensureMasterLicenseStatusValidation_(sheet) {
     throw new Error('Sheet Master MASJID belum dibuat.');
   }
 
-  const statusRange = sheet.getRange('I2:I');
+  const statusRange = sheet.getRange('M2:M');
   const rule = SpreadsheetApp.newDataValidation()
     .requireValueInList(
       ['ACTIVE', 'DEMO', 'SUSPENDED', 'REVOKE'],
@@ -6154,9 +6168,10 @@ function setupMasterSpreadsheet() {
   const master = SpreadsheetApp.create('TV-Sholat - MASTER');
   const sheet = master.getSheets()[0];
   sheet.setName('MASJID');
-  sheet.getRange(1, 1, 1, 13).setValues([[
+  sheet.getRange(1, 1, 1, 15).setValues([[
     'ID','NAMA_MESJID','KOTA','PROVINSI','TIMEZONE','ROUTING',
-    'SPREADSHEET_ID','LICENSE_HASH','LICENSE_STATUS','DEVICE_TOKEN','CREATED','UPDATED','SHORT_URL'
+    'SPREADSHEET_ID','LICENSE_HASH','DEVICE_TOKEN','CREATED','UPDATED',
+    'SHORT_URL','LICENSE_STATUS','EMAIL','SUBMIT'
   ]]);
   sheet.setFrozenRows(1);
 
