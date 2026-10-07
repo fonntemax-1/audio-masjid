@@ -721,32 +721,50 @@
 
         let finished = false;
         let timeoutId = null;
+        let cleanupScheduled = false;
 
+        // Cleanup ditunda satu event-loop setelah callback selesai.
+        // Apps Script mengembalikan JSONP sebagai JavaScript yang sedang
+        // dieksekusi oleh elemen <script>. Menghapus elemen/callback tepat
+        // di tengah eksekusi dapat menghasilkan onerror pada sebagian
+        // browser walaupun callback sebenarnya sudah menerima payload.
         function finishRequest(removeCallback) {
-          if (removeCallback) {
-            try {
-              delete window[callbackName];
-            } catch (e) {
-              window[callbackName] = undefined;
+          if (cleanupScheduled) return;
+          cleanupScheduled = true;
+
+          setTimeout(function() {
+            if (removeCallback) {
+              try {
+                delete window[callbackName];
+              } catch (e) {
+                window[callbackName] = undefined;
+              }
             }
-          }
 
-          if (script.parentNode) {
-            script.parentNode.removeChild(script);
-          }
+            if (script.parentNode) {
+              script.parentNode.removeChild(script);
+            }
 
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-            timeoutId = null;
-          }
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+              timeoutId = null;
+            }
 
-          gasApiInFlight.delete(requestKey);
+            gasApiInFlight.delete(requestKey);
+          }, 0);
         }
 
         window[callbackName] = function(payload) {
           if (finished) return;
 
           finished = true;
+
+          console.log(
+            'GAS API JSONP CALLBACK OK:',
+            action,
+            'routing=', currentRouting || '(legacy)'
+          );
+
           finishRequest(true);
 
           if (!payload || payload.success !== true) {
@@ -766,10 +784,40 @@
           resolve(payload.data);
         };
 
-        script.onerror = function() {
-          if (finished) return;
+        script.onload = function() {
+          // onload berarti file JavaScript berhasil dimuat.
+          // Untuk JSONP, keberhasilan request tetap ditentukan callback.
+          console.log(
+            'GAS API JSONP SCRIPT ONLOAD:',
+            action,
+            'routing=', currentRouting || '(legacy)',
+            'callback=', callbackName
+          );
+        };
+
+        script.onerror = function(event) {
+          if (finished) {
+            // Jika callback sudah menerima payload, jangan mengubah request
+            // yang sudah berhasil menjadi error hanya karena event lifecycle
+            // <script> datang sesudah callback.
+            console.warn(
+              'GAS API JSONP ONERROR SETELAH CALLBACK:',
+              action,
+              'routing=', currentRouting || '(legacy)'
+            );
+            return;
+          }
 
           finished = true;
+
+          console.error(
+            'GAS API JSONP ONERROR:',
+            action,
+            'routing=', currentRouting || '(legacy)',
+            'url=', script.src,
+            event || ''
+          );
+
           finishRequest(true);
 
           reject(new Error('Gagal memuat Apps Script API.'));
@@ -790,9 +838,13 @@
 
           finished = true;
 
-          // Callback harus dihapus setelah timeout agar request macet
-          // tidak mengotori halaman. Respons yang datang setelah timeout
-          // akan diabaikan oleh Apps Script/browser.
+          console.error(
+            'GAS API JSONP TIMEOUT:',
+            action,
+            'routing=', currentRouting || '(legacy)',
+            'url=', script.src
+          );
+
           finishRequest(true);
 
           reject(new Error('Timeout menghubungi Apps Script API.'));
