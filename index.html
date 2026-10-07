@@ -905,7 +905,9 @@
           'GAS API QUEUE: mulai',
           action,
           'routing=', currentRouting || '(legacy)',
-          'queue=', gasApiQueue.length
+          'queue=', (isRealtimeControlAction_(action)
+            ? gasApiControlQueue.length
+            : gasApiDataQueue.length)
         );
 
         document.head.appendChild(script);
