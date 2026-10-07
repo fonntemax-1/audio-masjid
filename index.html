@@ -4280,6 +4280,40 @@ function updateFridayPrayerDisplay() {
 
     let sheetDataRequestInFlight = false;
 
+    // AUDIO STARTUP CEPAT
+    // Konfigurasi sequence tetap dibaca langsung dari Sheet Adzan,
+    // tetapi dipisahkan dari getDataFromSheet() agar first paint tidak
+    // menunggu snapshot Spreadsheet yang besar. Tidak mengubah scheduler.
+    let audioFastConfigRequestInFlight = false;
+
+    function loadAudioConfigFast_() {
+      if (audioFastConfigRequestInFlight) return;
+      audioFastConfigRequestInFlight = true;
+
+      console.log('AUDIO FAST CONFIG: meminta getRealtimeAudioConfig...');
+
+      gasApiCall('getRealtimeAudioConfig')
+        .then(function(data) {
+          if (data && typeof data === 'object') {
+            return setAudioConfig(data);
+          }
+        })
+        .then(function() {
+          if (WEB_APP_STATE.audio.audioConfigReady) {
+            console.log('AUDIO FAST CONFIG: siap tanpa menunggu getDataFromSheet.');
+          }
+        })
+        .catch(function(error) {
+          console.warn(
+            'AUDIO FAST CONFIG GAGAL, getDataFromSheet tetap menjadi fallback:',
+            error && error.message ? error.message : error
+          );
+        })
+        .finally(function() {
+          audioFastConfigRequestInFlight = false;
+        });
+    }
+
     function fetchSheetData() {
 
       if (sheetDataRequestInFlight) {
@@ -5729,7 +5763,7 @@ function updateFridayPrayerDisplay() {
 
     // Jangan menembakkan request GAS bersamaan saat reload.
     // First paint memakai cache/local state; sinkronisasi kontrol menyusul.
-    setTimeout(pollRealtimeDisplayConfig_, 700);
+    setTimeout(pollRealtimeDisplayConfig_, 3000);
     // Snapshot realtime adalah jalur utama sinkronisasi kontrol Spreadsheet.
     // Polling dibuat 1 detik agar perubahan C26/C28/C29:C32/B35:B39,
     // theme, header, C22, dan kontrol tampilan terasa hampir realtime.
@@ -16149,23 +16183,30 @@ function setCountdownBlackMode(enabled) {
     // Request sekunder ditunda agar browser segera menyelesaikan first paint.
     loadGitHubStage1Config_();
 
-    // Tunda request Sheet utama sedikit agar browser menyelesaikan
-    // first paint terlebih dahulu. Cache lokal + jadwal lokal tetap aktif.
+    // Konfigurasi audio dipisahkan dari snapshot Sheet utama.
+    // Audio tetap mendapat sumber sequence langsung dari Sheet Adzan,
+    // sedangkan snapshot besar getDataFromSheet ditunda agar first paint cepat.
+    setTimeout(function() {
+      loadAudioConfigFast_();
+    }, 900);
+
+    // Snapshot Sheet utama bukan blocker first paint.
+    // Ia tetap berjalan sebagai sinkronisasi penuh di background.
     setTimeout(function() {
       fetchSheetData();
-    }, 900);
+    }, 5000);
 
     // Event banner dan Hijri bukan blocker untuk tampilan awal.
     setTimeout(function() {
       loadEventRunningText();
       updateHijriDate();
-    }, 800);
+    }, 3500);
 
     // Panel kanan cukup disinkronkan setelah first paint.
     // Interval tetap menjaga data realtime tanpa membebani startup.
     setTimeout(function() {
       startRealtimePanelsFast_();
-    }, 1500);
+    }, 4000);
 
     // Countdown event sudah memiliki tick realtime 1 detik di atas.
     // Tidak perlu starter/polling kedua karena fungsi tersebut tidak ada.
