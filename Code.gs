@@ -5061,7 +5061,7 @@ function getLastFilledColumnRow_(sheet, startRow, column) {
 // getDataFromSheet(), scheduler, audio, atau jadwal sholat.
 // =====================================================
 function getPanelKeuanganSource() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet();
   const panels = ss.getSheetByName('panels');
   const rawSelector = panels
     ? String(panels.getRange('C26').getDisplayValue() || '').trim()
@@ -5219,7 +5219,7 @@ function getSpreadsheetIdByRouting_(routing) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return '';
 
-  const rows = sheet.getRange(2, 1, lastRow - 1, 12).getDisplayValues();
+  const rows = sheet.getRange(2, 1, lastRow - 1, 15).getDisplayValues();
   const wanted = String(routing || '').trim().toLowerCase();
 
   for (let i = 0; i < rows.length; i++) {
@@ -5493,13 +5493,13 @@ function getTenantMasterIdentityBySpreadsheetId_(spreadsheetId) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return null;
 
-  const rows = sheet.getRange(2, 1, lastRow - 1, 12).getDisplayValues();
+  const rows = sheet.getRange(2, 1, lastRow - 1, 15).getDisplayValues();
 
   for (let i = 0; i < rows.length; i++) {
     if (String(rows[i][6] || '').trim() !== wanted) continue;
 
-    const tenantStatus = String(rows[i][8] || 'ACTIVE').trim().toUpperCase();
-    if (tenantStatus === 'DEMO' && isDemoLicenseExpired_(rows[i][10])) {
+    const tenantStatus = String(rows[i][12] || 'ACTIVE').trim().toUpperCase();
+    if (tenantStatus === 'DEMO' && isDemoLicenseExpired_(rows[i][9])) {
       throw new Error('LICENSE_DEMO_EXPIRED: ' + rows[i][0]);
     }
     if (tenantStatus !== 'ACTIVE' && tenantStatus !== 'DEMO') {
@@ -5786,7 +5786,7 @@ function findMasjidRowByRouting_(routing) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return null;
 
-  const rows = sheet.getRange(2, 1, lastRow - 1, 12).getDisplayValues();
+  const rows = sheet.getRange(2, 1, lastRow - 1, 15).getDisplayValues();
 
   for (let i = 0; i < rows.length; i++) {
     const rowRouting = String(rows[i][5] || '').trim().toLowerCase();
@@ -5804,8 +5804,8 @@ function findMasjidRowByRouting_(routing) {
         shortUrl: getMasjidShortUrl_(rows[i][0]),
         spreadsheetId: rows[i][6],
         licenseHash: rows[i][7],
-        licenseStatus: rows[i][8],
-        created: rows[i][10]
+        licenseStatus: rows[i][12],
+        created: rows[i][9]
       };
     }
   }
@@ -6075,7 +6075,7 @@ function getMasjidByRouting_(routing) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return null;
 
-  const rows = sheet.getRange(2, 1, lastRow - 1, 12).getDisplayValues();
+  const rows = sheet.getRange(2, 1, lastRow - 1, 15).getDisplayValues();
   for (let i = 0; i < rows.length; i++) {
     const rowRouting = String(rows[i][5] || '').trim().toLowerCase();
     const rowId = String(rows[i][0] || '').trim().toLowerCase();
@@ -6084,7 +6084,7 @@ function getMasjidByRouting_(routing) {
     // Routing asli tetap menjadi identitas internal tenant.
     if (
       (rowRouting === wanted || rowId === wanted) &&
-      String(rows[i][8] || 'ACTIVE').trim().toUpperCase() !== 'INACTIVE'
+      String(rows[i][12] || 'ACTIVE').trim().toUpperCase() !== 'INACTIVE'
     ) {
       return {
         id: rows[i][0],
@@ -6094,7 +6094,7 @@ function getMasjidByRouting_(routing) {
         timezone: rows[i][4],
         routing: rows[i][5],
         spreadsheetId: rows[i][6],
-        licenseStatus: rows[i][8]
+        licenseStatus: rows[i][12]
       };
     }
   }
