@@ -2978,6 +2978,29 @@
 
         }
 
+        // STATUS OFF HARUS MEMBLOKIR OUTPUT AUDIO DI SINI JUGA.
+        // Pemeriksaan ini dilakukan tepat sebelum playback sehingga event
+        // yang sudah terlanjur berada di queue tidak dapat berbunyi ketika
+        // Panels berubah menjadi OFF.
+        try {
+          const liveStatus = getRealtimeAudioStatus_(
+            item.prayerName,
+            item.audioType
+          );
+          if (liveStatus === 'OFF') {
+            item.status = 'OFF';
+          } else if (liveStatus === 'ON') {
+            item.status = 'ON';
+          }
+        } catch (statusError) {
+          console.warn(
+            'AUDIO QUEUE LIVE STATUS GAGAL:',
+            item.prayerName || '-',
+            item.eventName || '-',
+            statusError
+          );
+        }
+
         // Event belum waktunya: jangan diputar sekarang.
         // Lepaskan processing agar timer dapat memanggil kembali.
         if (
