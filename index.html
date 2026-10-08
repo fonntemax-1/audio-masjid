@@ -6142,7 +6142,8 @@ function startRealtimeAudioConfigPolling_() {
       titleEl.textContent = jenis
         ? (jenis.indexOf('SHOLAT ') === 0 ? 'PETUGAS ' + jenis : 'PETUGAS SHOLAT ' + jenis)
         : 'PETUGAS SHOLAT';
-      titleEl.style.display = showPetugas ? '' : 'none';
+      // Tahan seluruh blok PETUGAS agar judul, tanggal, teks, dan garis muncul bersamaan.
+      titleEl.style.display = 'none';
       listEl.style.display = 'none';
 
       const fields = data && data.fields && typeof data.fields === 'object' ? data.fields : {};
@@ -7558,7 +7559,9 @@ function startRealtimeAudioConfigPolling_() {
     }
 
       // Tampilkan list setelah seluruh teks dan baris selesai diisi, agar garis separator tidak muncul lebih dulu.
-      listEl.style.display = showPetugas && entries.length ? 'flex' : 'none';
+      const showPetugasBlock = showPetugas && entries.length > 0;
+      titleEl.style.display = showPetugasBlock ? '' : 'none';
+      listEl.style.display = showPetugasBlock ? 'flex' : 'none';
     let panelKegiatanRequestInFlight = false;
     function fetchPanelKegiatan_() {
       if (panelKegiatanRequestInFlight) return;
