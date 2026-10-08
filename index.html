@@ -3113,6 +3113,42 @@
 
         }
 
+        // STATUS OFF = SKIP, BUKAN MUTE.
+        // Pemeriksaan dilakukan setelah event mencapai target waktunya.
+        // Dengan demikian OFF pada satu item hanya melewati item tersebut;
+        // item lain (termasuk IQOMAH) tetap memiliki slot/waktu sendiri.
+        if (
+          String(item.status || 'ON').trim().toUpperCase() === 'OFF'
+        ) {
+
+          console.log(
+            'AUDIO SKIP OFF:',
+            item.prayerName || '-',
+            item.eventName || item.label || '-',
+            'type=',
+            item.audioType || '-',
+            'targetSec=',
+            item.targetSec
+          );
+
+          state.queue.shift();
+          state.queuedLocks.delete(item.eventKey);
+          state.retryCount.delete(item.eventKey);
+
+          state.currentPrayer = '';
+          state.currentStage = '';
+          state.currentEventKey = '';
+          state.currentAudioType = '';
+          state.processing = false;
+
+          setTimeout(function() {
+            processAudioQueue();
+          }, 25);
+
+          return;
+
+        }
+
         // Bila event sedang aktif, jangan di-reset oleh interval
         // updatePrayerCountdown() yang berjalan setiap detik.
         const activeAudio =
