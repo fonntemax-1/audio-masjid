@@ -1723,8 +1723,8 @@
        Saat INFAQ aktif, list PETUGAS tersembunyi sehingga separator juga
        otomatis tidak terlihat. */
     #petugas-sholat-list .khotbah-item {
-      border-bottom: max(2px, 0.18vh) solid var(--theme-accent) !important;
-      padding-bottom: clamp(0.28vh, 0.45cqw, 0.45vh) !important;
+      border-bottom: max(1px, 0.12vh) solid var(--theme-accent) !important;
+      padding-bottom: clamp(0.18vh, 0.35cqw, 0.35vh) !important;
       box-sizing: border-box !important;
       box-shadow: none !important;
     }
