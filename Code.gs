@@ -2393,6 +2393,11 @@ function getRealtimeAudioConfig() {
     result.AudioSchedule = parsed.schedule;
     result.AudioFriday = parsed.friday;
 
+    // STATUS REALTIME DIAMBIL DARI PANELS!B45:Q.
+    // Hanya ON/OFF yang diubah; urutan, durasi, anchor, dan timing
+    // schedule dari Sheet Adzan tetap dipertahankan.
+    applyPanelAudioStatusRealtime_(ss, result.AudioSchedule, result.AudioFriday);
+
     const genericDurations = {};
     Object.keys(parsed.schedule).forEach(function(prayerName) {
       parsed.schedule[prayerName].forEach(function(item) {
