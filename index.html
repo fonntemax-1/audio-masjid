@@ -4458,6 +4458,9 @@ function updateFridayPrayerDisplay() {
     if (String(currentStatus || '').toUpperCase() === 'OFF') {
       try { audio.muted = true; } catch (e) {}
       console.log('AUDIO REALTIME MUTE:', current.eventName || current.audioType || '-');
+    } else if (String(currentStatus || '').toUpperCase() === 'ON') {
+      try { audio.muted = false; audio.volume = 1; } catch (e) {}
+      console.log('AUDIO REALTIME UNMUTE:', current.eventName || current.audioType || '-');
     }
   }
 }
