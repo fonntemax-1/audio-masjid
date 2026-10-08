@@ -424,6 +424,15 @@ function getDataFromSheet() {
     const ss = getSpreadsheet();
     const result = {};
 
+    // Audio sekarang sepenuhnya berasal dari panels!B46:Q55.
+    const panelAudioConfig = buildAudioScheduleFromPanels_(ss);
+    result.Audio = {};
+    result.AudioSchedule = panelAudioConfig.schedule;
+    result.AudioFriday = panelAudioConfig.friday;
+    result.AudioScheduleJSON = JSON.stringify(panelAudioConfig.schedule);
+    result.AudioFridayJSON = JSON.stringify(panelAudioConfig.friday);
+    result.AudioDurations = {};
+
     // =====================================================
     // KONTROL TAMPILAN RAMADAN
     // Dibaca dari Script Properties:
@@ -947,17 +956,8 @@ function getPanelEventCountdownCustomConfig_() {
         }
 
         if (sheetName === 'Adzan') {
-          processKeyAudioSheet(sheet, result);
-          processAdzanScheduleSheet(sheet, result);
-          processAdzanAudioStatusSheet(sheet, result);
-
-          // panels!B46:Q55 adalah sumber ON/OFF final per sequence.
-          // Terapkan sejak getDataFromSheet() pertama kali dipanggil,
-          // bukan menunggu polling realtime 5 detik.
-          // Hanya status audio yang dioverlay; urutan, durasi, anchor,
-          // dan timing dari Sheet Adzan tetap tidak berubah.
-          applyPanelAudioStatusRealtime_(ss, result.AudioSchedule, result.AudioFriday);
-
+          // Sheet Adzan sudah tidak digunakan untuk audio.
+          Logger.log('SHEET ADZAN DILEWATI: sumber audio aktif = panels.');
           return;
         }
 
@@ -2500,184 +2500,62 @@ function applyPanelAudioStatusRealtime_(ss, audioSchedule, audioFriday) {
   }
 }
 
+function buildAudioScheduleFromPanels_(ss) {
+  const out = {schedule:{SUBUH_RAMADHAN:[],SUBUH_BIASA:[],DZUHUR:[],ASHAR:[],MAGHRIB_RAMADHAN:[],MAGHRIB_BIASA:[],ISYA:[]},friday:[]};
+  const panels = getSheetCaseInsensitive_(ss, 'panels');
+  if (!panels) return out;
+  const v = panels.getRange('B46:Q55').getDisplayValues();
+  const norm = function(raw, seq) {
+    let e = String(raw == null ? '' : raw).trim().toLowerCase();
+    if (!e || e === 'on' || e === 'off' || e === 'gap') return '';
+    e = e.replace(/[’`]/g, "'").replace(/_/g,'-').replace(/\s+/g,'-');
+    if (/^qiroah-?\d+$/.test(e)) return e.replace(/^qiroah-?(\d+)$/,'qiroah-$1');
+    if (e === 'qiraah') return 'qiroah';
+    if (e === 'shalawat-tarhim' || e === 'sholawat-tarhim' || e === 'tarhim-subuh' || e === 'tarhim-biasa') return 'tarhim';
+    if (e === 'azan-subuh') return 'adzan-subuh';
+    if (e === 'azan-biasa') return 'adzan-biasa';
+    if (e === 'azan' || e === 'adzan') return /^SUBUH/i.test(String(seq||'')) ? 'adzan-subuh' : 'adzan-biasa';
+    if (e === "do'a") return 'doa';
+    if (e === 'iqamah') return 'iqomah';
+    if (e === 'siren') return 'sirine';
+    const allowed = {'qiroah':1,'qiroah-1':1,'qiroah-2':1,'qiroah-3':1,'qiroah-4':1,'qiroah-5':1,'tarhim':1,'beep':1,'adzan-subuh':1,'adzan-biasa':1,'doa':1,'doa-adzan':1,'doa-puasa':1,'doa-buka':1,'iqomah':1,'sirine':1};
+    return allowed[e] ? e : '';
+  };
+  const block = function(offset, seq) {
+    const a=[];
+    for(let i=0;i<v.length;i++){
+      const event=norm(v[i][offset],seq);
+      if(!event) continue;
+      const raw=String(v[i][offset+1] == null ? '' : v[i][offset+1]).trim().toUpperCase();
+      a.push({event:event,duration:0,status:raw==='OFF'?'OFF':'ON'});
+    }
+    return a;
+  };
+  [['SUBUH_RAMADHAN',0],['SUBUH_BIASA',2],['DZUHUR',4],['ASHAR',6],['MAGHRIB_RAMADHAN',8],['MAGHRIB_BIASA',10],['ISYA',12]].forEach(function(x){out.schedule[x[0]]=block(x[1],x[0]);});
+  out.friday=block(14,'JUMAT');
+  Logger.log('AUDIO SOURCE PANELS SAJA: '+JSON.stringify(out));
+  return out;
+}
+
 function getRealtimeAudioConfig() {
   try {
     const ss = getSpreadsheet();
-    const sheet = ss.getSheetByName('Adzan');
-
-    if (!sheet) {
-      return {
-        success: false,
-        error: 'Sheet Adzan tidak ditemukan.'
-      };
-    }
-
     SpreadsheetApp.flush();
-
-    const lastRow = Math.max(sheet.getLastRow(), 1);
-    const data = sheet
-      .getRange(1, 1, lastRow, 27)
-      .getValues();
-
-    const result = {
-      success: true,
-      // Mode Ramadan ikut dikirim bersama konfigurasi audio agar startup
-      // GitHub Pages dapat memilih sequence SUBUH/MAGHRIB yang benar
-      // sebelum getDataFromSheet() selesai.
-      RamadanDisplay: getRamadanDisplaySetting(),
-      Audio: {},
-      AudioSchedule: {
-        SUBUH_RAMADHAN: [],
-        SUBUH_BIASA: [],
-        DZUHUR: [],
-        ASHAR: [],
-        MAGHRIB_RAMADHAN: [],
-        MAGHRIB_BIASA: [],
-        ISYA: []
-      },
-      AudioDurations: {},
-      AudioFriday: [],
-      AudioStatus: {
-        qiroah: 'ON',
-        tarhim: 'ON',
-        beep: 'ON',
-        adzan: 'ON',
-        doa: 'ON',
-        iqomah: 'ON',
-        sirine: 'ON'
-      }
-    };
-
-    // A:B = KEY + URL AUDIO. Jangan mengubah nilai URL.
-    for (let r = 0; r < data.length; r++) {
-      const key = String(data[r][0] == null ? '' : data[r][0])
-        .trim()
-        .toLowerCase();
-      if (!key) continue;
-
-      result.Audio[key] = String(data[r][1] == null ? '' : data[r][1]).trim();
-    }
-
-    const parsed = parseAdzanSheetV7(data);
-    result.AudioSchedule = parsed.schedule;
-    result.AudioFriday = parsed.friday;
-
-    // STATUS REALTIME DIAMBIL DARI PANELS!B45:Q.
-    // Hanya ON/OFF yang diubah; urutan, durasi, anchor, dan timing
-    // schedule dari Sheet Adzan tetap dipertahankan.
-    applyPanelAudioStatusRealtime_(ss, result.AudioSchedule, result.AudioFriday);
-
-    const genericDurations = {};
-    Object.keys(parsed.schedule).forEach(function(prayerName) {
-      parsed.schedule[prayerName].forEach(function(item) {
-        let type = item.event;
-        if (type === 'adzan-subuh') type = 'adzanSubuh';
-        else if (type === 'adzan-biasa' || type === 'adzan') type = 'adzanBiasa';
-        else if (type === 'tarhim') {
-          type = prayerName === 'SUBUH' ? 'tarhimSubuh' : 'tarhimBiasa';
-        }
-        if (genericDurations[type] === undefined) {
-          genericDurations[type] = item.duration;
-        }
-      });
-    });
-    result.AudioDurations = genericDurations;
-
-    // =====================================================
-    // DIAGNOSTIC AUDIO PANELS - SUMBER LANGSUNG PANELS!B46:Q55
-    // Khusus verifikasi posisi ON/OFF tanpa mengubah scheduler.
-    // =====================================================
-    const panelAudioDebug = {};
-    const debugPanels = ss.getSheetByName('panels');
-    if (debugPanels) {
-      const debugValues = debugPanels.getRange('B46:Q55').getDisplayValues();
-      const debugBlock = function(name, offset) {
-        const list = [];
-        for (let i = 0; i < debugValues.length; i++) {
-          const event = String(debugValues[i][offset] || '').trim();
-          const status = String(debugValues[i][offset + 1] || '').trim().toUpperCase();
-          if (event || status) {
-            list.push({ row: 46 + i, event: event, status: status });
-          }
-        }
-        return list;
-      };
-      panelAudioDebug.SUBUH_RAMADHAN = debugBlock('SUBUH_RAMADHAN', 0);
-      panelAudioDebug.SUBUH_BIASA = debugBlock('SUBUH_BIASA', 2);
-      panelAudioDebug.DZUHUR = debugBlock('DZUHUR', 4);
-      panelAudioDebug.ASHAR = debugBlock('ASHAR', 6);
-      panelAudioDebug.MAGHRIB_RAMADHAN = debugBlock('MAGHRIB_RAMADHAN', 8);
-      panelAudioDebug.MAGHRIB_BIASA = debugBlock('MAGHRIB_BIASA', 10);
-      panelAudioDebug.ISYA = debugBlock('ISYA', 12);
-      panelAudioDebug.JUMAT = debugBlock('JUMAT', 14);
-    }
-
-    result.PanelAudioDebug = panelAudioDebug;
-
-    // Status final setelah pemetaan Panels -> AudioSchedule.
-    result.PanelAudioFinal = {
-      SUBUH_RAMADHAN: (result.AudioSchedule.SUBUH_RAMADHAN || []).map(function(item, index) {
-        return { index: index, event: item && item.event || '', status: String(item && item.status || 'ON').toUpperCase() };
-      }),
-      SUBUH_BIASA: (result.AudioSchedule.SUBUH_BIASA || []).map(function(item, index) {
-        return { index: index, event: item && item.event || '', status: String(item && item.status || 'ON').toUpperCase() };
-      })
-    };
-
-    Logger.log('=== PANEL AUDIO DEBUG RAW === ' + JSON.stringify(panelAudioDebug));
-    Logger.log('=== PANEL AUDIO DEBUG FINAL === ' + JSON.stringify(result.PanelAudioFinal));
-
-    // STATUS per-event berasal dari sequence Sheet, bukan T:U.
-    const summaryStatus = {
-      qiroah: 'ON', tarhim: 'ON', beep: 'ON', adzan: 'ON',
-      doa: 'ON', iqomah: 'ON', sirine: 'ON'
-    };
-
-    function statusCategory(event) {
-      const e = String(event || '').trim().toLowerCase();
-      if (/^qiroah-\d+$/.test(e) || e === 'qiroah') return 'qiroah';
-      if (e === 'tarhim') return 'tarhim';
-      if (e === 'beep') return 'beep';
-      if (e === 'adzan' || e === 'adzan-subuh' || e === 'adzan-biasa') return 'adzan';
-      if (e === 'doa') return 'doa';
-      if (e === 'iqomah') return 'iqomah';
-      if (e === 'sirine') return 'sirine';
-      return '';
-    }
-
-    Object.keys(result.AudioSchedule).forEach(function(prayerName) {
-      (result.AudioSchedule[prayerName] || []).forEach(function(item) {
-        const category = statusCategory(item && item.event);
-        if (category && String(item.status || 'ON').toUpperCase() === 'OFF') summaryStatus[category] = 'OFF';
-      });
-    });
-
-    (result.AudioFriday || []).forEach(function(item) {
-      const category = statusCategory(item && item.event);
-      if (category && String(item.status || 'ON').toUpperCase() === 'OFF') summaryStatus[category] = 'OFF';
-    });
-
-    result.AudioStatus = summaryStatus;
-
-    Logger.log('=== REALTIME AUDIO CONFIG FIX v2026-09-27 ===');
-    Logger.log('AUDIO URL = ' + JSON.stringify(result.Audio));
-    Logger.log('AUDIO SCHEDULE = ' + JSON.stringify(result.AudioSchedule));
-    Logger.log('AUDIO DURATIONS = ' + JSON.stringify(result.AudioDurations));
-    Logger.log('AUDIO FRIDAY = ' + JSON.stringify(result.AudioFriday));
-    Logger.log('AUDIO STATUS = ' + JSON.stringify(result.AudioStatus));
-
+    const panelAudio = buildAudioScheduleFromPanels_(ss);
+    const result = {success:true,RamadanDisplay:getRamadanDisplaySetting(),Audio:{},AudioSchedule:panelAudio.schedule,AudioDurations:{},AudioFriday:panelAudio.friday,AudioStatus:{qiroah:'ON',tarhim:'ON',beep:'ON',adzan:'ON',doa:'ON',iqomah:'ON',sirine:'ON'}};
+    Object.keys(result.AudioSchedule).forEach(function(k){(result.AudioSchedule[k]||[]).forEach(function(x){
+      const e=String(x.event||'').toLowerCase(); const s=String(x.status||'ON').toUpperCase();
+      const cat=/^qiroah/.test(e)?'qiroah':e==='tarhim'?'tarhim':e==='beep'?'beep':/^adzan/.test(e)?'adzan':/^doa/.test(e)?'doa':e==='iqomah'?'iqomah':e==='sirine'?'sirine':'';
+      if(cat && s==='OFF') result.AudioStatus[cat]='OFF';
+    });});
+    (result.AudioFriday||[]).forEach(function(x){if(String(x.status||'ON').toUpperCase()==='OFF'){const e=String(x.event||'').toLowerCase();const cat=/^qiroah/.test(e)?'qiroah':e==='tarhim'?'tarhim':e==='beep'?'beep':/^adzan/.test(e)?'adzan':/^doa/.test(e)?'doa':e==='iqomah'?'iqomah':e==='sirine'?'sirine':'';if(cat)result.AudioStatus[cat]='OFF';}});
+    result.PanelAudioFinal={SUBUH_RAMADHAN:(result.AudioSchedule.SUBUH_RAMADHAN||[]).map(function(x,i){return {index:i,event:x.event||'',status:String(x.status||'ON').toUpperCase()};}),SUBUH_BIASA:(result.AudioSchedule.SUBUH_BIASA||[]).map(function(x,i){return {index:i,event:x.event||'',status:String(x.status||'ON').toUpperCase()};})};
     return result;
-
-  } catch (error) {
-    Logger.log('ERROR getRealtimeAudioConfig: ' + error);
-    return {
-      success: false,
-      error: error && error.message ? error.message : String(error)
-    };
+  } catch(error) {
+    Logger.log('ERROR getRealtimeAudioConfig PANELS: '+error);
+    return {success:false,error:error&&error.message?error.message:String(error)};
   }
 }
-
-
 // =========================================================
 // PROSES SHEET RUNNING TEXT
 // =========================================================
