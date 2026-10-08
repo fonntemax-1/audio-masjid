@@ -10,7 +10,6 @@
     'qiroah-3': 'qiroah-3.mp3',
     'qiroah-4': 'qiroah-4.mp3',
     'qiroah-5': 'qiroah-5.mp3',
-    'qiroah': 'qiroah.mp3',
     'tarhim': 'Shalawat Tarhim.mp3',
     'tarhim-subuh': 'Shalawat Tarhim.mp3',
     'tarhim-biasa': 'Shalawat Tarhim.mp3',
