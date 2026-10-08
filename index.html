@@ -2287,12 +2287,18 @@
 
           let finished = false;
           let fallbackTimer = null;
+          let playbackWatchdogTimer = null;
 
           function cleanup() {
 
             if (fallbackTimer) {
               clearTimeout(fallbackTimer);
               fallbackTimer = null;
+            }
+
+            if (playbackWatchdogTimer) {
+              clearTimeout(playbackWatchdogTimer);
+              playbackWatchdogTimer = null;
             }
 
             audio.onended = null;
@@ -2531,6 +2537,7 @@
                   if (settled) return;
                   settled = true;
                   metadataReady = true;
+                  clearTimeout(metadataTimeout);
                   audio.removeEventListener(
                     'loadedmetadata',
                     finishMetadataWait
@@ -2545,6 +2552,7 @@
                 const finishMetadataError = function() {
                   if (settled) return;
                   settled = true;
+                  clearTimeout(metadataTimeout);
                   audio.removeEventListener(
                     'loadedmetadata',
                     finishMetadataWait
@@ -2555,6 +2563,18 @@
                   );
                   resolveMetadata();
                 };
+
+                // SAFETY: beberapa TV/browser dapat tidak pernah mengirim
+                // loadedmetadata/error setelah audio.load(). Jangan biarkan
+                // Promise ini menggantung dan mengunci state.processing.
+                const metadataTimeout = setTimeout(function() {
+                  if (settled) return;
+                  console.warn(
+                    'AUDIO METADATA TIMEOUT, lanjut ke play():',
+                    label
+                  );
+                  finishMetadataWait();
+                }, 15000);
 
                 audio.addEventListener(
                   'loadedmetadata',
@@ -2644,6 +2664,35 @@
                 }
               );
 
+          }
+
+          // SAFETY WATCHDOG: jika media gagal mengirim onended dan
+          // Promise play() juga tidak menyelesaikan, queue tidak boleh
+          // terkunci selamanya pada state.processing=true. Watchdog ini
+          // hanya aktif sebagai pengaman kegagalan media; pada playback
+          // normal onended/stopAtSeconds tetap menyelesaikan event lebih dulu.
+          try {
+            const mediaDuration = Number(audio.duration);
+            const watchdogMs = Number.isFinite(mediaDuration) && mediaDuration > 0
+              ? Math.max(30000, Math.ceil(mediaDuration * 1000) + 15000)
+              : 10 * 60 * 1000;
+
+            playbackWatchdogTimer = setTimeout(function() {
+              if (finished) return;
+
+              console.warn(
+                'AUDIO WATCHDOG: playback tidak menyelesaikan event, release queue:',
+                label,
+                'duration=', mediaDuration,
+                'watchdogMs=', watchdogMs
+              );
+
+              try { audio.pause(); } catch (e) {}
+              try { audio.currentTime = 0; } catch (e) {}
+              finish(false, false);
+            }, watchdogMs);
+          } catch (watchdogError) {
+            console.warn('AUDIO WATCHDOG SETUP GAGAL:', label, watchdogError);
           }
 
           // Bila event memiliki batas waktu absolut, hentikan audio
