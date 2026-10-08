@@ -6190,6 +6190,13 @@ function startRealtimeAudioConfigPolling_() {
           row.parentElement.style.display = 'none';
         }
       }
+
+      // Teks, baris, dan separator sudah selesai disiapkan.
+      // Baru sekarang tampilkan blok PETUGAS SHOLAT secara bersamaan.
+      const showPetugasBlock = showPetugas && entries.length > 0;
+      listEl.classList.toggle('petugas-lines-visible', showPetugasBlock);
+      titleEl.style.display = showPetugasBlock ? '' : 'none';
+      listEl.style.display = showPetugasBlock ? 'flex' : 'none';
     }
 
     // =========================================================
