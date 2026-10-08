@@ -2225,6 +2225,28 @@ function applyPanelAudioStatusRealtime_(ss, audioSchedule, audioFriday) {
     const panelItems = getPanelItems(colOffset);
     if (!panelItems.length) return;
 
+    // Jika seluruh kontrol pada blok sequence OFF, sequence tersebut
+    // benar-benar OFF. Terapkan langsung ke seluruh event audio pada
+    // sequence agar tidak ada selector yang gagal dipetakan lalu kembali
+    // ke status ON secara tidak sengaja.
+    if (
+      panelItems.length > 0 &&
+      panelItems.every(function(panelItem) {
+        return String(panelItem.status || '').trim().toUpperCase() === 'OFF';
+      })
+    ) {
+      target.forEach(function(item) {
+        if (item && canonicalSelector(item.event, sequenceName)) {
+          item.status = 'OFF';
+        }
+      });
+      Logger.log(
+        'REALTIME AUDIO BLOK FULL OFF: ' + sequenceName +
+        ' (' + panelItems.length + ' selector)'
+      );
+      return;
+    }
+
     // Setiap selector panel dipasangkan ke event CANONICAL yang sama.
     // Jika selector yang sama muncul beberapa kali, pasangan memakai
     // occurrence order sehingga tidak meloncat ke event lain.
