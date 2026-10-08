@@ -3241,6 +3241,39 @@
           item.status = realtimeItemStatus;
         }
 
+        // HARD OFF GUARD — titik terakhir sebelum playSingleAudio().
+        // Status OFF tidak boleh hanya menjadi flag queue; output audio
+        // wajib diblokir. Queue/timing tetap dipertahankan.
+        if (String(item.status || 'ON').trim().toUpperCase() === 'OFF') {
+          console.log(
+            'AUDIO PLAY DIBLOKIR - STATUS OFF:',
+            item.prayerName || '-',
+            item.eventName || item.label || '-',
+            item.audioType || '-'
+          );
+
+          try {
+            const mutedAudio = getAudioElement();
+            if (mutedAudio) {
+              mutedAudio.muted = true;
+              mutedAudio.defaultMuted = true;
+            }
+          } catch (muteError) {
+            console.warn('AUDIO HARD OFF MUTE GAGAL:', muteError);
+          }
+
+          state.queue.shift();
+          state.queuedLocks.delete(item.eventKey);
+          state.retryCount.delete(item.eventKey);
+          state.currentPrayer = '';
+          state.currentStage = '';
+          state.currentEventKey = '';
+          state.currentAudioType = '';
+          state.processing = false;
+          setTimeout(function() { processAudioQueue(); }, 25);
+          return;
+        }
+
         console.log(
           'AUDIO PLAY:',
           item.prayerName || '-',
