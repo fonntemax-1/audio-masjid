@@ -2008,6 +2008,51 @@
           const normalizedAudioType =
             String(audioType || '').trim().toLowerCase();
 
+          // QIROAH-1 s/d QIROAH-5: bila file MP3 belum tersedia
+          // di /audio, jangan biarkan scheduler menunggu/terjebak.
+          // Hanya file qiroah yang divalidasi di sini; timing dan
+          // scheduler audio lainnya tetap tidak diubah.
+          if (/^qiroah-[1-5]$/.test(normalizedAudioType) && source) {
+            try {
+              const qiroahFileCheck = await fetch(
+                source,
+                {
+                  method: 'HEAD',
+                  cache: 'no-store'
+                }
+              );
+
+              if (!qiroahFileCheck.ok) {
+                console.warn(
+                  'QIROAH SKIP: file MP3 tidak ditemukan:',
+                  source,
+                  'status=',
+                  qiroahFileCheck.status
+                );
+
+                resolve({
+                  success: false,
+                  blocked: false,
+                  skippedMissingFile: true
+                });
+
+                return;
+              }
+            } catch (qiroahFileCheckError) {
+              // Jika HEAD gagal karena jaringan sementara/CORS,
+              // jangan dianggap file hilang. Biarkan mekanisme audio
+              // normal menangani error agar tidak mengubah scheduler.
+              console.warn(
+                'QIROAH FILE CHECK GAGAL, lanjut mekanisme audio normal:',
+                source,
+                qiroahFileCheckError &&
+                  qiroahFileCheckError.message
+                  ? qiroahFileCheckError.message
+                  : qiroahFileCheckError
+              );
+            }
+          }
+
           const protectedSequenceAudio =
             normalizedAudioType === 'sirine' ||
             normalizedAudioType === 'adzan-subuh' ||
