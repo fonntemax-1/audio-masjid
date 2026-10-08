@@ -2549,7 +2549,42 @@ function buildAudioScheduleFromPanels_(ss) {
   const out = {schedule:{SUBUH_RAMADHAN:[],SUBUH_BIASA:[],DZUHUR:[],ASHAR:[],MAGHRIB_RAMADHAN:[],MAGHRIB_BIASA:[],ISYA:[]},friday:[]};
   const panels = getSheetCaseInsensitive_(ss, 'panels');
   if (!panels) return out;
+  // Struktur panel audio final:
+  // B45:Q55 = header + 10 baris audio.
+  // Baris audio dimulai dari 46 sehingga C52 tetap pasangan
+  // B52=event dan C52=status ON/OFF.
   const v = panels.getRange('B46:Q55').getDisplayValues();
+
+  // Baca status dengan getDisplayValue langsung sebagai sumber realtime.
+  // Ini sengaja dipisahkan dari parser agar perubahan ON/OFF di Sheet
+  // tidak tergantung cache/object schedule lama.
+  const directStatus = {
+    SUBUH_RAMADHAN: panels.getRange('C46:C55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    SUBUH_BIASA: panels.getRange('E46:E55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    DZUHUR: panels.getRange('G46:G55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    ASHAR: panels.getRange('I46:I55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    MAGHRIB_RAMADHAN: panels.getRange('K46:K55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    MAGHRIB_BIASA: panels.getRange('M46:M55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    ISYA: panels.getRange('O46:O55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    JUMAT: panels.getRange('Q46:Q55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    })
+  };
+  Logger.log('AUDIO DIRECT STATUS PANELS: ' + JSON.stringify(directStatus));
   const norm = function(raw, seq) {
     let e = String(raw == null ? '' : raw).trim().toLowerCase();
     if (!e || e === 'on' || e === 'off' || e === 'gap') return '';
@@ -2636,7 +2671,13 @@ function getRealtimeAudioConfig() {
       if(cat && s==='OFF') result.AudioStatus[cat]='OFF';
     });});
     (result.AudioFriday||[]).forEach(function(x){if(String(x.status||'ON').toUpperCase()==='OFF'){const e=String(x.event||'').toLowerCase();const cat=/^qiroah/.test(e)?'qiroah':e==='tarhim'?'tarhim':e==='beep'?'beep':/^adzan/.test(e)?'adzan':/^doa/.test(e)?'doa':e==='iqomah'?'iqomah':e==='sirine'?'sirine':'';if(cat)result.AudioStatus[cat]='OFF';}});
-    result.PanelAudioFinal={SUBUH_RAMADHAN:(result.AudioSchedule.SUBUH_RAMADHAN||[]).map(function(x,i){return {index:i,event:x.event||'',status:String(x.status||'ON').toUpperCase()};}),SUBUH_BIASA:(result.AudioSchedule.SUBUH_BIASA||[]).map(function(x,i){return {index:i,event:x.event||'',status:String(x.status||'ON').toUpperCase()};})};
+    result.PanelAudioFinal={};
+    Object.keys(result.AudioSchedule || {}).forEach(function(seq){
+      result.PanelAudioFinal[seq]=(result.AudioSchedule[seq]||[]).map(function(x,i){
+        return {index:i,event:x.event||'',status:String(x.status||'ON').toUpperCase()};
+      });
+    });
+    result.PanelAudioDirectStatus = directStatus;
     return result;
   } catch(error) {
     Logger.log('ERROR getRealtimeAudioConfig PANELS: '+error);
