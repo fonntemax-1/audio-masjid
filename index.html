@@ -2245,12 +2245,12 @@
                 ? Math.max(0, catchUpNowSeconds - catchUpTarget)
                 : 0;
 
-            // STATUS OFF sudah dihentikan di triggerAudioEvent()
-            // sehingga playSingleAudio() hanya menerima item ON.
-            // Pastikan output audio ON secara eksplisit.
+            // STATUS OFF tetap diproses agar sequence/time duration tidak berubah.
+            // Hanya output audio yang di-mute.
+            const playbackMuted = String(status || 'ON').trim().toUpperCase() === 'OFF';
             try {
-              audio.defaultMuted = false;
-              audio.muted = false;
+              audio.defaultMuted = playbackMuted;
+              audio.muted = playbackMuted;
               audio.volume = 1;
             } catch (outputStateError) {
               console.warn(
@@ -2624,18 +2624,8 @@
 
       };
 
-      // Guard tambahan: enqueueAudio tidak boleh memasukkan
-      // selector OFF ke queue walaupun ada jalur pemanggil lain.
-      if (item.status === 'OFF') {
-        console.log(
-          'AUDIO SKIP QUEUE (STATUS OFF):',
-          item.prayerName || '-',
-          item.eventName || item.label || '-',
-          'type=',
-          item.audioType || '-'
-        );
-        return false;
-      }
+      // STATUS OFF tetap masuk queue. Playback akan di-mute,
+      // bukan di-skip, supaya sequence/time duration tidak berubah.
 
       if (!item.eventKey) {
 
@@ -4403,7 +4393,9 @@ function updateFridayPrayerDisplay() {
       gasApiCall('getRealtimeAudioConfig')
         .then(function(data) {
           if (data && typeof data === 'object') {
-            return setAudioConfig(data);
+            return setAudioConfig(data).then(function() {
+        syncQueuedAudioMuteStatus_(schedule);
+      });
           }
         })
         .then(function() {
@@ -4432,7 +4424,45 @@ function updateFridayPrayerDisplay() {
     let realtimeAudioConfigRequestInFlight = false;
     let realtimeAudioConfigLastSignature = '';
 
-    function pollRealtimeAudioConfig_() {
+    function syncQueuedAudioMuteStatus_(schedule) {
+  const state = WEB_APP_STATE.audio;
+  const audio = getAudioElement();
+  if (!state || !schedule) return;
+
+  const getStatus = function(item) {
+    const prayer = String(item && item.prayerName || '');
+    const eventName = String(item && item.eventName || '').trim().toLowerCase();
+    const audioType = String(item && item.audioType || '').trim().toLowerCase();
+    const list = Array.isArray(schedule[prayer]) ? schedule[prayer] : [];
+    for (let i = 0; i < list.length; i++) {
+      const s = list[i] || {};
+      const se = String(s.event || s.eventName || '').trim().toLowerCase();
+      const st = String(s.status == null ? 'ON' : s.status).trim().toUpperCase();
+      if ((eventName && se === eventName) || (audioType && se === audioType)) return st;
+      if (eventName === 'adzan' && (se === 'adzan-subuh' || se === 'adzan-biasa')) return st;
+      if (eventName === 'doa' && /^doa(?:-adzan|-puasa|-buka)?$/.test(se)) return st;
+    }
+    return null;
+  };
+
+  state.queue.forEach(function(item) {
+    const st = getStatus(item);
+    if (st) item.status = st;
+  });
+
+  if (state.currentEventKey && audio) {
+    const current = state.queue.find(function(item) {
+      return item.eventKey === state.currentEventKey;
+    });
+    const currentStatus = current ? current.status : null;
+    if (String(currentStatus || '').toUpperCase() === 'OFF') {
+      try { audio.muted = true; } catch (e) {}
+      console.log('AUDIO REALTIME MUTE:', current.eventName || current.audioType || '-');
+    }
+  }
+}
+
+function pollRealtimeAudioConfig_() {
       if (realtimeAudioConfigRequestInFlight) return;
 
       realtimeAudioConfigRequestInFlight = true;
@@ -4451,9 +4481,7 @@ function updateFridayPrayerDisplay() {
             'AUDIO ON/OFF REALTIME: konfigurasi Sheet berubah, memperbarui audio.'
           );
 
-          return setAudioConfig(data).then(function() {
-        cancelAudioQueueForRealtimeOff_(previousSchedule, schedule);
-      });
+          return setAudioConfig(data);
         })
         .catch(function(error) {
           console.warn(
@@ -4467,66 +4495,6 @@ function updateFridayPrayerDisplay() {
     }
 
     
-function cancelAudioQueueForRealtimeOff_(previousSchedule, nextSchedule) {
-  if (!Array.isArray(window.audioQueue) && !window.state) return;
-
-  const wasOff = function(schedule, eventName) {
-    let found = false;
-    Object.keys(schedule || {}).forEach(function(prayer) {
-      (schedule[prayer] || []).forEach(function(item) {
-        if (String(item && item.event || '').toLowerCase() === eventName) {
-          found = true;
-        }
-      });
-    });
-    return found;
-  };
-
-  const isNowOff = function(schedule, eventName) {
-    let off = false;
-    Object.keys(schedule || {}).forEach(function(prayer) {
-      (schedule[prayer] || []).forEach(function(item) {
-        if (String(item && item.event || '').toLowerCase() === eventName &&
-            String(item && item.status || 'ON').toUpperCase() === 'OFF') {
-          off = true;
-        }
-      });
-    });
-    return off;
-  };
-
-  if (!wasOff(previousSchedule, 'tarhim') || !isNowOff(nextSchedule, 'tarhim')) return;
-
-  const q = Array.isArray(window.audioQueue) ? window.audioQueue : [];
-  let removed = 0;
-  for (let i = q.length - 1; i >= 0; i--) {
-    const item = q[i];
-    const event = String(item && (item.eventName || item.event || item.audioType) || '').toLowerCase();
-    if (event === 'tarhim') {
-      q.splice(i, 1);
-      removed++;
-      if (window.queuedLocks && item.eventKey) window.queuedLocks.delete(item.eventKey);
-    }
-  }
-
-  if (window.currentAudio && String(window.currentAudio.eventName || window.currentAudio.audioType || '').toLowerCase() === 'tarhim') {
-    try { window.currentAudio.pause(); } catch (e) {}
-    try { window.currentAudio.currentTime = 0; } catch (e) {}
-    window.currentAudio = null;
-  }
-
-  if (window.state) {
-    window.state.queue = q;
-    if (String(window.state.currentEventKey || '').toLowerCase().indexOf('tarhim') >= 0) {
-      window.state.currentEventKey = '';
-      window.state.currentPrayer = '';
-      window.state.currentStage = '';
-    }
-  }
-
-  if (removed) console.log('AUDIO REALTIME CANCEL TARHIM: queue Tarhim dibatalkan karena status OFF.');
-}
-
 function startRealtimeAudioConfigPolling_() {
       pollRealtimeAudioConfig_();
       setInterval(pollRealtimeAudioConfig_, 5000);
@@ -11215,34 +11183,12 @@ function startRealtimeAudioConfigPolling_() {
       const allowActiveCatchUp =
         options.allowActiveCatchUp === true;
 
-      // =====================================================
-      // STATUS AUDIO DARI SHEET PANELS / ADZAN
-      //
-      // SELECTOR menentukan audio yang dipakai.
-      // STATUS ON  = audio boleh masuk queue dan dimainkan.
-      // STATUS OFF = audio DI-SKIP, bukan mute.
-      //
-      // Berlaku untuk SEMUA selector:
-      // qiroah-1 ... qiroah-5, tarhim, sirine, beep,
-      // adzan-subuh, adzan-biasa, doa-*, iqomah, dll.
-      //
-      // Timeline event tetap dihitung oleh scheduler agar anchor
-      // waktu sholat tidak berubah. Yang dihilangkan hanya playback
-      // audio OFF, sehingga OFF tidak pernah masuk audio queue.
-      // =====================================================
+      // STATUS OFF TIDAK MENGHAPUS EVENT DARI SEQUENCE.
+      // Event tetap masuk queue agar urutan, timing, dan durasi sequence
+      // tetap berjalan persis seperti konfigurasi ON. Saat OFF, output
+      // audio hanya di-mute.
       const triggerStatus =
         String(status == null ? 'ON' : status).trim().toUpperCase();
-
-      if (triggerStatus === 'OFF') {
-        console.log(
-          'AUDIO SKIP (STATUS OFF):',
-          prayerName || '-',
-          eventName || label || '-',
-          'type=',
-          audioType || '-'
-        );
-        return;
-      }
 
       const key =
         getAudioEventKey(
