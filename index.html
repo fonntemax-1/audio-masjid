@@ -1846,23 +1846,10 @@
       );
       if (!wanted) return null;
 
-      // Cocokkan selector secara ketat. Untuk kondisi "SEMUA OFF",
-      // jangan sampai satu event yang gagal dipetakan membuat audio
-      // kembali terdengar. Jika seluruh event audio pada sequence
-      // memang OFF, status event apa pun wajib OFF.
-      const audioItems = sequence.filter(function(item) {
-        return !!getAudioItemCanonicalSelector_(item, sequenceName);
-      });
-
-      if (
-        audioItems.length > 0 &&
-        audioItems.every(function(item) {
-          return String(item.status || 'ON').trim().toUpperCase() === 'OFF';
-        })
-      ) {
-        return 'OFF';
-      }
-
+      // Status ditentukan per-selector/per-event dari schedule hasil mapping Panels.
+      // Jangan pernah mengubah satu event menjadi OFF hanya karena event lain
+      // pada sequence yang sama OFF. Blok FULL OFF sudah ditangani backend
+      // berdasarkan blok Panels yang memang seluruhnya OFF.
       // Selector spesifik tetap menjadi sumber utama.
       // Cari occurrence pertama untuk selector yang diminta.
       for (let i = 0; i < sequence.length; i++) {
@@ -3241,37 +3228,6 @@
           item.status = realtimeItemStatus;
         }
 
-        // HARD OFF GUARD — titik terakhir sebelum playSingleAudio().
-        // Status OFF tidak boleh hanya menjadi flag queue; output audio
-        // wajib diblokir. Queue/timing tetap dipertahankan.
-        if (String(item.status || 'ON').trim().toUpperCase() === 'OFF') {
-          console.log(
-            'AUDIO PLAY DIBLOKIR - STATUS OFF:',
-            item.prayerName || '-',
-            item.eventName || item.label || '-',
-            item.audioType || '-'
-          );
-
-          try {
-            const mutedAudio = getAudioElement();
-            if (mutedAudio) {
-              mutedAudio.muted = true;
-              mutedAudio.defaultMuted = true;
-            }
-          } catch (muteError) {
-            console.warn('AUDIO HARD OFF MUTE GAGAL:', muteError);
-          }
-
-          state.queue.shift();
-          state.queuedLocks.delete(item.eventKey);
-          state.retryCount.delete(item.eventKey);
-          state.currentPrayer = '';
-          state.currentStage = '';
-          state.currentEventKey = '';
-          state.currentAudioType = '';
-          state.processing = false;
-          setTimeout(function() { processAudioQueue(); }, 25);
-          return;
         }
 
         console.log(
