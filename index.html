@@ -4912,6 +4912,108 @@ function applyRealtimeAudioStatusOnly_(data) {
   // Tempel status realtime ke item queue terlebih dahulu agar status
   // yang sedang dimainkan tidak kembali dianggap ON oleh schedule global.
   syncQueuedAudioMuteStatus_(audioScheduleConfig);
+
+  // HARD REALTIME OUTPUT:
+  // Jangan menunggu status queue/local schedule untuk audio yang sedang
+  // berjalan. Cocokkan langsung item aktif dengan payload Sheet yang baru
+  // diterima. Ini membuat perubahan ON -> OFF bekerja walaupun queue lama
+  // masih menyimpan status ON.
+  try {
+    const activeAudio = getAudioElement();
+    const activeState = WEB_APP_STATE.audio;
+
+    if (
+      activeAudio &&
+      activeState.currentEventKey &&
+      activeState.currentAudioType &&
+      activeState.currentPrayer
+    ) {
+      const sequenceName = getAudioSequenceName_(activeState.currentPrayer);
+      const incomingList = Array.isArray(sourceSchedule && sourceSchedule[sequenceName])
+        ? sourceSchedule[sequenceName]
+        : [];
+
+      const activeQueueItem = activeState.queue.find(function(item) {
+        return item && item.eventKey === activeState.currentEventKey;
+      });
+
+      const activeSelector = activeQueueItem
+        ? getAudioItemCanonicalSelector_(activeQueueItem, sequenceName)
+        : getAudioItemCanonicalSelector_({
+            audioType: activeState.currentAudioType,
+            eventName: activeState.currentAudioType
+          }, sequenceName);
+
+      if (activeSelector) {
+        let activeOccurrence = 0;
+
+        if (activeQueueItem) {
+          for (let q = 0; q < activeState.queue.length; q++) {
+            const qi = activeState.queue[q];
+            if (!qi || qi === activeQueueItem) break;
+            if (
+              String(qi.prayerName || '').trim().toUpperCase() ===
+                String(activeState.currentPrayer || '').trim().toUpperCase() &&
+              getAudioItemCanonicalSelector_(qi, sequenceName) === activeSelector
+            ) {
+              activeOccurrence++;
+            }
+          }
+        }
+
+        let seen = 0;
+        let activeIncoming = null;
+
+        for (let j = 0; j < incomingList.length; j++) {
+          const incomingItem = incomingList[j] || {};
+          if (
+            getAudioItemCanonicalSelector_(incomingItem, sequenceName) !==
+            activeSelector
+          ) {
+            continue;
+          }
+
+          if (seen === activeOccurrence) {
+            activeIncoming = incomingItem;
+            break;
+          }
+
+          seen++;
+        }
+
+        if (activeIncoming) {
+          const activeStatus =
+            String(
+              activeIncoming.status == null ? 'ON' : activeIncoming.status
+            ).trim().toUpperCase() === 'OFF'
+              ? 'OFF'
+              : 'ON';
+
+          const shouldMuteNow = activeStatus === 'OFF';
+
+          activeAudio.defaultMuted = shouldMuteNow;
+          activeAudio.muted = shouldMuteNow;
+          activeAudio.volume = 1;
+
+          console.log(
+            'AUDIO HARD REALTIME OUTPUT:',
+            sequenceName,
+            activeState.currentEventKey,
+            activeState.currentAudioType,
+            '=>',
+            activeStatus,
+            shouldMuteNow ? '(MUTE)' : '(UNMUTE)'
+          );
+        }
+      }
+    }
+  } catch (hardRealtimeError) {
+    console.warn(
+      'AUDIO HARD REALTIME OUTPUT GAGAL:',
+      hardRealtimeError
+    );
+  }
+
   syncCurrentAudioMuteStatus_();
 }
 
