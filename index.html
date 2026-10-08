@@ -4451,7 +4451,9 @@ function updateFridayPrayerDisplay() {
             'AUDIO ON/OFF REALTIME: konfigurasi Sheet berubah, memperbarui audio.'
           );
 
-          return setAudioConfig(data);
+          return setAudioConfig(data).then(function() {
+        cancelAudioQueueForRealtimeOff_(previousSchedule, schedule);
+      });
         })
         .catch(function(error) {
           console.warn(
@@ -4464,7 +4466,68 @@ function updateFridayPrayerDisplay() {
         });
     }
 
-    function startRealtimeAudioConfigPolling_() {
+    
+function cancelAudioQueueForRealtimeOff_(previousSchedule, nextSchedule) {
+  if (!Array.isArray(window.audioQueue) && !window.state) return;
+
+  const wasOff = function(schedule, eventName) {
+    let found = false;
+    Object.keys(schedule || {}).forEach(function(prayer) {
+      (schedule[prayer] || []).forEach(function(item) {
+        if (String(item && item.event || '').toLowerCase() === eventName) {
+          found = true;
+        }
+      });
+    });
+    return found;
+  };
+
+  const isNowOff = function(schedule, eventName) {
+    let off = false;
+    Object.keys(schedule || {}).forEach(function(prayer) {
+      (schedule[prayer] || []).forEach(function(item) {
+        if (String(item && item.event || '').toLowerCase() === eventName &&
+            String(item && item.status || 'ON').toUpperCase() === 'OFF') {
+          off = true;
+        }
+      });
+    });
+    return off;
+  };
+
+  if (!wasOff(previousSchedule, 'tarhim') || !isNowOff(nextSchedule, 'tarhim')) return;
+
+  const q = Array.isArray(window.audioQueue) ? window.audioQueue : [];
+  let removed = 0;
+  for (let i = q.length - 1; i >= 0; i--) {
+    const item = q[i];
+    const event = String(item && (item.eventName || item.event || item.audioType) || '').toLowerCase();
+    if (event === 'tarhim') {
+      q.splice(i, 1);
+      removed++;
+      if (window.queuedLocks && item.eventKey) window.queuedLocks.delete(item.eventKey);
+    }
+  }
+
+  if (window.currentAudio && String(window.currentAudio.eventName || window.currentAudio.audioType || '').toLowerCase() === 'tarhim') {
+    try { window.currentAudio.pause(); } catch (e) {}
+    try { window.currentAudio.currentTime = 0; } catch (e) {}
+    window.currentAudio = null;
+  }
+
+  if (window.state) {
+    window.state.queue = q;
+    if (String(window.state.currentEventKey || '').toLowerCase().indexOf('tarhim') >= 0) {
+      window.state.currentEventKey = '';
+      window.state.currentPrayer = '';
+      window.state.currentStage = '';
+    }
+  }
+
+  if (removed) console.log('AUDIO REALTIME CANCEL TARHIM: queue Tarhim dibatalkan karena status OFF.');
+}
+
+function startRealtimeAudioConfigPolling_() {
       pollRealtimeAudioConfig_();
       setInterval(pollRealtimeAudioConfig_, 5000);
     }
