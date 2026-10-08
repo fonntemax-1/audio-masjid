@@ -2137,6 +2137,204 @@ function processAdzanAudioStatusSheet(sheet, resultObj) {
 }
 
 
+
+// =========================================================
+// OVERLAY STATUS AUDIO REALTIME DARI PANELS!B45:Q
+//
+// panels:
+// B/C = SUBUH RAMADHAN
+// D/E = SUBUH BIASA
+// F/G = DZUHUR
+// H/I = ASHAR
+// J/K = MAGHRIB RAMADHAN
+// L/M = MAGHRIB BIASA
+// N/O = ISYA
+// P/Q = JUM'AT
+//
+// HANYA status ON/OFF yang dioverlay ke schedule dari Sheet Adzan.
+// Urutan event, durasi, anchor, dan timing scheduler TIDAK diubah.
+// =========================================================
+function applyPanelAudioStatusRealtime_(ss, audioSchedule, audioFriday) {
+  if (!ss || !audioSchedule) return;
+
+  const panels = ss.getSheetByName('panels');
+  if (!panels) {
+    Logger.log('REALTIME AUDIO PANELS: sheet panels tidak ditemukan, status Adzan dipertahankan.');
+    return;
+  }
+
+  const lastRow = Math.max(panels.getLastRow(), 46);
+  const rowCount = Math.max(lastRow - 45, 1);
+
+  // B45:Q = 16 kolom. Setiap blok terdiri dari SELECTOR + STATUS.
+  const values = panels.getRange(45, 2, rowCount + 1, 16).getDisplayValues();
+
+  const normalizeEvent = function(raw) {
+    const e = String(raw == null ? '' : raw).trim().toLowerCase();
+    if (!e) return '';
+
+    if (/^qiroah(?:-\\d+)?$/.test(e)) {
+      return e === 'qiroah' ? 'qiroah' : e;
+    }
+    if (e === 'tarhim-subuh' || e === 'tarhim-biasa') return 'tarhim';
+    if (e === 'adzan') return 'adzan';
+    if (e === 'doa') return 'doa';
+    if (e === 'adzan-subuh') return 'adzan-subuh';
+    if (e === 'adzan-biasa') return 'adzan-biasa';
+    if (e === 'doa-adzan') return 'doa-adzan';
+    if (e === 'doa-puasa') return 'doa-puasa';
+    if (e === 'doa-buka') return 'doa-buka';
+    if (e === 'beep') return 'beep';
+    if (e === 'iqomah') return 'iqomah';
+    if (e === 'sirine') return 'sirine';
+    return e;
+  };
+
+  const panelBlocks = [
+    ['SUBUH_RAMADHAN', 0],
+    ['SUBUH_BIASA', 2],
+    ['DZUHUR', 4],
+    ['ASHAR', 6],
+    ['MAGHRIB_RAMADHAN', 8],
+    ['MAGHRIB_BIASA', 10],
+    ['ISYA', 12]
+  ];
+
+  const overlayBlock = function(prayerName, colOffset) {
+    const target = Array.isArray(audioSchedule[prayerName])
+      ? audioSchedule[prayerName]
+      : [];
+
+    if (!target.length) return;
+
+    const panelItems = [];
+    for (let r = 1; r < values.length; r++) {
+      const event = normalizeEvent(values[r][colOffset]);
+      const status = String(values[r][colOffset + 1] || '').trim().toUpperCase();
+
+      if (!event) continue;
+      if (status !== 'ON' && status !== 'OFF') continue;
+
+      panelItems.push({
+        event: event,
+        status: status,
+        row: r + 45
+      });
+    }
+
+    if (!panelItems.length) return;
+
+    const used = {};
+    panelItems.forEach(function(panelItem) {
+      let matchedIndex = -1;
+
+      for (let i = 0; i < target.length; i++) {
+        if (used[i]) continue;
+
+        const targetEvent = normalizeEvent(target[i] && target[i].event);
+        if (targetEvent === panelItem.event) {
+          matchedIndex = i;
+          break;
+        }
+
+        // Kompatibilitas: selector "adzan" dapat mengontrol
+        // adzan-subuh/adzan-biasa bila nama spesifik tidak digunakan.
+        if (
+          panelItem.event === 'adzan' &&
+          (targetEvent === 'adzan-subuh' || targetEvent === 'adzan-biasa')
+        ) {
+          matchedIndex = i;
+          break;
+        }
+
+        // Kompatibilitas doa generik dengan varian doa.
+        if (
+          panelItem.event === 'doa' &&
+          /^doa(?:-adzan|-puasa|-buka)?$/.test(targetEvent)
+        ) {
+          matchedIndex = i;
+          break;
+        }
+      }
+
+      if (matchedIndex >= 0) {
+        used[matchedIndex] = true;
+        const oldStatus = String(
+          target[matchedIndex].status == null ? 'ON' : target[matchedIndex].status
+        ).trim().toUpperCase();
+
+        target[matchedIndex].status = panelItem.status;
+
+        if (oldStatus !== panelItem.status) {
+          Logger.log(
+            'REALTIME AUDIO STATUS PANEL: ' +
+            prayerName +
+            ' row=' + panelItem.row +
+            ' event=' + panelItem.event +
+            ' ' + oldStatus + ' -> ' + panelItem.status
+          );
+        }
+      }
+    });
+  };
+
+  panelBlocks.forEach(function(block) {
+    overlayBlock(block[0], block[1]);
+  });
+
+  // Jumat menggunakan blok P/Q (offset 14).
+  if (Array.isArray(audioFriday) && audioFriday.length) {
+    const panelItems = [];
+
+    for (let r = 1; r < values.length; r++) {
+      const event = normalizeEvent(values[r][14]);
+      const status = String(values[r][15] || '').trim().toUpperCase();
+
+      if (!event) continue;
+      if (status !== 'ON' && status !== 'OFF') continue;
+
+      panelItems.push({
+        event: event,
+        status: status,
+        row: r + 45
+      });
+    }
+
+    const used = {};
+    panelItems.forEach(function(panelItem) {
+      let matchedIndex = -1;
+
+      for (let i = 0; i < audioFriday.length; i++) {
+        if (used[i]) continue;
+
+        const targetEvent = normalizeEvent(
+          audioFriday[i] && audioFriday[i].event
+        );
+
+        if (
+          targetEvent === panelItem.event ||
+          (
+            panelItem.event === 'adzan' &&
+            (targetEvent === 'adzan-subuh' || targetEvent === 'adzan-biasa')
+          ) ||
+          (
+            panelItem.event === 'doa' &&
+            /^doa(?:-adzan|-puasa|-buka)?$/.test(targetEvent)
+          )
+        ) {
+          matchedIndex = i;
+          break;
+        }
+      }
+
+      if (matchedIndex >= 0) {
+        used[matchedIndex] = true;
+        audioFriday[matchedIndex].status = panelItem.status;
+      }
+    });
+  }
+}
+
 function getRealtimeAudioConfig() {
   try {
     const ss = getSpreadsheet();
