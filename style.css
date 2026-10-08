@@ -1718,32 +1718,16 @@
       gap: clamp(0.4rem, 1.5cqw, 1rem);
     }
 
-    /* PEMBATAS SETIAP BARIS PETUGAS SHOLAT.
-       Warna mengikuti tema aktif melalui --theme-accent.
-       Hanya visual; tidak menyentuh data, audio, atau scheduler. */
-    #petugas-panel-box .khotbah-item {
-      border-bottom: 0 !important;
-      padding-bottom: 0 !important;
-      box-sizing: border-box !important;
-    }
-
-    /* Separator hanya aktif ketika PETUGAS SHOLAT benar-benar ditampilkan. */
-    #petugas-sholat-list.petugas-lines-visible .khotbah-item {
+    /* SEPARATOR PETUGAS SHOLAT — CSS ONLY.
+       Tidak bergantung pada JavaScript/class tambahan.
+       Saat INFAQ aktif, list PETUGAS tersembunyi sehingga separator juga
+       otomatis tidak terlihat. */
+    #petugas-sholat-list .khotbah-item {
       border-bottom: max(2px, 0.18vh) solid var(--theme-accent) !important;
       padding-bottom: clamp(0.28vh, 0.45cqw, 0.45vh) !important;
+      box-sizing: border-box !important;
       box-shadow: none !important;
     }
-
-/* Pengunci visual separator PETUGAS SHOLAT berdasarkan tema aktif. */
-:root[data-display-theme="hijau"] #petugas-sholat-list.petugas-lines-visible .khotbah-item {
-      border-bottom-color: #00ffaa !important;
-}
-:root[data-display-theme="merah"] #petugas-sholat-list.petugas-lines-visible .khotbah-item {
-      border-bottom-color: #ff5a5f !important;
-}
-:root[data-display-theme="kuning"] #petugas-sholat-list.petugas-lines-visible .khotbah-item {
-      border-bottom-color: #ffcc00 !important;
-}
 
     .khotbah-role {
       color: #ffcc00;
