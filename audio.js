@@ -5,11 +5,11 @@
   'use strict';
 
   const FILES = {
-    'qiroah-1': 'qiroah.mp3',
-    'qiroah-2': 'qiroah.mp3',
-    'qiroah-3': 'qiroah.mp3',
-    'qiroah-4': 'qiroah.mp3',
-    'qiroah-5': 'qiroah.mp3',
+    'qiroah-1': 'qiroah-1.mp3',
+    'qiroah-2': 'qiroah-2.mp3',
+    'qiroah-3': 'qiroah-3.mp3',
+    'qiroah-4': 'qiroah-4.mp3',
+    'qiroah-5': 'qiroah-5.mp3',
     'qiroah': 'qiroah.mp3',
     'tarhim': 'Shalawat Tarhim.mp3',
     'tarhim-subuh': 'Shalawat Tarhim.mp3',
