@@ -2583,6 +2583,50 @@ function getRealtimeAudioConfig() {
     });
     result.AudioDurations = genericDurations;
 
+    // =====================================================
+    // DIAGNOSTIC AUDIO PANELS - SUMBER LANGSUNG PANELS!B46:Q55
+    // Khusus verifikasi posisi ON/OFF tanpa mengubah scheduler.
+    // =====================================================
+    const panelAudioDebug = {};
+    const debugPanels = ss.getSheetByName('panels');
+    if (debugPanels) {
+      const debugValues = debugPanels.getRange('B46:Q55').getDisplayValues();
+      const debugBlock = function(name, offset) {
+        const list = [];
+        for (let i = 0; i < debugValues.length; i++) {
+          const event = String(debugValues[i][offset] || '').trim();
+          const status = String(debugValues[i][offset + 1] || '').trim().toUpperCase();
+          if (event || status) {
+            list.push({ row: 46 + i, event: event, status: status });
+          }
+        }
+        return list;
+      };
+      panelAudioDebug.SUBUH_RAMADHAN = debugBlock('SUBUH_RAMADHAN', 0);
+      panelAudioDebug.SUBUH_BIASA = debugBlock('SUBUH_BIASA', 2);
+      panelAudioDebug.DZUHUR = debugBlock('DZUHUR', 4);
+      panelAudioDebug.ASHAR = debugBlock('ASHAR', 6);
+      panelAudioDebug.MAGHRIB_RAMADHAN = debugBlock('MAGHRIB_RAMADHAN', 8);
+      panelAudioDebug.MAGHRIB_BIASA = debugBlock('MAGHRIB_BIASA', 10);
+      panelAudioDebug.ISYA = debugBlock('ISYA', 12);
+      panelAudioDebug.JUMAT = debugBlock('JUMAT', 14);
+    }
+
+    result.PanelAudioDebug = panelAudioDebug;
+
+    // Status final setelah pemetaan Panels -> AudioSchedule.
+    result.PanelAudioFinal = {
+      SUBUH_RAMADHAN: (result.AudioSchedule.SUBUH_RAMADHAN || []).map(function(item, index) {
+        return { index: index, event: item && item.event || '', status: String(item && item.status || 'ON').toUpperCase() };
+      }),
+      SUBUH_BIASA: (result.AudioSchedule.SUBUH_BIASA || []).map(function(item, index) {
+        return { index: index, event: item && item.event || '', status: String(item && item.status || 'ON').toUpperCase() };
+      })
+    };
+
+    Logger.log('=== PANEL AUDIO DEBUG RAW === ' + JSON.stringify(panelAudioDebug));
+    Logger.log('=== PANEL AUDIO DEBUG FINAL === ' + JSON.stringify(result.PanelAudioFinal));
+
     // STATUS per-event berasal dari sequence Sheet, bukan T:U.
     const summaryStatus = {
       qiroah: 'ON', tarhim: 'ON', beep: 'ON', adzan: 'ON',
