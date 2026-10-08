@@ -956,11 +956,9 @@ function getPanelEventCountdownCustomConfig_() {
         }
 
         if (sheetName === 'Adzan') {
-          // Sheet Adzan tetap menjadi SUMBER URL + DURASI audio.
-          // panels!B46:Q55 hanya menjadi SUMBER STATUS ON/OFF.
-          // Jangan return di sini karena processAdzanScheduleSheet()
-          // harus dijalankan pada blok parser Adzan di bawah.
-          Logger.log('SHEET ADZAN: URL/DURASI dibaca; STATUS dipetakan dari panels!B46:Q55.');
+          // Sheet Adzan hanya dibaca untuk key/URL kompatibilitas.
+          // Urutan + ON/OFF audio aktif berasal dari panels!B46:Q55.
+          Logger.log('SHEET ADZAN: URL kompatibilitas dibaca; SCHEDULE AKTIF = PANELS B46:Q55.');
         }
 
         // Hanya sheet yang benar-benar memakai parser generik
@@ -1214,36 +1212,29 @@ function getPanelEventCountdownCustomConfig_() {
           sheetName === 'Adzan'
         ) {
 
-          // Kolom A:B = URL audio.
+          // URL/key audio dari Adzan hanya untuk kompatibilitas.
           processKeyAudioSheet(
             sheet,
             result
           );
 
-          // Kolom D:R = urutan audio + durasi.
-          // Nilai durasi berasal LANGSUNG dari Spreadsheet.
-          // 0 berarti event/gap dilewati.
-          processAdzanScheduleSheet(
-            sheet,
-            result
-          );
+          // JADWAL AKTIF TIDAK dibaca dari kolom sequence Sheet Adzan.
+          // Satu-satunya sumber urutan + ON/OFF adalah panels!B46:Q55.
+          // Ini penting karena frontend memerlukan array schedule yang
+          // tidak kosong untuk membangun timeline audio harian.
+          const panelAudioFinal = buildAudioScheduleFromPanels_(ss);
+          result.AudioSchedule = panelAudioFinal.schedule;
+          result.AudioFriday = panelAudioFinal.friday;
+          result.AudioScheduleJSON = JSON.stringify(panelAudioFinal.schedule);
+          result.AudioFridayJSON = JSON.stringify(panelAudioFinal.friday);
+          result.AudioDurations = {};
 
-          // STATUS ON/OFF AUDIO BUKAN berasal dari sheet Adzan.
-          // Sumber status final adalah panels!B46:Q55.
-          // Event + ON/OFF dipasangkan berdasarkan BLOK + URUTAN
-          // kemunculan event, sehingga contoh:
-          //   B46/C46 = qiroah-1 / ON
-          //   B52/C52 = adzan-subuh / ON|OFF
-          //   B55/C55 = iqomah / ON
-          //
-          // processAdzanScheduleSheet() tetap dipakai hanya untuk
-          // URL audio dan DURASI dari sheet Adzan.
-          // Jadwal/durasi tidak diubah; hanya STATUS-nya dipetakan
-          // dari panels.
-          applyPanelAudioStatusRealtime_(
-            ss,
-            result.AudioSchedule,
-            result.AudioFriday
+          Logger.log(
+            'AUDIO FINAL: SCHEDULE=' +
+            Object.keys(result.AudioSchedule).map(function(k) {
+              return k + '=' + (result.AudioSchedule[k] || []).length;
+            }).join(', ') +
+            ' | SOURCE=PANELS B46:Q55'
           );
 
           // Bangun ulang ringkasan AudioStatus berdasarkan status final
@@ -2596,37 +2587,30 @@ function getRealtimeAudioConfig() {
     const ss = getSpreadsheet();
     SpreadsheetApp.flush();
 
-    // getRealtimeAudioConfig harus mengembalikan SCHEDULE LENGKAP:
-    // URL + DURASI dari Sheet Adzan, lalu STATUS ON/OFF dari panels.
-    // Jangan memakai buildAudioScheduleFromPanels_() sebagai schedule final
-    // karena fungsi tersebut memang hanya membaca selector/status panels
-    // dan duration=0 bukan durasi playback.
+    // SUMBER FINAL JADWAL AUDIO:
+    //   EVENT + ON/OFF = panels!B46:Q55
+    //   URL AUDIO      = lokal ./audio/... (frontend)
+    //
+    // Sheet Adzan TIDAK dipakai untuk menentukan urutan schedule.
+    // Parser lama Adzan pernah mengembalikan schedule=0 karena struktur
+    // kolom sequence di Sheet Adzan berbeda dari struktur panels terbaru.
+    // Durasi juga memang dibaca browser dari metadata MP3.
+    const panelAudio = buildAudioScheduleFromPanels_(ss);
+
     const audioResult = {
       Audio: {},
-      AudioSchedule: {
-        SUBUH_RAMADHAN: [],
-        SUBUH_BIASA: [],
-        DZUHUR: [],
-        ASHAR: [],
-        MAGHRIB_RAMADHAN: [],
-        MAGHRIB_BIASA: [],
-        ISYA: []
-      },
+      AudioSchedule: panelAudio.schedule || {},
       AudioDurations: {},
-      AudioFriday: []
+      AudioFriday: panelAudio.friday || []
     };
 
     const adzanSheet = getSheetCaseInsensitive_(ss, 'Adzan');
     if (adzanSheet) {
+      // Hanya baca key/URL sebagai kompatibilitas API.
+      // Frontend tetap memprioritaskan URL lokal ./audio/...
       processKeyAudioSheet(adzanSheet, audioResult);
-      processAdzanScheduleSheet(adzanSheet, audioResult);
-      applyPanelAudioStatusRealtime_(
-        ss,
-        audioResult.AudioSchedule,
-        audioResult.AudioFriday
-      );
     } else {
-      Logger.log('REALTIME AUDIO: Sheet Adzan tidak ditemukan.');
+      Logger.log('REALTIME AUDIO: Sheet Adzan tidak ditemukan; memakai URL lokal frontend.');
     }
 
     const result = {
