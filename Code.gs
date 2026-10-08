@@ -2237,11 +2237,24 @@ function applyPanelAudioStatusRealtime_(ss, audioSchedule, audioFriday) {
           break;
         }
 
-        // Kompatibilitas: selector "adzan" dapat mengontrol
-        // adzan-subuh/adzan-biasa bila nama spesifik tidak digunakan.
+        // ADZAN di Sheet Adzan dapat tersimpan sebagai event generik
+        // "adzan", sedangkan selector realtime di panels membedakan
+        // "adzan-subuh" dan "adzan-biasa".
+        // Untuk SUBUH, adzan-subuh WAJIB mengontrol event "adzan".
+        // Untuk waktu selain SUBUH, adzan-biasa mengontrol event "adzan".
         if (
-          panelItem.event === 'adzan' &&
-          (targetEvent === 'adzan-subuh' || targetEvent === 'adzan-biasa')
+          targetEvent === 'adzan' &&
+          (
+            panelItem.event === 'adzan' ||
+            (
+              panelItem.event === 'adzan-subuh' &&
+              /^SUBUH(?:_|$)/i.test(prayerName)
+            ) ||
+            (
+              panelItem.event === 'adzan-biasa' &&
+              !/^SUBUH(?:_|$)/i.test(prayerName)
+            )
+          )
         ) {
           matchedIndex = i;
           break;
@@ -2314,8 +2327,12 @@ function applyPanelAudioStatusRealtime_(ss, audioSchedule, audioFriday) {
         if (
           targetEvent === panelItem.event ||
           (
-            panelItem.event === 'adzan' &&
-            (targetEvent === 'adzan-subuh' || targetEvent === 'adzan-biasa')
+            targetEvent === 'adzan' &&
+            (
+              panelItem.event === 'adzan' ||
+              panelItem.event === 'adzan-biasa' ||
+              panelItem.event === 'adzan-subuh'
+            )
           ) ||
           (
             panelItem.event === 'doa' &&
