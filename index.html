@@ -1874,13 +1874,24 @@
 
       const prayerName = String(state.currentPrayer || '').trim().toUpperCase();
 
-      // ON/OFF hanya mengatur MUTE/UNMUTE. Item tetap berjalan di queue.
-      let status = getRealtimeAudioStatus_(
-        state.currentPrayer,
-        state.currentAudioType
-      );
+      // Item queue adalah sumber utama status audio aktif.
+      // Ini mempertahankan status occurrence-aware (tarhim/beep ganda).
+      const currentItem = state.queue.find(function(item) {
+        return item && item.eventKey === state.currentEventKey;
+      });
 
-      if (status === null) return;
+      let status = currentItem
+        ? String(currentItem.status || '').trim().toUpperCase()
+        : '';
+
+      if (status !== 'ON' && status !== 'OFF') {
+        status = getRealtimeAudioStatus_(
+          state.currentPrayer,
+          state.currentAudioType
+        );
+      }
+
+      if (status !== 'ON' && status !== 'OFF') return;
 
       const shouldMute = status === 'OFF';
 
@@ -4824,6 +4835,9 @@ function applyRealtimeAudioStatusOnly_(data) {
   }
 
   // Hanya MUTE/UNMUTE. Queue dan durasi tidak diubah.
+  // Tempel status realtime ke item queue terlebih dahulu agar status
+  // yang sedang dimainkan tidak kembali dianggap ON oleh schedule global.
+  syncQueuedAudioMuteStatus_(audioScheduleConfig);
   syncCurrentAudioMuteStatus_();
 }
 
