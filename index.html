@@ -6746,10 +6746,6 @@ function startRealtimeAudioConfigPolling_() {
 
       if (!data) return;
 
-      // Data utama sudah tersedia: tampilkan layar sekaligus.
-      // Tidak memengaruhi audio/scheduler.
-      releaseStartupVisualGate_();
-
       // Running Text footer dirender langsung dari payload utama.
       // Tidak bergantung pada renderer PETUGAS atau polling Event.
       updateFooterRunningText_(data);
@@ -17077,9 +17073,10 @@ function setCountdownBlackMode(enabled) {
 
     installAudioInteractionUnlock();
 
-    // Pengaman visual: bila API utama gagal, layar tetap muncul.
-    // Ini hanya visual dan tidak memengaruhi audio/scheduler.
-    setTimeout(function() { releaseStartupVisualGate_(); }, 12000);
+    // Tampilkan layar sangat cepat setelah browser menyelesaikan first paint.
+    // Tidak menunggu cache lokal maupun API utama.
+    // Tidak memengaruhi audio/scheduler.
+    setTimeout(function() { releaseStartupVisualGate_(); }, 600);
 
     // REALTIME TICKER HARUS DIPASANG SEBELUM SEMUA PROSES STARTUP.
     // Jika salah satu startup/API/audio melempar error atau bekerja lama,
