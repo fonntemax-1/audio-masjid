@@ -13608,6 +13608,8 @@ function startRealtimeAudioConfigPolling_() {
           .trim()
           .toLowerCase();
 
+      const previousRamadanDisplay = RAMADAN_DISPLAY;
+
       if (typeof value === 'boolean') {
         RAMADAN_DISPLAY = value;
       } else if (normalized !== '') {
@@ -13620,6 +13622,34 @@ function startRealtimeAudioConfigPolling_() {
           normalized === 'aktif';
       } else {
         return;
+      }
+
+      // Jika sumber realtime mengubah mode setelah scheduler sempat
+      // dibangun (contoh: startup menerima FALSE lebih dahulu lalu
+      // getDataFromSheet/getRealtimeAudioConfig mengirim TRUE), schedule
+      // lama tidak boleh tetap dipakai. Tandai schedule sebagai belum
+      // siap agar SUBUH/MAGHRIB dibangun ulang dengan sequence yang benar.
+      if (
+        previousRamadanDisplay !== RAMADAN_DISPLAY &&
+        WEB_APP_STATE &&
+        WEB_APP_STATE.audio
+      ) {
+        WEB_APP_STATE.audio.scheduleInitialized = false;
+        WEB_APP_STATE.audio.schedulePreparing = false;
+
+        if (
+          WEB_APP_STATE.audio.computedSchedules &&
+          typeof WEB_APP_STATE.audio.computedSchedules.clear === 'function'
+        ) {
+          WEB_APP_STATE.audio.computedSchedules.clear();
+        }
+
+        console.log(
+          'RAMADAN MODE BERUBAH -> AUDIO SCHEDULE INVALIDATED:',
+          previousRamadanDisplay,
+          '=>',
+          RAMADAN_DISPLAY
+        );
       }
 
       RAMADAN_DISPLAY_READY = true;
