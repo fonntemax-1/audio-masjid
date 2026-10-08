@@ -1909,6 +1909,12 @@
 
       if (status !== 'ON' && status !== 'OFF') return;
 
+      if (state.currentEventKey &&
+          (realtimeAudioOutputOverride_[state.currentEventKey] === 'ON' ||
+           realtimeAudioOutputOverride_[state.currentEventKey] === 'OFF')) {
+        status = realtimeAudioOutputOverride_[state.currentEventKey];
+      }
+
       const shouldMute = status === 'OFF';
 
       try {
@@ -4818,6 +4824,8 @@ function updateFridayPrayerDisplay() {
     // =========================================================
     let realtimeAudioConfigRequestInFlight = false;
     let realtimeAudioConfigLastSignature = '';
+    // Status output realtime per occurrence/eventKey.
+    const realtimeAudioOutputOverride_ = Object.create(null);
 
     function syncQueuedAudioMuteStatus_(schedule) {
   const state = WEB_APP_STATE.audio;
@@ -5024,7 +5032,10 @@ function applyRealtimeAudioStatusOnly_(data) {
               ? 'OFF'
               : 'ON';
 
-          const shouldMuteNow = activeStatus === 'OFF';
+          // Simpan status occurrence/eventKey yang benar-benar aktif.
+            realtimeAudioOutputOverride_[activeState.currentEventKey] = activeStatus;
+
+            const shouldMuteNow = activeStatus === 'OFF';
 
           activeAudio.defaultMuted = shouldMuteNow;
           activeAudio.muted = shouldMuteNow;
