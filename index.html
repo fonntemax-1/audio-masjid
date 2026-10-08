@@ -2314,7 +2314,8 @@
 
             audio.onended = null;
             audio.onerror = null;
-            try { audio.muted = false; } catch (e) {}
+            // Jangan mengubah MUTE/UNMUTE saat cleanup.
+            // Status output ditentukan kembali oleh playback berikutnya.
 
           }
 
@@ -2656,6 +2657,22 @@
                 function() {
 
                   WEB_APP_STATE.audio.initialized = true;
+
+                  // Reassert setelah play() berhasil. Pada sebagian TV/browser,
+                  // state muted dari playback sebelumnya dapat terbawa.
+                  // Ini hanya MUTE/UNMUTE; queue, src, currentTime, durasi,
+                  // dan timing sama sekali tidak disentuh.
+                  try {
+                    audio.defaultMuted = playbackMuted;
+                    audio.muted = playbackMuted;
+                    audio.volume = 1;
+                  } catch (outputStateError) {
+                    console.warn(
+                      'AUDIO OUTPUT STATE SETELAH PLAY GAGAL:',
+                      label,
+                      outputStateError
+                    );
+                  }
 
                 }
               )
