@@ -14,7 +14,6 @@
     'beep': 'beep.mp3',
     'adzan-subuh': 'adzan-subuh.mp3',
     'adzan-biasa': 'adzan-biasa.mp3',
-    'doa': 'doa.mp3',
     'doa-adzan': 'doa.mp3',
     'doa-puasa': 'doa-puasa.mp3',
     'doa-buka': 'doa-buka.mp3',
