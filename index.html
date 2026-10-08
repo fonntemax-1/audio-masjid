@@ -11506,8 +11506,28 @@ function startRealtimeAudioConfigPolling_() {
       // Event tetap masuk queue agar urutan, timing, dan durasi sequence
       // tetap berjalan persis seperti konfigurasi ON. Saat OFF, output
       // audio hanya di-mute.
-      const triggerStatus =
+      // STATUS PANEL TERKINI adalah sumber terakhir sebelum playback.
+      // Jangan hanya percaya status yang tersimpan di computed schedule,
+      // karena schedule dapat dibuat dari cache beberapa saat sebelum
+      // perubahan panels diterima. Ini khususnya penting saat semua event
+      // dimatikan: audio lama tidak boleh lolos hanya karena status queue
+      // masih ON.
+      let triggerStatus =
         String(status == null ? 'ON' : status).trim().toUpperCase();
+
+      try {
+        const liveStatus = getRealtimeAudioStatus_(prayerName, audioType);
+        if (liveStatus === 'OFF') {
+          triggerStatus = 'OFF';
+        } else if (liveStatus === 'ON') {
+          triggerStatus = 'ON';
+        }
+      } catch (statusError) {
+        console.warn(
+          'AUDIO LIVE STATUS CHECK GAGAL, gunakan status schedule:',
+          statusError
+        );
+      }
 
       const key =
         getAudioEventKey(
@@ -11637,7 +11657,7 @@ function startRealtimeAudioConfigPolling_() {
             dateKey: dateKey,
             targetSec: hasTargetSec ? normalizedTargetSec : null,
             endSec: hasEndSec ? normalizedEndSec : null,
-            status: status || 'ON'
+            status: triggerStatus
           }
         );
 
