@@ -1703,16 +1703,10 @@
         // Semua DURASI, GAP, EVENT, dan STATUS mengikuti Sheet
         // terbaru. Cache durasi/schedule lama tidak boleh dipakai.
         // =====================================================
-        WEB_APP_STATE.audio.durationCache.clear();
-        WEB_APP_STATE.audio.durationPromises.clear();
-        WEB_APP_STATE.audio.computedSchedules.clear();
-        WEB_APP_STATE.audio.scheduleInitialized = false;
-
-        // Buang event antrean yang berasal dari konfigurasi lama.
-        WEB_APP_STATE.audio.queue.length = 0;
-        WEB_APP_STATE.audio.queuedLocks.clear();
-        WEB_APP_STATE.audio.failedLocks.clear();
-        WEB_APP_STATE.audio.retryCount.clear();
+        // STATUS ON/OFF REALTIME:
+        // Jangan reset duration/schedule/queue. Audio yang sedang berjalan
+        // dan seluruh antrean harus tetap utuh; perubahan Sheet hanya
+        // diterapkan sebagai MUTE/UNMUTE.
 
         console.log(
           'AUDIO CONFIG BERUBAH -> schedule/durasi di-refresh dari Spreadsheet.'
