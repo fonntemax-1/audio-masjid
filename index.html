@@ -3067,6 +3067,44 @@
 
               }
 
+              // QIROAH-1 s/d QIROAH-5 yang file MP3-nya belum ada
+              // harus langsung di-SKIP, bukan dianggap error yang perlu
+              // retry. Dengan demikian queue/scheduler tetap berjalan
+              // dan event audio berikutnya tetap dapat diproses.
+              if (
+                result &&
+                result.skippedMissingFile
+              ) {
+
+                console.warn(
+                  'QIROAH SKIP QUEUE: file MP3 tidak tersedia, lanjut ke event berikutnya:',
+                  item.prayerName || '-',
+                  item.eventName || item.label || '-',
+                  item.audioType || '-'
+                );
+
+                state.queue.shift();
+                state.queuedLocks.delete(
+                  item.eventKey
+                );
+
+                state.retryCount.delete(
+                  item.eventKey
+                );
+
+                state.currentPrayer = '';
+                state.currentStage = '';
+                state.currentEventKey = '';
+                state.processing = false;
+
+                setTimeout(function() {
+                  processAudioQueue();
+                }, 25);
+
+                return;
+
+              }
+
               if (
                 result &&
                 result.blocked
