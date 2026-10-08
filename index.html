@@ -6183,7 +6183,7 @@ function startRealtimeAudioConfigPolling_() {
           valueEl.textContent = item.value;
           valueEl.style.fontSize = 'clamp(0.95rem, 2.15cqw, 1.55rem)';
           valueEl.style.fontWeight = '800';
-          row.parentElement.style.display = 'flex'; row.parentElement.style.borderBottom = 'max(1px, 0.12vh) solid var(--theme-accent)'; row.parentElement.style.paddingBottom = 'clamp(0.18vh, 0.35cqw, 0.35vh)';
+          row.parentElement.style.display = 'flex';
         } else {
           row.textContent = '';
           valueEl.textContent = '';
@@ -7563,14 +7563,13 @@ function startRealtimeAudioConfigPolling_() {
           row.parentElement.style.display = 'none';
         }
       }
+    }
 
       // Tampilkan list setelah seluruh teks dan baris selesai diisi, agar garis separator tidak muncul lebih dulu.
       const showPetugasBlock = showPetugas && entries.length > 0;
       listEl.classList.toggle('petugas-lines-visible', showPetugasBlock);
       titleEl.style.display = showPetugasBlock ? '' : 'none';
       listEl.style.display = showPetugasBlock ? 'flex' : 'none';
-    }
-
     let panelKegiatanRequestInFlight = false;
     function fetchPanelKegiatan_() {
       if (panelKegiatanRequestInFlight) return;
