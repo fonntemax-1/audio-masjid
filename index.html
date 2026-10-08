@@ -1096,6 +1096,12 @@
 
         currentEventKey: '',
 
+        // Tipe audio yang sedang benar-benar dimainkan.
+        // Dipertahankan saat konfigurasi Sheet berubah agar status
+        // ON/OFF realtime dapat langsung mengubah MUTE audio aktif
+        // tanpa me-restart atau memotong sequence.
+        currentAudioType: '',
+
         scheduleInitialized: false
 
       },
@@ -1558,6 +1564,12 @@
 
       audioScheduleConfig = normalizedAudioSchedule;
 
+      // Status Sheet terbaru langsung diterapkan ke audio yang sedang
+      // berjalan. Tidak ada restart/pause/seek; hanya MUTE/UNMUTE.
+      // Ini memperbaiki kasus ADZAN-SUBUH OFF tetapi suara yang sedang
+      // berjalan tetap terdengar karena queue lama sudah dibersihkan.
+      syncCurrentAudioMuteStatus_();
+
       // Durasi tidak lagi dibaca dari Sheet.
       // Timeline memakai metadata durasi aktual file MP3.
       audioDurationConfig = {};
@@ -1719,6 +1731,130 @@
 
         WEB_APP_STATE.audio.audioConfigLogShown = true;
       }
+    }
+
+    // =========================================================
+    // SINKRONISASI MUTE AUDIO AKTIF - REALTIME PANELS
+    //
+    // Perubahan ON/OFF pada panels!B45:Q harus berlaku juga pada
+    // audio yang SEDANG berjalan. Jangan mengganti src, pause,
+    // currentTime, atau restart audio. Hanya ubah muted.
+    //
+    // Ini penting karena setAudioConfig() membangun ulang queue saat
+    // Sheet berubah. Queue boleh di-refresh, tetapi audio aktif tidak
+    // boleh tetap mengeluarkan suara ketika status baru = OFF.
+    // =========================================================
+    function syncCurrentAudioMuteStatus_() {
+      const audio = getAudioElement();
+      const state = WEB_APP_STATE.audio;
+
+      if (!audio || !state.currentEventKey || !state.currentAudioType) {
+        return;
+      }
+
+      const wantedType =
+        String(state.currentAudioType || '').trim().toLowerCase();
+
+      if (!wantedType) return;
+
+      const prayerName =
+        String(state.currentPrayer || '').trim().toUpperCase();
+
+      let sequenceName = prayerName;
+      if (prayerName === 'SUBUH') {
+        sequenceName = isRamadanDisplay()
+          ? 'SUBUH_RAMADHAN'
+          : 'SUBUH_BIASA';
+      } else if (prayerName === 'MAGHRIB') {
+        sequenceName = isRamadanDisplay()
+          ? 'MAGHRIB_RAMADHAN'
+          : 'MAGHRIB_BIASA';
+      }
+
+      let status = null;
+
+      const findStatusInSequence = function(sequence) {
+        if (!Array.isArray(sequence)) return null;
+
+        for (let i = 0; i < sequence.length; i++) {
+          const item = sequence[i] || {};
+          const event =
+            String(item.event || '').trim().toLowerCase();
+
+          // currentAudioType berasal dari mapSheetEventToAudioType().
+          // Cocokkan nama audio sebenarnya, bukan label visual ADZAN.
+          let mappedType = event;
+          if (event === 'adzan') {
+            mappedType = 'adzan-biasa';
+          }
+
+          if (mappedType === wantedType || event === wantedType) {
+            return String(item.status || 'ON').trim().toUpperCase() === 'OFF'
+              ? 'OFF'
+              : 'ON';
+          }
+
+          // Toleransi event lama/generik.
+          if (
+            wantedType === 'adzan-subuh' &&
+            event === 'adzan'
+          ) {
+            return String(item.status || 'ON').trim().toUpperCase() === 'OFF'
+              ? 'OFF'
+              : 'ON';
+          }
+        }
+
+        return null;
+      };
+
+      if (audioScheduleConfig[sequenceName]) {
+        status = findStatusInSequence(audioScheduleConfig[sequenceName]);
+      }
+
+      // Fallback: cari di seluruh schedule bila nama prayer belum lengkap.
+      if (status === null) {
+        const keys = Object.keys(audioScheduleConfig || {});
+        for (let i = 0; i < keys.length && status === null; i++) {
+          status = findStatusInSequence(audioScheduleConfig[keys[i]]);
+        }
+      }
+
+      // Jumat memakai konfigurasi terpisah.
+      if (status === null && Array.isArray(audioFridayConfig)) {
+        status = findStatusInSequence(audioFridayConfig);
+      }
+
+      if (status === null) return;
+
+      const shouldMute = status === 'OFF';
+
+      try {
+        // HANYA mute/unmute. Tidak menyentuh src/currentTime/play/pause.
+        audio.defaultMuted = shouldMute;
+        audio.muted = shouldMute;
+        audio.volume = 1;
+      } catch (error) {
+        console.warn(
+          'AUDIO REALTIME MUTE STATUS GAGAL:',
+          state.currentPrayer || '-',
+          state.currentStage || '-',
+          wantedType,
+          status,
+          error
+        );
+        return;
+      }
+
+      console.log(
+        'AUDIO REALTIME STATUS AKTIF:',
+        state.currentPrayer || '-',
+        state.currentStage || '-',
+        wantedType,
+        '=>',
+        status,
+        shouldMute ? '(MUTE)' : '(UNMUTE)'
+      );
     }
 
     // =========================================================
@@ -2998,6 +3134,11 @@
           item.label ||
           '';
 
+        // Simpan tipe audio aktual agar kontrol ON/OFF realtime dapat
+        // memetakan status Sheet ke audio yang sedang berjalan.
+        state.currentAudioType =
+          String(item.audioType || '').trim().toLowerCase();
+
         console.log(
           'AUDIO PLAY:',
           item.prayerName || '-',
@@ -3048,6 +3189,7 @@
                 state.currentPrayer = '';
                 state.currentStage = '';
                 state.currentEventKey = '';
+                state.currentAudioType = '';
 
                 state.processing = false;
 
@@ -3104,6 +3246,7 @@
                 state.currentPrayer = '';
                 state.currentStage = '';
                 state.currentEventKey = '';
+                state.currentAudioType = '';
                 state.processing = false;
 
                 showAudioBlockedButton();
@@ -3200,6 +3343,7 @@
               state.currentPrayer = '';
               state.currentStage = '';
               state.currentEventKey = '';
+              state.currentAudioType = '';
               state.processing = false;
 
               setTimeout(function() { processAudioQueue(); }, 25);
