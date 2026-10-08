@@ -1744,54 +1744,15 @@
     // Sheet berubah. Queue boleh di-refresh, tetapi audio aktif tidak
     // boleh tetap mengeluarkan suara ketika status baru = OFF.
     // =========================================================
-    // MODE RAMADAN UNTUK AUDIO ditentukan oleh TANGGAL HIJRIAH AKTUAL,
-    // bukan oleh RAMADAN_DISPLAY.
-    //
-    // RAMADAN_DISPLAY hanya mengatur tampilan kartu IMSAK/SUBUH dan banner.
-    // Jadi jika Script Property RamadanDisplay = true di luar Ramadan,
-    // audio Subuh/Maghrib tetap memakai sequence BIASA.
+    // MODE RAMADAN AUDIO mengikuti mode Ramadan utama.
+    // RAMADAN_DISPLAY=true  = FORCE/TEST seluruh sistem Ramadan.
+    // RAMADAN_DISPLAY=false = AUTO mengikuti kalender Hijriah aktual.
     function isRamadanAudioMode_() {
-      try {
-        if (typeof moment === 'function' && moment.iConvert) {
-          const m = moment(getApiDate(), 'YYYY-MM-DD');
-          const hMonth =
-            typeof m.iMonth === 'function'
-              ? Number(m.iMonth())
-              : -1;
 
-          // moment-hijri menggunakan index bulan 0-based:
-          // Muharram=0 ... Ramadan=8 ... Syawal=9.
-          if (hMonth >= 0) {
-            return hMonth === 8;
-          }
-        }
-      } catch (error) {
-        console.warn(
-          'AUDIO RAMADAN MODE: gagal membaca tanggal Hijriah:',
-          error
-        );
-      }
+      // Audio harus memakai mode Ramadan yang sama dengan display:
+      // true = FORCE/TEST, false = AUTO kalender Hijriah.
+      return isRamadanDisplay();
 
-      // Fallback hanya dari teks Hijriah yang sedang tampil.
-      try {
-        const hijriTextEl =
-          document.getElementById('hijri-text');
-
-        const monthText =
-          String(
-            hijriTextEl
-              ? hijriTextEl.textContent
-              : ''
-          )
-            .trim()
-            .toLowerCase();
-
-        if (/ramadan|ramadhan/.test(monthText)) {
-          return true;
-        }
-      } catch (_) {}
-
-      return false;
     }
 
     function getAudioSequenceName_(prayerName) {
@@ -11971,8 +11932,7 @@ function startRealtimeAudioConfigPolling_() {
     async function getPrayerAudioSchedule(prayerName,pSec) {
       const events = [];
       const name = String(prayerName || '').toUpperCase().trim();
-      // PENTING: mode audio Ramadan tidak mengikuti RAMADAN_DISPLAY.
-      // RAMADAN_DISPLAY boleh ON untuk tampilan IMSAK/SUBUH di luar Ramadan.
+      // Mode audio Ramadan mengikuti mode Ramadan utama.
       const ramadan = isRamadanAudioMode_();
 
       let sequenceName = name;
@@ -13666,10 +13626,12 @@ function startRealtimeAudioConfigPolling_() {
       RAMADAN_DISPLAY_WAIT_LOGGED = false;
 
       console.log(
-        'RAMADAN DISPLAY =',
-        RAMADAN_DISPLAY,
+        'RAMADAN DISPLAY MODE =',
+        RAMADAN_DISPLAY === true
+          ? 'FORCE TEST'
+          : 'AUTO HIJRIAH',
         '=>',
-        RAMADAN_DISPLAY
+        isRamadanDisplay()
           ? 'IMSAK + SUBUH'
           : 'SUBUH + TERBIT'
       );
@@ -13678,14 +13640,79 @@ function startRealtimeAudioConfigPolling_() {
     }
 
 
-    function isRamadanDisplay() {
+    function isRamadanCalendarDate_() {
 
-      // Mode DISPLAY sepenuhnya mengikuti Script Property.
-      // Tidak ada lagi fallback otomatis berdasarkan tanggal Hijriah.
-      return RAMADAN_DISPLAY === true;
+      try {
+
+        if (
+          typeof moment === 'function' &&
+          moment.iConvert
+        ) {
+
+          const m =
+            moment(
+              getApiDate(),
+              'YYYY-MM-DD'
+            );
+
+          const hMonth =
+            typeof m.iMonth === 'function'
+              ? Number(m.iMonth())
+              : -1;
+
+          // moment-hijri menggunakan index bulan 0-based:
+          // Muharram=0 ... Ramadan=8 ... Syawal=9.
+          if (hMonth >= 0) {
+            return hMonth === 8;
+          }
+
+        }
+
+      } catch (error) {
+
+        console.warn(
+          'RAMADAN CALENDAR MODE: gagal membaca tanggal Hijriah:',
+          error
+        );
+
+      }
+
+      try {
+
+        const hijriTextEl =
+          document.getElementById('hijri-text');
+
+        const monthText =
+          String(
+            hijriTextEl
+              ? hijriTextEl.textContent
+              : ''
+          )
+            .trim()
+            .toLowerCase();
+
+        if (/ramadan|ramadhan/.test(monthText)) {
+          return true;
+        }
+
+      } catch (_) {}
+
+      return false;
 
     }
 
+
+    function isRamadanDisplay() {
+
+      // true = FORCE/TEST Ramadan untuk seluruh sistem.
+      if (RAMADAN_DISPLAY === true) {
+        return true;
+      }
+
+      // false = mode NORMAL/AUTO mengikuti kalender Hijriah.
+      return isRamadanCalendarDate_();
+
+    }
 
     function getSubuhSirineDuration() {
 
