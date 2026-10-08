@@ -1873,8 +1873,8 @@
       }
 
       const prayerName = String(state.currentPrayer || '').trim().toUpperCase();
-      const sequenceName = getAudioSequenceName_(prayerName);
 
+      // ON/OFF hanya mengatur MUTE/UNMUTE. Item tetap berjalan di queue.
       let status = getRealtimeAudioStatus_(
         state.currentPrayer,
         state.currentAudioType
@@ -4823,7 +4823,7 @@ function applyRealtimeAudioStatusOnly_(data) {
     applyList(audioFridayConfig, incomingFriday, 'JUMAT');
   }
 
-  // Hanya MUTE/UNMUTE. Tidak restart, pause, seek, load, atau rebuild scheduler.
+  // Hanya MUTE/UNMUTE. Queue dan durasi tidak diubah.
   syncCurrentAudioMuteStatus_();
 }
 
