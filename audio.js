@@ -11,8 +11,6 @@
     'qiroah-4': 'qiroah-4.mp3',
     'qiroah-5': 'qiroah-5.mp3',
     'tarhim': 'Shalawat Tarhim.mp3',
-    'tarhim-subuh': 'Shalawat Tarhim.mp3',
-    'tarhim-biasa': 'Shalawat Tarhim.mp3',
     'beep': 'beep.mp3',
     'adzan-subuh': 'adzan-subuh.mp3',
     'adzan-biasa': 'adzan-biasa.mp3',
