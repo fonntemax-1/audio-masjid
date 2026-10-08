@@ -1718,6 +1718,15 @@
       gap: clamp(0.4rem, 1.5cqw, 1rem);
     }
 
+    /* PEMBATAS SETIAP BARIS PETUGAS SHOLAT.
+       Warna mengikuti tema aktif melalui --theme-accent.
+       Hanya visual; tidak menyentuh data, audio, atau scheduler. */
+    #petugas-panel-box .khotbah-item {
+      border-bottom: max(1px, 0.12vh) solid var(--theme-accent) !important;
+      padding-bottom: clamp(0.18vh, 0.35cqw, 0.35vh) !important;
+      box-sizing: border-box !important;
+    }
+
     .khotbah-role {
       color: #ffcc00;
       font-weight: bold;
