@@ -1831,7 +1831,7 @@
       return null;
     }
 
-    function getRealtimeAudioStatus_(prayerName, audioType, eventName, targetSec) {
+    function getRealtimeAudioStatus_(prayerName, audioType) {
       const sequenceName = getAudioSequenceName_(prayerName);
       const sequence =
         sequenceName === 'JUMAT'
@@ -1846,66 +1846,22 @@
       );
       if (!wanted) return null;
 
-      // IMPORTANT:
-      // Status harus dicari PER EVENT, bukan hanya berdasarkan nama selector.
-      // Beberapa blok Panels memang memiliki selector yang sama lebih dari
-      // sekali, contoh TARHIM dan BEEP. Karena itu selector pertama tidak
-      // boleh selalu dipakai untuk semua occurrence.
-      const wantedEventName = String(eventName || '').trim().toLowerCase();
-      const wantedTargetSec = Number(targetSec);
-      const hasTargetSec = Number.isFinite(wantedTargetSec);
-
-      // 1) Jika targetSec tersedia, itu adalah identitas paling presisi.
-      // Trigger dan queue selalu membawa targetSec dari scheduler.
-      if (hasTargetSec) {
-        for (let i = 0; i < sequence.length; i++) {
-          const item = sequence[i] || {};
-          if (getAudioItemCanonicalSelector_(item, sequenceName) !== wanted) continue;
-
-          const itemTargetSec = Number(item.targetSec);
-          if (Number.isFinite(itemTargetSec) && itemTargetSec === wantedTargetSec) {
-            return String(item.status || 'ON').trim().toUpperCase() === 'OFF'
-              ? 'OFF'
-              : 'ON';
-          }
-        }
-      }
-
-      // 2) Fallback eventName untuk selector yang unik.
-      if (wantedEventName) {
-        for (let i = 0; i < sequence.length; i++) {
-          const item = sequence[i] || {};
-          if (getAudioItemCanonicalSelector_(item, sequenceName) !== wanted) continue;
-
-          const itemEventName = String(
-            item.eventName || item.event || item.label || ''
-          ).trim().toLowerCase();
-
-          if (itemEventName === wantedEventName) {
-            return String(item.status || 'ON').trim().toUpperCase() === 'OFF'
-              ? 'OFF'
-              : 'ON';
-          }
-        }
-      }
-
-      // 3) Terakhir hanya untuk selector yang memang tidak ambigu.
-      // Jangan gunakan selector pertama untuk duplicate selector.
-      let matches = 0;
-      let lastStatus = 'ON';
-
+      // Status ditentukan per-selector/per-event dari schedule hasil mapping Panels.
+      // Jangan pernah mengubah satu event menjadi OFF hanya karena event lain
+      // pada sequence yang sama OFF. Blok FULL OFF sudah ditangani backend
+      // berdasarkan blok Panels yang memang seluruhnya OFF.
+      // Selector spesifik tetap menjadi sumber utama.
+      // Cari occurrence pertama untuk selector yang diminta.
       for (let i = 0; i < sequence.length; i++) {
         const item = sequence[i] || {};
         if (getAudioItemCanonicalSelector_(item, sequenceName) !== wanted) continue;
 
-        matches++;
-        lastStatus =
-          String(item.status || 'ON').trim().toUpperCase() === 'OFF'
-            ? 'OFF'
-            : 'ON';
+        return String(item.status || 'ON').trim().toUpperCase() === 'OFF'
+          ? 'OFF'
+          : 'ON';
       }
 
-      return matches === 1 ? lastStatus : null;
+      return null;
     }
 
     function syncCurrentAudioMuteStatus_() {
@@ -1919,31 +1875,10 @@
       const prayerName = String(state.currentPrayer || '').trim().toUpperCase();
       const sequenceName = getAudioSequenceName_(prayerName);
 
-      // Untuk audio yang SEDANG berjalan, queue item adalah sumber
-      // paling presisi karena applyRealtimeAudioStatusOnly_() sudah memetakan
-      // occurrence duplicate secara benar.
-      let status = null;
-      const activeQueueItem = (state.queue || []).find(function(item) {
-        return item && item.eventKey === state.currentEventKey;
-      });
-
-      if (activeQueueItem) {
-        status = String(
-          activeQueueItem.status == null ? '' : activeQueueItem.status
-        ).trim().toUpperCase();
-
-        if (status !== 'ON' && status !== 'OFF') {
-          status = null;
-        }
-      }
-
-      if (status === null) {
-        status = getRealtimeAudioStatus_(
-          state.currentPrayer,
-          state.currentAudioType,
-          state.currentStage
-        );
-      }
+      let status = getRealtimeAudioStatus_(
+        state.currentPrayer,
+        state.currentAudioType
+      );
 
       if (status === null) return;
 
@@ -3037,9 +2972,7 @@
         try {
           const liveStatus = getRealtimeAudioStatus_(
             item.prayerName,
-            item.audioType,
-            item.eventName,
-            item.targetSec
+            item.audioType
           );
           if (liveStatus === 'OFF') {
             item.status = 'OFF';
@@ -3289,9 +3222,7 @@
         // sudah berada di antrean, tanpa membangun ulang atau menggeser queue.
         const realtimeItemStatus = getRealtimeAudioStatus_(
           item.prayerName,
-          item.audioType,
-          item.eventName,
-          item.targetSec
+          item.audioType
         );
         if (realtimeItemStatus) {
           item.status = realtimeItemStatus;
@@ -11597,7 +11528,7 @@ function startRealtimeAudioConfigPolling_() {
         String(status == null ? 'ON' : status).trim().toUpperCase();
 
       try {
-        const liveStatus = getRealtimeAudioStatus_(prayerName, audioType, eventName, targetSec);
+        const liveStatus = getRealtimeAudioStatus_(prayerName, audioType);
         if (liveStatus === 'OFF') {
           triggerStatus = 'OFF';
         } else if (liveStatus === 'ON') {
