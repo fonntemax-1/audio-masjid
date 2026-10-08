@@ -6697,12 +6697,43 @@ function startRealtimeAudioConfigPolling_() {
     // UPDATE UI
     // =========================================================
 
+    function updateFooterRunningText_(data) {
+      const element = document.getElementById('marquee-text');
+      if (!element || !data) return;
+
+      const raw =
+        data.Running_Text !== undefined
+          ? data.Running_Text
+          : (
+              data.runningText !== undefined
+                ? data.runningText
+                : (
+                    data.RunningText !== undefined
+                      ? data.RunningText
+                      : ''
+                  )
+            );
+
+      const text = String(raw == null ? '' : raw).trim();
+
+      if (text === previousRunningText && element.innerHTML === text) {
+        return;
+      }
+
+      previousRunningText = text;
+      element.innerHTML = text;
+    }
+
     function updateUI(data) {
     if (data && data.DisplayTheme) {
       applyDisplayTheme(data.DisplayTheme);
     }
 
       if (!data) return;
+
+      // Running Text footer dirender langsung dari payload utama.
+      // Tidak bergantung pada renderer PETUGAS atau polling Event.
+      updateFooterRunningText_(data);
 
       // panels!C14 = KOTA header. Dipakai khusus untuk teks countdown.
       if (Object.prototype.hasOwnProperty.call(data, 'Kota')) {
