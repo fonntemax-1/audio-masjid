@@ -10287,12 +10287,12 @@ function startRealtimeAudioConfigPolling_() {
         const requestedParsed = new URL(embedUrlUnmuted);
 
         if (currentParsed) {
-          const match = currentParsed.pathname.match(/\\/embed\\/([^/?#]+)/);
+          const match = currentParsed.pathname.match(/\/embed\/([^/?#]+)/);
           currentVideoId = match ? match[1] : '';
         }
 
         {
-          const match = requestedParsed.pathname.match(/\\/embed\\/([^/?#]+)/);
+          const match = requestedParsed.pathname.match(/\/embed\/([^/?#]+)/);
           requestedVideoId = match ? match[1] : '';
         }
       } catch (e) {
