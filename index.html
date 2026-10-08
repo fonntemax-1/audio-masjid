@@ -7560,6 +7560,7 @@ function startRealtimeAudioConfigPolling_() {
 
       // Tampilkan list setelah seluruh teks dan baris selesai diisi, agar garis separator tidak muncul lebih dulu.
       const showPetugasBlock = showPetugas && entries.length > 0;
+      listEl.classList.toggle('petugas-lines-visible', showPetugasBlock);
       titleEl.style.display = showPetugasBlock ? '' : 'none';
       listEl.style.display = showPetugasBlock ? 'flex' : 'none';
     let panelKegiatanRequestInFlight = false;
