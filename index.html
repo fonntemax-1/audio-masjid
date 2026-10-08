@@ -9689,48 +9689,13 @@ function startRealtimeAudioConfigPolling_() {
 
       }
 
-      // Fallback hanya jika iframe belum tersedia.
-      const currentSrc =
-        currentYouTubeUrl ||
-        iframe.getAttribute('src') ||
-        '';
-
-      if (!currentSrc) return;
-
-      try {
-
-        const parsed =
-          new URL(currentSrc);
-
-        parsed.searchParams.set(
-          'mute',
-          '1'
-        );
-
-        const mutedSrc =
-          parsed.toString();
-
-        if (
-          mutedSrc !==
-          iframe.getAttribute('src')
-        ) {
-
-          currentYouTubeUrl =
-            mutedSrc;
-
-          iframe.src =
-            mutedSrc;
-
-        }
-
-      } catch (error) {
-
-        console.warn(
-          'YOUTUBE MUTE FALLBACK GAGAL:',
-          error
-        );
-
-      }
+      // Jangan pernah reload / mengganti src iframe sebagai fallback.
+      // MUTE harus benar-benar hanya membisukan YouTube dan tidak
+      // me-reset playback video. Jika command belum diterima karena
+      // player belum siap, handler load akan mengirim ulang command.
+      console.warn(
+        'YOUTUBE MUTE: command belum diterima player, tanpa reload iframe'
+      );
 
     }
 
@@ -9759,47 +9724,11 @@ function startRealtimeAudioConfigPolling_() {
 
       }
 
-      const currentSrc =
-        currentYouTubeUrl ||
-        iframe.getAttribute('src') ||
-        '';
-
-      if (!currentSrc) return;
-
-      try {
-
-        const parsed =
-          new URL(currentSrc);
-
-        parsed.searchParams.set(
-          'mute',
-          '0'
-        );
-
-        const unmutedSrc =
-          parsed.toString();
-
-        if (
-          unmutedSrc !==
-          iframe.getAttribute('src')
-        ) {
-
-          currentYouTubeUrl =
-            unmutedSrc;
-
-          iframe.src =
-            unmutedSrc;
-
-        }
-
-      } catch (error) {
-
-        console.warn(
-          'YOUTUBE UNMUTE FALLBACK GAGAL:',
-          error
-        );
-
-      }
+      // Jangan pernah reload / mengganti src iframe sebagai fallback.
+      // UNMUTE juga hanya mengubah suara YouTube, bukan posisi playback.
+      console.warn(
+        'YOUTUBE UNMUTE: command belum diterima player, tanpa reload iframe'
+      );
 
     }
 
