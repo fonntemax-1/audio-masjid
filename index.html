@@ -1737,6 +1737,50 @@
     // Sheet berubah. Queue boleh di-refresh, tetapi audio aktif tidak
     // boleh tetap mengeluarkan suara ketika status baru = OFF.
     // =========================================================
+    function getRealtimeAudioStatus_(prayerName, audioType) {
+      const wantedType = String(audioType || '').trim().toLowerCase();
+      const prayer = String(prayerName || '').trim().toUpperCase();
+      if (!wantedType) return null;
+
+      let sequenceName = prayer;
+      if (prayer === 'SUBUH') {
+        sequenceName = isRamadanDisplay() ? 'SUBUH_RAMADHAN' : 'SUBUH_BIASA';
+      } else if (prayer === 'MAGHRIB') {
+        sequenceName = isRamadanDisplay() ? 'MAGHRIB_RAMADHAN' : 'MAGHRIB_BIASA';
+      }
+
+      const find = function(sequence) {
+        if (!Array.isArray(sequence)) return null;
+        for (let i = 0; i < sequence.length; i++) {
+          const item = sequence[i] || {};
+          const event = String(item.event || '').trim().toLowerCase();
+          const mapped = event === 'adzan' ? 'adzan-biasa' : event;
+          if (
+            mapped === wantedType ||
+            event === wantedType ||
+            (wantedType === 'adzan-subuh' && event === 'adzan')
+          ) {
+            return String(item.status || 'ON').trim().toUpperCase() === 'OFF'
+              ? 'OFF'
+              : 'ON';
+          }
+        }
+        return null;
+      };
+
+      let status = find(audioScheduleConfig[sequenceName]);
+      if (status === null) {
+        const keys = Object.keys(audioScheduleConfig || {});
+        for (let i = 0; i < keys.length && status === null; i++) {
+          status = find(audioScheduleConfig[keys[i]]);
+        }
+      }
+      if (status === null && Array.isArray(audioFridayConfig)) {
+        status = find(audioFridayConfig);
+      }
+      return status;
+    }
+
     function syncCurrentAudioMuteStatus_() {
       const audio = getAudioElement();
       const state = WEB_APP_STATE.audio;
@@ -3131,6 +3175,17 @@
         // memetakan status Sheet ke audio yang sedang berjalan.
         state.currentAudioType =
           String(item.audioType || '').trim().toLowerCase();
+
+        // Ambil STATUS TERBARU dari Sheet tepat saat event akan dimainkan.
+        // Ini memastikan perubahan OFF/ON juga berlaku untuk event yang
+        // sudah berada di antrean, tanpa membangun ulang atau menggeser queue.
+        const realtimeItemStatus = getRealtimeAudioStatus_(
+          item.prayerName,
+          item.audioType
+        );
+        if (realtimeItemStatus) {
+          item.status = realtimeItemStatus;
+        }
 
         console.log(
           'AUDIO PLAY:',
