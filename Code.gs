@@ -2165,32 +2165,124 @@ function applyPanelAudioStatusRealtime_(ss, audioSchedule, audioFriday) {
 
   const lastRow = Math.max(panels.getLastRow(), 46);
   const rowCount = Math.max(lastRow - 45, 1);
-
-  // B45:Q = 16 kolom. Setiap blok terdiri dari SELECTOR + STATUS.
   const values = panels.getRange(45, 2, rowCount + 1, 16).getDisplayValues();
 
-  const normalizeEvent = function(raw) {
+  // =========================================================
+  // CANONICAL SELECTOR MAP
+  // Satu selector hanya boleh mengontrol event yang sama.
+  // Tidak ada fallback "doa cocok semua doa" atau ADZAN silang.
+  // =========================================================
+  const canonicalSelector = function(raw, sequenceName) {
     const e = String(raw == null ? '' : raw).trim().toLowerCase();
-    if (!e) return '';
+    const seq = String(sequenceName || '').trim().toUpperCase();
 
-    if (/^qiroah(?:-\\d+)?$/.test(e)) {
-      return e === 'qiroah' ? 'qiroah' : e;
-    }
-    if (e === 'tarhim-subuh' || e === 'tarhim-biasa') return 'tarhim';
-    if (e === 'adzan') return 'adzan';
-    if (e === 'doa') return 'doa';
-    if (e === 'adzan-subuh') return 'adzan-subuh';
-    if (e === 'adzan-biasa') return 'adzan-biasa';
-    if (e === 'doa-adzan') return 'doa-adzan';
-    if (e === 'doa-puasa') return 'doa-puasa';
-    if (e === 'doa-buka') return 'doa-buka';
+    if (!e || e === 'gap') return '';
+
+    if (/^qiroah-[1-5]$/.test(e)) return e;
+    if (e === 'qiroah') return 'qiroah';
+    if (e === 'tarhim' || e === 'tarhim-subuh' || e === 'tarhim-biasa') return 'tarhim';
     if (e === 'beep') return 'beep';
     if (e === 'iqomah') return 'iqomah';
     if (e === 'sirine') return 'sirine';
+
+    if (e === 'doa-adzan') return 'doa-adzan';
+    if (e === 'doa-puasa') return 'doa-puasa';
+    if (e === 'doa-buka') return 'doa-buka';
+    // Event generik "doa" hanya berarti DOA-ADZAN.
+    if (e === 'doa') return 'doa-adzan';
+
+    if (e === 'adzan-subuh') return 'adzan-subuh';
+    if (e === 'adzan-biasa') return 'adzan-biasa';
+    if (e === 'adzan') {
+      return /^SUBUH(?:_|$)/i.test(seq) ? 'adzan-subuh' : 'adzan-biasa';
+    }
+
     return e;
   };
 
-  const panelBlocks = [
+  const getPanelItems = function(colOffset) {
+    const items = [];
+    for (let r = 1; r < values.length; r++) {
+      const event = String(values[r][colOffset] || '').trim().toLowerCase();
+      const status = String(values[r][colOffset + 1] || '').trim().toUpperCase();
+      if (!event || (status !== 'ON' && status !== 'OFF')) continue;
+
+      items.push({
+        event: event,
+        status: status,
+        row: r + 45
+      });
+    }
+    return items;
+  };
+
+  const applyBlock = function(sequenceName, colOffset) {
+    const target = Array.isArray(audioSchedule[sequenceName])
+      ? audioSchedule[sequenceName]
+      : [];
+    if (!target.length) return;
+
+    const panelItems = getPanelItems(colOffset);
+    if (!panelItems.length) return;
+
+    // Setiap selector panel dipasangkan ke event CANONICAL yang sama.
+    // Jika selector yang sama muncul beberapa kali, pasangan memakai
+    // occurrence order sehingga tidak meloncat ke event lain.
+    const used = {};
+    panelItems.forEach(function(panelItem) {
+      const wanted = canonicalSelector(panelItem.event, sequenceName);
+      if (!wanted) return;
+
+      let occurrence = 0;
+      for (let p = 0; p < panelItems.indexOf(panelItem); p++) {
+        if (canonicalSelector(panelItems[p].event, sequenceName) === wanted) {
+          occurrence++;
+        }
+      }
+
+      let match = -1;
+      let seen = 0;
+      for (let i = 0; i < target.length; i++) {
+        if (used[i]) continue;
+        const targetKey = canonicalSelector(target[i] && target[i].event, sequenceName);
+        if (targetKey !== wanted) continue;
+        if (seen === occurrence) {
+          match = i;
+          break;
+        }
+        seen++;
+      }
+
+      if (match < 0) {
+        Logger.log(
+          'REALTIME AUDIO MAP TIDAK MENEMUKAN TARGET: ' +
+          sequenceName + ' selector=' + panelItem.event +
+          ' canonical=' + wanted + ' row=' + panelItem.row
+        );
+        return;
+      }
+
+      used[match] = true;
+      const oldStatus = String(
+        target[match].status == null ? 'ON' : target[match].status
+      ).trim().toUpperCase();
+
+      target[match].status = panelItem.status;
+
+      if (oldStatus !== panelItem.status) {
+        Logger.log(
+          'REALTIME AUDIO STATUS PANEL: ' +
+          sequenceName +
+          ' row=' + panelItem.row +
+          ' selector=' + panelItem.event +
+          ' canonical=' + wanted +
+          ' ' + oldStatus + ' -> ' + panelItem.status
+        );
+      }
+    });
+  };
+
+  [
     ['SUBUH_RAMADHAN', 0],
     ['SUBUH_BIASA', 2],
     ['DZUHUR', 4],
@@ -2198,156 +2290,53 @@ function applyPanelAudioStatusRealtime_(ss, audioSchedule, audioFriday) {
     ['MAGHRIB_RAMADHAN', 8],
     ['MAGHRIB_BIASA', 10],
     ['ISYA', 12]
-  ];
-
-  const overlayBlock = function(prayerName, colOffset) {
-    const target = Array.isArray(audioSchedule[prayerName])
-      ? audioSchedule[prayerName]
-      : [];
-
-    if (!target.length) return;
-
-    const panelItems = [];
-    for (let r = 1; r < values.length; r++) {
-      const event = normalizeEvent(values[r][colOffset]);
-      const status = String(values[r][colOffset + 1] || '').trim().toUpperCase();
-
-      if (!event) continue;
-      if (status !== 'ON' && status !== 'OFF') continue;
-
-      panelItems.push({
-        event: event,
-        status: status,
-        row: r + 45
-      });
-    }
-
-    if (!panelItems.length) return;
-
-    const used = {};
-    panelItems.forEach(function(panelItem) {
-      let matchedIndex = -1;
-
-      for (let i = 0; i < target.length; i++) {
-        if (used[i]) continue;
-
-        const targetEvent = normalizeEvent(target[i] && target[i].event);
-        if (targetEvent === panelItem.event) {
-          matchedIndex = i;
-          break;
-        }
-
-        // ADZAN di Sheet Adzan dapat tersimpan sebagai event generik
-        // "adzan", sedangkan selector realtime di panels membedakan
-        // "adzan-subuh" dan "adzan-biasa".
-        // Untuk SUBUH, adzan-subuh WAJIB mengontrol event "adzan".
-        // Untuk waktu selain SUBUH, adzan-biasa mengontrol event "adzan".
-        if (
-          targetEvent === 'adzan' &&
-          (
-            panelItem.event === 'adzan' ||
-            (
-              panelItem.event === 'adzan-subuh' &&
-              /^SUBUH(?:_|$)/i.test(prayerName)
-            ) ||
-            (
-              panelItem.event === 'adzan-biasa' &&
-              !/^SUBUH(?:_|$)/i.test(prayerName)
-            )
-          )
-        ) {
-          matchedIndex = i;
-          break;
-        }
-
-        // Kompatibilitas doa generik dengan varian doa.
-        if (
-          panelItem.event === 'doa' &&
-          /^doa(?:-adzan|-puasa|-buka)?$/.test(targetEvent)
-        ) {
-          matchedIndex = i;
-          break;
-        }
-      }
-
-      if (matchedIndex >= 0) {
-        used[matchedIndex] = true;
-        const oldStatus = String(
-          target[matchedIndex].status == null ? 'ON' : target[matchedIndex].status
-        ).trim().toUpperCase();
-
-        target[matchedIndex].status = panelItem.status;
-
-        if (oldStatus !== panelItem.status) {
-          Logger.log(
-            'REALTIME AUDIO STATUS PANEL: ' +
-            prayerName +
-            ' row=' + panelItem.row +
-            ' event=' + panelItem.event +
-            ' ' + oldStatus + ' -> ' + panelItem.status
-          );
-        }
-      }
-    });
-  };
-
-  panelBlocks.forEach(function(block) {
-    overlayBlock(block[0], block[1]);
+  ].forEach(function(block) {
+    applyBlock(block[0], block[1]);
   });
 
-  // Jumat menggunakan blok P/Q (offset 14).
+  // Jumat menggunakan blok P/Q.
   if (Array.isArray(audioFriday) && audioFriday.length) {
-    const panelItems = [];
-
-    for (let r = 1; r < values.length; r++) {
-      const event = normalizeEvent(values[r][14]);
-      const status = String(values[r][15] || '').trim().toUpperCase();
-
-      if (!event) continue;
-      if (status !== 'ON' && status !== 'OFF') continue;
-
-      panelItems.push({
-        event: event,
-        status: status,
-        row: r + 45
-      });
-    }
-
+    const panelItems = getPanelItems(14);
     const used = {};
+
     panelItems.forEach(function(panelItem) {
-      let matchedIndex = -1;
+      const wanted = canonicalSelector(panelItem.event, 'JUMAT');
+      if (!wanted) return;
 
-      for (let i = 0; i < audioFriday.length; i++) {
-        if (used[i]) continue;
-
-        const targetEvent = normalizeEvent(
-          audioFriday[i] && audioFriday[i].event
-        );
-
-        if (
-          targetEvent === panelItem.event ||
-          (
-            targetEvent === 'adzan' &&
-            (
-              panelItem.event === 'adzan' ||
-              panelItem.event === 'adzan-biasa' ||
-              panelItem.event === 'adzan-subuh'
-            )
-          ) ||
-          (
-            panelItem.event === 'doa' &&
-            /^doa(?:-adzan|-puasa|-buka)?$/.test(targetEvent)
-          )
-        ) {
-          matchedIndex = i;
-          break;
+      let occurrence = 0;
+      for (let p = 0; p < panelItems.indexOf(panelItem); p++) {
+        if (canonicalSelector(panelItems[p].event, 'JUMAT') === wanted) {
+          occurrence++;
         }
       }
 
-      if (matchedIndex >= 0) {
-        used[matchedIndex] = true;
-        audioFriday[matchedIndex].status = panelItem.status;
+      let match = -1;
+      let seen = 0;
+      for (let i = 0; i < audioFriday.length; i++) {
+        if (used[i]) continue;
+        const targetKey = canonicalSelector(
+          audioFriday[i] && audioFriday[i].event,
+          'JUMAT'
+        );
+        if (targetKey !== wanted) continue;
+        if (seen === occurrence) {
+          match = i;
+          break;
+        }
+        seen++;
       }
+
+      if (match < 0) {
+        Logger.log(
+          'REALTIME AUDIO MAP JUMAT TIDAK MENEMUKAN TARGET: selector=' +
+          panelItem.event + ' canonical=' + wanted +
+          ' row=' + panelItem.row
+        );
+        return;
+      }
+
+      used[match] = true;
+      audioFriday[match].status = panelItem.status;
     });
   }
 }
