@@ -657,6 +657,7 @@
     const GAS_API_REALTIME_CONTROL_ACTIONS = new Set([
       'getRealtimeDisplayConfig',
       'getRealtimePanelsFast',
+      'getRealtimeAudioConfig',
       'getYoutubeControl',
       'getPanelIqomahBlackMode',
       'getDisplayThemeSetting',
@@ -4336,6 +4337,53 @@ function updateFridayPrayerDisplay() {
         .finally(function() {
           audioFastConfigRequestInFlight = false;
         });
+    }
+
+    // =========================================================
+    // REALTIME AUDIO ON/OFF - panels!Adzan
+    // Polling khusus sequence audio setiap 5 detik.
+    // Tidak menunggu getDataFromSheet 60 detik.
+    // Jika ON/OFF berubah di Sheet, konfigurasi audio diperbarui
+    // tanpa reload halaman.
+    // =========================================================
+    let realtimeAudioConfigRequestInFlight = false;
+    let realtimeAudioConfigLastSignature = '';
+
+    function pollRealtimeAudioConfig_() {
+      if (realtimeAudioConfigRequestInFlight) return;
+
+      realtimeAudioConfigRequestInFlight = true;
+
+      gasApiCall('getRealtimeAudioConfig')
+        .then(function(data) {
+          if (!data || typeof data !== 'object') return;
+
+          const schedule = data.AudioSchedule || data.audioSchedule || {};
+          const signature = JSON.stringify(schedule);
+
+          if (signature === realtimeAudioConfigLastSignature) return;
+          realtimeAudioConfigLastSignature = signature;
+
+          console.log(
+            'AUDIO ON/OFF REALTIME: konfigurasi Sheet berubah, memperbarui audio.'
+          );
+
+          return setAudioConfig(data);
+        })
+        .catch(function(error) {
+          console.warn(
+            'AUDIO ON/OFF REALTIME GAGAL:',
+            error && error.message ? error.message : error
+          );
+        })
+        .finally(function() {
+          realtimeAudioConfigRequestInFlight = false;
+        });
+    }
+
+    function startRealtimeAudioConfigPolling_() {
+      pollRealtimeAudioConfig_();
+      setInterval(pollRealtimeAudioConfig_, 5000);
     }
 
     function fetchSheetData() {
@@ -16282,6 +16330,11 @@ function setCountdownBlackMode(enabled) {
     setTimeout(function() {
       startRealtimePanelsFast_();
     }, 9000);
+
+    // ON/OFF audio harus mengikuti Sheet tanpa menunggu refresh 60 detik.
+    setTimeout(function() {
+      startRealtimeAudioConfigPolling_();
+    }, 10000);
 
     // Countdown event sudah memiliki tick realtime 1 detik di atas.
     // Tidak perlu starter/polling kedua karena fungsi tersebut tidak ada.
