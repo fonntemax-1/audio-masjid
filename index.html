@@ -4585,9 +4585,7 @@ function updateFridayPrayerDisplay() {
       gasApiCall('getRealtimeAudioConfig')
         .then(function(data) {
           if (data && typeof data === 'object') {
-            return setAudioConfig(data).then(function() {
-        syncQueuedAudioMuteStatus_(schedule);
-      });
+            return setAudioConfig(data);
           }
         })
         .then(function() {
@@ -4657,39 +4655,88 @@ function updateFridayPrayerDisplay() {
   }
 }
 
-function pollRealtimeAudioConfig_() {
-      if (realtimeAudioConfigRequestInFlight) return;
+function getRealtimeAudioStatusSignature_(schedule, friday) {
+  const parts = [];
+  Object.keys(schedule || {}).sort().forEach(function(key) {
+    const list = Array.isArray(schedule[key]) ? schedule[key] : [];
+    list.forEach(function(item, index) {
+      const event = String(item && (item.event || item.eventName || item.audioType) || '').trim().toLowerCase();
+      const status = String(item && item.status != null ? item.status : 'ON').trim().toUpperCase();
+      parts.push(key + '|' + index + '|' + event + '|' + status);
+    });
+  });
+  (Array.isArray(friday) ? friday : []).forEach(function(item, index) {
+    const event = String(item && (item.event || item.eventName || item.audioType) || '').trim().toLowerCase();
+    const status = String(item && item.status != null ? item.status : 'ON').trim().toUpperCase();
+    parts.push('JUMAT|' + index + '|' + event + '|' + status);
+  });
+  return parts.join('||');
+}
 
-      realtimeAudioConfigRequestInFlight = true;
+function applyRealtimeAudioStatusOnly_(data) {
+  if (!data || typeof data !== 'object') return;
 
-      gasApiCall('getRealtimeAudioConfig')
-        .then(function(data) {
-          if (!data || typeof data !== 'object') return;
+  let sourceSchedule = data.AudioSchedule || data.audioSchedule || data.AudioScheduleJSON || {};
+  if (typeof sourceSchedule === 'string') {
+    try { sourceSchedule = JSON.parse(sourceSchedule); } catch (e) { sourceSchedule = {}; }
+  }
+  if (sourceSchedule && sourceSchedule.schedule && typeof sourceSchedule.schedule === 'object') {
+    sourceSchedule = sourceSchedule.schedule;
+  }
 
-          const schedule = data.AudioSchedule || data.audioSchedule || {};
-          const signature = JSON.stringify(schedule);
-
-          if (signature === realtimeAudioConfigLastSignature) return;
-          realtimeAudioConfigLastSignature = signature;
-
-          console.log(
-            'AUDIO ON/OFF REALTIME: konfigurasi Sheet berubah, memperbarui audio.'
-          );
-
-          return setAudioConfig(data);
-        })
-        .catch(function(error) {
-          console.warn(
-            'AUDIO ON/OFF REALTIME GAGAL:',
-            error && error.message ? error.message : error
-          );
-        })
-        .finally(function() {
-          realtimeAudioConfigRequestInFlight = false;
-        });
+  Object.keys(audioScheduleConfig || {}).forEach(function(key) {
+    const currentList = Array.isArray(audioScheduleConfig[key]) ? audioScheduleConfig[key] : [];
+    const incomingList = Array.isArray(sourceSchedule && sourceSchedule[key]) ? sourceSchedule[key] : [];
+    const count = Math.min(currentList.length, incomingList.length);
+    for (let i = 0; i < count; i++) {
+      const incoming = incomingList[i];
+      if (!incoming) continue;
+      currentList[i].status =
+        String(incoming.status != null ? incoming.status : 'ON').trim().toUpperCase() === 'OFF' ? 'OFF' : 'ON';
     }
+  });
 
-    
+  const incomingFriday = data.AudioFriday || data.audioFriday || [];
+  if (Array.isArray(audioFridayConfig) && Array.isArray(incomingFriday)) {
+    const count = Math.min(audioFridayConfig.length, incomingFriday.length);
+    for (let i = 0; i < count; i++) {
+      const incoming = incomingFriday[i];
+      if (!incoming) continue;
+      audioFridayConfig[i].status =
+        String(incoming.status != null ? incoming.status : 'ON').trim().toUpperCase() === 'OFF' ? 'OFF' : 'ON';
+    }
+  }
+
+  // Hanya MUTE/UNMUTE. Tidak restart, pause, seek, load, atau rebuild scheduler.
+  syncCurrentAudioMuteStatus_();
+}
+
+function pollRealtimeAudioConfig_() {
+  if (realtimeAudioConfigRequestInFlight) return;
+  realtimeAudioConfigRequestInFlight = true;
+
+  gasApiCall('getRealtimeAudioConfig')
+    .then(function(data) {
+      if (!data || typeof data !== 'object') return;
+
+      const schedule = data.AudioSchedule || data.audioSchedule || {};
+      const friday = data.AudioFriday || data.audioFriday || [];
+      const signature = getRealtimeAudioStatusSignature_(schedule, friday);
+
+      if (signature === realtimeAudioConfigLastSignature) return;
+      realtimeAudioConfigLastSignature = signature;
+
+      console.log('AUDIO ON/OFF REALTIME: status Sheet berubah -> MUTE/UNMUTE saja.');
+      applyRealtimeAudioStatusOnly_(data);
+    })
+    .catch(function(error) {
+      console.warn('AUDIO ON/OFF REALTIME GAGAL:', error && error.message ? error.message : error);
+    })
+    .finally(function() {
+      realtimeAudioConfigRequestInFlight = false;
+    });
+  }
+
 function startRealtimeAudioConfigPolling_() {
       pollRealtimeAudioConfig_();
       setInterval(pollRealtimeAudioConfig_, 5000);
