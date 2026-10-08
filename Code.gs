@@ -1226,11 +1226,63 @@ function getPanelEventCountdownCustomConfig_() {
             result
           );
 
-          // Kolom T:U = kontrol suara ON/OFF.
-          // OFF hanya membuat audio mute; event/durasi tetap berjalan.
-          processAdzanAudioStatusSheet(
-            sheet,
-            result
+          // STATUS ON/OFF AUDIO BUKAN berasal dari sheet Adzan.
+          // Sumber status final adalah panels!B46:Q55.
+          // Event + ON/OFF dipasangkan berdasarkan BLOK + URUTAN
+          // kemunculan event, sehingga contoh:
+          //   B46/C46 = qiroah-1 / ON
+          //   B52/C52 = adzan-subuh / ON|OFF
+          //   B55/C55 = iqomah / ON
+          //
+          // processAdzanScheduleSheet() tetap dipakai hanya untuk
+          // URL audio dan DURASI dari sheet Adzan.
+          // Jadwal/durasi tidak diubah; hanya STATUS-nya dipetakan
+          // dari panels.
+          applyPanelAudioStatusRealtime_(
+            ss,
+            result.AudioSchedule,
+            result.AudioFriday
+          );
+
+          // Bangun ulang ringkasan AudioStatus berdasarkan status final
+          // dari panels, bukan dari Adzan!T:U.
+          result.AudioStatus = {
+            qiroah: 'ON',
+            tarhim: 'ON',
+            beep: 'ON',
+            adzan: 'ON',
+            doa: 'ON',
+            iqomah: 'ON',
+            sirine: 'ON'
+          };
+
+          const applyAudioStatusSummary_ = function(items) {
+            (Array.isArray(items) ? items : []).forEach(function(item) {
+              const event = String(item && item.event || '').toLowerCase();
+              const status = String(item && item.status || 'ON').toUpperCase();
+              if (status !== 'OFF') return;
+
+              const category =
+                /^qiroah/.test(event) ? 'qiroah' :
+                event === 'tarhim' ? 'tarhim' :
+                event === 'beep' ? 'beep' :
+                /^adzan/.test(event) ? 'adzan' :
+                /^doa/.test(event) ? 'doa' :
+                event === 'iqomah' ? 'iqomah' :
+                event === 'sirine' ? 'sirine' : '';
+
+              if (category) result.AudioStatus[category] = 'OFF';
+            });
+          };
+
+          Object.keys(result.AudioSchedule || {}).forEach(function(sequenceName) {
+            applyAudioStatusSummary_(result.AudioSchedule[sequenceName]);
+          });
+          applyAudioStatusSummary_(result.AudioFriday);
+
+          Logger.log(
+            'AUDIO FINAL SOURCE = PANELS B46:Q55; ' +
+            'DURASI/URL = ADZAN; STATUS = PANELS'
           );
 
           return;
