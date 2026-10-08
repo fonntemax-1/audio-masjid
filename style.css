@@ -1722,9 +1722,15 @@
        Warna mengikuti tema aktif melalui --theme-accent.
        Hanya visual; tidak menyentuh data, audio, atau scheduler. */
     #petugas-panel-box .khotbah-item {
+      border-bottom: 0 !important;
+      padding-bottom: 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    /* Separator hanya aktif ketika PETUGAS SHOLAT benar-benar ditampilkan. */
+    #petugas-sholat-list.petugas-lines-visible .khotbah-item {
       border-bottom: max(1px, 0.12vh) solid var(--theme-accent) !important;
       padding-bottom: clamp(0.18vh, 0.35cqw, 0.35vh) !important;
-      box-sizing: border-box !important;
     }
 
     .khotbah-role {
