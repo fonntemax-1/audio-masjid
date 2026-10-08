@@ -1893,15 +1893,18 @@
         return item && item.eventKey === state.currentEventKey;
       });
 
-      let status = currentItem
-        ? String(currentItem.status || '').trim().toUpperCase()
-        : '';
+      // Selalu baca status realtime dari sequence yang benar.
+      // Status queue lama bisa tertinggal saat Sheet berubah ON/OFF.
+      let status = getRealtimeAudioStatus_(
+        state.currentPrayer,
+        state.currentAudioType
+      );
 
+      // Fallback hanya jika status realtime belum tersedia.
       if (status !== 'ON' && status !== 'OFF') {
-        status = getRealtimeAudioStatus_(
-          state.currentPrayer,
-          state.currentAudioType
-        );
+        status = currentItem
+          ? String(currentItem.status || '').trim().toUpperCase()
+          : '';
       }
 
       if (status !== 'ON' && status !== 'OFF') return;
@@ -4787,10 +4790,15 @@ function updateFridayPrayerDisplay() {
   if (!state || !schedule) return;
 
   const getStatus = function(item) {
-    const prayer = String(item && item.prayerName || '');
+    const prayer = String(item && item.prayerName || '').trim().toUpperCase();
+    const sequenceName = typeof getAudioSequenceName_ === 'function'
+      ? getAudioSequenceName_(prayer)
+      : prayer;
     const eventName = String(item && item.eventName || '').trim().toLowerCase();
     const audioType = String(item && item.audioType || '').trim().toLowerCase();
-    const list = Array.isArray(schedule[prayer]) ? schedule[prayer] : [];
+    const list = Array.isArray(schedule[sequenceName])
+      ? schedule[sequenceName]
+      : (Array.isArray(schedule[prayer]) ? schedule[prayer] : []);
     for (let i = 0; i < list.length; i++) {
       const s = list[i] || {};
       const se = String(s.event || s.eventName || '').trim().toLowerCase();
