@@ -950,6 +950,14 @@ function getPanelEventCountdownCustomConfig_() {
           processKeyAudioSheet(sheet, result);
           processAdzanScheduleSheet(sheet, result);
           processAdzanAudioStatusSheet(sheet, result);
+
+          // panels!B46:Q55 adalah sumber ON/OFF final per sequence.
+          // Terapkan sejak getDataFromSheet() pertama kali dipanggil,
+          // bukan menunggu polling realtime 5 detik.
+          // Hanya status audio yang dioverlay; urutan, durasi, anchor,
+          // dan timing dari Sheet Adzan tetap tidak berubah.
+          applyPanelAudioStatusRealtime_(ss, result.AudioSchedule, result.AudioFriday);
+
           return;
         }
 
