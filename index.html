@@ -279,10 +279,18 @@
   color:#ffffff !important;
   -webkit-text-fill-color:#ffffff !important;
 }
+
+/* STARTUP VISUAL GATE — hanya mengatur tampilan awal.
+   Tidak menyentuh audio, scheduler, countdown, atau polling data. */
+body.startup-visual-hold .screen-container { visibility:hidden !important; }
+body.startup-visual-ready .screen-container { visibility:visible !important; }
+#startup-visual-overlay { position:fixed; inset:0; z-index:999999; background:#000; pointer-events:none; opacity:1; transition:opacity .12s ease; }
+body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 </style>
 </head>
 
-<body>
+<body class="startup-visual-hold">
+  <div id="startup-visual-overlay" aria-hidden="true"></div>
   <div class="screen-container">
     <div class="header">
       <div class="header-logo">
@@ -6724,12 +6732,23 @@ function startRealtimeAudioConfigPolling_() {
       element.innerHTML = text;
     }
 
+    function releaseStartupVisualGate_() {
+      if (document.body) {
+        document.body.classList.remove('startup-visual-hold');
+        document.body.classList.add('startup-visual-ready');
+      }
+    }
+
     function updateUI(data) {
     if (data && data.DisplayTheme) {
       applyDisplayTheme(data.DisplayTheme);
     }
 
       if (!data) return;
+
+      // Data utama sudah tersedia: tampilkan layar sekaligus.
+      // Tidak memengaruhi audio/scheduler.
+      releaseStartupVisualGate_();
 
       // Running Text footer dirender langsung dari payload utama.
       // Tidak bergantung pada renderer PETUGAS atau polling Event.
@@ -17057,6 +17076,10 @@ function setCountdownBlackMode(enabled) {
     );
 
     installAudioInteractionUnlock();
+
+    // Pengaman visual: bila API utama gagal, layar tetap muncul.
+    // Ini hanya visual dan tidak memengaruhi audio/scheduler.
+    setTimeout(function() { releaseStartupVisualGate_(); }, 12000);
 
     // REALTIME TICKER HARUS DIPASANG SEBELUM SEMUA PROSES STARTUP.
     // Jika salah satu startup/API/audio melempar error atau bekerja lama,
