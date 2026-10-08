@@ -1420,6 +1420,13 @@
 
       if (!data) return;
 
+      // getRealtimeAudioConfig sekarang juga mengirim RAMADAN_DISPLAY.
+      // Terapkan lebih dahulu agar sequence SUBUH/MAGHRIB yang dipilih
+      // scheduler selalu sesuai mode display sejak startup.
+      if (Object.prototype.hasOwnProperty.call(data, 'RamadanDisplay')) {
+        setRamadanDisplay(data.RamadanDisplay);
+      }
+
       // URL A:B dari Sheet sengaja tidak dipakai.
       // Sheet hanya menjadi sumber sequence + ON/OFF.
       const source =
@@ -13125,6 +13132,19 @@ function startRealtimeAudioConfigPolling_() {
 
       audioState.audioConfigWaitLogged = false;
 
+      // RAMADAN_DISPLAY harus diketahui sebelum menentukan sequence audio.
+      // Tanpa guard ini, cache audio dapat membangun SUBUH_BIASA terlebih
+      // dahulu saat mode sebenarnya SUBUH_RAMADHAN.
+      if (!RAMADAN_DISPLAY_READY) {
+        if (!RAMADAN_DISPLAY_WAIT_LOGGED) {
+          console.log(
+            'AUDIO SCHEDULE: menunggu RAMADAN_DISPLAY dari Apps Script...'
+          );
+          RAMADAN_DISPLAY_WAIT_LOGGED = true;
+        }
+        return;
+      }
+
       const prayerSchedule =
         WEB_APP_STATE.prayer.schedule || {};
 
@@ -13507,6 +13527,11 @@ function startRealtimeAudioConfigPolling_() {
     // - Tidak mengubah waktu raw Subuh/Terbit.
     // - Tidak mengubah schedule, durasi, urutan, atau proses AUDIO.
     let RAMADAN_DISPLAY = false;
+    // Scheduler audio tidak boleh memilih SUBUH_BIASA/SUBUH_RAMADHAN
+    // sebelum sumber RAMADAN_DISPLAY diketahui. Ini mencegah race startup
+    // ketika audio-config cache siap lebih cepat daripada getDataFromSheet().
+    let RAMADAN_DISPLAY_READY = false;
+    let RAMADAN_DISPLAY_WAIT_LOGGED = false;
 
 
     function setRamadanDisplay(value) {
@@ -13533,6 +13558,9 @@ function startRealtimeAudioConfigPolling_() {
       } else {
         return;
       }
+
+      RAMADAN_DISPLAY_READY = true;
+      RAMADAN_DISPLAY_WAIT_LOGGED = false;
 
       console.log(
         'RAMADAN DISPLAY =',
