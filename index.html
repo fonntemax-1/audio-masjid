@@ -4839,10 +4839,20 @@ function pollRealtimeAudioConfig_() {
       const friday = data.AudioFriday || data.audioFriday || [];
       const signature = getRealtimeAudioStatusSignature_(schedule, friday);
 
-      if (signature === realtimeAudioConfigLastSignature) return;
+      // Status harus selalu diterapkan ke schedule lokal.
+      // Polling dapat datang sebelum setAudioConfig() selesai; jika signature
+      // sama lalu langsung return, status OFF bisa tidak pernah menempel
+      // ke queue/audio yang sudah aktif.
+      const signatureChanged =
+        signature !== realtimeAudioConfigLastSignature;
+
       realtimeAudioConfigLastSignature = signature;
 
-      console.log('AUDIO ON/OFF REALTIME: status Sheet berubah -> MUTE/UNMUTE saja.');
+      if (signatureChanged) {
+        console.log('AUDIO ON/OFF REALTIME: status Sheet berubah -> MUTE/UNMUTE saja.');
+      }
+
+      // SELALU sinkronkan status. Tidak rebuild queue dan tidak mengubah timing.
       applyRealtimeAudioStatusOnly_(data);
     })
     .catch(function(error) {
