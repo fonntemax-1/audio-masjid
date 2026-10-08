@@ -13254,6 +13254,7 @@ function startRealtimeAudioConfigPolling_() {
       if (audioState.schedulePreparing) return;
 
       audioState.schedulePreparing = true;
+      const scheduleRamadanModeVersion = RAMADAN_AUDIO_MODE_VERSION;
 
       try {
 
@@ -13385,6 +13386,34 @@ function startRealtimeAudioConfigPolling_() {
               event.status
             );
           });
+        }
+
+        // Jika mode Ramadan berubah selama await metadata audio,
+        // hasil schedule lama harus dibuang. Jangan pernah membiarkan
+        // SUBUH_BIASA memenangkan race terhadap SUBUH_RAMADHAN.
+        if (scheduleRamadanModeVersion !== RAMADAN_AUDIO_MODE_VERSION) {
+          console.log(
+            'AUDIO SCHEDULE DIBATALKAN: mode Ramadan berubah saat build',
+            scheduleRamadanModeVersion,
+            '=>',
+            RAMADAN_AUDIO_MODE_VERSION
+          );
+          audioState.schedulePreparing = false;
+          audioState.scheduleInitialized = false;
+          audioState.computedSchedules.clear();
+
+          const retryWita = getWitaTime();
+          const retrySeconds =
+            Number(retryWita.hour) * 3600 +
+            Number(retryWita.minute) * 60 +
+            Number(retryWita.second);
+
+          window.setTimeout(function() {
+            prepareDailyAudioSchedule(dateKey, retrySeconds).catch(function(error) {
+              console.warn('AUDIO SCHEDULE RETRY MODE RAMADAN GAGAL:', error);
+            });
+          }, 0);
+          return;
         }
 
         audioState.scheduleInitialized = true;
@@ -13595,6 +13624,9 @@ function startRealtimeAudioConfigPolling_() {
     // ketika audio-config cache siap lebih cepat daripada getDataFromSheet().
     let RAMADAN_DISPLAY_READY = false;
     let RAMADAN_DISPLAY_WAIT_LOGGED = false;
+    // Versi mode untuk membatalkan proses async schedule lama ketika
+    // mode Ramadan berubah saat metadata audio masih sedang dimuat.
+    let RAMADAN_AUDIO_MODE_VERSION = 0;
 
 
     function setRamadanDisplay(value) {
@@ -13629,6 +13661,18 @@ function startRealtimeAudioConfigPolling_() {
       // getDataFromSheet/getRealtimeAudioConfig mengirim TRUE), schedule
       // lama tidak boleh tetap dipakai. Tandai schedule sebagai belum
       // siap agar SUBUH/MAGHRIB dibangun ulang dengan sequence yang benar.
+      if (previousRamadanDisplay !== RAMADAN_DISPLAY) {
+        RAMADAN_AUDIO_MODE_VERSION++;
+
+        console.log(
+          'RAMADAN MODE VERSION:',
+          RAMADAN_AUDIO_MODE_VERSION,
+          previousRamadanDisplay,
+          '=>',
+          RAMADAN_DISPLAY
+        );
+      }
+
       if (
         previousRamadanDisplay !== RAMADAN_DISPLAY &&
         WEB_APP_STATE &&
