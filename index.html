@@ -10052,98 +10052,118 @@ function startRealtimeAudioConfigPolling_() {
       const mode =
         youtubeControlMode;
 
-      // Jika mode berubah, reset hanya state kontrol YouTube.
-      // Tidak menyentuh jadwal audio, urutan audio, atau data sholat.
+      // Perubahan ON/OFF/AUTO hanya mengubah audio YouTube.
+      // JANGAN mengganti src iframe selama video yang sama masih
+      // terpasang. Dengan begitu video tetap PLAY pada posisi waktunya
+      // dan mode OFF/AUTO benar-benar hanya MUTE.
       if (previousMode !== mode) {
-        youtubeAutoMuted = mode === 'AUTO';
+        youtubeAutoMuted = mode === 'AUTO' || mode === 'OFF';
         youtubeAutoMuteKey = '';
         youtubeAutoMutePrayer = '';
         youtubeAutoMuteQiroahTargetSec = null;
-
-        // Bila operator berpindah kembali ke AUTO, lakukan satu
-        // startup-style schedule check untuk mode AUTO yang baru.
         youtubeAutoScheduleEvaluated = mode !== 'AUTO';
       }
 
-      // STOP = YouTube benar-benar dihentikan.
+      // STOP adalah satu-satunya mode yang boleh melepas iframe.
       if (mode === 'STOP') {
-
         stopYouTubeIframe();
-
-        youtubeAutoMuted =
-          false;
-
+        youtubeAutoMuted = false;
         return;
-
       }
 
-      // OFF = YouTube tetap berjalan tetapi selalu MUTE.
-      if (mode === 'OFF') {
+      // URL kosong: tidak ada video yang dapat dimainkan.
+      const embedUrlUnmuted =
+        getYouTubeEmbedUrl(url, 0);
 
-        muteYouTubeIframe();
-
-        youtubeAutoMuted =
-          true;
-
+      if (!embedUrlUnmuted) {
+        iframe.removeAttribute('src');
+        currentYouTubeUrl = '';
         return;
-
       }
 
-      // ON = PLAY + UNMUTE.
-      if (mode === 'ON') {
+      // Tentukan apakah URL/video yang diminta berbeda dari video
+      // yang sedang terpasang. Parameter mute TIDAK dianggap sebagai
+      // perubahan video.
+      const currentSrc =
+        iframe.getAttribute('src') || currentYouTubeUrl || '';
 
-        unmuteYouTubeIframe();
+      let currentVideoId = '';
+      let requestedVideoId = '';
 
-        youtubeAutoMuted =
-          false;
+      try {
+        const currentParsed = currentSrc ? new URL(currentSrc) : null;
+        const requestedParsed = new URL(embedUrlUnmuted);
 
+        if (currentParsed) {
+          const match = currentParsed.pathname.match(/\\/embed\\/([^/?#]+)/);
+          currentVideoId = match ? match[1] : '';
+        }
+
+        {
+          const match = requestedParsed.pathname.match(/\\/embed\\/([^/?#]+)/);
+          requestedVideoId = match ? match[1] : '';
+        }
+      } catch (e) {
+        currentVideoId = '';
+        requestedVideoId = '';
       }
 
-      // AUTO tidak mengubah suara setelah startup check selesai.
-      // Pemeriksaan jadwal dilakukan oleh updateYouTubeAudioStop()
-      // satu kali setelah schedule audio siap.
-      const embedMute =
+      const sameVideo =
+        !!currentVideoId &&
+        !!requestedVideoId &&
+        currentVideoId === requestedVideoId &&
+        !!currentSrc;
+
+      // Video yang sama sudah tampil:
+      // - OFF -> mute
+      // - ON -> unmute
+      // - AUTO -> biarkan updateYouTubeAudioStop menentukan mute/unmute.
+      // Tidak ada perubahan src, sehingga playback tidak restart/blank.
+      if (sameVideo) {
+        if (mode === 'OFF') {
+          muteYouTubeIframe();
+          youtubeAutoMuted = true;
+          return;
+        }
+
+        if (mode === 'ON') {
+          unmuteYouTubeIframe();
+          youtubeAutoMuted = false;
+          return;
+        }
+
+        // AUTO: jangan reload iframe. Kondisi mute akan dievaluasi
+        // oleh updateYouTubeAudioStop() berdasarkan jadwal Qiroah.
+        if (mode === 'AUTO') {
+          if (!youtubeAutoScheduleEvaluated) {
+            updateYouTubeAudioStop(
+              (function() {
+                const t = getWitaTime();
+                return Number(t.hour) * 3600 +
+                  Number(t.minute) * 60 +
+                  Number(t.second);
+              })(),
+              getApiDate()
+            );
+          }
+          return;
+        }
+      }
+
+      // Video baru / iframe belum terpasang.
+      // Hanya pada kondisi ini src boleh dipasang ulang.
+      let embedUrl = embedUrlUnmuted;
+      const shouldMute =
         mode === 'OFF' ||
-        (mode === 'AUTO' && youtubeAutoMuted)
-          ? 1
-          : 0;
+        (mode === 'AUTO' && youtubeAutoMuted);
 
-      const embedUrl =
-        getYouTubeEmbedUrl(
-          url,
-          embedMute
-        );
-
-      if (!embedUrl) {
-
-        iframe.removeAttribute(
-          'src'
-        );
-
-        currentYouTubeUrl =
-          '';
-
-        return;
-
+      if (shouldMute) {
+        embedUrl =
+          getYouTubeEmbedUrl(url, 1);
       }
 
-      const iframeSrc =
-        iframe.getAttribute('src') ||
-        '';
-
-      if (
-        embedUrl === currentYouTubeUrl &&
-        iframeSrc === embedUrl
-      ) {
-        return;
-      }
-
-      currentYouTubeUrl =
-        embedUrl;
-
-      iframe.src =
-        embedUrl;
-
+      currentYouTubeUrl = embedUrl;
+      iframe.src = embedUrl;
     }
 
     // =========================================================
