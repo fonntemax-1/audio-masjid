@@ -956,9 +956,11 @@ function getPanelEventCountdownCustomConfig_() {
         }
 
         if (sheetName === 'Adzan') {
-          // Sheet Adzan sudah tidak digunakan untuk audio.
-          Logger.log('SHEET ADZAN DILEWATI: sumber audio aktif = panels.');
-          return;
+          // Sheet Adzan tetap menjadi SUMBER URL + DURASI audio.
+          // panels!B46:Q55 hanya menjadi SUMBER STATUS ON/OFF.
+          // Jangan return di sini karena processAdzanScheduleSheet()
+          // harus dijalankan pada blok parser Adzan di bawah.
+          Logger.log('SHEET ADZAN: URL/DURASI dibaca; STATUS dipetakan dari panels!B46:Q55.');
         }
 
         // Hanya sheet yang benar-benar memakai parser generik
@@ -2593,8 +2595,57 @@ function getRealtimeAudioConfig() {
   try {
     const ss = getSpreadsheet();
     SpreadsheetApp.flush();
-    const panelAudio = buildAudioScheduleFromPanels_(ss);
-    const result = {success:true,RamadanDisplay:getRamadanDisplaySetting(),Audio:{},AudioSchedule:panelAudio.schedule,AudioDurations:{},AudioFriday:panelAudio.friday,AudioStatus:{qiroah:'ON',tarhim:'ON',beep:'ON',adzan:'ON',doa:'ON',iqomah:'ON',sirine:'ON'}};
+
+    // getRealtimeAudioConfig harus mengembalikan SCHEDULE LENGKAP:
+    // URL + DURASI dari Sheet Adzan, lalu STATUS ON/OFF dari panels.
+    // Jangan memakai buildAudioScheduleFromPanels_() sebagai schedule final
+    // karena fungsi tersebut memang hanya membaca selector/status panels
+    // dan duration=0 bukan durasi playback.
+    const audioResult = {
+      Audio: {},
+      AudioSchedule: {
+        SUBUH_RAMADHAN: [],
+        SUBUH_BIASA: [],
+        DZUHUR: [],
+        ASHAR: [],
+        MAGHRIB_RAMADHAN: [],
+        MAGHRIB_BIASA: [],
+        ISYA: []
+      },
+      AudioDurations: {},
+      AudioFriday: []
+    };
+
+    const adzanSheet = getSheetCaseInsensitive_(ss, 'Adzan');
+    if (adzanSheet) {
+      processKeyAudioSheet(adzanSheet, audioResult);
+      processAdzanScheduleSheet(adzanSheet, audioResult);
+      applyPanelAudioStatusRealtime_(
+        ss,
+        audioResult.AudioSchedule,
+        audioResult.AudioFriday
+      );
+    } else {
+      Logger.log('REALTIME AUDIO: Sheet Adzan tidak ditemukan.');
+    }
+
+    const result = {
+      success: true,
+      RamadanDisplay: getRamadanDisplaySetting(),
+      Audio: audioResult.Audio || {},
+      AudioSchedule: audioResult.AudioSchedule || {},
+      AudioDurations: audioResult.AudioDurations || {},
+      AudioFriday: audioResult.AudioFriday || [],
+      AudioStatus: {
+        qiroah:'ON',
+        tarhim:'ON',
+        beep:'ON',
+        adzan:'ON',
+        doa:'ON',
+        iqomah:'ON',
+        sirine:'ON'
+      }
+    };
     Object.keys(result.AudioSchedule).forEach(function(k){(result.AudioSchedule[k]||[]).forEach(function(x){
       const e=String(x.event||'').toLowerCase(); const s=String(x.status||'ON').toUpperCase();
       const cat=/^qiroah/.test(e)?'qiroah':e==='tarhim'?'tarhim':e==='beep'?'beep':/^adzan/.test(e)?'adzan':/^doa/.test(e)?'doa':e==='iqomah'?'iqomah':e==='sirine'?'sirine':'';
