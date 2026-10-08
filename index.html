@@ -2199,16 +2199,12 @@
                 ? Math.max(0, catchUpNowSeconds - catchUpTarget)
                 : 0;
 
-            // OFF = tetap memainkan event/durasi, tetapi hening.
-            // ON  = terdengar normal.
-            const audioStatusOff =
-              String(status || 'ON').toUpperCase() === 'OFF';
-
-            // Pastikan state output HTMLAudioElement eksplisit.
-            // Pada TCL/Chrome TV, jangan mengandalkan state default browser.
+            // STATUS OFF sudah dihentikan di triggerAudioEvent()
+            // sehingga playSingleAudio() hanya menerima item ON.
+            // Pastikan output audio ON secara eksplisit.
             try {
-              audio.defaultMuted = audioStatusOff;
-              audio.muted = audioStatusOff;
+              audio.defaultMuted = false;
+              audio.muted = false;
               audio.volume = 1;
             } catch (outputStateError) {
               console.warn(
@@ -2581,6 +2577,19 @@
             : 'ON'
 
       };
+
+      // Guard tambahan: enqueueAudio tidak boleh memasukkan
+      // selector OFF ke queue walaupun ada jalur pemanggil lain.
+      if (item.status === 'OFF') {
+        console.log(
+          'AUDIO SKIP QUEUE (STATUS OFF):',
+          item.prayerName || '-',
+          item.eventName || item.label || '-',
+          'type=',
+          item.audioType || '-'
+        );
+        return false;
+      }
 
       if (!item.eventKey) {
 
@@ -11011,6 +11020,35 @@ function updateFridayPrayerDisplay() {
 
       const allowActiveCatchUp =
         options.allowActiveCatchUp === true;
+
+      // =====================================================
+      // STATUS AUDIO DARI SHEET PANELS / ADZAN
+      //
+      // SELECTOR menentukan audio yang dipakai.
+      // STATUS ON  = audio boleh masuk queue dan dimainkan.
+      // STATUS OFF = audio DI-SKIP, bukan mute.
+      //
+      // Berlaku untuk SEMUA selector:
+      // qiroah-1 ... qiroah-5, tarhim, sirine, beep,
+      // adzan-subuh, adzan-biasa, doa-*, iqomah, dll.
+      //
+      // Timeline event tetap dihitung oleh scheduler agar anchor
+      // waktu sholat tidak berubah. Yang dihilangkan hanya playback
+      // audio OFF, sehingga OFF tidak pernah masuk audio queue.
+      // =====================================================
+      const triggerStatus =
+        String(status == null ? 'ON' : status).trim().toUpperCase();
+
+      if (triggerStatus === 'OFF') {
+        console.log(
+          'AUDIO SKIP (STATUS OFF):',
+          prayerName || '-',
+          eventName || label || '-',
+          'type=',
+          audioType || '-'
+        );
+        return;
+      }
 
       const key =
         getAudioEventKey(
