@@ -2394,7 +2394,19 @@
               );
 
               try {
-                audio.currentTime = 0;
+                // Baca ulang status Sheet tepat sebelum replay.
+                // Perubahan ON -> OFF tidak boleh dihidupkan kembali
+                // oleh loop QIROAH/TARHIM yang dibuat saat status masih ON.
+                try {
+                  syncCurrentAudioMuteStatus_();
+                } catch (realtimeReplaySyncError) {
+                  console.warn(
+                    'AUDIO REALTIME REPLAY SYNC GAGAL:',
+                    label,
+                    realtimeReplaySyncError
+                  );
+                }
+
                 const replay = audio.play();
 
                 if (
@@ -2674,13 +2686,36 @@
 
                   WEB_APP_STATE.audio.initialized = true;
 
-                  // Reassert setelah play() berhasil. Pada sebagian TV/browser,
-                  // state muted dari playback sebelumnya dapat terbawa.
-                  // Ini hanya MUTE/UNMUTE; queue, src, currentTime, durasi,
+                  // Jangan memakai playbackMuted lama. Promise play() dapat
+                  // selesai setelah Sheet berubah ON -> OFF. Baca status
+                  // realtime terbaru agar play() yang terlambat tidak
+                  // menghidupkan suara kembali.
+                  let outputMutedNow = playbackMuted;
+                  try {
+                    const realtimeStatusNow = getRealtimeAudioStatus_(
+                      WEB_APP_STATE.audio.currentPrayer,
+                      WEB_APP_STATE.audio.currentAudioType
+                    );
+                    if (
+                      realtimeStatusNow === 'ON' ||
+                      realtimeStatusNow === 'OFF'
+                    ) {
+                      outputMutedNow = realtimeStatusNow === 'OFF';
+                    }
+                  } catch (realtimePlaySyncError) {
+                    console.warn(
+                      'AUDIO REALTIME PLAY STATUS GAGAL DIBACA:',
+                      label,
+                      realtimePlaySyncError
+                    );
+                  }
+
+                  // Reassert setelah play() berhasil.
+                  // Hanya MUTE/UNMUTE; queue, src, currentTime, durasi,
                   // dan timing sama sekali tidak disentuh.
                   try {
-                    audio.defaultMuted = playbackMuted;
-                    audio.muted = playbackMuted;
+                    audio.defaultMuted = outputMutedNow;
+                    audio.muted = outputMutedNow;
                     audio.volume = 1;
                   } catch (outputStateError) {
                     console.warn(
