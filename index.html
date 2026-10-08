@@ -1826,22 +1826,48 @@
 
     function getRealtimeAudioStatus_(prayerName, audioType) {
       const sequenceName = getAudioSequenceName_(prayerName);
-      let status = getAudioStatusFromSequence_(
-        audioScheduleConfig[sequenceName],
-        sequenceName,
-        audioType
-      );
+      const sequence =
+        sequenceName === 'JUMAT'
+          ? audioFridayConfig
+          : audioScheduleConfig[sequenceName];
 
-      // Jumat memakai array terpisah.
-      if (status === null && sequenceName === 'JUMAT') {
-        status = getAudioStatusFromSequence_(
-          audioFridayConfig,
-          sequenceName,
-          audioType
-        );
+      if (!Array.isArray(sequence)) return null;
+
+      const wanted = normalizeAudioSelectorForSequence_(
+        audioType,
+        sequenceName
+      );
+      if (!wanted) return null;
+
+      // Cocokkan selector secara ketat. Untuk kondisi "SEMUA OFF",
+      // jangan sampai satu event yang gagal dipetakan membuat audio
+      // kembali terdengar. Jika seluruh event audio pada sequence
+      // memang OFF, status event apa pun wajib OFF.
+      const audioItems = sequence.filter(function(item) {
+        return !!getAudioItemCanonicalSelector_(item, sequenceName);
+      });
+
+      if (
+        audioItems.length > 0 &&
+        audioItems.every(function(item) {
+          return String(item.status || 'ON').trim().toUpperCase() === 'OFF';
+        })
+      ) {
+        return 'OFF';
       }
 
-      return status;
+      // Selector spesifik tetap menjadi sumber utama.
+      // Cari occurrence pertama untuk selector yang diminta.
+      for (let i = 0; i < sequence.length; i++) {
+        const item = sequence[i] || {};
+        if (getAudioItemCanonicalSelector_(item, sequenceName) !== wanted) continue;
+
+        return String(item.status || 'ON').trim().toUpperCase() === 'OFF'
+          ? 'OFF'
+          : 'ON';
+      }
+
+      return null;
     }
 
     function syncCurrentAudioMuteStatus_() {
@@ -1855,19 +1881,10 @@
       const prayerName = String(state.currentPrayer || '').trim().toUpperCase();
       const sequenceName = getAudioSequenceName_(prayerName);
 
-      let status = getAudioStatusFromSequence_(
-        audioScheduleConfig[sequenceName],
-        sequenceName,
+      let status = getRealtimeAudioStatus_(
+        state.currentPrayer,
         state.currentAudioType
       );
-
-      if (status === null && sequenceName === 'JUMAT') {
-        status = getAudioStatusFromSequence_(
-          audioFridayConfig,
-          sequenceName,
-          state.currentAudioType
-        );
-      }
 
       if (status === null) return;
 
