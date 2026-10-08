@@ -1653,7 +1653,6 @@
         // Polling Sheet setiap 30 detik tidak boleh membangun ulang
         // schedule/durasi audio yang sama, karena itu membebani TV.
         if (
-          configChanged ||
           !WEB_APP_STATE.audio.scheduleInitialized
         ) {
           window.setTimeout(function() {
