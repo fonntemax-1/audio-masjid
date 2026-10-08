@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updatedAt": "2026-10-08T01:15:02.493Z",
-  "enabled": true,
+  "enabled": false,
   "source": "Google Sheets via Apps Script sync (sequence + ON/OFF only)",
   "Audio": {},
   "AudioSchedule": {
