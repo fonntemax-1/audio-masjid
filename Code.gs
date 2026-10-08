@@ -2521,6 +2521,10 @@ function getRealtimeAudioConfig() {
 
     const result = {
       success: true,
+      // Mode Ramadan ikut dikirim bersama konfigurasi audio agar startup
+      // GitHub Pages dapat memilih sequence SUBUH/MAGHRIB yang benar
+      // sebelum getDataFromSheet() selesai.
+      RamadanDisplay: getRamadanDisplaySetting(),
       Audio: {},
       AudioSchedule: {
         SUBUH_RAMADHAN: [],
