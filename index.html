@@ -1737,47 +1737,110 @@
     // Sheet berubah. Queue boleh di-refresh, tetapi audio aktif tidak
     // boleh tetap mengeluarkan suara ketika status baru = OFF.
     // =========================================================
-    function getRealtimeAudioStatus_(prayerName, audioType) {
-      const wantedType = String(audioType || '').trim().toLowerCase();
+    function getAudioSequenceName_(prayerName) {
       const prayer = String(prayerName || '').trim().toUpperCase();
-      if (!wantedType) return null;
-
-      let sequenceName = prayer;
       if (prayer === 'SUBUH') {
-        sequenceName = isRamadanDisplay() ? 'SUBUH_RAMADHAN' : 'SUBUH_BIASA';
-      } else if (prayer === 'MAGHRIB') {
-        sequenceName = isRamadanDisplay() ? 'MAGHRIB_RAMADHAN' : 'MAGHRIB_BIASA';
+        return isRamadanDisplay() ? 'SUBUH_RAMADHAN' : 'SUBUH_BIASA';
+      }
+      if (prayer === 'MAGHRIB') {
+        return isRamadanDisplay() ? 'MAGHRIB_RAMADHAN' : 'MAGHRIB_BIASA';
+      }
+      if (prayer === 'JUMAT' || prayer === "JUM'AT" || prayer === 'JUMAT') {
+        return 'JUMAT';
+      }
+      return prayer;
+    }
+
+    // Satu-satunya sumber pemetaan selector realtime.
+    // Selector panels dan event Sheet Adzan dinormalisasi ke CANONICAL KEY
+    // sebelum dibandingkan. Tidak ada lagi fallback "cocok apa saja".
+    function normalizeAudioSelectorForSequence_(raw, sequenceName) {
+      let e = String(raw == null ? '' : raw).trim().toLowerCase();
+      const seq = String(sequenceName || '').trim().toUpperCase();
+
+      if (!e || e === 'gap') return '';
+
+      // Nama selector resmi.
+      if (/^qiroah-[1-5]$/.test(e)) return e;
+      if (e === 'qiroah') return 'qiroah';
+      if (e === 'tarhim' || e === 'tarhim-subuh' || e === 'tarhim-biasa') return 'tarhim';
+      if (e === 'beep') return 'beep';
+      if (e === 'iqomah') return 'iqomah';
+      if (e === 'sirine') return 'sirine';
+      if (e === 'doa-adzan') return 'doa-adzan';
+      if (e === 'doa-puasa') return 'doa-puasa';
+      if (e === 'doa-buka') return 'doa-buka';
+
+      // Event generik "doa" hanya dianggap DOA-ADZAN.
+      // DOA-PUASA/DOA-BUKA wajib memakai selector masing-masing.
+      if (e === 'doa') return 'doa-adzan';
+
+      // ADZAN generik dipetakan berdasarkan sequence, bukan fallback global.
+      if (e === 'adzan-subuh') return 'adzan-subuh';
+      if (e === 'adzan-biasa') return 'adzan-biasa';
+      if (e === 'adzan') {
+        return /^SUBUH(?:_|$)/i.test(seq) ? 'adzan-subuh' : 'adzan-biasa';
       }
 
-      const find = function(sequence) {
-        if (!Array.isArray(sequence)) return null;
-        for (let i = 0; i < sequence.length; i++) {
-          const item = sequence[i] || {};
-          const event = String(item.event || '').trim().toLowerCase();
-          const mapped = event === 'adzan' ? 'adzan-biasa' : event;
-          if (
-            mapped === wantedType ||
-            event === wantedType ||
-            (wantedType === 'adzan-subuh' && event === 'adzan')
-          ) {
-            return String(item.status || 'ON').trim().toUpperCase() === 'OFF'
-              ? 'OFF'
-              : 'ON';
-          }
-        }
-        return null;
-      };
+      // Event tambahan yang memang memiliki selector sendiri.
+      return e;
+    }
 
-      let status = find(audioScheduleConfig[sequenceName]);
-      if (status === null) {
-        const keys = Object.keys(audioScheduleConfig || {});
-        for (let i = 0; i < keys.length && status === null; i++) {
-          status = find(audioScheduleConfig[keys[i]]);
+    function getAudioItemCanonicalSelector_(item, sequenceName) {
+      if (!item) return '';
+      return normalizeAudioSelectorForSequence_(
+        item.event || item.audioType || '',
+        sequenceName
+      );
+    }
+
+    function getAudioStatusFromSequence_(sequence, sequenceName, wantedType) {
+      if (!Array.isArray(sequence)) return null;
+
+      const wanted = normalizeAudioSelectorForSequence_(
+        wantedType,
+        sequenceName
+      );
+
+      if (!wanted) return null;
+
+      let occurrence = 0;
+      for (let i = 0; i < sequence.length; i++) {
+        const item = sequence[i] || {};
+        const canonical = getAudioItemCanonicalSelector_(item, sequenceName);
+
+        if (canonical !== wanted) continue;
+
+        // Selector yang sama boleh muncul lebih dari sekali. Status dicari
+        // berdasarkan occurrence, bukan "event pertama yang mirip".
+        if (occurrence === 0) {
+          return String(item.status || 'ON').trim().toUpperCase() === 'OFF'
+            ? 'OFF'
+            : 'ON';
         }
+        occurrence++;
       }
-      if (status === null && Array.isArray(audioFridayConfig)) {
-        status = find(audioFridayConfig);
+
+      return null;
+    }
+
+    function getRealtimeAudioStatus_(prayerName, audioType) {
+      const sequenceName = getAudioSequenceName_(prayerName);
+      let status = getAudioStatusFromSequence_(
+        audioScheduleConfig[sequenceName],
+        sequenceName,
+        audioType
+      );
+
+      // Jumat memakai array terpisah.
+      if (status === null && sequenceName === 'JUMAT') {
+        status = getAudioStatusFromSequence_(
+          audioFridayConfig,
+          sequenceName,
+          audioType
+        );
       }
+
       return status;
     }
 
@@ -1789,77 +1852,21 @@
         return;
       }
 
-      const wantedType =
-        String(state.currentAudioType || '').trim().toLowerCase();
+      const prayerName = String(state.currentPrayer || '').trim().toUpperCase();
+      const sequenceName = getAudioSequenceName_(prayerName);
 
-      if (!wantedType) return;
+      let status = getAudioStatusFromSequence_(
+        audioScheduleConfig[sequenceName],
+        sequenceName,
+        state.currentAudioType
+      );
 
-      const prayerName =
-        String(state.currentPrayer || '').trim().toUpperCase();
-
-      let sequenceName = prayerName;
-      if (prayerName === 'SUBUH') {
-        sequenceName = isRamadanDisplay()
-          ? 'SUBUH_RAMADHAN'
-          : 'SUBUH_BIASA';
-      } else if (prayerName === 'MAGHRIB') {
-        sequenceName = isRamadanDisplay()
-          ? 'MAGHRIB_RAMADHAN'
-          : 'MAGHRIB_BIASA';
-      }
-
-      let status = null;
-
-      const findStatusInSequence = function(sequence) {
-        if (!Array.isArray(sequence)) return null;
-
-        for (let i = 0; i < sequence.length; i++) {
-          const item = sequence[i] || {};
-          const event =
-            String(item.event || '').trim().toLowerCase();
-
-          // currentAudioType berasal dari mapSheetEventToAudioType().
-          // Cocokkan nama audio sebenarnya, bukan label visual ADZAN.
-          let mappedType = event;
-          if (event === 'adzan') {
-            mappedType = 'adzan-biasa';
-          }
-
-          if (mappedType === wantedType || event === wantedType) {
-            return String(item.status || 'ON').trim().toUpperCase() === 'OFF'
-              ? 'OFF'
-              : 'ON';
-          }
-
-          // Toleransi event lama/generik.
-          if (
-            wantedType === 'adzan-subuh' &&
-            event === 'adzan'
-          ) {
-            return String(item.status || 'ON').trim().toUpperCase() === 'OFF'
-              ? 'OFF'
-              : 'ON';
-          }
-        }
-
-        return null;
-      };
-
-      if (audioScheduleConfig[sequenceName]) {
-        status = findStatusInSequence(audioScheduleConfig[sequenceName]);
-      }
-
-      // Fallback: cari di seluruh schedule bila nama prayer belum lengkap.
-      if (status === null) {
-        const keys = Object.keys(audioScheduleConfig || {});
-        for (let i = 0; i < keys.length && status === null; i++) {
-          status = findStatusInSequence(audioScheduleConfig[keys[i]]);
-        }
-      }
-
-      // Jumat memakai konfigurasi terpisah.
-      if (status === null && Array.isArray(audioFridayConfig)) {
-        status = findStatusInSequence(audioFridayConfig);
+      if (status === null && sequenceName === 'JUMAT') {
+        status = getAudioStatusFromSequence_(
+          audioFridayConfig,
+          sequenceName,
+          state.currentAudioType
+        );
       }
 
       if (status === null) return;
@@ -1876,7 +1883,7 @@
           'AUDIO REALTIME MUTE STATUS GAGAL:',
           state.currentPrayer || '-',
           state.currentStage || '-',
-          wantedType,
+          state.currentAudioType || '-',
           status,
           error
         );
@@ -1887,7 +1894,7 @@
         'AUDIO REALTIME STATUS AKTIF:',
         state.currentPrayer || '-',
         state.currentStage || '-',
-        wantedType,
+        state.currentAudioType || '-',
         '=>',
         status,
         shouldMute ? '(MUTE)' : '(UNMUTE)'
@@ -4684,27 +4691,53 @@ function applyRealtimeAudioStatusOnly_(data) {
     sourceSchedule = sourceSchedule.schedule;
   }
 
+  const applyList = function(currentList, incomingList, sequenceName) {
+    if (!Array.isArray(currentList) || !Array.isArray(incomingList)) return;
+
+    const used = {};
+    for (let i = 0; i < currentList.length; i++) {
+      const current = currentList[i] || {};
+      const wanted = getAudioItemCanonicalSelector_(current, sequenceName);
+      if (!wanted) continue;
+
+      let occurrence = 0;
+      for (let j = 0; j < i; j++) {
+        if (getAudioItemCanonicalSelector_(currentList[j], sequenceName) === wanted) {
+          occurrence++;
+        }
+      }
+
+      let match = -1;
+      let seen = 0;
+      for (let j = 0; j < incomingList.length; j++) {
+        if (used[j]) continue;
+        if (getAudioItemCanonicalSelector_(incomingList[j], sequenceName) !== wanted) continue;
+        if (seen === occurrence) {
+          match = j;
+          break;
+        }
+        seen++;
+      }
+
+      if (match >= 0) {
+        used[match] = true;
+        const incoming = incomingList[match];
+        current.status =
+          String(incoming && incoming.status != null ? incoming.status : 'ON')
+            .trim().toUpperCase() === 'OFF' ? 'OFF' : 'ON';
+      }
+    }
+  };
+
   Object.keys(audioScheduleConfig || {}).forEach(function(key) {
     const currentList = Array.isArray(audioScheduleConfig[key]) ? audioScheduleConfig[key] : [];
     const incomingList = Array.isArray(sourceSchedule && sourceSchedule[key]) ? sourceSchedule[key] : [];
-    const count = Math.min(currentList.length, incomingList.length);
-    for (let i = 0; i < count; i++) {
-      const incoming = incomingList[i];
-      if (!incoming) continue;
-      currentList[i].status =
-        String(incoming.status != null ? incoming.status : 'ON').trim().toUpperCase() === 'OFF' ? 'OFF' : 'ON';
-    }
+    applyList(currentList, incomingList, key);
   });
 
   const incomingFriday = data.AudioFriday || data.audioFriday || [];
   if (Array.isArray(audioFridayConfig) && Array.isArray(incomingFriday)) {
-    const count = Math.min(audioFridayConfig.length, incomingFriday.length);
-    for (let i = 0; i < count; i++) {
-      const incoming = incomingFriday[i];
-      if (!incoming) continue;
-      audioFridayConfig[i].status =
-        String(incoming.status != null ? incoming.status : 'ON').trim().toUpperCase() === 'OFF' ? 'OFF' : 'ON';
-    }
+    applyList(audioFridayConfig, incomingFriday, 'JUMAT');
   }
 
   // Hanya MUTE/UNMUTE. Tidak restart, pause, seek, load, atau rebuild scheduler.
@@ -11804,30 +11837,10 @@ function startRealtimeAudioConfigPolling_() {
 
 
     function mapSheetEventToAudioType(eventName, prayerName) {
-
-      const event =
-        String(eventName || '')
-          .trim()
-          .toLowerCase();
-
-      if (/^qiroah-\d+$/.test(event)) return event;
-      if (event === 'qiroah') return 'qiroah';
-      if (event === 'beep') return 'beep';
-      if (event === 'doa') return 'doa';
-      if (event === 'iqomah') return 'iqomah';
-      if (event === 'tarhim') return 'tarhim';
-      if (event === 'sirine') return 'sirine';
-      if (event === 'adzan-subuh') return 'adzan-subuh';
-      if (event === 'adzan-biasa' || event === 'adzan') return 'adzan-biasa';
-
-      // Semua event lain yang berasal dari Sheet Adzan
-      // langsung memakai nama event sebagai key audio.
-      // Ini sengaja GENERIK agar event baru seperti:
-      // takbiran, doa-buka, doa-puasa, dan event lain
-      // tidak perlu ditambahkan satu per satu ke frontend.
-      if (event && event !== 'gap') return event;
-
-      return '';
+      // Playback dan ON/OFF menggunakan CANONICAL SELECTOR yang sama.
+      // Tidak ada alias global yang dapat membuat selector salah event.
+      const sequenceName = getAudioSequenceName_(prayerName);
+      return normalizeAudioSelectorForSequence_(eventName, sequenceName);
     }
 
     async function getPrayerAudioSchedule(prayerName,pSec) {
