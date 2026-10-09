@@ -3999,10 +3999,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   }
 }
 
-/* TV-SHOLAT — FIX GRID ANAK: TRACK GRID, BUKAN 100% LEBAR INDUK.
-   Ukuran kolom dihitung sebagai fraksi agar total selalu pas setelah gap.
-   Semua aturan khusus HP ditaruh terakhir untuk mengalahkan aturan lama. */
-@media screen and (max-width: 1024px) {
+/* TV-SHOLAT — FIX GRID KHUSUS HP: jangan terapkan breakpoint ini pada browser TV Android. */
+@media screen and (max-width: 700px) {
   .screen-container {
     min-width: 0 !important;
     grid-template-rows: minmax(0, 16vh) minmax(0, 1fr) minmax(0, 6vh) !important;
@@ -4121,11 +4119,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   }
 }
 
-/* TV-SHOLAT — VIEWPORT HP: FRAME LUAR IKUT AREA BROWSER AKTUAL.
-   dvh mengikuti tinggi viewport dinamis ketika bilah browser tampil/sembunyi.
-   Width 100% menghindari overflow horizontal akibat 100vw + padding.
-   Tidak mengubah struktur panel, data, audio, atau scheduler. */
-@media screen and (max-width: 1024px) {
+/* TV-SHOLAT — VIEWPORT HP: hanya untuk viewport HP, bukan browser TV Android. */
+@media screen and (max-width: 700px) {
   html {
     width: 100%;
     min-width: 0;
@@ -4157,10 +4152,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   }
 }
 
-/* TV-SHOLAT — HP PORTRAIT: SATU VIEWPORT, SEMUA PANEL DALAM FRAME.
-   Tidak menumpuk menjadi halaman panjang. Ukuran grid dan teks diperkecil
-   secara responsif agar sesuai tinggi/lebar layar. CSS visual saja. */
-@media screen and (orientation: portrait) {
+/* TV-SHOLAT — HP PORTRAIT: hanya viewport kecil; lindungi TV dari aturan HP. */
+@media screen and (max-width: 700px) and (orientation: portrait) {
   html,
   body {
     width: 100% !important;
@@ -4514,9 +4507,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   }
 }
 
-/* Pada HP tegak, gunakan skala tinggi layar dan izinkan teks membungkus.
-   Tidak mengubah dimensi frame maupun posisi panel. */
-@media screen and (orientation: portrait) {
+/* Pada HP tegak, gunakan skala tinggi layar; tidak berlaku pada browser TV. */
+@media screen and (max-width: 700px) and (orientation: portrait) {
   .prayer-name {
     font-size: clamp(8px, 1.25vh, 12px) !important;
     line-height: 1.05 !important;
