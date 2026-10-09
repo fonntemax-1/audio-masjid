@@ -4591,8 +4591,9 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
 .eid-fitri-video-widget {
   left: 1.5% !important;
   right: auto !important;
-  bottom: clamp(4.5vh, 7%, 7vh) !important;
-  width: min(42%, 560px) !important;
+  bottom: calc(2.5vh + 2.5%) !important;
+  width: 50% !important;
+  max-width: none !important;
   aspect-ratio: 16 / 9 !important;
   height: auto !important;
   border: 0 !important;
@@ -4615,8 +4616,9 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
 @media screen and (max-width: 700px) {
   .eid-fitri-video-widget {
     left: 1% !important;
-    bottom: 6% !important;
-    width: min(45%, 260px) !important;
+    bottom: calc(2.5vh + 2.5%) !important;
+    width: 50% !important;
+    max-width: none !important;
     border: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
