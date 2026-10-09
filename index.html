@@ -5165,30 +5165,28 @@ function applyRealtimeAudioStatusOnly_(data) {
 
         if (activeIncoming) {
           const activeStatus =
-            String(
-              activeIncoming.status == null ? 'ON' : activeIncoming.status
-            ).trim().toUpperCase() === 'OFF'
-              ? 'OFF'
-              : 'ON';
+            String(activeIncoming.status == null ? '' : activeIncoming.status)
+              .trim().toUpperCase();
 
-          // Simpan status occurrence/eventKey yang benar-benar aktif.
+          // Payload tanpa status eksplisit tidak boleh dianggap ON.
+          if (activeStatus === 'ON' || activeStatus === 'OFF') {
             realtimeAudioOutputOverride_[activeState.currentEventKey] = activeStatus;
-
             const shouldMuteNow = activeStatus === 'OFF';
 
-          activeAudio.defaultMuted = shouldMuteNow;
-          activeAudio.muted = shouldMuteNow;
-          activeAudio.volume = 1;
+            activeAudio.defaultMuted = shouldMuteNow;
+            activeAudio.muted = shouldMuteNow;
+            activeAudio.volume = 1;
 
-          console.log(
-            'AUDIO HARD REALTIME OUTPUT:',
-            sequenceName,
-            activeState.currentEventKey,
-            activeState.currentAudioType,
-            '=>',
-            activeStatus,
-            shouldMuteNow ? '(MUTE)' : '(UNMUTE)'
-          );
+            console.log(
+              'AUDIO HARD REALTIME OUTPUT:',
+              sequenceName,
+              activeState.currentEventKey,
+              activeState.currentAudioType,
+              '=>',
+              activeStatus,
+              shouldMuteNow ? '(MUTE)' : '(UNMUTE)'
+            );
+          }
         }
       }
     }
