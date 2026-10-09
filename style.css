@@ -4450,7 +4450,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
 
 /* TV-SHOLAT — FONT HP RESPONSIF: hanya tipografi, ukuran frame/grid tetap.
    Skala mengikuti tinggi viewport agar font benar-benar berubah antar ukuran HP. */
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 700px) {
   .header-center h1 {
     font-size: clamp(9px, 1.8vh, 18px) !important;
   }
