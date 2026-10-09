@@ -807,9 +807,12 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
           const requestTotalMs = Math.max(0, performance.now() - requestStartedAt);
 
           console.log(
-            'GAS API JSONP CALLBACK OK:',
+            'GAS API JSONP CALLBACK:',
             action,
             'source=', 'original-spreadsheet',
+            'payloadSuccess=', !!(payload && payload.success === true),
+            'payloadError=', payload && payload.error ? payload.error : '',
+            'payloadKeys=', payload && typeof payload === 'object' ? Object.keys(payload) : [],
             'queueWaitMs=', queueWaitMs,
             'backendTotalMs=', requestTotalMs,
             'queuedAt=', item.queuedAt || null
@@ -17747,7 +17750,11 @@ function setCountdownBlackMode(enabled) {
           applyEidFitriVideoState_();
         })
         .catch(function(error) {
-          console.warn('IDUL FITRI VIDEO: konfigurasi gagal dibaca:', error);
+          console.error(
+            'IDUL FITRI VIDEO: konfigurasi gagal dibaca.',
+            'pesan=', error && error.message ? error.message : String(error),
+            'detail=', error
+          );
           eidFitriVideoConfig = null;
           applyEidFitriVideoState_();
         })
