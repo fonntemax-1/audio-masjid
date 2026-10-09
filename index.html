@@ -5028,9 +5028,13 @@ function applyRealtimeAudioStatusOnly_(data) {
       const occurrence = incomingOccurrences[selector] || 0;
       incomingOccurrences[selector] = occurrence + 1;
       const key = sequenceName + '|' + selector + '|' + occurrence;
-      realtimeAudioSelectorStatusOverride_[key] =
-        String(incomingItem.status == null ? 'ON' : incomingItem.status)
-          .trim().toUpperCase() === 'OFF' ? 'OFF' : 'ON';
+      // Abaikan payload tanpa status ON/OFF eksplisit. Default ON pada
+      // payload kosong dapat membatalkan OFF yang baru dipilih di Sheet.
+      const explicitStatus =
+        String(incomingItem.status == null ? '' : incomingItem.status)
+          .trim().toUpperCase();
+      if (explicitStatus !== 'ON' && explicitStatus !== 'OFF') return;
+      realtimeAudioSelectorStatusOverride_[key] = explicitStatus;
     });
 
     if (!Array.isArray(currentList)) return;
@@ -5063,9 +5067,12 @@ function applyRealtimeAudioStatusOnly_(data) {
       if (match >= 0) {
         used[match] = true;
         const incoming = incomingList[match];
-        current.status =
-          String(incoming && incoming.status != null ? incoming.status : 'ON')
-            .trim().toUpperCase() === 'OFF' ? 'OFF' : 'ON';
+        const explicitStatus =
+          String(incoming && incoming.status != null ? incoming.status : '')
+            .trim().toUpperCase();
+        if (explicitStatus === 'ON' || explicitStatus === 'OFF') {
+          current.status = explicitStatus;
+        }
       }
     }
   };
