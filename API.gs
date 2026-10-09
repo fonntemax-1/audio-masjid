@@ -106,6 +106,10 @@ function handleGithubApiRequest_(params) {
         result = getRealtimeAudioConfig();
         break;
 
+      case 'getRealtimeAudioStatus':
+        result = getRealtimeAudioStatus();
+        break;
+
       case 'setYoutubeStatusOff':
         result = setYoutubeStatusOff();
         break;
