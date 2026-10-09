@@ -3593,22 +3593,3 @@ body[data-display-theme="kuning"] .prayer-time {
 }
 
 
-
-/* PANEL AUTO C22: layar benar-benar hitam saat waktu sholat.
-   Sengaja menutup seluruh tampilan tanpa teks, ikon, atau gambar.
-   Hanya CSS; tidak mengubah audio maupun scheduler. */
-body.panel-countdown-auto::after {
-  content: "" !important;
-  position: fixed !important;
-  inset: 0 !important;
-  display: block !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  background: #000 !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  z-index: 2147483647 !important;
-  pointer-events: none !important;
-}
