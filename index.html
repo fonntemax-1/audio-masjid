@@ -5204,42 +5204,44 @@ function pollRealtimeAudioConfig_() {
   if (realtimeAudioConfigRequestInFlight) return;
   realtimeAudioConfigRequestInFlight = true;
 
-  gasApiCall('getRealtimeAudioConfig')
+  // Endpoint khusus status langsung, mengikuti pola panels!G20.
+  // Tidak mengambil ulang konfigurasi/durasi dan tidak menyentuh scheduler.
+  gasApiCall('getRealtimeAudioStatus')
     .then(function(data) {
-      if (!data || typeof data !== 'object') return;
+      if (!data || typeof data !== 'object' || data.success === false) return;
 
       const schedule = data.AudioSchedule || data.audioSchedule || {};
       const friday = data.AudioFriday || data.audioFriday || [];
       const signature = getRealtimeAudioStatusSignature_(schedule, friday);
-
-      // Status harus selalu diterapkan ke schedule lokal.
-      // Polling dapat datang sebelum setAudioConfig() selesai; jika signature
-      // sama lalu langsung return, status OFF bisa tidak pernah menempel
-      // ke queue/audio yang sudah aktif.
-      const signatureChanged =
-        signature !== realtimeAudioConfigLastSignature;
-
+      const signatureChanged = signature !== realtimeAudioConfigLastSignature;
       realtimeAudioConfigLastSignature = signature;
 
       if (signatureChanged) {
-        console.log('AUDIO ON/OFF REALTIME: status Sheet berubah -> MUTE/UNMUTE saja.');
+        console.log(
+          'AUDIO STATUS CEPAT: panels!B46:Q55 berubah => MUTE/UNMUTE',
+          data.timestamp || ''
+        );
       }
 
-      // SELALU sinkronkan status. Tidak rebuild queue dan tidak mengubah timing.
+      // Hanya menerapkan status ON/OFF. Tidak mengubah queue, durasi,
+      // posisi audio, urutan, maupun waktu mulai/selesai.
       applyRealtimeAudioStatusOnly_(data);
     })
     .catch(function(error) {
-      console.warn('AUDIO ON/OFF REALTIME GAGAL:', error && error.message ? error.message : error);
+      console.warn(
+        'AUDIO STATUS CEPAT GAGAL:',
+        error && error.message ? error.message : error
+      );
     })
     .finally(function() {
       realtimeAudioConfigRequestInFlight = false;
     });
-  }
+}
 
 function startRealtimeAudioConfigPolling_() {
-      pollRealtimeAudioConfig_();
-      setInterval(pollRealtimeAudioConfig_, 5000);
-    }
+  pollRealtimeAudioConfig_();
+  setInterval(pollRealtimeAudioConfig_, 5000);
+}
 
     function fetchSheetData() {
 
