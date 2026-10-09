@@ -15057,7 +15057,25 @@ function setCountdownBlackMode(enabled) {
       if (!audio) return;
 
       try {
-        audio.muted = mute;
+        if (mute) {
+          // SLEEP selalu memprioritaskan mute.
+          audio.muted = true;
+          return;
+        }
+
+        // Saat SLEEP dilepas, jangan langsung unmute.
+        // Audio yang status Sheet-nya OFF harus tetap senyap.
+        // Sinkronkan ulang prioritas status ON/OFF audio aktif.
+        const state = WEB_APP_STATE.audio;
+        if (
+          state &&
+          state.currentEventKey &&
+          state.currentAudioType
+        ) {
+          syncCurrentAudioMuteStatus_();
+        } else {
+          audio.muted = false;
+        }
       } catch (error) {
         console.warn(
           'SLEEP AUDIO MUTE GAGAL:',
