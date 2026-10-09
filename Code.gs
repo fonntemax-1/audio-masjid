@@ -361,7 +361,7 @@ function getYoutubeControl() {
     ).trim();
 
     const rawStatus = String(
-      sheet.getRange('G20').getDisplayValue() || ''
+      sheet.getRange('F20').getDisplayValue() || ''
     ).trim().toUpperCase();
 
     const status =
@@ -544,7 +544,7 @@ function getDataFromSheet() {
     // =====================================================
     // KONFIGURASI YOUTUBE - PANELS
     // panels!C20 = ALAMAT LINK YOUTUBE
-    // panels!G20 = SELECTOR: ON / OFF / AUTO / STOP
+    // panels!F20 = SELECTOR: ON / OFF / AUTO
     //
     // ON   = YouTube hidup + suara ON
     // OFF  = YouTube hidup + suara MUTE
@@ -567,7 +567,7 @@ function getDataFromSheet() {
       ).trim();
 
       const youtubeSelector = String(
-        youtubePanelsSheet.getRange('G20').getDisplayValue() || ''
+        youtubePanelsSheet.getRange('F20').getDisplayValue() || ''
       ).trim().toUpperCase();
 
       result.YoutubeStatus =
@@ -576,7 +576,7 @@ function getDataFromSheet() {
           : 'AUTO';
 
       Logger.log(
-        'YOUTUBE PANELS C20/G20 = LINK=[' +
+        'YOUTUBE PANELS C20/F20 = LINK=[' +
         result.Youtube +
         '] SELECTOR=[' +
         youtubeSelector +
@@ -5191,7 +5191,7 @@ function getRealtimeDisplayConfig() {
     ];
     const c18 = cell(18,3);
     const youtube = cell(20,3);
-    const youtubeStatusRaw = cell(20,7).toUpperCase();
+    const youtubeStatusRaw = cell(20,6).toUpperCase();
     const c22Raw = cell(22,3).toUpperCase();
     const c2Raw = cell(2,3).toUpperCase();
 
