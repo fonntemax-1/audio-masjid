@@ -1583,6 +1583,10 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 
       audioScheduleConfig = normalizedAudioSchedule;
 
+      // Pertahankan status polling realtime terbaru saat data Sheet utama
+      // datang terlambat. Ini mencegah status ON lama membatalkan OFF terbaru.
+      applyRealtimeAudioSelectorOverridesToSchedule_(audioScheduleConfig);
+
       // Status Sheet terbaru langsung diterapkan ke audio yang sedang
       // berjalan. Tidak ada restart/pause/seek; hanya MUTE/UNMUTE.
       // Ini memperbaiki kasus ADZAN-SUBUH OFF tetapi suara yang sedang
@@ -4917,6 +4921,34 @@ function updateFridayPrayerDisplay() {
     let realtimeAudioConfigLastSignature = '';
     // Status output realtime per occurrence/eventKey.
     const realtimeAudioOutputOverride_ = Object.create(null);
+    // Status selector dari polling realtime adalah sumber terbaru.
+    // Simpan terpisah supaya refresh getDataFromSheet yang terlambat
+    // tidak menimpa OFF/ON terbaru dan membuat output terdengar putus-putus.
+    const realtimeAudioSelectorStatusOverride_ = Object.create(null);
+
+    function applyRealtimeAudioSelectorOverridesToSchedule_(schedule) {
+      if (!schedule || typeof schedule !== 'object') return;
+
+      Object.keys(schedule).forEach(function(sequenceName) {
+        const list = Array.isArray(schedule[sequenceName]) ? schedule[sequenceName] : [];
+        const occurrences = Object.create(null);
+
+        list.forEach(function(item) {
+          if (!item) return;
+          const selector = getAudioItemCanonicalSelector_(item, sequenceName);
+          if (!selector) return;
+
+          const occurrence = occurrences[selector] || 0;
+          occurrences[selector] = occurrence + 1;
+          const key = sequenceName + '|' + selector + '|' + occurrence;
+          const overrideStatus = realtimeAudioSelectorStatusOverride_[key];
+
+          if (overrideStatus === 'ON' || overrideStatus === 'OFF') {
+            item.status = overrideStatus;
+          }
+        });
+      });
+    }
 
     function syncQueuedAudioMuteStatus_(schedule) {
   const state = WEB_APP_STATE.audio;
@@ -4983,7 +5015,25 @@ function applyRealtimeAudioStatusOnly_(data) {
   }
 
   const applyList = function(currentList, incomingList, sequenceName) {
-    if (!Array.isArray(currentList) || !Array.isArray(incomingList)) return;
+    if (!Array.isArray(incomingList)) return;
+
+    // Rekam payload realtime terbaru per selector dan occurrence.
+    // Nilai ini bertahan melewati refresh schedule dari endpoint utama.
+    const incomingOccurrences = Object.create(null);
+    incomingList.forEach(function(incomingItem) {
+      if (!incomingItem) return;
+      const selector = getAudioItemCanonicalSelector_(incomingItem, sequenceName);
+      if (!selector) return;
+
+      const occurrence = incomingOccurrences[selector] || 0;
+      incomingOccurrences[selector] = occurrence + 1;
+      const key = sequenceName + '|' + selector + '|' + occurrence;
+      realtimeAudioSelectorStatusOverride_[key] =
+        String(incomingItem.status == null ? 'ON' : incomingItem.status)
+          .trim().toUpperCase() === 'OFF' ? 'OFF' : 'ON';
+    });
+
+    if (!Array.isArray(currentList)) return;
 
     const used = {};
     for (let i = 0; i < currentList.length; i++) {
