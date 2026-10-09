@@ -1,5 +1,5 @@
 // ============================================================
-// DIGITAL SIGNAGE MASJID AL MUJAHIDIN
+// TV MASJID DISPLAY SIGNAGE
 // API.GS - BRIDGE GITHUB PAGES
 // ============================================================
 //
