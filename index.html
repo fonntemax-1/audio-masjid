@@ -17655,41 +17655,49 @@ function setCountdownBlackMode(enabled) {
     let eidFitriVideoLastActive = false;
     let eidFitriVideoRequestBusy = false;
 
+    function parseEidFitriVideoDate_(value) {
+      const text = String(value || '').trim();
+      if (!text) return null;
+      // Mendukung yyyy-MM-dd, dd/MM/yyyy, dan dd-MM-yyyy.
+      let match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+      let year, month, day;
+      if (match) {
+        year = Number(match[1]); month = Number(match[2]); day = Number(match[3]);
+      } else {
+        match = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+        if (!match) return null;
+        day = Number(match[1]); month = Number(match[2]); year = Number(match[3]);
+      }
+      const date = new Date(Date.UTC(year, month - 1, day));
+      if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+      return year * 10000 + month * 100 + day;
+    }
+
     function isEidFitriVideoTimeActive_(config, now) {
       if (!config || String(config.status || '').trim().toUpperCase() !== 'ON') return false;
-      const start = String(config.start || '').trim().match(/^(\d{1,2}):(\d{2})$/);
-      const stop = String(config.stop || '').trim().match(/^(\d{1,2}):(\d{2})$/);
-      if (!start || !stop) return false;
-      const startMinutes = Number(start[1]) * 60 + Number(start[2]);
-      const stopMinutes = Number(stop[1]) * 60 + Number(stop[2]);
-      if (startMinutes > 1439 || stopMinutes > 1439 || startMinutes === stopMinutes) return false;
-
-      let currentMinutes;
+      const startDate = parseEidFitriVideoDate_(config.start);
+      const stopDate = parseEidFitriVideoDate_(config.stop);
+      if (startDate === null || stopDate === null || startDate > stopDate) return false;
       try {
         const timeZone = String(
           WEB_APP_STATE.location && WEB_APP_STATE.location.timezone
             ? WEB_APP_STATE.location.timezone
             : 'Asia/Makassar'
         );
-        const parts = new Intl.DateTimeFormat('en-GB', {
-          timeZone: timeZone,
-          hour: '2-digit',
-          minute: '2-digit',
-          hourCycle: 'h23'
+        const parts = new Intl.DateTimeFormat('en-CA', {
+          timeZone: timeZone, year: 'numeric', month: '2-digit', day: '2-digit'
         }).formatToParts(now);
-        const hour = Number((parts.find(function(p) { return p.type === 'hour'; }) || {}).value);
-        const minute = Number((parts.find(function(p) { return p.type === 'minute'; }) || {}).value);
-        if (!Number.isFinite(hour) || !Number.isFinite(minute)) return false;
-        currentMinutes = hour * 60 + minute;
+        const year = Number((parts.find(function(p) { return p.type === 'year'; }) || {}).value);
+        const month = Number((parts.find(function(p) { return p.type === 'month'; }) || {}).value);
+        const day = Number((parts.find(function(p) { return p.type === 'day'; }) || {}).value);
+        if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return false;
+        const currentDate = year * 10000 + month * 100 + day;
+        // Tanggal mulai dan berhenti termasuk dalam rentang aktif.
+        return currentDate >= startDate && currentDate <= stopDate;
       } catch (error) {
         console.warn('IDUL FITRI VIDEO: timezone tidak valid:', error);
         return false;
       }
-
-      // Mendukung rentang waktu yang melewati tengah malam.
-      return startMinutes < stopMinutes
-        ? currentMinutes >= startMinutes && currentMinutes < stopMinutes
-        : currentMinutes >= startMinutes || currentMinutes < stopMinutes;
     }
 
     function applyEidFitriVideoState_() {
@@ -17731,8 +17739,8 @@ function setCountdownBlackMode(enabled) {
         .then(function(data) {
           if (data && data.success !== false) {
             eidFitriVideoConfig = {
-              start: String(data.start || '').trim(),
-              stop: String(data.stop || '').trim(),
+              start: String(data.startDate || data.start || '').trim(),
+              stop: String(data.stopDate || data.stop || '').trim(),
               status: String(data.status || 'OFF').trim().toUpperCase()
             };
           }
