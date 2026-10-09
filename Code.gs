@@ -2679,7 +2679,7 @@ function buildAudioScheduleFromPanels_(ss) {
     if (e === 'qiraah') return 'qiroah';
     if (e === 'shalawat-tarhim' || e === 'sholawat-tarhim' || e === 'tarhim-subuh' || e === 'tarhim-biasa') return 'tarhim';
     if (e === 'azan-subuh' || /^adzan-subuh-(ramadhan|ramadan|biasa)$/.test(e)) return 'adzan-subuh';
-    if (e === 'azan-biasa' || /^adzan-(dzuhur|zuhur|ashar|maghrib|isya|jumat|jumat|jumat|jumat|jumat)-?(ramadhan|ramadan|biasa)?$/.test(e)) return 'adzan-biasa';
+    if (e === 'azan-biasa' || /^adzan-(dzuhur|zuhur|ashar|maghrib|isya|jumat|jum'at)(-(ramadhan|ramadan|biasa))?$/.test(e)) return 'adzan-biasa';
     if (e === 'azan' || e === 'adzan') return /^SUBUH/i.test(String(seq||'')) ? 'adzan-subuh' : 'adzan-biasa';
     if (e === "do'a") return 'doa';
     if (e === 'iqamah') return 'iqomah';
