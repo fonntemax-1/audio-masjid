@@ -3999,109 +3999,124 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   }
 }
 
-/* TV-SHOLAT — SEMUA FRAME INTERNAL RESPONSIF PADA HP.
-   Frame utama memakai grid dengan kolom fleksibel; panel anak boleh menyusut
-   dan teks membungkus, bukan memperlebar layout. Tampilan saja. */
+/* TV-SHOLAT — FIX GRID ANAK: TRACK GRID, BUKAN 100% LEBAR INDUK.
+   Ukuran kolom dihitung sebagai fraksi agar total selalu pas setelah gap.
+   Semua aturan khusus HP ditaruh terakhir untuk mengalahkan aturan lama. */
 @media screen and (max-width: 1024px) {
   .screen-container {
-    display: grid !important;
-    grid-template-rows: minmax(0, 16vh) minmax(0, 1fr) minmax(0, 6vh) !important;
-    gap: 0.8vh !important;
-    padding: 0.8vh !important;
-  }
-
-  .header,
-  .main-body,
-  .footer {
-    width: 100% !important;
     min-width: 0 !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
+    grid-template-rows: minmax(0, 16vh) minmax(0, 1fr) minmax(0, 6vh) !important;
   }
 
   .main-body {
-    grid-template-columns: minmax(0, 16%) minmax(0, 1fr) minmax(0, 24%) !important;
-    column-gap: 0.8vw !important;
+    display: grid !important;
+    grid-template-columns:
+      minmax(0, 16fr)
+      minmax(0, 60fr)
+      minmax(0, 24fr) !important;
+    column-gap: 0.6vw !important;
+    row-gap: 0 !important;
     align-items: stretch !important;
-  }
-
-  .main-body > .prayer-sidebar,
-  .main-body > .center-panel,
-  .main-body > .right-sidebar {
+    justify-content: stretch !important;
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    height: 100% !important;
-    margin: 0 !important;
-    box-sizing: border-box !important;
-    justify-self: stretch !important;
-  }
-
-  .prayer-sidebar,
-  .center-panel,
-  .right-sidebar {
     overflow: hidden !important;
   }
 
+  /* Jangan paksa grid item kanan selebar seluruh induk. */
+  .main-body > .prayer-sidebar,
+  .main-body > .center-panel,
+  .main-body > .right-sidebar {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    justify-self: stretch !important;
+    align-self: stretch !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .prayer-sidebar,
   .right-sidebar {
     display: flex !important;
     flex-direction: column !important;
-    gap: 0.6vh !important;
-  }
-
-  .right-sidebar > .panel-box,
-  .right-sidebar > #petugas-panel-box,
-  .right-sidebar > #petugas-infaq-display {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    flex: 1 1 0 !important;
-    box-sizing: border-box !important;
+    gap: 0.5vh !important;
   }
 
   .prayer-card,
   .prayer-icon,
   .prayer-details,
-  .panel-box,
   .center-panel > *,
-  .right-sidebar * {
+  .right-sidebar > *,
+  .right-sidebar .panel-box,
+  #petugas-panel-box,
+  #petugas-sholat-list,
+  #petugas-infaq-display,
+  #fin-panel-box {
+    width: auto !important;
     min-width: 0 !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
   }
 
-  .prayer-name,
-  .prayer-time,
-  .panel-title,
-  .panel-sub,
-  .khotbah-role,
-  .khotbah-name,
-  .petugas-infaq-title,
-  .petugas-infaq-text {
-    overflow-wrap: anywhere !important;
+  .prayer-card {
+    flex: 1 1 0 !important;
+    padding-left: 0.35vw !important;
+    padding-right: 0.35vw !important;
+    gap: 0.25vw !important;
   }
 
   .prayer-name {
-    font-size: clamp(8px, 1.35vw, 16px) !important;
+    font-size: clamp(7px, 1.55vw, 15px) !important;
+    line-height: 1.05 !important;
+    overflow-wrap: anywhere !important;
   }
 
   .prayer-time {
-    font-size: clamp(9px, 1.55vw, 18px) !important;
+    font-size: clamp(8px, 1.8vw, 17px) !important;
+    line-height: 1.05 !important;
+    overflow-wrap: anywhere !important;
   }
 
-  .panel-title {
-    font-size: clamp(9px, 1.35vw, 16px) !important;
+  .prayer-icon img {
+    width: clamp(10px, 2vw, 22px) !important;
+    height: auto !important;
+    max-width: 100% !important;
+  }
+
+  .panel-title,
+  #fin-title,
+  #petugas-title {
+    font-size: clamp(8px, 1.5vw, 15px) !important;
+    line-height: 1.08 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .panel-sub,
+  #petugas-tanggal,
+  .khotbah-role,
+  .khotbah-name,
+  .petugas-infaq-text {
+    font-size: clamp(7px, 1.15vw, 12px) !important;
     line-height: 1.1 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
   }
 
-  .panel-sub {
-    font-size: clamp(8px, 1.05vw, 13px) !important;
-    line-height: 1.12 !important;
+  #petugas-sholat-list .khotbah-item {
+    display: grid !important;
+    grid-template-columns: minmax(0, 42%) minmax(0, 58%) !important;
+    gap: 0.2vw !important;
+    width: 100% !important;
+    min-width: 0 !important;
   }
 
   .center-panel img,
   .right-sidebar img {
     max-width: 100% !important;
-    height: auto;
+    object-fit: contain !important;
   }
 }
