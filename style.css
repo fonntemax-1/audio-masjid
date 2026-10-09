@@ -3654,3 +3654,16 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   overflow-wrap: anywhere !important;
   text-shadow: none !important;
 }
+
+/* FIX C22=AUTO: sembunyikan seluruh komponen INFAQ/SHADAQAH + QRIS
+   ketika pesan layar hitam aktif, agar tidak menimpa pesan handphone.
+   Hanya CSS tampilan; tidak mengubah audio, scheduler, atau polling. */
+body.panel-countdown-auto #infaq-left-widget,
+body.panel-countdown-auto .infaq-left-widget,
+body.panel-countdown-auto #petugas-infaq-display,
+body.panel-countdown-auto .petugas-infaq-display {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
