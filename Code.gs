@@ -1773,7 +1773,7 @@ function getEventSheetData_(ss) {
     return String(value == null ? '' : value)
       .trim()
       .toUpperCase()
-      .replace(/[\\s_./-]+/g, ' ');
+      .replace(/[\s_./-]+/g, ' ');
   };
 
   // Default format lama tetap dipertahankan: A=EVENT, B=HARI, C=STATUS, D=KETERANGAN.
@@ -1827,14 +1827,14 @@ function getEventSheetData_(ss) {
       }
       const candidate = nonEmpty.find(function(item) {
         const text = item.shown.toUpperCase();
-        return !/^[-+]?\\d+(?:[.,]\\d+)?$/.test(item.shown) &&
+        return !/^[-+]?\d+(?:[.,]\d+)?$/.test(item.shown) &&
           ['ON', 'OFF', 'AKTIF', 'NONAKTIF', 'STATUS', 'EVENT', 'NAMA EVENT'].indexOf(text) < 0;
       });
       if (candidate) {
         eventName = candidate.shown;
         const rest = nonEmpty.filter(function(item) { return item.index !== candidate.index; });
         const duration = rest.find(function(item) {
-          return /^[-+]?\\d+(?:[.,]\\d+)?$/.test(item.shown);
+          return /^[-+]?\d+(?:[.,]\d+)?$/.test(item.shown);
         });
         const status = rest.find(function(item) {
           return ['ON', 'OFF', 'AKTIF', 'NONAKTIF'].indexOf(item.shown.toUpperCase()) >= 0;
