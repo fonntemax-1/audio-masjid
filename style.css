@@ -4120,3 +4120,40 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
     object-fit: contain !important;
   }
 }
+
+/* TV-SHOLAT — VIEWPORT HP: FRAME LUAR IKUT AREA BROWSER AKTUAL.
+   dvh mengikuti tinggi viewport dinamis ketika bilah browser tampil/sembunyi.
+   Width 100% menghindari overflow horizontal akibat 100vw + padding.
+   Tidak mengubah struktur panel, data, audio, atau scheduler. */
+@media screen and (max-width: 1024px) {
+  html {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden !important;
+  }
+
+  body {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  .screen-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    border-radius: 0.8vh !important;
+  }
+}
+
