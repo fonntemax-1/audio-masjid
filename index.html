@@ -3188,13 +3188,49 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 
         }
 
-        // STATUS OFF = SKIP, BUKAN MUTE.
-        // Pemeriksaan dilakukan setelah event mencapai target waktunya.
-        // Dengan demikian OFF pada satu item hanya melewati item tersebut;
-        // item lain (termasuk IQOMAH) tetap memiliki slot/waktu sendiri.
+        // STATUS OFF:
+        // Jika event yang sama sudah sedang dimainkan, mute output-nya
+        // dan pertahankan state/queue sampai audio selesai natural.
+        // Ini mencegah item OFF yang masuk ulang menghapus currentEventKey
+        // lalu membuat polling realtime kehilangan kendali atas audio aktif.
         if (
           String(item.status || 'ON').trim().toUpperCase() === 'OFF'
         ) {
+          const offActiveAudio = getAudioElement();
+          const sameEventStillPlaying =
+            state.currentEventKey &&
+            item.eventKey === state.currentEventKey &&
+            offActiveAudio &&
+            !offActiveAudio.paused &&
+            !offActiveAudio.ended;
+
+          if (sameEventStillPlaying) {
+            try {
+              offActiveAudio.defaultMuted = true;
+              offActiveAudio.muted = true;
+              offActiveAudio.volume = 1;
+            } catch (offMuteError) {
+              console.warn(
+                'AUDIO OFF AKTIF GAGAL DI-MUTE:',
+                item.prayerName || '-',
+                item.eventName || item.label || '-',
+                offMuteError
+              );
+            }
+
+            console.log(
+              'AUDIO OFF AKTIF: output di-mute, event dipertahankan sampai selesai:',
+              item.prayerName || '-',
+              item.eventName || item.label || '-',
+              'type=',
+              item.audioType || '-',
+              'eventKey=',
+              item.eventKey
+            );
+
+            state.processing = false;
+            return;
+          }
 
           console.log(
             'AUDIO SKIP OFF:',
@@ -3210,10 +3246,20 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
           state.queuedLocks.delete(item.eventKey);
           state.retryCount.delete(item.eventKey);
 
-          state.currentPrayer = '';
-          state.currentStage = '';
-          state.currentEventKey = '';
-          state.currentAudioType = '';
+          // Jangan menghapus state audio lain yang masih aktif hanya
+          // karena item OFF berikutnya/duplikat sedang dilewati.
+          const anotherAudioStillPlaying =
+            offActiveAudio &&
+            !offActiveAudio.paused &&
+            !offActiveAudio.ended;
+
+          if (!anotherAudioStillPlaying) {
+            state.currentPrayer = '';
+            state.currentStage = '';
+            state.currentEventKey = '';
+            state.currentAudioType = '';
+          }
+
           state.processing = false;
 
           setTimeout(function() {
