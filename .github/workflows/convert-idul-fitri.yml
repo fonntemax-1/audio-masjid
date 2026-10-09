@@ -40,7 +40,7 @@ jobs:
             -of default=noprint_wrappers=1 video/idul-fitri.webm
 
       - name: Keep conversion as an artifact for inspection
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: idul-fitri-transparent-webm
           path: video/idul-fitri.webm
