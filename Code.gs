@@ -2705,6 +2705,56 @@ function buildAudioScheduleFromPanels_(ss) {
   return out;
 }
 
+// ============================================================
+// AUDIO STATUS CEPAT - pola terpisah seperti getYoutubeControl()
+// Hanya membaca status event pada panels!B46:Q55.
+// Tidak membaca durasi, tidak menyusun ulang jadwal, dan tidak
+// mengubah scheduler. Dipakai khusus untuk mute/unmute realtime.
+// ============================================================
+function getRealtimeAudioStatus() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = getSheetCaseInsensitive_(ss, 'panels');
+    if (!sheet) {
+      return { success: false, error: 'Sheet panels tidak ditemukan.' };
+    }
+
+    SpreadsheetApp.flush();
+    const values = sheet.getRange('B46:Q55').getDisplayValues();
+    const build = function(offset) {
+      const list = [];
+      values.forEach(function(row) {
+        const event = String(row[offset] == null ? '' : row[offset]).trim();
+        if (!event || /^(ON|OFF|GAP)$/i.test(event)) return;
+        const rawStatus = String(row[offset + 1] == null ? '' : row[offset + 1])
+          .trim().toUpperCase();
+        if (rawStatus !== 'ON' && rawStatus !== 'OFF') return;
+        list.push({ event: event, status: rawStatus });
+      });
+      return list;
+    };
+
+    return {
+      success: true,
+      AudioSchedule: {
+        SUBUH_RAMADHAN: build(0),
+        SUBUH_BIASA: build(2),
+        DZUHUR: build(4),
+        ASHAR: build(6),
+        MAGHRIB_RAMADHAN: build(8),
+        MAGHRIB_BIASA: build(10),
+        ISYA: build(12)
+      },
+      AudioFriday: build(14),
+      source: 'panels!B46:Q55',
+      timestamp: new Date().getTime()
+    };
+  } catch (error) {
+    Logger.log('AUDIO STATUS CEPAT ERROR: ' + (error && error.message ? error.message : error));
+    return { success: false, error: error && error.message ? error.message : String(error) };
+  }
+}
+
 function getRealtimeAudioConfig() {
   try {
     const ss = getSpreadsheet();
