@@ -3999,31 +3999,37 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   }
 }
 
-/* TV-SHOLAT — CEGAH FRAME BERGESER SAAT SELURUH DATA TAMPIL.
-   Kunci ukuran grid dan min-content pada semua viewport ponsel/tablet.
-   Hanya tata letak; tidak mengubah audio, API, jadwal, atau scheduler. */
+/* TV-SHOLAT — FRAME LUAR FULL VIEWPORT DI HP, PORTRAIT DAN LANDSCAPE.
+   Kurangi padding luar body agar screen-container dapat mengisi layar.
+   Hanya tata letak; audio, API, jadwal, dan scheduler tidak disentuh. */
 @media screen and (max-width: 1024px) {
   html {
     width: 100% !important;
+    height: 100% !important;
     max-width: 100% !important;
-    overflow-x: clip !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
   }
 
   body {
     width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    padding-left: 0.8vw !important;
-    padding-right: 0.8vw !important;
-    overflow-x: clip !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 
   .screen-container {
     width: 100% !important;
+    height: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    margin: 0 !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
   }
