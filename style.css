@@ -3593,3 +3593,64 @@ body[data-display-theme="kuning"] .prayer-time {
 }
 
 
+
+
+/* OVERLAY HITAM C22=AUTO: pesan handphone terpusat dan responsif.
+   Aturan hanya berlaku saat mode hitam aktif; tidak mengubah audio/scheduler. */
+body.panel-countdown-auto .clock-overlay .panel-black-message {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: clamp(16px, 4vh, 48px) clamp(16px, 4vw, 64px) !important;
+  background: #000 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: clamp(12px, 2.4vh, 28px) !important;
+  overflow: hidden !important;
+  z-index: 2147483000 !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-title,
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-prayer {
+  display: none !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-icon {
+  display: flex !important;
+  flex: 0 1 auto !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin: 0 !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-icon img {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: min(34vw, 300px) !important;
+  max-height: 27vh !important;
+  object-fit: contain !important;
+  margin: 0 auto !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notice {
+  display: block !important;
+  flex: 0 1 auto !important;
+  width: 100% !important;
+  max-width: 94vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  font-size: clamp(18px, 3.05vw, 48px) !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  text-align: center !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  text-shadow: none !important;
+}
