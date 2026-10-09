@@ -434,6 +434,8 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
             </div>
             <div class="panel-black-line panel-black-notice">DEMI KETENANGAN DAN KEKHUSYUKAN IBADAH SHOLAT KITA</div>
             <div class="panel-black-line panel-black-notice">MOHON UNTUK MENONAKTIFKAN HANDPHONE ATAU SILENT MODE</div>
+            <div class="panel-black-time-heading">WAKTU</div>
+            <div class="panel-black-prayer-name" id="panel-black-prayer">WAKTU SHOLAT SUBUH</div>
             <div class="panel-black-digital-clock" id="panel-black-digital-clock" aria-label="Jam digital">00:00:00</div>
           </div>
 
@@ -16543,7 +16545,17 @@ function setCountdownBlackMode(enabled) {
         // Sebelumnya elemen ini hanya memiliki nilai HTML awal "SUBUH",
         // sehingga pada malam hari black screen tetap menampilkan SUBUH.
         if (panelBlackPrayerEl) {
-          panelBlackPrayerEl.textContent = panelBlackPrayerName || activePrayerName || '';
+          const resolvedBlackPrayerName =
+            String(panelBlackPrayerName || activePrayerName || '').trim().toUpperCase();
+
+          if (resolvedBlackPrayerName === 'IMSAK') {
+            panelBlackPrayerEl.textContent = 'WAKTU IMSAK';
+          } else if (resolvedBlackPrayerName === 'BERBUKA') {
+            panelBlackPrayerEl.textContent = 'WAKTU BERBUKA';
+          } else {
+            panelBlackPrayerEl.textContent =
+              'WAKTU SHOLAT ' + resolvedBlackPrayerName;
+          }
         }
 
         if (panelBlackCityEl) {
