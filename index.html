@@ -2342,8 +2342,14 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
           let finished = false;
           let fallbackTimer = null;
           let playbackWatchdogTimer = null;
+          let qiroahStopBoundaryTimer = null;
 
           function cleanup() {
+
+            if (qiroahStopBoundaryTimer) {
+              clearTimeout(qiroahStopBoundaryTimer);
+              qiroahStopBoundaryTimer = null;
+            }
 
             if (fallbackTimer) {
               clearTimeout(fallbackTimer);
@@ -2700,6 +2706,54 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
             finish(false, true);
             return;
 
+          }
+
+          // QIROAH terpilih wajib berhenti tepat saat event Tarhim berikutnya
+          // dimulai. Jangan menunggu file Qiroah selesai natural, karena itu
+          // akan menunda Tarhim dan membuat dua fase audio bergeser.
+          if (/^qiroah-[1-5]$/.test(normalizedAudioType) || normalizedAudioType === 'qiroah') {
+            const boundary = Number(stopAtSeconds);
+            const boundaryNow = getWitaTime();
+            const boundaryNowSeconds =
+              Number(boundaryNow.hour) * 3600 +
+              Number(boundaryNow.minute) * 60 +
+              Number(boundaryNow.second);
+
+            if (
+              Number.isFinite(boundary) &&
+              Number.isFinite(boundaryNowSeconds) &&
+              boundary > boundaryNowSeconds
+            ) {
+              qiroahStopBoundaryTimer = setTimeout(function() {
+                qiroahStopBoundaryTimer = null;
+                if (finished) return;
+
+                const liveState = WEB_APP_STATE && WEB_APP_STATE.audio;
+                if (
+                  playbackEventKey &&
+                  liveState &&
+                  liveState.currentEventKey &&
+                  liveState.currentEventKey !== playbackEventKey
+                ) {
+                  return;
+                }
+
+                try {
+                  audio.pause();
+                  audio.currentTime = 0;
+                } catch (stopQiroahError) {
+                  console.warn('QIROAH STOP SAAT TARHIM GAGAL:', stopQiroahError);
+                }
+
+                console.log(
+                  'QIROAH STOP TEPAT SAAT TARHIM DIMULAI:',
+                  label,
+                  'tarhimTargetSec=',
+                  boundary
+                );
+                finish(true, false);
+              }, Math.max(0, (boundary - boundaryNowSeconds) * 1000));
+            }
           }
 
           if (
@@ -13174,6 +13228,68 @@ function startRealtimeAudioConfigPolling_() {
 
           cursor += item.duration;
         }
+      }
+
+      // =========================================================
+      // QIROAH PRE-ADZAN: MULAI TEPAT T-30 MENIT, BERHENTI SAAT TARHIM
+      //
+      // Selector Sheet tetap menentukan file Qiroah yang dipakai.
+      // Qiroah tidak menggeser anchor ADZAN (pSec): hanya target Qiroah
+      // yang disesuaikan ke pSec - 30 menit. Batas akhirnya mengikuti
+      // target Tarhim yang sudah dihitung dari sequence Sheet.
+      // =========================================================
+      const selectedQiroahEvents = events.filter(function(eventItem) {
+        const type = String(eventItem.audioType || '').trim().toLowerCase();
+        return (
+          (/^qiroah-[1-5]$/.test(type) || type === 'qiroah') &&
+          Number(eventItem.targetSec) < Number(pSec)
+        );
+      });
+
+      const firstScheduledTarhim = events
+        .filter(function(eventItem) {
+          return (
+            String(eventItem.audioType || '').trim().toLowerCase() === 'tarhim' &&
+            Number(eventItem.targetSec) < Number(pSec)
+          );
+        })
+        .sort(function(a, b) {
+          return Number(a.targetSec) - Number(b.targetSec);
+        })[0];
+
+      if (selectedQiroahEvents.length && firstScheduledTarhim) {
+        const qiroahStartTarget = Number(pSec) - (30 * 60);
+        const tarhimStartTarget = Number(firstScheduledTarhim.targetSec);
+
+        // Selector normalnya menghasilkan satu Qiroah. Jika konfigurasi
+        // lama berisi lebih dari satu, gunakan hanya slot terpilih pertama
+        // agar tidak ada dua audio yang mulai bersamaan.
+        selectedQiroahEvents.sort(function(a, b) {
+          return Number(a.targetSec) - Number(b.targetSec);
+        });
+
+        selectedQiroahEvents.forEach(function(eventItem, index) {
+          if (index > 0) {
+            eventItem.endSec = eventItem.targetSec;
+            return;
+          }
+
+          eventItem.targetSec = qiroahStartTarget;
+          eventItem.endSec = tarhimStartTarget;
+        });
+
+        console.log(
+          'AUDIO QIROAH PRE-ADZAN: selector Sheet dipertahankan; mulai T-30 menit dan STOP saat Tarhim.',
+          'qiroahTargetSec=', qiroahStartTarget,
+          'tarhimTargetSec=', tarhimStartTarget,
+          'adzanAnchorSec=', Number(pSec),
+          'qiroahType=', selectedQiroahEvents[0].audioType
+        );
+      } else if (selectedQiroahEvents.length) {
+        console.warn(
+          'AUDIO QIROAH PRE-ADZAN: Tarhim sebelum Adzan tidak ditemukan; timeline Qiroah dipertahankan dari sequence Sheet.',
+          name
+        );
       }
 
       events.sort(function(a,b) {
