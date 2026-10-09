@@ -63,7 +63,27 @@ function handleGithubApiRequest_(params) {
         break;
 
       case 'getYoutubeControl':
+        // Kontrak kontrol YouTube panels!C20/F20.
+        // Pertahankan empat mode: ON, OFF, AUTO, STOP.
+        // STOP diteruskan sebagai status tersendiri, bukan diubah menjadi mute.
         result = getYoutubeControl();
+        if (result && result.success !== false) {
+          var youtubeControlMode = String(
+            result.YoutubeStatus || 'AUTO'
+          ).trim().toUpperCase();
+
+          if (
+            youtubeControlMode !== 'ON' &&
+            youtubeControlMode !== 'OFF' &&
+            youtubeControlMode !== 'AUTO' &&
+            youtubeControlMode !== 'STOP'
+          ) {
+            youtubeControlMode = 'AUTO';
+          }
+
+          result.YoutubeStatus = youtubeControlMode;
+          result.Youtube = String(result.Youtube || '').trim();
+        }
         break;
 
       case 'getPanelKegiatan':
