@@ -434,6 +434,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
             </div>
             <div class="panel-black-line panel-black-notice">DEMI KETENANGAN DAN KEKHUSYUKAN IBADAH SHOLAT KITA</div>
             <div class="panel-black-line panel-black-notice">MOHON UNTUK MENONAKTIFKAN HANDPHONE ATAU SILENT MODE</div>
+            <div class="panel-black-digital-clock" id="panel-black-digital-clock" aria-label="Jam digital">00:00:00</div>
           </div>
 
           <div class="analog-clock">
@@ -8945,6 +8946,15 @@ function startRealtimeAudioConfigPolling_() {
           ':' +
           secs;
 
+      }
+
+      // Jam digital khusus overlay hitam; memakai waktu zona lokasi aktif.
+      const blackOverlayClock =
+        document.getElementById('panel-black-digital-clock');
+
+      if (blackOverlayClock) {
+        blackOverlayClock.textContent =
+          hrs + ':' + mins + ':' + secs;
       }
 
       const hour =
