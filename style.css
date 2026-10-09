@@ -3667,3 +3667,29 @@ body.panel-countdown-auto .petugas-infaq-display {
   opacity: 0 !important;
   pointer-events: none !important;
 }
+
+
+/* JAM DIGITAL OVERLAY HITAM: center bawah, putih, responsif.
+   Hanya tampil pada mode overlay; tidak mengubah jam utama atau scheduler. */
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-digital-clock {
+  position: absolute !important;
+  left: 50% !important;
+  bottom: clamp(12px, 3.2vh, 34px) !important;
+  transform: translateX(-50%) !important;
+  width: max-content !important;
+  max-width: 92vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  font-family: inherit !important;
+  font-size: clamp(20px, min(3.2vw, 5vh), 42px) !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums !important;
+  line-height: 1.1 !important;
+  letter-spacing: 0.08em !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  text-shadow: none !important;
+  z-index: 2 !important;
+}
