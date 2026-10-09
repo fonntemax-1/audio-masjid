@@ -4157,3 +4157,158 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   }
 }
 
+/* TV-SHOLAT — RESPONSIVE PORTRAIT HP: SUSUN ULANG, JANGAN POTONG KONTEN.
+   Pada layar tegak, kolom TV ditumpuk vertikal dan halaman boleh digulir.
+   Landscape dan layar besar tetap memakai tata letak tiga kolom.
+   CSS saja: tidak mengubah data, audio, API, atau scheduler. */
+@media screen and (max-width: 700px) and (orientation: portrait) {
+  html {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  body {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .screen-container {
+    display: grid !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    margin: 0 !important;
+    padding: 6px !important;
+    border-width: 2px !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  .header {
+    position: relative !important;
+    min-width: 0 !important;
+    min-height: 88px !important;
+    height: auto !important;
+    padding: 10px 8px !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+    box-sizing: border-box !important;
+  }
+
+  .main-body {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .main-body > .prayer-sidebar,
+  .main-body > .center-panel,
+  .main-body > .right-sidebar {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  .prayer-sidebar {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(48px, auto) !important;
+    gap: 5px !important;
+  }
+
+  .prayer-card {
+    min-width: 0 !important;
+    min-height: 48px !important;
+    height: auto !important;
+    padding: 5px !important;
+    gap: 4px !important;
+    box-sizing: border-box !important;
+  }
+
+  .center-panel {
+    min-width: 0 !important;
+    min-height: 52vh !important;
+    height: auto !important;
+    padding: 8px !important;
+    overflow: visible !important;
+  }
+
+  .right-sidebar {
+    gap: 8px !important;
+  }
+
+  .right-sidebar > *,
+  .right-sidebar .panel-box,
+  #petugas-panel-box,
+  #fin-panel-box,
+  #petugas-infaq-display {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  .panel-title,
+  #fin-title,
+  #petugas-title,
+  #petugas-tanggal,
+  .khotbah-role,
+  .khotbah-name,
+  .panel-sub,
+  .petugas-infaq-text {
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+    text-overflow: clip !important;
+  }
+
+  .footer {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 28px !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  .screen-container img,
+  .screen-container video,
+  .screen-container canvas {
+    max-width: 100% !important;
+    height: auto;
+    object-fit: contain !important;
+  }
+}
+
