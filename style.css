@@ -3669,6 +3669,43 @@ body.panel-countdown-auto .petugas-infaq-display {
 }
 
 
+/* LABEL WAKTU PADA OVERLAY HITAM: dua baris putih, center, responsif PC/TV.
+   Baris kedua mengikuti state waktu aktif; jam digital tetap di bawah. */
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-time-heading {
+  display: block !important;
+  flex: 0 1 auto !important;
+  width: 100% !important;
+  max-width: 94vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  font-size: clamp(28px, min(4.5vw, 6.5vh), 68px) !important;
+  font-weight: 800 !important;
+  line-height: 1.08 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  text-shadow: none !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-prayer-name {
+  display: block !important;
+  flex: 0 1 auto !important;
+  width: 100% !important;
+  max-width: 94vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  font-size: clamp(32px, min(5.2vw, 7.5vh), 78px) !important;
+  font-weight: 900 !important;
+  line-height: 1.08 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: clip !important;
+  text-shadow: none !important;
+}
+
 /* JAM DIGITAL OVERLAY HITAM: center bawah, putih, responsif.
    Hanya tampil pada mode overlay; tidak mengubah jam utama atau scheduler. */
 body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-digital-clock {
