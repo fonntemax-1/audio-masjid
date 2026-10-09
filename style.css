@@ -4035,7 +4035,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
 
   .main-body {
     width: 100% !important;
-    grid-template-columns: minmax(0, 16%) minmax(0, 1fr) minmax(0, 30%) !important;
+    grid-template-columns: minmax(0, 16%) minmax(0, 1fr) minmax(0, 24%) !important;
     column-gap: 1vw !important;
   }
 }
