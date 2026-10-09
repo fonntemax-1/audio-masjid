@@ -4446,3 +4446,113 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
     overflow: hidden !important;
   }
 }
+
+
+/* TV-SHOLAT — FONT HP RESPONSIF: hanya tipografi, ukuran frame/grid tetap.
+   Skala mengikuti tinggi viewport agar font benar-benar berubah antar ukuran HP. */
+@media screen and (max-width: 1024px) {
+  .header-center h1 {
+    font-size: clamp(9px, 1.8vh, 18px) !important;
+  }
+  .header-center .latin-name {
+    font-size: clamp(11px, 2.25vh, 23px) !important;
+  }
+  .header-center .sub,
+  .header-center .slogan,
+  .wa-contact {
+    font-size: clamp(7px, 1.2vh, 12px) !important;
+  }
+  .date-box .hijri-num,
+  .date-box .hijri-text,
+  .date-box .greg-day,
+  .date-box .greg-text {
+    font-size: clamp(7px, 1.35vh, 13px) !important;
+  }
+  .prayer-name {
+    font-size: clamp(8px, 1.25vh, 14px) !important;
+    line-height: 1.08 !important;
+  }
+  .prayer-time {
+    font-size: clamp(9px, 1.55vh, 17px) !important;
+    line-height: 1.08 !important;
+  }
+  .panel-title,
+  #fin-title,
+  #petugas-title {
+    font-size: clamp(8px, 1.4vh, 15px) !important;
+    line-height: 1.1 !important;
+  }
+  .panel-sub,
+  #fin-sub,
+  #fin-extra,
+  #petugas-tanggal,
+  .khotbah-role,
+  .khotbah-name,
+  .petugas-infaq-text {
+    font-size: clamp(7px, 1.15vh, 12px) !important;
+    line-height: 1.1 !important;
+  }
+  .countdown-title {
+    font-size: clamp(8px, 1.35vh, 14px) !important;
+    line-height: 1.08 !important;
+  }
+  .countdown-timer {
+    font-size: clamp(13px, 2.5vh, 28px) !important;
+    line-height: 1.05 !important;
+  }
+  .digital-time {
+    font-size: clamp(15px, 3vh, 34px) !important;
+    line-height: 1.05 !important;
+  }
+  .tz-text {
+    font-size: clamp(8px, 1.35vh, 14px) !important;
+    line-height: 1.05 !important;
+  }
+  .footer {
+    font-size: clamp(7px, 1.2vh, 13px) !important;
+    line-height: 1.1 !important;
+  }
+}
+
+/* Pada HP tegak, gunakan skala tinggi layar dan izinkan teks membungkus.
+   Tidak mengubah dimensi frame maupun posisi panel. */
+@media screen and (orientation: portrait) {
+  .prayer-name {
+    font-size: clamp(8px, 1.25vh, 12px) !important;
+    line-height: 1.05 !important;
+  }
+  .prayer-time {
+    font-size: clamp(9px, 1.5vh, 14px) !important;
+    line-height: 1.05 !important;
+  }
+  .panel-title,
+  #fin-title,
+  #petugas-title {
+    font-size: clamp(7px, 1.35vh, 11px) !important;
+  }
+  .panel-sub,
+  #fin-sub,
+  #fin-extra,
+  #petugas-tanggal,
+  .khotbah-role,
+  .khotbah-name,
+  .petugas-infaq-text {
+    font-size: clamp(6px, 1.05vh, 9px) !important;
+    line-height: 1.05 !important;
+  }
+  .countdown-title {
+    font-size: clamp(7px, 1.2vh, 11px) !important;
+  }
+  .countdown-timer {
+    font-size: clamp(12px, 2.2vh, 20px) !important;
+  }
+  .digital-time {
+    font-size: clamp(14px, 2.7vh, 24px) !important;
+  }
+  .tz-text {
+    font-size: clamp(7px, 1.2vh, 10px) !important;
+  }
+  .footer {
+    font-size: clamp(7px, 1.15vh, 10px) !important;
+  }
+}
