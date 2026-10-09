@@ -4624,3 +4624,15 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
     box-shadow: none !important;
   }
 }
+
+/* IDUL FITRI: efek chroma-key visual untuk latar video hitam.
+   Mode screen membuat piksel hitam menyatu dengan tampilan di belakangnya.
+   Ini efek visual, bukan transparansi alpha asli. */
+.eid-fitri-video-widget {
+  background: transparent !important;
+  isolation: auto !important;
+}
+.eid-fitri-video-widget video {
+  background: transparent !important;
+  mix-blend-mode: screen !important;
+}
