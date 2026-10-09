@@ -735,6 +735,31 @@ function getPanelEventCountdownConfig_() {
   return result;
 }
 
+
+/**
+ * Membaca jadwal animasi Idul Fitri dari panels!G64:I64.
+ * G64 = waktu mulai, H64 = waktu berhenti, I64 = ON/OFF.
+ * Tidak mengubah atau membaca ulang konfigurasi audio/scheduler.
+ */
+function getEidFitriVideoConfig() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('panels');
+    if (!sheet) {
+      return { success: false, error: 'Sheet panels tidak ditemukan.', start: '', stop: '', status: 'OFF' };
+    }
+    const display = sheet.getRange('G64:I64').getDisplayValues()[0] || [];
+    const start = String(display[0] || '').trim();
+    const stop = String(display[1] || '').trim();
+    const rawStatus = String(display[2] || '').trim().toUpperCase();
+    const status = rawStatus === 'ON' ? 'ON' : 'OFF';
+    return { success: true, start: start, stop: stop, status: status };
+  } catch (error) {
+    Logger.log('IDUL FITRI VIDEO CONFIG ERROR: ' + (error && error.message ? error.message : error));
+    return { success: false, error: String(error && error.message ? error.message : error), start: '', stop: '', status: 'OFF' };
+  }
+}
+
 function getPanelEventCountdownCustomConfig_() {
   const result = [];
   try {

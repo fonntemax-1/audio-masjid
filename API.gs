@@ -62,6 +62,10 @@ function handleGithubApiRequest_(params) {
         result = getPanelEventCountdownConfig_();
         break;
 
+      case 'getEidFitriVideoConfig':
+        result = getEidFitriVideoConfig();
+        break;
+
       case 'getYoutubeControl':
         // Kontrak kontrol YouTube panels!C20/F20.
         // ON = suara aktif; OFF = video tetap berjalan dalam keadaan mute.

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Cinzel:wght@500;600;700;800&family=Great+Vibes&family=Montserrat:wght@400;500;600;700;800&family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=8263e847">
+  <link rel="stylesheet" href="./style.css?v=20261010-idulfitri">
   <script src="./audio.js" defer></script>
   
   <link rel="icon" type="image/png" href="./image/favicon.png">
@@ -410,7 +410,19 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
           </iframe>
         </div>
 
-          <div class="event-countdown-display" id="event-countdown-display" aria-hidden="true">
+          <div class="eid-fitri-video-widget" id="eid-fitri-video-widget" aria-hidden="true">
+          <video
+            id="eid-fitri-video"
+            src="https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/video/idul-fitri.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="Animasi Idul Fitri">
+          </video>
+        </div>
+
+        <div class="event-countdown-display" id="event-countdown-display" aria-hidden="true">
             <div class="event-countdown-inner">
               <div class="event-countdown-number" id="event-countdown-number">270</div>
               <div class="event-countdown-text">
@@ -674,7 +686,8 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
       'getPanelDisplayMode',
       'getPanelKeuanganSource',
       'getPanelKegiatan',
-      'getEventCountdownConfig'
+      'getEventCountdownConfig',
+      'getEidFitriVideoConfig'
     ]);
 
     function isRealtimeControlAction_(action) {
@@ -17632,7 +17645,113 @@ function setCountdownBlackMode(enabled) {
       1000
     );
 
-  </script>
+  
+    // =========================================================
+    // VIDEO ANIMASI IDUL FITRI - panels!G64:I64
+    // G64 = waktu mulai, H64 = waktu berhenti, I64 = ON/OFF.
+    // Independen dari YouTube, audio adzan, dan scheduler sholat.
+    // =========================================================
+    let eidFitriVideoConfig = null;
+    let eidFitriVideoLastActive = false;
+    let eidFitriVideoRequestBusy = false;
+
+    function isEidFitriVideoTimeActive_(config, now) {
+      if (!config || String(config.status || '').trim().toUpperCase() !== 'ON') return false;
+      const start = String(config.start || '').trim().match(/^(\d{1,2}):(\d{2})$/);
+      const stop = String(config.stop || '').trim().match(/^(\d{1,2}):(\d{2})$/);
+      if (!start || !stop) return false;
+      const startMinutes = Number(start[1]) * 60 + Number(start[2]);
+      const stopMinutes = Number(stop[1]) * 60 + Number(stop[2]);
+      if (startMinutes > 1439 || stopMinutes > 1439 || startMinutes === stopMinutes) return false;
+
+      let currentMinutes;
+      try {
+        const timeZone = String(
+          WEB_APP_STATE.location && WEB_APP_STATE.location.timezone
+            ? WEB_APP_STATE.location.timezone
+            : 'Asia/Makassar'
+        );
+        const parts = new Intl.DateTimeFormat('en-GB', {
+          timeZone: timeZone,
+          hour: '2-digit',
+          minute: '2-digit',
+          hourCycle: 'h23'
+        }).formatToParts(now);
+        const hour = Number((parts.find(function(p) { return p.type === 'hour'; }) || {}).value);
+        const minute = Number((parts.find(function(p) { return p.type === 'minute'; }) || {}).value);
+        if (!Number.isFinite(hour) || !Number.isFinite(minute)) return false;
+        currentMinutes = hour * 60 + minute;
+      } catch (error) {
+        console.warn('IDUL FITRI VIDEO: timezone tidak valid:', error);
+        return false;
+      }
+
+      // Mendukung rentang waktu yang melewati tengah malam.
+      return startMinutes < stopMinutes
+        ? currentMinutes >= startMinutes && currentMinutes < stopMinutes
+        : currentMinutes >= startMinutes || currentMinutes < stopMinutes;
+    }
+
+    function applyEidFitriVideoState_() {
+      const frame = document.getElementById('eid-fitri-video-widget');
+      const video = document.getElementById('eid-fitri-video');
+      if (!frame || !video) return;
+
+      const active = isEidFitriVideoTimeActive_(eidFitriVideoConfig, new Date());
+      if (active === eidFitriVideoLastActive) return;
+      eidFitriVideoLastActive = active;
+
+      if (active) {
+        frame.style.display = 'block';
+        frame.setAttribute('aria-hidden', 'false');
+        video.muted = true;
+        const playResult = video.play();
+        if (playResult && typeof playResult.catch === 'function') {
+          playResult.catch(function(error) {
+            console.warn('IDUL FITRI VIDEO: autoplay gagal:', error);
+          });
+        }
+        console.log('IDUL FITRI VIDEO: mulai sesuai panels!G64:I64');
+      } else {
+        video.pause();
+        try { video.currentTime = 0; } catch (error) {}
+        frame.style.display = 'none';
+        frame.setAttribute('aria-hidden', 'true');
+        console.log('IDUL FITRI VIDEO: berhenti / OFF di luar jadwal');
+      }
+    }
+
+    function refreshEidFitriVideoConfig_() {
+      if (eidFitriVideoRequestBusy) {
+        applyEidFitriVideoState_();
+        return;
+      }
+      eidFitriVideoRequestBusy = true;
+      gasApiCall('getEidFitriVideoConfig', {})
+        .then(function(data) {
+          if (data && data.success !== false) {
+            eidFitriVideoConfig = {
+              start: String(data.start || '').trim(),
+              stop: String(data.stop || '').trim(),
+              status: String(data.status || 'OFF').trim().toUpperCase()
+            };
+          }
+          applyEidFitriVideoState_();
+        })
+        .catch(function(error) {
+          console.warn('IDUL FITRI VIDEO: konfigurasi gagal dibaca:', error);
+          eidFitriVideoConfig = null;
+          applyEidFitriVideoState_();
+        })
+        .finally(function() {
+          eidFitriVideoRequestBusy = false;
+        });
+    }
+
+    refreshEidFitriVideoConfig_();
+    setInterval(refreshEidFitriVideoConfig_, 30000);
+
+</script>
 
 
 </body>
