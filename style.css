@@ -3739,3 +3739,29 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-digit
   text-shadow: none !important;
   z-index: 2 !important;
 }
+
+/* PENYETARAAN PROPORSI OVERLAY HITAM: seluruh isi dinaikkan secara seimbang
+   dan dipadatkan agar tidak menumpuk terlalu ke bawah pada TV maupun PC.
+   Tidak mengubah audio, scheduler, atau logika waktu. */
+body.panel-countdown-auto .clock-overlay .panel-black-message {
+  padding: clamp(10px, 2vh, 22px) clamp(12px, 3vw, 42px) clamp(54px, 8vh, 82px) !important;
+  gap: clamp(5px, 1vh, 12px) !important;
+  justify-content: center !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-time-heading {
+  font-size: clamp(23px, min(3.5vw, 5.2vh), 54px) !important;
+  line-height: 1.04 !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-prayer-name {
+  font-size: clamp(27px, min(4.2vw, 6.2vh), 64px) !important;
+  line-height: 1.04 !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-icon img {
+  max-width: min(28vw, 250px) !important;
+  max-height: 22vh !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notice {
+  font-size: clamp(14px, min(1.7vw, 2.5vh), 26px) !important;
+  line-height: 1.16 !important;
+}
+
