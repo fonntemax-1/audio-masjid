@@ -4845,7 +4845,6 @@ function updateFridayPrayerDisplay() {
 
     function syncQueuedAudioMuteStatus_(schedule) {
   const state = WEB_APP_STATE.audio;
-  const audio = getAudioElement();
   if (!state || !schedule) return;
 
   const getStatus = function(item) {
@@ -4874,19 +4873,9 @@ function updateFridayPrayerDisplay() {
     if (st) item.status = st;
   });
 
-  if (state.currentEventKey && audio) {
-    const current = state.queue.find(function(item) {
-      return item.eventKey === state.currentEventKey;
-    });
-    const currentStatus = current ? current.status : null;
-    if (String(currentStatus || '').toUpperCase() === 'OFF') {
-      try { audio.muted = true; } catch (e) {}
-      console.log('AUDIO REALTIME MUTE:', current.eventName || current.audioType || '-');
-    } else if (String(currentStatus || '').toUpperCase() === 'ON') {
-      try { audio.muted = false; audio.volume = 1; } catch (e) {}
-      console.log('AUDIO REALTIME UNMUTE:', current.eventName || current.audioType || '-');
-    }
-  }
+  // Fungsi ini hanya menyelaraskan status item antrean.
+  // Output audio aktif dikendalikan oleh applyRealtimeAudioStatusOnly_()
+  // agar status antrean lama tidak menimpa status realtime dari Sheet.
 }
 
 function getRealtimeAudioStatusSignature_(schedule, friday) {
