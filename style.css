@@ -4585,3 +4585,40 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
     border-radius: 3px;
   }
 }
+
+
+/* ANIMASI IDUL FITRI — DIPERBESAR, TANPA FRAME, DI ATAS BANNER EVENT */
+.eid-fitri-video-widget {
+  left: 1.5% !important;
+  right: auto !important;
+  bottom: clamp(4.5vh, 7%, 7vh) !important;
+  width: min(42%, 560px) !important;
+  aspect-ratio: 16 / 9 !important;
+  height: auto !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  background: transparent !important;
+  overflow: hidden !important;
+  z-index: 20 !important;
+}
+.eid-fitri-video-widget video {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  object-fit: contain !important;
+}
+@media screen and (max-width: 700px) {
+  .eid-fitri-video-widget {
+    left: 1% !important;
+    bottom: 6% !important;
+    width: min(45%, 260px) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+}
