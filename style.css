@@ -3835,3 +3835,14 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   margin-top: clamp(4px, 0.8vh, 10px) !important;
 }
 
+/* PENYESUAIAN LANJUTAN: turunkan lagi gambar handphone dan teks di bawahnya sedikit. */
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-icon {
+  margin-top: clamp(22px, 4vh, 42px) !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notice {
+  margin-top: clamp(9px, 1.8vh, 20px) !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notice + .panel-black-notice {
+  margin-top: clamp(6px, 1.2vh, 14px) !important;
+}
+
