@@ -4160,7 +4160,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
 /* TV-SHOLAT — HP PORTRAIT: SATU VIEWPORT, SEMUA PANEL DALAM FRAME.
    Tidak menumpuk menjadi halaman panjang. Ukuran grid dan teks diperkecil
    secara responsif agar sesuai tinggi/lebar layar. CSS visual saja. */
-@media screen and (max-width: 700px) and (orientation: portrait) {
+@media screen and (orientation: portrait) {
   html,
   body {
     width: 100% !important;
@@ -4184,7 +4184,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
     gap: 0.45vh !important;
     width: 100% !important;
     max-width: 100% !important;
-    height: 100% !important;
+    height: 100dvh !important;
     min-height: 0 !important;
     margin: 0 !important;
     padding: 0.6vw !important;
