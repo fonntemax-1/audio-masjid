@@ -3822,3 +3822,16 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   text-wrap: balance !important;
 }
 
+/* MODE OVERLAY HITAM: turunkan sedikit gambar handphone dan dua teks di bawahnya.
+   Judul WAKTU SHOLAT/nama sholat tetap di atas; jam digital tetap di bawah.
+   CSS tampilan saja, tidak mengubah audio atau scheduler. */
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-icon {
+  margin-top: clamp(14px, 2.8vh, 30px) !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notice {
+  margin-top: clamp(6px, 1.2vh, 14px) !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notice + .panel-black-notice {
+  margin-top: clamp(4px, 0.8vh, 10px) !important;
+}
+
