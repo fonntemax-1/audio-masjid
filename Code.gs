@@ -543,21 +543,21 @@ function getDataFromSheet() {
 
     // =====================================================
     // KONFIGURASI YOUTUBE - PANELS
-    // panels!C20 = ALAMAT LINK YOUTUBE
-    // panels!F20 = SELECTOR: ON / OFF / AUTO
+    // panels!C20 = LINK YOUTUBE
+    // panels!F20 = SELECTOR: ON / OFF / AUTO / STOP
     //
-    // ON   = YouTube hidup + suara ON
-    // OFF  = YouTube hidup + suara MUTE
-    // AUTO = MUTE 5 menit sebelum Qiroah,
-    //        tetap MUTE sampai 30 menit setelah IQOMAH selesai,
-    //        lalu suara ON kembali
-    // STOP = YouTube dihentikan
+    // ON   = video berjalan, suara aktif
+    // OFF  = video berjalan, suara mute
+    // AUTO = mute mulai 120 detik sebelum Qiroah-1 s.d. Qiroah-5,
+    //        tetap mute sampai 20 menit setelah waktu iqomah,
+    //        lalu suara mengikuti aturan AUTO kembali
+    // STOP = pemutaran video dihentikan (bukan sekadar mute)
     // =====================================================
 
     result.Youtube = '';
     result.YoutubeStatus = 'AUTO';
     result.YoutubeMute = false;
-    result.YoutubeMuteBeforeQiroahSeconds = 300;
+    result.YoutubeMuteBeforeQiroahSeconds = 120;
     result.YoutubeControlLocked = false;
 
     const youtubePanelsSheet = ss.getSheetByName('panels');
@@ -3169,9 +3169,10 @@ function processYoutubeSheet(
   resultObj.YoutubeStopped =
     youtubeStatus === 'STOP';
 
-  // Aturan tetap: 5 menit sebelum qiroah.
+  // AUTO: mute dimulai 2 menit sebelum Qiroah-1 s.d. Qiroah-5.
+  // Akhir mute (20 menit setelah waktu iqomah) dihitung frontend dari jadwal.
   resultObj.YoutubeMuteBeforeQiroahSeconds =
-    300;
+    120;
 
   resultObj.YoutubeControlLocked =
     false;
@@ -3179,7 +3180,7 @@ function processYoutubeSheet(
   Logger.log(
     'YOUTUBE: URL=' + youtubeUrl +
     ' | STATUS=' + youtubeStatus +
-    ' | AUTO_MUTE_BEFORE_QIROAH=300 detik'
+    ' | AUTO_MUTE_BEFORE_QIROAH=120 detik'
   );
 }
 
