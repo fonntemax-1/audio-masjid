@@ -3999,32 +3999,44 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   }
 }
 
-  #petugas-panel-box > #petugas-title {
-    font-size: clamp(9px, 7.8cqw, 18px) !important;
-    line-height: 1.08 !important;
-  }
-
-  #petugas-panel-box > #petugas-tanggal {
-    font-size: clamp(8px, 6.2cqw, 15px) !important;
-    line-height: 1.12 !important;
-  }
-
-  #petugas-sholat-list .khotbah-role,
-  #petugas-sholat-list .khotbah-name {
-    font-size: clamp(7px, 5.6cqw, 13px) !important;
-    line-height: 1.15 !important;
+/* OPERA ANDROID — KUNCI LEBAR FRAME PADA VIEWPORT HP.
+   Mencegah frame induk melebar/terdorong ke kanan. Tampilan saja. */
+@media screen and (max-width: 700px) {
+  html, body {
+    width: 100% !important;
+    max-width: 100% !important;
     min-width: 0 !important;
-    overflow-wrap: anywhere !important;
-    white-space: normal !important;
+    overflow-x: hidden !important;
   }
 
-  #petugas-infaq-display .petugas-infaq-title {
-    font-size: clamp(9px, 7.4cqw, 17px) !important;
-    line-height: 1.1 !important;
+  body {
+    padding-left: 1vw !important;
+    padding-right: 1vw !important;
   }
 
-  #petugas-infaq-display .petugas-infaq-text {
-    font-size: clamp(7px, 5.4cqw, 12px) !important;
-    line-height: 1.15 !important;
+  .screen-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .main-body,
+  .right-sidebar,
+  #petugas-panel-box,
+  #petugas-sholat-list,
+  #petugas-infaq-display {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .main-body {
+    width: 100% !important;
+    grid-template-columns: minmax(0, 16%) minmax(0, 1fr) minmax(0, 30%) !important;
+    column-gap: 1vw !important;
   }
 }
+
