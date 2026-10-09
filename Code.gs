@@ -2668,6 +2668,9 @@ function buildAudioScheduleFromPanels_(ss) {
     })
   };
   Logger.log('AUDIO DIRECT STATUS PANELS: ' + JSON.stringify(directStatus));
+  // Simpan nilai mentah supaya bila event tidak dikenali, log Apps Script
+  // memperlihatkan pasangan kolom yang benar-benar dibaca. Tidak mengubah sel.
+  Logger.log('AUDIO PANEL RAW B46:Q55: ' + JSON.stringify(v));
   const norm = function(raw, seq) {
     let e = String(raw == null ? '' : raw).trim().toLowerCase();
     if (!e || e === 'on' || e === 'off' || e === 'gap') return '';
@@ -2675,8 +2678,8 @@ function buildAudioScheduleFromPanels_(ss) {
     if (/^qiroah-?\d+$/.test(e)) return e.replace(/^qiroah-?(\d+)$/,'qiroah-$1');
     if (e === 'qiraah') return 'qiroah';
     if (e === 'shalawat-tarhim' || e === 'sholawat-tarhim' || e === 'tarhim-subuh' || e === 'tarhim-biasa') return 'tarhim';
-    if (e === 'azan-subuh') return 'adzan-subuh';
-    if (e === 'azan-biasa') return 'adzan-biasa';
+    if (e === 'azan-subuh' || /^adzan-subuh-(ramadhan|ramadan|biasa)$/.test(e)) return 'adzan-subuh';
+    if (e === 'azan-biasa' || /^adzan-(dzuhur|zuhur|ashar|maghrib|isya|jumat|jum'at)(-(ramadhan|ramadan|biasa))?$/.test(e)) return 'adzan-biasa';
     if (e === 'azan' || e === 'adzan') return /^SUBUH/i.test(String(seq||'')) ? 'adzan-subuh' : 'adzan-biasa';
     if (e === "do'a") return 'doa';
     if (e === 'iqamah') return 'iqomah';
@@ -2696,6 +2699,8 @@ function buildAudioScheduleFromPanels_(ss) {
   };
   [['SUBUH_RAMADHAN',0],['SUBUH_BIASA',2],['DZUHUR',4],['ASHAR',6],['MAGHRIB_RAMADHAN',8],['MAGHRIB_BIASA',10],['ISYA',12]].forEach(function(x){out.schedule[x[0]]=block(x[1],x[0]);});
   out.friday=block(14,'JUMAT');
+  out.directStatus = directStatus;
+  Logger.log('AUDIO PANEL EVENT COUNTS: ' + JSON.stringify(Object.keys(out.schedule).reduce(function(acc, key) { acc[key] = out.schedule[key].length; return acc; }, {JUMAT: out.friday.length})));
   Logger.log('AUDIO SOURCE PANELS SAJA: '+JSON.stringify(out));
   return out;
 }
@@ -2760,7 +2765,7 @@ function getRealtimeAudioConfig() {
         return {index:i,event:x.event||'',status:String(x.status||'ON').toUpperCase()};
       });
     });
-    result.PanelAudioDirectStatus = directStatus;
+    result.PanelAudioDirectStatus = panelAudio.directStatus || {};
     return result;
   } catch(error) {
     Logger.log('ERROR getRealtimeAudioConfig PANELS: '+error);
