@@ -737,8 +737,8 @@ function getPanelEventCountdownConfig_() {
 
 
 /**
- * Membaca jadwal animasi Idul Fitri dari panels!G64:I64.
- * G64 = waktu mulai, H64 = waktu berhenti, I64 = ON/OFF.
+ * Membaca jadwal animasi Idul Fitri dari panels!C68:E68.
+ * C68 = waktu mulai, D68 = waktu berhenti, E68 = ON/OFF.
  * Tidak mengubah atau membaca ulang konfigurasi audio/scheduler.
  */
 function getEidFitriVideoConfig() {

@@ -17647,8 +17647,8 @@ function setCountdownBlackMode(enabled) {
 
   
     // =========================================================
-    // VIDEO ANIMASI IDUL FITRI - panels!G64:I64
-    // G64 = waktu mulai, H64 = waktu berhenti, I64 = ON/OFF.
+    // VIDEO ANIMASI IDUL FITRI - panels!C68:E68
+    // C68 = waktu mulai, D68 = waktu berhenti, E68 = ON/OFF.
     // Independen dari YouTube, audio adzan, dan scheduler sholat.
     // =========================================================
     let eidFitriVideoConfig = null;
@@ -17711,7 +17711,7 @@ function setCountdownBlackMode(enabled) {
             console.warn('IDUL FITRI VIDEO: autoplay gagal:', error);
           });
         }
-        console.log('IDUL FITRI VIDEO: mulai sesuai panels!G64:I64');
+        console.log('IDUL FITRI VIDEO: mulai sesuai panels!C68:E68');
       } else {
         video.pause();
         try { video.currentTime = 0; } catch (error) {}
