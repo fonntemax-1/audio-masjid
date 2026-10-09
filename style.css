@@ -3683,7 +3683,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-digit
   color: #fff !important;
   -webkit-text-fill-color: #fff !important;
   font-family: inherit !important;
-  font-size: clamp(20px, min(3.2vw, 5vh), 42px) !important;
+  font-size: clamp(22px, min(3.6vw, 5.5vh), 48px) !important;
   font-weight: 700 !important;
   font-variant-numeric: tabular-nums !important;
   line-height: 1.1 !important;
