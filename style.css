@@ -3845,3 +3845,103 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
 body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notice + .panel-black-notice {
   margin-top: clamp(6px, 1.2vh, 14px) !important;
 }
+
+/* TV-SHOLAT TARGETED PORTRAIT PETUGAS FIX 2026-10-09 */
+/* Perbaikan terbatas pada layout portrait HP. Tidak mengubah landscape,
+   pemuatan data, audio, jadwal, atau scheduler. */
+@media screen and (max-width: 700px) and (orientation: portrait) {
+  .screen-container,
+  .main-body,
+  .right-sidebar,
+  #petugas-panel-box {
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .main-body {
+    width: 100% !important;
+    grid-template-columns: minmax(0, 16%) minmax(0, 1fr) minmax(0, 30%) !important;
+    gap: 1vw !important;
+  }
+
+  .right-sidebar {
+    overflow: hidden !important;
+  }
+
+  #petugas-panel-box {
+    width: 100% !important;
+    overflow: hidden !important;
+    container-type: inline-size !important;
+    container-name: petugas-panel !important;
+  }
+
+  #petugas-panel-box > #petugas-title {
+    font-size: clamp(9px, 4.2cqw, 18px) !important;
+    line-height: 1.05 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    text-overflow: clip !important;
+  }
+
+  #petugas-panel-box > #petugas-tanggal {
+    font-size: clamp(8px, 3.6cqw, 15px) !important;
+    line-height: 1.1 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  #petugas-sholat-list {
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 2px !important;
+    overflow: hidden !important;
+  }
+
+  #petugas-sholat-list .khotbah-item {
+    display: grid !important;
+    grid-template-columns: minmax(0, 42%) minmax(0, 58%) !important;
+    align-items: start !important;
+    gap: 2px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  #petugas-sholat-list .khotbah-role,
+  #petugas-sholat-list .khotbah-name {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    font-size: clamp(7px, 2.8cqw, 12px) !important;
+    line-height: 1.12 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+    text-overflow: clip !important;
+  }
+
+  #petugas-infaq-display {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  #petugas-infaq-display .petugas-infaq-title {
+    font-size: clamp(9px, 4.2cqw, 17px) !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  #petugas-infaq-display .petugas-infaq-text {
+    font-size: clamp(7px, 2.8cqw, 11px) !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  #petugas-infaq-display .petugas-infaq-content img {
+    width: min(78%, 22cqw) !important;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}
+
