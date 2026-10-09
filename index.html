@@ -6498,7 +6498,7 @@ function startRealtimeAudioConfigPolling_() {
 
 
     // =========================================================
-    // YOUTUBE CONTROL CEPAT - panels!G20
+    // YOUTUBE CONTROL CEPAT - panels!F20
     // Polling khusus selector setiap 1 detik.
     // Tidak memanggil getDataFromSheet sehingga tidak membebani
     // scheduler/audio/data display utama.
@@ -6526,7 +6526,7 @@ function startRealtimeAudioConfigPolling_() {
           youtubeControlFastLastSignature = signature;
 
           console.log(
-            'YOUTUBE CONTROL CEPAT: C20/G20 berubah =>',
+            'YOUTUBE CONTROL CEPAT: C20/F20 berubah =>',
             status
           );
 
@@ -10558,7 +10558,7 @@ function startRealtimeAudioConfigPolling_() {
 
       // =======================================================
       // MODE OFF / ON
-      // G20 hanya memiliki tiga mode: ON, OFF, AUTO.
+      // F20 hanya memiliki tiga mode: ON, OFF, AUTO.
       // =======================================================
       if (mode === 'OFF') {
         if (!youtubeAutoMuted) {
@@ -17233,7 +17233,7 @@ function setCountdownBlackMode(enabled) {
       try {
         updatePrayerCountdown();
 
-        // G20=AUTO harus dievaluasi SETIAP DETIK.
+        // F20=AUTO harus dievaluasi SETIAP DETIK.
         // Sebelumnya kontrol YouTube hanya diperiksa saat startup/
         // perubahan selector, sehingga ketika waktu masuk 5 menit
         // sebelum Qiroah YouTube tetap UNMUTE.
@@ -17408,7 +17408,7 @@ function setCountdownBlackMode(enabled) {
     // Jalur khusus Petugas Sholat + KEUANGAN/QUR'BAN sudah dipasang
     // di atas dan berjalan setiap 1 detik.
 
-    // Kontrol YouTube G20 dipisahkan dari tick countdown 1 detik.
+    // Kontrol YouTube F20 dipisahkan dari tick countdown 1 detik.
     // Ini mencegah evaluasi iframe/jadwal YouTube ikut membebani jalur
     // jam + countdown. Timeline audio/scheduler tidak diubah.
     setTimeout(function() {
