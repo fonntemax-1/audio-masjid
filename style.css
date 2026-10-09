@@ -3646,7 +3646,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   padding: 0 !important;
   color: #fff !important;
   -webkit-text-fill-color: #fff !important;
-  font-size: clamp(18px, 3.05vw, 48px) !important;
+  font-size: clamp(16px, min(2vw, 3vh), 32px) !important;
   font-weight: 700 !important;
   line-height: 1.25 !important;
   text-align: center !important;
