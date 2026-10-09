@@ -2732,6 +2732,21 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
                     );
                   }
 
+                  // Override per event lebih kuat daripada status schedule lokal.
+                  // Promise play() dapat selesai terlambat setelah Sheet OFF;
+                  // jangan biarkan status lokal lama membuka suara kembali.
+                  try {
+                    const activeEventKey = WEB_APP_STATE.audio.currentEventKey;
+                    const outputOverride = activeEventKey
+                      ? realtimeAudioOutputOverride_[activeEventKey]
+                      : null;
+                    if (outputOverride === 'ON' || outputOverride === 'OFF') {
+                      outputMutedNow = outputOverride === 'OFF';
+                    }
+                  } catch (overrideReadError) {
+                    console.warn('AUDIO REALTIME OVERRIDE SETELAH PLAY GAGAL DIBACA:', label, overrideReadError);
+                  }
+
                   // Reassert setelah play() berhasil.
                   // Hanya MUTE/UNMUTE; queue, src, currentTime, durasi,
                   // dan timing sama sekali tidak disentuh.
