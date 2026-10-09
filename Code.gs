@@ -1757,32 +1757,105 @@ function getEventSheetData_(ss) {
     return output;
   }
 
-  // EVENT dibaca dinamis dari seluruh baris yang benar-benar terisi.
-  // A = EVENT, B = ANGKA/DURASI HARI, C = STATUS, D = KETERANGAN.
+  // Baca seluruh kolom yang dipakai, bukan hanya A:D. Ini membuat
+  // pembacaan tetap bekerja bila kolom Event bergeser atau ada kolom
+  // tambahan di Spreadsheet. Tidak melakukan penulisan ke Spreadsheet.
   const lastRow = sheet.getLastRow();
+  const lastColumn = Math.max(sheet.getLastColumn(), 4);
   if (lastRow < 1) {
     Logger.log('EVENT: sheet kosong.');
     return output;
   }
 
-  const values = sheet.getRange(1, 1, lastRow, 4).getValues();
+  const values = sheet.getRange(1, 1, lastRow, lastColumn).getValues();
+  const displays = sheet.getRange(1, 1, lastRow, lastColumn).getDisplayValues();
+  const normalizeHeader = function(value) {
+    return String(value == null ? '' : value)
+      .trim()
+      .toUpperCase()
+      .replace(/[\\s_./-]+/g, ' ');
+  };
+
+  // Default format lama tetap dipertahankan: A=EVENT, B=HARI, C=STATUS, D=KETERANGAN.
+  let eventCol = 0;
+  let daysCol = 1;
+  let statusCol = 2;
+  let descriptionCol = 3;
+  let headerRow = -1;
+
+  // Cari baris header pada 10 baris pertama supaya nama kolom tidak
+  // harus selalu berada di baris pertama atau di kolom A.
+  const eventHeaders = ['EVENT', 'NAMA EVENT', 'NAMA EVENT KEGIATAN', 'KEGIATAN', 'NAMA KEGIATAN'];
+  const dayHeaders = ['HARI', 'DURASI HARI', 'JUMLAH HARI', 'ANGKA DURASI HITUNGAN HARI', 'DURASI', 'DAYS'];
+  const statusHeaders = ['STATUS', 'AKTIF', 'ON OFF', 'ON/OFF'];
+  const descriptionHeaders = ['KETERANGAN', 'DESKRIPSI', 'CATATAN', 'INFO'];
+
+  for (let r = 0; r < Math.min(values.length, 10); r++) {
+    const headers = (displays[r] || []).map(normalizeHeader);
+    const e = headers.findIndex(function(v) { return eventHeaders.indexOf(v) >= 0; });
+    const d = headers.findIndex(function(v) { return dayHeaders.indexOf(v) >= 0; });
+    const st = headers.findIndex(function(v) { return statusHeaders.indexOf(v) >= 0; });
+    const desc = headers.findIndex(function(v) { return descriptionHeaders.indexOf(v) >= 0; });
+    if (e >= 0 && (d >= 0 || st >= 0 || desc >= 0)) {
+      eventCol = e;
+      if (d >= 0) daysCol = d;
+      if (st >= 0) statusCol = st;
+      if (desc >= 0) descriptionCol = desc;
+      headerRow = r;
+      break;
+    }
+  }
 
   for (let r = 0; r < values.length; r++) {
+    if (r === headerRow) continue;
     const row = values[r] || [];
-    const eventName = String(row[0] == null ? '' : row[0]).trim();
+    const displayRow = displays[r] || [];
+    let eventValue = row[eventCol];
+    let eventName = String(eventValue == null ? '' : eventValue).trim();
+
+    // Kompatibilitas untuk sheet tanpa header: jika kolom A kosong,
+    // temukan nama event teks pada baris tersebut. Kolom durasi/status
+    // tetap dikenali dari nilai yang tersisa.
+    let rowDays = row[daysCol];
+    let rowStatus = row[statusCol];
+    let rowDescription = row[descriptionCol];
+    if (!eventName && headerRow < 0) {
+      const nonEmpty = [];
+      for (let c = 0; c < row.length; c++) {
+        const shown = String(displayRow[c] == null ? '' : displayRow[c]).trim();
+        if (shown !== '') nonEmpty.push({ index: c, raw: row[c], shown: shown });
+      }
+      const candidate = nonEmpty.find(function(item) {
+        const text = item.shown.toUpperCase();
+        return !/^[-+]?\\d+(?:[.,]\\d+)?$/.test(item.shown) &&
+          ['ON', 'OFF', 'AKTIF', 'NONAKTIF', 'STATUS', 'EVENT', 'NAMA EVENT'].indexOf(text) < 0;
+      });
+      if (candidate) {
+        eventName = candidate.shown;
+        const rest = nonEmpty.filter(function(item) { return item.index !== candidate.index; });
+        const duration = rest.find(function(item) {
+          return /^[-+]?\\d+(?:[.,]\\d+)?$/.test(item.shown);
+        });
+        const status = rest.find(function(item) {
+          return ['ON', 'OFF', 'AKTIF', 'NONAKTIF'].indexOf(item.shown.toUpperCase()) >= 0;
+        });
+        const descriptions = rest.filter(function(item) {
+          return (!duration || item.index !== duration.index) &&
+            (!status || item.index !== status.index);
+        });
+        if (duration) rowDays = duration.raw;
+        if (status) rowStatus = status.shown;
+        if (descriptions.length) rowDescription = descriptions.map(function(item) { return item.shown; }).join(' ');
+      }
+    }
+
     if (!eventName) continue;
+    const headerKey = normalizeHeader(eventName);
+    if (eventHeaders.indexOf(headerKey) >= 0) continue;
 
-    const headerKey = eventName.toUpperCase();
-    if (
-      headerKey === 'EVENT' ||
-      headerKey === 'NAMA EVENT' ||
-      headerKey === 'NAMA EVENT/KEGIATAN'
-    ) continue;
-
-    const daysRaw = row[1] == null ? '' : row[1];
-    const status = String(row[2] == null ? '' : row[2]).trim().toUpperCase();
-    const description = String(row[3] == null ? '' : row[3]).trim();
-
+    const daysRaw = rowDays == null ? '' : rowDays;
+    const status = String(rowStatus == null ? '' : rowStatus).trim().toUpperCase();
+    const description = String(rowDescription == null ? '' : rowDescription).trim();
     let days = Number(String(daysRaw).replace(',', '.').trim());
     if (!Number.isFinite(days)) days = 0;
 
@@ -1796,10 +1869,20 @@ function getEventSheetData_(ss) {
   }
 
   Logger.log(
-    'EVENT DINAMIS READ: lastRow=' + lastRow +
+    'EVENT DINAMIS READ: sheet=' + sheet.getName() +
+    ' lastRow=' + lastRow +
+    ' lastColumn=' + lastColumn +
+    ' headerRow=' + (headerRow >= 0 ? headerRow + 1 : 'tidak ditemukan') +
     ' rows=' + output.length +
     ' data=' + JSON.stringify(output)
   );
+
+  if (output.length === 0) {
+    Logger.log(
+      'EVENT DIAGNOSTIK: contoh isi 5 baris pertama=' +
+      JSON.stringify(displays.slice(0, 5))
+    );
+  }
 
   return output;
 }
