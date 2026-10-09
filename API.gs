@@ -274,14 +274,14 @@ function getEidFitriVideoConfigFromApi_() {
       var text = String(value == null ? '' : value).trim();
       if (!text) return '';
 
-      var match = text.match(/^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})$/);
+      var match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
       if (match) {
         return match[1] + '-' +
           ('0' + match[2]).slice(-2) + '-' +
           ('0' + match[3]).slice(-2);
       }
 
-      match = text.match(/^(\\d{1,2})[/-](\\d{1,2})[/-](\\d{4})$/);
+      match = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
       if (match) {
         return match[3] + '-' +
           ('0' + match[2]).slice(-2) + '-' +
