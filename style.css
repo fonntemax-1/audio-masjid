@@ -3806,3 +3806,19 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-digit
   font-size: clamp(28px, min(4.2vw, 6vh), 58px) !important;
 }
 
+/* PESAN DI BAWAH GAMBAR HANDPHONE: lebih besar dan responsif untuk TV/PC.
+   Ukuran dibatasi berdasarkan lebar dan tinggi viewport agar tetap muat di layar. */
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notice {
+  width: min(94vw, 1600px) !important;
+  max-width: 94vw !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  font-size: clamp(24px, min(3.2vw, 4.6vh), 54px) !important;
+  line-height: 1.22 !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  text-wrap: balance !important;
+}
+
