@@ -10365,8 +10365,7 @@ function startRealtimeAudioConfigPolling_() {
               String(event && event.eventName ? event.eventName : '')
                 .trim()
                 .toLowerCase() === 'iqomah' &&
-              Number.isFinite(Number(event.targetSec)) &&
-              Number.isFinite(Number(event.endSec))
+              Number.isFinite(Number(event.targetSec))
             );
 
           });
@@ -10374,9 +10373,10 @@ function startRealtimeAudioConfigPolling_() {
         const prayerSec =
           getPrayerTimeSecondsForYouTube(prayerName);
 
-        const iqomahEndSec =
+        // Gunakan waktu MULAI iqomah, bukan akhir file audio iqomah.
+        const iqomahTimeSec =
           iqomahEvent
-            ? Number(iqomahEvent.endSec)
+            ? Number(iqomahEvent.targetSec)
             : (
                 Number.isFinite(prayerSec) &&
                 prayerSec > qiroahTargetSec
@@ -10385,18 +10385,18 @@ function startRealtimeAudioConfigPolling_() {
               );
 
         if (
-          !Number.isFinite(iqomahEndSec) ||
-          iqomahEndSec <= qiroahTargetSec
+          !Number.isFinite(iqomahTimeSec) ||
+          iqomahTimeSec <= qiroahTargetSec
         ) {
           return;
         }
 
         const muteUntilSec =
-          iqomahEndSec +
+          iqomahTimeSec +
           YOUTUBE_AUTO_ON_AFTER_IQOMAH;
 
         // Setelah Qiroah dimulai, MUTE tetap dipertahankan
-        // sampai 20 menit setelah waktu akhir IQOMAH.
+        // sampai 20 menit setelah waktu iqomah.
         if (
           nowSeconds >= qiroahTargetSec &&
           nowSeconds < muteUntilSec
