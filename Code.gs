@@ -737,8 +737,8 @@ function getPanelEventCountdownConfig_() {
 
 
 /**
- * Membaca jadwal animasi Idul Fitri dari panels!C68:E68.
- * C68 = waktu mulai, D68 = waktu berhenti, E68 = ON/OFF.
+ * Membaca rentang tanggal animasi Idul Fitri dari panels!C68:E68.
+ * C68 = tanggal mulai, D68 = tanggal berhenti, E68 = ON/OFF.
  * Tidak mengubah atau membaca ulang konfigurasi audio/scheduler.
  */
 function getEidFitriVideoConfig() {
@@ -746,17 +746,17 @@ function getEidFitriVideoConfig() {
     const ss = getSpreadsheet();
     const sheet = ss.getSheetByName('panels');
     if (!sheet) {
-      return { success: false, error: 'Sheet panels tidak ditemukan.', start: '', stop: '', status: 'OFF' };
+      return { success: false, error: 'Sheet panels tidak ditemukan.', startDate: '', stopDate: '', status: 'OFF' };
     }
     const display = sheet.getRange('C68:E68').getDisplayValues()[0] || [];
-    const start = String(display[0] || '').trim();
-    const stop = String(display[1] || '').trim();
+    const startDate = String(display[0] || '').trim();
+    const stopDate = String(display[1] || '').trim();
     const rawStatus = String(display[2] || '').trim().toUpperCase();
     const status = rawStatus === 'ON' ? 'ON' : 'OFF';
-    return { success: true, start: start, stop: stop, status: status };
+    return { success: true, startDate: startDate, stopDate: stopDate, status: status };
   } catch (error) {
     Logger.log('IDUL FITRI VIDEO CONFIG ERROR: ' + (error && error.message ? error.message : error));
-    return { success: false, error: String(error && error.message ? error.message : error), start: '', stop: '', status: 'OFF' };
+    return { success: false, error: String(error && error.message ? error.message : error), startDate: '', stopDate: '', status: 'OFF' };
   }
 }
 
