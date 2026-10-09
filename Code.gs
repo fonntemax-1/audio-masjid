@@ -748,7 +748,7 @@ function getEidFitriVideoConfig() {
     if (!sheet) {
       return { success: false, error: 'Sheet panels tidak ditemukan.', start: '', stop: '', status: 'OFF' };
     }
-    const display = sheet.getRange('G64:I64').getDisplayValues()[0] || [];
+    const display = sheet.getRange('C68:E68').getDisplayValues()[0] || [];
     const start = String(display[0] || '').trim();
     const stop = String(display[1] || '').trim();
     const rawStatus = String(display[2] || '').trim().toUpperCase();
