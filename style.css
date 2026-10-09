@@ -3945,3 +3945,43 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   }
 }
 
+
+
+/* OPERA ANDROID — FONT PETUGAS MENGIKUTI LEBAR FRAME, bukan viewport.
+   Override terakhir khusus portrait HP; tidak mengubah audio/API/scheduler. */
+@media screen and (max-width: 700px) and (orientation: portrait) {
+  #petugas-panel-box {
+    container-type: inline-size !important;
+    container-name: petugas-panel !important;
+    min-width: 0 !important;
+  }
+
+  #petugas-panel-box > #petugas-title {
+    font-size: clamp(9px, 7.8cqw, 18px) !important;
+    line-height: 1.08 !important;
+  }
+
+  #petugas-panel-box > #petugas-tanggal {
+    font-size: clamp(8px, 6.2cqw, 15px) !important;
+    line-height: 1.12 !important;
+  }
+
+  #petugas-sholat-list .khotbah-role,
+  #petugas-sholat-list .khotbah-name {
+    font-size: clamp(7px, 5.6cqw, 13px) !important;
+    line-height: 1.15 !important;
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
+  }
+
+  #petugas-infaq-display .petugas-infaq-title {
+    font-size: clamp(9px, 7.4cqw, 17px) !important;
+    line-height: 1.1 !important;
+  }
+
+  #petugas-infaq-display .petugas-infaq-text {
+    font-size: clamp(7px, 5.4cqw, 12px) !important;
+    line-height: 1.15 !important;
+  }
+}
