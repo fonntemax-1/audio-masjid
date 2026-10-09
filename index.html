@@ -2236,6 +2236,10 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
           const source =
             normalizeAudioUrl(url);
 
+          // Dipakai juga oleh callback Promise play() di luar blok try.
+          // Status ini hanya mengatur output mute, bukan jadwal/urutan audio.
+          let playbackMuted = String(status || 'ON').trim().toUpperCase() === 'OFF';
+
           // QIROAH dan TARHIM boleh diputus/replay mengikuti
           // batas durasi event pada Spreadsheet.
           // Semua audio sequence lainnya wajib berjalan UTUH satu kali:
@@ -2502,7 +2506,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 
             // STATUS OFF tetap diproses agar sequence/time duration tidak berubah.
             // Hanya output audio yang di-mute.
-            const playbackMuted = String(status || 'ON').trim().toUpperCase() === 'OFF';
+            playbackMuted = String(status || 'ON').trim().toUpperCase() === 'OFF';
             try {
               audio.defaultMuted = playbackMuted;
               audio.muted = playbackMuted;
