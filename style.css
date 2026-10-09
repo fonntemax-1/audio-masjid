@@ -3669,9 +3669,10 @@ body.panel-countdown-auto .petugas-infaq-display {
 }
 
 
-/* LABEL WAKTU PADA OVERLAY HITAM: dua baris putih, center, responsif PC/TV.
-   Baris kedua mengikuti state waktu aktif; jam digital tetap di bawah. */
+/* LABEL WAKTU PADA OVERLAY HITAM.
+   Urutan vertikal: judul sholat, nama sholat, gambar handphone, lalu pesan. */
 body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-time-heading {
+  order: 0 !important;
   display: block !important;
   flex: 0 1 auto !important;
   width: 100% !important;
@@ -3688,6 +3689,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-time-
   text-shadow: none !important;
 }
 body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-prayer-name {
+  order: 1 !important;
   display: block !important;
   flex: 0 1 auto !important;
   width: 100% !important;
@@ -3704,6 +3706,13 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-praye
   overflow: hidden !important;
   text-overflow: clip !important;
   text-shadow: none !important;
+}
+/* Gambar dan pesan handphone harus berada DI BAWAH judul WAKTU SHOLAT / SUBUH. */
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-icon {
+  order: 2 !important;
+}
+body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notice {
+  order: 3 !important;
 }
 
 /* JAM DIGITAL OVERLAY HITAM: center bawah, putih, responsif.
