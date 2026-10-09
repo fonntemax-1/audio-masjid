@@ -9964,7 +9964,8 @@ function startRealtimeAudioConfigPolling_() {
       if (
         mode === 'ON' ||
         mode === 'OFF' ||
-        mode === 'AUTO'
+        mode === 'AUTO' ||
+        mode === 'STOP'
       ) {
         return mode;
       }
@@ -10023,6 +10024,12 @@ function startRealtimeAudioConfigPolling_() {
         );
 
       if (!iframe) return;
+
+      // STOP harus tetap berhenti meskipun event load lama terlambat datang.
+      if (youtubeControlMode === 'STOP') {
+        stopYouTubeIframe();
+        return;
+      }
 
       const shouldMute =
         youtubeControlMode === 'OFF' ||
@@ -10557,9 +10564,13 @@ function startRealtimeAudioConfigPolling_() {
       const mode = youtubeControlMode;
 
       // =======================================================
-      // MODE OFF / ON
-      // F20 hanya memiliki tiga mode: ON, OFF, AUTO.
+      // MODE STOP / OFF / ON
+      // STOP menghentikan video; OFF hanya mute.
       // =======================================================
+      if (mode === 'STOP') {
+        stopYouTubeIframe();
+        return;
+      }
       if (mode === 'OFF') {
         if (!youtubeAutoMuted) {
           muteYouTubeIframe();
@@ -10759,6 +10770,19 @@ function startRealtimeAudioConfigPolling_() {
 
       const mode =
         youtubeControlMode;
+
+      // STOP menghentikan pemutaran, bukan sekadar mute.
+      // Terapkan sebelum pemeriksaan URL agar tetap berfungsi
+      // meskipun URL video kosong atau tidak berubah.
+      if (mode === 'STOP') {
+        youtubeAutoMuted = true;
+        youtubeAutoMuteKey = '';
+        youtubeAutoMutePrayer = '';
+        youtubeAutoMuteQiroahTargetSec = null;
+        youtubeAutoScheduleEvaluated = true;
+        stopYouTubeIframe();
+        return;
+      }
 
       // Perubahan ON/OFF/AUTO hanya mengubah audio YouTube.
       // JANGAN mengganti src iframe selama video yang sama masih
