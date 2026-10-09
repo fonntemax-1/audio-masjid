@@ -4592,7 +4592,7 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   left: 1.5% !important;
   right: auto !important;
   bottom: calc(2.5vh + 2.5%) !important;
-  width: 50% !important;
+  width: 60% !important;
   max-width: none !important;
   aspect-ratio: 16 / 9 !important;
   height: auto !important;
