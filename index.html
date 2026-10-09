@@ -434,8 +434,8 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
             </div>
             <div class="panel-black-line panel-black-notice">DEMI KETENANGAN DAN KEKHUSYUKAN IBADAH SHOLAT KITA</div>
             <div class="panel-black-line panel-black-notice">MOHON UNTUK MENONAKTIFKAN HANDPHONE ATAU SILENT MODE</div>
-            <div class="panel-black-time-heading">WAKTU</div>
-            <div class="panel-black-prayer-name" id="panel-black-prayer">WAKTU SHOLAT SUBUH</div>
+            <div class="panel-black-time-heading">WAKTU SHOLAT</div>
+            <div class="panel-black-prayer-name" id="panel-black-prayer">SUBUH</div>
             <div class="panel-black-digital-clock" id="panel-black-digital-clock" aria-label="Jam digital">00:00:00</div>
           </div>
 
@@ -15840,13 +15840,11 @@ function setCountdownBlackMode(enabled) {
           displayIqomahEndSec + (15 * 60);
 
         // PANEL C22 = AUTO:
-        // Layar hitam dimulai TEPAT saat masuk waktu sholat/adzan,
-        // bukan menunggu mendekati waktu iqomah.
-        // Berakhir 15 menit setelah AUDIO IQOMAH selesai.
-        //
-        // Berlaku untuk semua sholat, Ramadan maupun non-Ramadan.
-        // DISPLAY-ONLY: audio dan scheduler tidak diubah.
-        const panelBlackStartSec = adzanStartSec;
+        // Overlay dimulai 5 detik sebelum IQOMAH dan berakhir
+        // 15 menit setelah audio IQOMAH selesai.
+        // Hanya mengatur tampilan; audio dan scheduler tidak diubah.
+        const panelBlackStartSec =
+          displayIqomahTimeSec - 5;
 
         const panelBlackEndSec =
           displayIqomahEndSec + (15 * 60);
@@ -16548,13 +16546,12 @@ function setCountdownBlackMode(enabled) {
           const resolvedBlackPrayerName =
             String(panelBlackPrayerName || activePrayerName || '').trim().toUpperCase();
 
-          if (resolvedBlackPrayerName === 'IMSAK') {
-            panelBlackPrayerEl.textContent = 'WAKTU IMSAK';
-          } else if (resolvedBlackPrayerName === 'BERBUKA') {
-            panelBlackPrayerEl.textContent = 'WAKTU BERBUKA';
-          } else {
-            panelBlackPrayerEl.textContent =
-              'WAKTU SHOLAT ' + resolvedBlackPrayerName;
+          if (
+            resolvedBlackPrayerName &&
+            resolvedBlackPrayerName !== 'IMSAK' &&
+            resolvedBlackPrayerName !== 'BERBUKA'
+          ) {
+            panelBlackPrayerEl.textContent = resolvedBlackPrayerName;
           }
         }
 
@@ -16576,10 +16573,16 @@ function setCountdownBlackMode(enabled) {
             nowSeconds
           );
 
+        const activeTitleForBlackOverlay =
+          String(activeState.title || '').trim().toUpperCase();
+        const isImsakOrBerbukaState =
+          activeTitleForBlackOverlay.indexOf('IMSAK') !== -1 ||
+          activeTitleForBlackOverlay.indexOf('BERBUKA') !== -1;
+
         setCountdownBlackMode(
           effectiveSleep
             ? false
-            : panelBlackWindow
+            : (panelBlackWindow && !isImsakOrBerbukaState)
         );
 
         // Countdown utama tetap dipelihara untuk state normal/audio.
