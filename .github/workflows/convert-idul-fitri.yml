@@ -27,16 +27,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: Convert only video/idul-fitri.mp4
+      - name: Convert only video/idul-fitri.mp4 with alpha enabled
         run: |
           test -s video/idul-fitri.mp4
           ffmpeg -y -i video/idul-fitri.mp4 \
             -vf "colorkey=0x000000:0.1:0.1,format=yuva420p" \
-            -c:v libvpx-vp9 -crf 30 -b:v 0 \
-            video/idul-fitri.webm
+            -c:v libvpx-vp9 -pix_fmt yuva420p -auto-alt-ref 0 \
+            -crf 30 -b:v 0 video/idul-fitri.webm
           test -s video/idul-fitri.webm
           ffprobe -v error -select_streams v:0 \
-            -show_entries stream=codec_name,width,height,pix_fmt \
+            -show_entries stream=codec_name,width,height,pix_fmt:stream_tags=alpha_mode \
             -of default=noprint_wrappers=1 video/idul-fitri.webm
 
       - name: Keep conversion as an artifact for inspection
