@@ -9928,8 +9928,8 @@ function startRealtimeAudioConfigPolling_() {
     // AUTO menggunakan window jadwal audio. ON selalu UNMUTE.
     // =========================================================
 
-    const YOUTUBE_AUTO_STOP_BEFORE_AUDIO = 5 * 60;
-    const YOUTUBE_AUTO_ON_AFTER_IQOMAH = 15 * 60;
+    const YOUTUBE_AUTO_STOP_BEFORE_AUDIO = 2 * 60;
+    const YOUTUBE_AUTO_ON_AFTER_IQOMAH = 20 * 60;
 
     let youtubeControlMode = 'AUTO';
     // AUTO dimulai dalam keadaan MUTE.
@@ -9964,8 +9964,7 @@ function startRealtimeAudioConfigPolling_() {
       if (
         mode === 'ON' ||
         mode === 'OFF' ||
-        mode === 'AUTO' ||
-        mode === 'STOP'
+        mode === 'AUTO'
       ) {
         return mode;
       }
@@ -10182,7 +10181,7 @@ function startRealtimeAudioConfigPolling_() {
       // AUTO MUTE PRE-WINDOW HARUS MENGIKUTI QIROAH,
       // bukan audio pertama (Sirine/Tarhim/Beep).
       // Jadi rentangnya tetap:
-      // 5 menit sebelum Qiroah -> mulai MUTE.
+      // 2 menit sebelum Qiroah -> mulai MUTE.
       schedules.forEach(function(schedule, prayerName) {
 
         if (
@@ -10239,7 +10238,7 @@ function startRealtimeAudioConfigPolling_() {
           return;
         }
 
-        // Jika halaman dibuka di dalam 5 menit sebelum Qiroah,
+        // Jika halaman dibuka di dalam 2 menit sebelum Qiroah,
         // langsung masuk window MUTE.
         if (
           nowSeconds >= muteStartSec &&
@@ -10397,7 +10396,7 @@ function startRealtimeAudioConfigPolling_() {
           YOUTUBE_AUTO_ON_AFTER_IQOMAH;
 
         // Setelah Qiroah dimulai, MUTE tetap dipertahankan
-        // sampai 15 menit setelah IQOMAH selesai.
+        // sampai 20 menit setelah waktu akhir IQOMAH.
         if (
           nowSeconds >= qiroahTargetSec &&
           nowSeconds < muteUntilSec
@@ -10559,7 +10558,8 @@ function startRealtimeAudioConfigPolling_() {
       const mode = youtubeControlMode;
 
       // =======================================================
-      // MODE OFF / STOP / ON
+      // MODE OFF / ON
+      // G20 hanya memiliki tiga mode: ON, OFF, AUTO.
       // =======================================================
       if (mode === 'OFF') {
         if (!youtubeAutoMuted) {
@@ -10567,12 +10567,6 @@ function startRealtimeAudioConfigPolling_() {
         } else {
           youtubeAutoMuted = true;
         }
-        return;
-      }
-
-      if (mode === 'STOP') {
-        stopYouTubeIframe();
-        youtubeAutoMuted = false;
         return;
       }
 
@@ -10586,28 +10580,13 @@ function startRealtimeAudioConfigPolling_() {
       }
 
       // =======================================================
-      // MODE SLEEP OVERRIDE
-      // =======================================================
-      if (
-        document.body.classList.contains('panel-sleep-mode')
-      ) {
-        if (!youtubeAutoMuted) {
-          youtubeAutoMuted = true;
-          muteYouTubeIframe();
-        } else {
-          youtubeAutoMuted = true;
-        }
-        return;
-      }
-
-      // =======================================================
       // MODE AUTO
       //
       // AUTO:
-      //   1. MUTE mulai 5 menit sebelum Qiroah.
-      //   2. Tetap MUTE selama Qiroah sampai IQOMAH selesai.
-      //   3. Tetap MUTE sampai 15 menit setelah IQOMAH selesai.
-      //   4. Setelah +15 menit tersebut -> UNMUTE.
+      //   1. MUTE mulai 2 menit sebelum Qiroah-1 s/d Qiroah-5 pertama.
+      //   2. Tetap MUTE selama rangkaian Qiroah sampai IQOMAH selesai.
+      //   3. Tetap MUTE sampai 20 menit setelah waktu akhir IQOMAH.
+      //   4. Setelah +20 menit tersebut -> UNMUTE.
       //
       // Di luar window tersebut YouTube tetap PLAY + UNMUTE.
       // Tidak ada reload iframe.
@@ -10688,7 +10667,7 @@ function startRealtimeAudioConfigPolling_() {
           muteYouTubeIframe();
 
           console.log(
-            'YOUTUBE AUTO: MUTE mulai 5 menit sebelum Qiroah sampai 15 menit setelah IQOMAH.',
+            'YOUTUBE AUTO: MUTE mulai 2 menit sebelum Qiroah sampai 20 menit setelah IQOMAH.',
             activeWindow
           );
         }
@@ -10796,12 +10775,6 @@ function startRealtimeAudioConfigPolling_() {
       }
 
       // STOP adalah satu-satunya mode yang boleh melepas iframe.
-      if (mode === 'STOP') {
-        stopYouTubeIframe();
-        youtubeAutoMuted = false;
-        return;
-      }
-
       // URL kosong: tidak ada video yang dapat dimainkan.
       const embedUrlUnmuted =
         getYouTubeEmbedUrl(url, 0);
