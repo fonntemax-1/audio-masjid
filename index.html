@@ -10418,7 +10418,6 @@ function startRealtimeAudioConfigPolling_() {
                 qiroahTargetSec -
                 YOUTUBE_AUTO_STOP_BEFORE_AUDIO,
               prayerSec: prayerSec,
-              iqomahEndSec: iqomahEndSec,
               muteUntilSec: muteUntilSec,
               distance: distance
             };
@@ -10583,10 +10582,9 @@ function startRealtimeAudioConfigPolling_() {
       // MODE AUTO
       //
       // AUTO:
-      //   1. MUTE mulai 2 menit sebelum Qiroah-1 s/d Qiroah-5 pertama.
-      //   2. Tetap MUTE selama rangkaian Qiroah sampai IQOMAH selesai.
-      //   3. Tetap MUTE sampai 20 menit setelah waktu akhir IQOMAH.
-      //   4. Setelah +20 menit tersebut -> UNMUTE.
+      //   1. MUTE mulai 2 menit sebelum Qiroah pertama (Qiroah-1 s/d Qiroah-5).
+      //   2. Tetap MUTE sejak Qiroah dimulai sampai 20 menit setelah waktu mulai IQOMAH.
+      //   3. Saat halaman dibuka/refresh di tengah window, hitung jadwal saat ini lalu langsung MUTE.
       //
       // Di luar window tersebut YouTube tetap PLAY + UNMUTE.
       // Tidak ada reload iframe.
@@ -10686,7 +10684,7 @@ function startRealtimeAudioConfigPolling_() {
         unmuteYouTubeIframe();
 
         console.log(
-          'YOUTUBE AUTO: UNMUTE - sudah di luar window 5 menit sebelum Qiroah sampai 15 menit setelah IQOMAH.'
+          'YOUTUBE AUTO: UNMUTE - sudah di luar window 2 menit sebelum Qiroah sampai 20 menit setelah waktu IQOMAH.'
         );
       }
 
