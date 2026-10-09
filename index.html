@@ -728,9 +728,11 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
         const action = item.action;
         const requestKey = item.requestKey;
         const normalizedParams = item.normalizedParams;
-        const requestStartedAt = Date.now();
-        const queueWaitMs = item.queuedAt
-          ? Math.max(0, requestStartedAt - item.queuedAt)
+        // Durasi proses memakai jam monotonik agar tidak terpengaruh
+        // perubahan jam Windows/NTP. Date.now() tetap untuk timestamp kalender.
+        const requestStartedAt = performance.now();
+        const queueWaitMs = Number.isFinite(item.queuedAtMonotonic)
+          ? Math.max(0, requestStartedAt - item.queuedAtMonotonic)
           : 0;
 
         const callbackName =
@@ -788,7 +790,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 
           finished = true;
 
-          const requestTotalMs = Date.now() - requestStartedAt;
+          const requestTotalMs = Math.max(0, performance.now() - requestStartedAt);
 
           console.log(
             'GAS API JSONP CALLBACK OK:',
@@ -877,7 +879,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
             action,
             'source=', 'original-spreadsheet',
             'queueWaitMs=', queueWaitMs,
-            'elapsedMs=', Date.now() - requestStartedAt,
+            'elapsedMs=', Math.max(0, performance.now() - requestStartedAt),
             'queuedAt=', item.queuedAt || null,
             'url=', script.src
           );
@@ -949,6 +951,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
           normalizedParams: normalizedParams,
           requestKey: requestKey,
           queuedAt: Date.now(),
+          queuedAtMonotonic: performance.now(),
           resolve: resolve,
           reject: reject
         };
