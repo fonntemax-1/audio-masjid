@@ -64,8 +64,9 @@ function handleGithubApiRequest_(params) {
 
       case 'getYoutubeControl':
         // Kontrak kontrol YouTube panels!C20/F20.
-        // Pertahankan empat mode: ON, OFF, AUTO, STOP.
-        // STOP diteruskan sebagai status tersendiri, bukan diubah menjadi mute.
+        // ON = suara aktif; OFF = video tetap berjalan dalam keadaan mute.
+        // AUTO = aturan mute terjadwal; STOP = hentikan pemutaran video.
+        // Konfigurasi ini terpisah dari scheduler/audio sholat.
         result = getYoutubeControl();
         if (result && result.success !== false) {
           var youtubeControlMode = String(
@@ -83,6 +84,21 @@ function handleGithubApiRequest_(params) {
 
           result.YoutubeStatus = youtubeControlMode;
           result.Youtube = String(result.Youtube || '').trim();
+
+          // Nilai default dijaga di bridge agar frontend selalu menerima
+          // kontrak yang sama, termasuk saat deployment GAS berbeda versi.
+          var muteBeforeQiroah = Number(result.YoutubeMuteBeforeQiroahSeconds);
+          var muteAfterIqomah = Number(result.YoutubeMuteAfterIqomahMinutes);
+
+          result.YoutubeMuteBeforeQiroahSeconds =
+            isFinite(muteBeforeQiroah) && muteBeforeQiroah >= 0
+              ? muteBeforeQiroah
+              : 120;
+
+          result.YoutubeMuteAfterIqomahMinutes =
+            isFinite(muteAfterIqomah) && muteAfterIqomah >= 0
+              ? muteAfterIqomah
+              : 20;
         }
         break;
 
