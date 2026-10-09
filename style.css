@@ -3999,19 +3999,23 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   }
 }
 
-/* OPERA ANDROID — KUNCI LEBAR FRAME PADA VIEWPORT HP.
-   Mencegah frame induk melebar/terdorong ke kanan. Tampilan saja. */
-@media screen and (max-width: 700px) {
-  html, body {
+/* TV-SHOLAT — CEGAH FRAME BERGESER SAAT SELURUH DATA TAMPIL.
+   Kunci ukuran grid dan min-content pada semua viewport ponsel/tablet.
+   Hanya tata letak; tidak mengubah audio, API, jadwal, atau scheduler. */
+@media screen and (max-width: 1024px) {
+  html {
     width: 100% !important;
     max-width: 100% !important;
-    min-width: 0 !important;
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
   }
 
   body {
-    padding-left: 1vw !important;
-    padding-right: 1vw !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding-left: 0.8vw !important;
+    padding-right: 0.8vw !important;
+    overflow-x: clip !important;
   }
 
   .screen-container {
@@ -4020,11 +4024,27 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
     min-width: 0 !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
+    box-sizing: border-box !important;
     overflow: hidden !important;
   }
 
-  .main-body,
+  .main-body {
+    display: grid !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    grid-template-columns: minmax(0, 16%) minmax(0, 1fr) minmax(0, 24%) !important;
+    column-gap: 1vw !important;
+    overflow: hidden !important;
+  }
+
+  .main-body > *,
+  .prayer-sidebar,
+  .center-panel,
   .right-sidebar,
+  .right-sidebar > *,
+  .right-sidebar .panel-box,
   #petugas-panel-box,
   #petugas-sholat-list,
   #petugas-infaq-display {
@@ -4033,10 +4053,12 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
     box-sizing: border-box !important;
   }
 
-  .main-body {
-    width: 100% !important;
-    grid-template-columns: minmax(0, 16%) minmax(0, 1fr) minmax(0, 24%) !important;
-    column-gap: 1vw !important;
+  .center-panel,
+  .right-sidebar {
+    overflow-x: hidden !important;
+  }
+
+  .main-body > * {
+    justify-self: stretch !important;
   }
 }
-
