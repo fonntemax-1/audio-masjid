@@ -344,6 +344,12 @@ function getPanelIqomahBlackMode() {
 
 
 function getYoutubeControl() {
+  // Kontrak tunggal kontrol YouTube untuk GitHub Pages.
+  // URL di panels!C20; mode di panels!F20.
+  // Tidak membaca/menulis konfigurasi audio dan tidak menjalankan scheduler.
+  const muteBeforeQiroahSeconds = 120;
+  const muteAfterIqomahMinutes = 20;
+
   try {
     const ss = getSpreadsheet();
     const sheet = ss.getSheetByName('panels');
@@ -352,7 +358,9 @@ function getYoutubeControl() {
       return {
         success: true,
         Youtube: '',
-        YoutubeStatus: 'AUTO'
+        YoutubeStatus: 'AUTO',
+        YoutubeMuteBeforeQiroahSeconds: muteBeforeQiroahSeconds,
+        YoutubeMuteAfterIqomahMinutes: muteAfterIqomahMinutes
       };
     }
 
@@ -369,10 +377,18 @@ function getYoutubeControl() {
         ? rawStatus
         : 'AUTO';
 
+    Logger.log(
+      'YOUTUBE CONTROL C20/F20: mode=[' + status +
+      '], muteBeforeQiroahSeconds=' + muteBeforeQiroahSeconds +
+      ', muteAfterIqomahMinutes=' + muteAfterIqomahMinutes
+    );
+
     return {
       success: true,
       Youtube: url,
-      YoutubeStatus: status
+      YoutubeStatus: status,
+      YoutubeMuteBeforeQiroahSeconds: muteBeforeQiroahSeconds,
+      YoutubeMuteAfterIqomahMinutes: muteAfterIqomahMinutes
     };
 
   } catch (error) {
@@ -384,7 +400,9 @@ function getYoutubeControl() {
       success: false,
       error: error.message,
       Youtube: '',
-      YoutubeStatus: 'AUTO'
+      YoutubeStatus: 'AUTO',
+      YoutubeMuteBeforeQiroahSeconds: muteBeforeQiroahSeconds,
+      YoutubeMuteAfterIqomahMinutes: muteAfterIqomahMinutes
     };
   }
 }
