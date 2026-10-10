@@ -1139,6 +1139,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
         takbiranEnabled: false,
         takbiranHoldUntilMs: 0,
         takbiranScheduledLocks: new Set(),
+        takbiranTimer: null,
 
         scheduleInitialized: false
 
@@ -1510,9 +1511,12 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
       audioConfig = nextConfig;
 
       // panels!C57 dibaca realtime dari getRealtimeAudioConfig.
-      WEB_APP_STATE.audio.takbiranEnabled =
-        data.TakbiranEnabled === true ||
-        String(data.TakbiranEnabled || '').trim().toUpperCase() === 'ON';
+      if (Object.prototype.hasOwnProperty.call(data, 'TakbiranEnabled')) {
+        WEB_APP_STATE.audio.takbiranEnabled =
+          data.TakbiranEnabled === true ||
+          String(data.TakbiranEnabled || '').trim().toUpperCase() === 'ON';
+        syncTakbiranSchedule_();
+      }
 
       // Jika C57 dimatikan ketika takbiran sedang berjalan, mute suaranya;
       // handler audio dibiarkan menyelesaikan queue secara aman.
@@ -3150,44 +3154,142 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
     }
 
 
+    const TAKBIRAN_STORAGE_KEY_ = 'audio-masjid-takbiran-state-v1';
+
+    function readTakbiranPersistedState_() {
+      try {
+        const raw = window.localStorage.getItem(TAKBIRAN_STORAGE_KEY_);
+        if (!raw) return null;
+        const value = JSON.parse(raw);
+        return value && typeof value === 'object' ? value : null;
+      } catch (error) {
+        console.warn('TAKBIRAN: penyimpanan lokal tidak tersedia.', error);
+        return null;
+      }
+    }
+
+    function writeTakbiranPersistedState_(value) {
+      try {
+        if (!value) window.localStorage.removeItem(TAKBIRAN_STORAGE_KEY_);
+        else window.localStorage.setItem(TAKBIRAN_STORAGE_KEY_, JSON.stringify(value));
+      } catch (error) {
+        console.warn('TAKBIRAN: gagal menyimpan status jadwal.', error);
+      }
+    }
+
+    function enqueuePersistedTakbiran_(record) {
+      const state = WEB_APP_STATE.audio;
+      if (!record || !state.takbiranEnabled) return;
+      const eventKey = String(record.eventKey || '');
+      if (!eventKey || state.takbiranScheduledLocks.has(eventKey)) return;
+
+      state.takbiranScheduledLocks.add(eventKey);
+      record.status = 'queued';
+      writeTakbiranPersistedState_(record);
+
+      const wita = getWitaTime();
+      const nowSeconds = Number(wita.hour) * 3600 + Number(wita.minute) * 60 + Number(wita.second);
+      state.queuedLocks.add(eventKey);
+      enqueueAudio(
+        audioConfig.takbiran || './audio/takbiran.mp3',
+        'TAKBIRAN',
+        eventKey,
+        {
+          audioType: 'takbiran',
+          prayerName: record.sourcePrayer || '',
+          eventName: 'TAKBIRAN (16 MENIT SETELAH IQOMAH)',
+          dateKey: record.dateKey || getApiDate(),
+          targetSec: nowSeconds,
+          endSec: null,
+          status: 'ON'
+        }
+      );
+      console.log('TAKBIRAN MASUK ANTREAN:', eventKey);
+    }
+
+    function syncTakbiranSchedule_() {
+      const state = WEB_APP_STATE.audio;
+      const record = readTakbiranPersistedState_();
+      if (!record) return;
+
+      if (record.holdUntilMs && Number(record.holdUntilMs) > getSynchronizedNow().getTime()) {
+        state.takbiranHoldUntilMs = Number(record.holdUntilMs);
+      }
+
+      if (record.status === 'completed') return;
+
+      if (!state.takbiranEnabled) {
+        if (state.takbiranTimer) clearTimeout(state.takbiranTimer);
+        state.takbiranTimer = null;
+        if (record.status === 'pending' || record.status === 'queued') {
+          writeTakbiranPersistedState_(record.holdUntilMs ? {
+            status: 'completed',
+            holdUntilMs: record.holdUntilMs,
+            dateKey: record.dateKey || getApiDate()
+          } : null);
+          console.log('TAKBIRAN DIBATALKAN: panels!C57 OFF.');
+        }
+        return;
+      }
+
+      if (record.status === 'playing') {
+        // Jika halaman direload saat audio sedang berjalan, antrekan ulang
+        // agar takbiran tidak hilang hanya karena timer/browser dimuat ulang.
+        record.status = 'queued';
+        writeTakbiranPersistedState_(record);
+      }
+
+      if (record.status === 'queued') {
+        enqueuePersistedTakbiran_(record);
+        return;
+      }
+
+      if (record.status !== 'pending') return;
+      if (state.takbiranTimer) return;
+
+      const delay = Math.max(0, Number(record.dueAtMs || 0) - getSynchronizedNow().getTime());
+      state.takbiranTimer = setTimeout(function() {
+        state.takbiranTimer = null;
+        const latest = readTakbiranPersistedState_();
+        if (!latest || latest.eventKey !== record.eventKey) return;
+        if (!state.takbiranEnabled) {
+          syncTakbiranSchedule_();
+          return;
+        }
+        enqueuePersistedTakbiran_(latest);
+      }, delay);
+      console.log('TAKBIRAN TERJADWAL: target 16 menit setelah iqomah selesai.', {
+        eventKey: record.eventKey,
+        target: new Date(Number(record.dueAtMs || 0)).toISOString()
+      });
+    }
+
     function scheduleTakbiranAfterIqomah_(iqomahItem) {
       const state = WEB_APP_STATE.audio;
-      if (!state.takbiranEnabled || !iqomahItem) return;
-      if (String(iqomahItem.audioType || '').trim().toLowerCase() !== 'iqomah') return;
+      if (!iqomahItem || String(iqomahItem.audioType || '').trim().toLowerCase() !== 'iqomah') return;
 
       const sourceEventKey = String(iqomahItem.eventKey || '');
       if (sourceEventKey && state.takbiranScheduledLocks.has(sourceEventKey)) return;
       if (sourceEventKey) state.takbiranScheduledLocks.add(sourceEventKey);
+      if (!state.takbiranEnabled) {
+        console.log('TAKBIRAN TIDAK DIJADWALKAN: panels!C57 bukan ON saat iqomah selesai.');
+        return;
+      }
 
-      const sourcePrayer = iqomahItem.prayerName || '';
-      const eventKey = 'TAKBIRAN_AFTER_IQOMAH_' + (sourceEventKey || String(Date.now()));
-
-      console.log('TAKBIRAN TERJADWAL: mulai 16 menit setelah iqomah selesai; C57 harus tetap ON.');
-      setTimeout(function() {
-        // Gunakan status C57 terbaru yang diterima dari polling realtime.
-        if (!state.takbiranEnabled) {
-          console.log('TAKBIRAN DIBATALKAN: panels!C57 sudah OFF.');
-          return;
-        }
-
-        const wita = getWitaTime();
-        const nowSeconds = Number(wita.hour) * 3600 + Number(wita.minute) * 60 + Number(wita.second);
-        state.queuedLocks.add(eventKey);
-        enqueueAudio(
-          audioConfig.takbiran || './audio/takbiran.mp3',
-          'TAKBIRAN',
-          eventKey,
-          {
-            audioType: 'takbiran',
-            prayerName: sourcePrayer,
-            eventName: 'TAKBIRAN (16 MENIT SETELAH IQOMAH)',
-            dateKey: getApiDate(),
-            targetSec: nowSeconds,
-            endSec: null,
-            status: 'ON'
-          }
-        );
-      }, 16 * 60 * 1000);
+      const completedAtMs = getSynchronizedNow().getTime();
+      const eventKey = 'TAKBIRAN_AFTER_IQOMAH_' + (sourceEventKey || String(completedAtMs));
+      const record = {
+        status: 'pending',
+        eventKey: eventKey,
+        sourceEventKey: sourceEventKey,
+        sourcePrayer: iqomahItem.prayerName || '',
+        dateKey: getApiDate(),
+        completedAtMs: completedAtMs,
+        dueAtMs: completedAtMs + (16 * 60 * 1000),
+        holdUntilMs: 0
+      };
+      writeTakbiranPersistedState_(record);
+      syncTakbiranSchedule_();
     }
 
 
@@ -3706,6 +3808,13 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
                 // Setelah file takbiran berakhir natural, tahan queue 2 menit.
                 if (String(item.audioType || '').trim().toLowerCase() === 'takbiran') {
                   state.takbiranHoldUntilMs = getSynchronizedNow().getTime() + (2 * 60 * 1000);
+                  const previousTakbiranState = readTakbiranPersistedState_() || {};
+                  writeTakbiranPersistedState_({
+                    status: 'completed',
+                    eventKey: item.eventKey || previousTakbiranState.eventKey || '',
+                    dateKey: getApiDate(),
+                    holdUntilMs: state.takbiranHoldUntilMs
+                  });
                   console.log('TAKBIRAN SELESAI: antrean audio ditahan 2 menit.');
                 }
 
@@ -5189,6 +5298,7 @@ function applyRealtimeAudioStatusOnly_(data) {
     WEB_APP_STATE.audio.takbiranEnabled =
       data.TakbiranEnabled === true ||
       String(data.TakbiranEnabled || '').trim().toUpperCase() === 'ON';
+    syncTakbiranSchedule_();
     if (!WEB_APP_STATE.audio.takbiranEnabled &&
         WEB_APP_STATE.audio.currentAudioType === 'takbiran') {
       const activeTakbiranAudio = getAudioElement();
