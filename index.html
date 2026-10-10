@@ -415,7 +415,6 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
             id="eid-fitri-video"
             src="https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/video/idul-fitri.webm"
             muted
-            loop
             playsinline
             preload="none"
             aria-label="Animasi Idul Fitri">
@@ -17658,22 +17657,25 @@ function setCountdownBlackMode(enabled) {
     // =========================================================
     // VIDEO ANIMASI IDUL FITRI - panels!C68:E68
     // C68 = waktu mulai, D68 = waktu berhenti, E68 = ON/OFF.
+    // Satu siklus video, jeda total 20 detik, lalu ulangi.
     // Independen dari YouTube, audio adzan, dan scheduler sholat.
     // =========================================================
     let eidFitriVideoConfig = null;
     let eidFitriVideoLastActive = false;
     let eidFitriVideoRequestBusy = false;
+    let eidFitriVideoRestartTimer = null;
+    const EID_FITRI_VIDEO_PAUSE_MS = 20000;
 
     function parseEidFitriVideoDate_(value) {
       const text = String(value || '').trim();
       if (!text) return null;
       // Mendukung yyyy-MM-dd, dd/MM/yyyy, dan dd-MM-yyyy.
-      let match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+      let match = text.match(/^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})$/);
       let year, month, day;
       if (match) {
         year = Number(match[1]); month = Number(match[2]); day = Number(match[3]);
       } else {
-        match = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+        match = text.match(/^(\\d{1,2})[/-](\\d{1,2})[/-](\\d{4})$/);
         if (!match) return null;
         day = Number(match[1]); month = Number(match[2]); year = Number(match[3]);
       }
@@ -17709,27 +17711,62 @@ function setCountdownBlackMode(enabled) {
       }
     }
 
+    function clearEidFitriVideoRestartTimer_() {
+      if (eidFitriVideoRestartTimer !== null) {
+        clearTimeout(eidFitriVideoRestartTimer);
+        eidFitriVideoRestartTimer = null;
+      }
+    }
+
+    function playEidFitriVideoCycle_(video) {
+      const playResult = video.play();
+      if (playResult && typeof playResult.catch === 'function') {
+        playResult.catch(function(error) {
+          console.warn('IDUL FITRI VIDEO: autoplay gagal:', error);
+        });
+      }
+    }
+
     function applyEidFitriVideoState_() {
       const frame = document.getElementById('eid-fitri-video-widget');
       const video = document.getElementById('eid-fitri-video');
       if (!frame || !video) return;
+
+      // Pasang handler satu kali. Video tidak memakai atribut loop:
+      // setelah ended, tunggu 20 detik sebelum memulai siklus baru.
+      if (video.dataset.pauseCycleHandler !== 'true') {
+        video.dataset.pauseCycleHandler = 'true';
+        video.addEventListener('ended', function() {
+          clearEidFitriVideoRestartTimer_();
+          if (!isEidFitriVideoTimeActive_(eidFitriVideoConfig, new Date())) return;
+
+          console.log('IDUL FITRI VIDEO: satu siklus selesai; jeda 20 detik.');
+          eidFitriVideoRestartTimer = setTimeout(function() {
+            eidFitriVideoRestartTimer = null;
+            if (!isEidFitriVideoTimeActive_(eidFitriVideoConfig, new Date())) return;
+            if (!eidFitriVideoLastActive || !document.getElementById('eid-fitri-video-widget')) return;
+
+            try { video.currentTime = 0; } catch (error) {}
+            playEidFitriVideoCycle_(video);
+            console.log('IDUL FITRI VIDEO: siklus berikutnya dimulai setelah jeda 20 detik.');
+          }, EID_FITRI_VIDEO_PAUSE_MS);
+        });
+      }
 
       const active = isEidFitriVideoTimeActive_(eidFitriVideoConfig, new Date());
       if (active === eidFitriVideoLastActive) return;
       eidFitriVideoLastActive = active;
 
       if (active) {
+        clearEidFitriVideoRestartTimer_();
         frame.style.display = 'block';
         frame.setAttribute('aria-hidden', 'false');
         video.muted = true;
-        const playResult = video.play();
-        if (playResult && typeof playResult.catch === 'function') {
-          playResult.catch(function(error) {
-            console.warn('IDUL FITRI VIDEO: autoplay gagal:', error);
-          });
-        }
+        try { video.currentTime = 0; } catch (error) {}
+        playEidFitriVideoCycle_(video);
         console.log('IDUL FITRI VIDEO: mulai sesuai panels!C68:E68');
       } else {
+        clearEidFitriVideoRestartTimer_();
         video.pause();
         try { video.currentTime = 0; } catch (error) {}
         frame.style.display = 'none';
