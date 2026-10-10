@@ -9582,6 +9582,12 @@ function startRealtimeAudioConfigPolling_() {
       customConfigs.forEach(function(customConfig) {
         if (!customConfig || typeof customConfig !== 'object') return;
 
+        // B68:E72 adalah penanda/konfigurasi animasi video, bukan countdown.
+        // Filter di browser juga mencegah teks muncul jika Apps Script masih
+        // mengirim cache/deployment lama yang menyertakan baris 68-72.
+        const customRow = Number(customConfig.row);
+        if (customRow >= 68 && customRow <= 72) return;
+
         const customStatus =
           String(customConfig.status || '').trim().toUpperCase();
         const customText =
