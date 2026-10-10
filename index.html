@@ -2741,6 +2741,46 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 
           }
 
+          // Jangan mulai takbiran jika batas berhenti sebelum Qiroah
+          // sudah terlewati. Ini mencegah play() langsung dibatalkan oleh
+          // pause() dan menghindari AbortError saat catch-up terlambat.
+          if (normalizedAudioType === 'takbiran') {
+            try {
+              const nowWitaForTakbiran = getWitaTime();
+              const nowSecondsForTakbiran =
+                Number(nowWitaForTakbiran.hour) * 3600 +
+                Number(nowWitaForTakbiran.minute) * 60 +
+                Number(nowWitaForTakbiran.second);
+              const nextQiroahForTakbiran =
+                typeof getNextQiroahTargetSec_ === 'function'
+                  ? getNextQiroahTargetSec_(nowSecondsForTakbiran)
+                  : null;
+              const stopBoundaryForTakbiran =
+                Number(nextQiroahForTakbiran) - (5 * 60);
+
+              if (
+                Number.isFinite(Number(nextQiroahForTakbiran)) &&
+                Number.isFinite(Number(nowSecondsForTakbiran)) &&
+                stopBoundaryForTakbiran <= nowSecondsForTakbiran
+              ) {
+                console.warn(
+                  'TAKBIRAN DILEWATI: batas 5 menit sebelum Qiroah sudah tercapai; audio tidak dimulai.',
+                  label,
+                  'qiroahTargetSec=', Number(nextQiroahForTakbiran),
+                  'stopBoundarySec=', stopBoundaryForTakbiran,
+                  'nowSec=', nowSecondsForTakbiran
+                );
+                finish(true, false);
+                return;
+              }
+            } catch (takbiranPreflightError) {
+              console.warn(
+                'TAKBIRAN: pemeriksaan batas Qiroah gagal; lanjutkan aturan timer normal.',
+                takbiranPreflightError
+              );
+            }
+          }
+
           let playResult;
 
           try {
