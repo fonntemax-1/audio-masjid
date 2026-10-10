@@ -298,7 +298,7 @@ function handleGithubApiRequest_(params) {
      'C2','C18','C20','F20','C22','C26','C28','C29','C30','C31','C32',
      'B35','B36','B37','B38','B39','C41','C42','C43',
      'C60','D60','E60','C61','D61','E61','C62','D62','E62',
-     'C63','D63','E63','C64','D64','E64','C69','D69','E69'
+     'C63','D63','E63','B64','C64','D64','E64','C69','D69','E69'
    ]);
    return allowed.has(String(cell || '').toUpperCase());
  }
