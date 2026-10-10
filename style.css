@@ -4638,3 +4638,29 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
   background: transparent !important;
   mix-blend-mode: screen !important;
 }
+
+/* IDUL FITRI — STYLE MINIMALIS, TRANSISI LEMBUT DAN TEMPO LAMBAT.
+   Hanya presentasi video; tidak mengubah konfigurasi atau jadwal pemutaran. */
+.eid-fitri-video-widget {
+  animation: eidFitriSoftAppear 2.4s ease-out both;
+  transform-origin: top left;
+  will-change: opacity;
+}
+.eid-fitri-video-widget video {
+  animation: eidFitriGentleGlow 8s ease-in-out infinite alternate;
+}
+@keyframes eidFitriSoftAppear {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes eidFitriGentleGlow {
+  from { filter: brightness(0.94); }
+  to   { filter: brightness(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eid-fitri-video-widget,
+  .eid-fitri-video-widget video {
+    animation: none !important;
+  }
+}
+
