@@ -13895,9 +13895,20 @@ function startRealtimeAudioConfigPolling_() {
           // Marker localStorage dari reload sebelumnya tidak boleh
           // menghalangi event yang SEDANG AKTIF. Tetapi event yang sudah
           // dimainkan pada sesi halaman ini tetap tidak boleh di-replay.
-          if (!alreadyQueued && !alreadyPlayedInMemory) {
+          const isTakbiranEvent =
+            String(event.audioType || '').trim().toLowerCase() === 'takbiran';
+
+          // Takbiran memiliki jendela schedule 24 jam agar tetap ditemukan
+          // oleh catch-up. Karena itu, setelah reload, marker localStorage
+          // yang sudah dimainkan wajib dihormati khusus untuk takbiran;
+          // jika tidak, catch-up akan memutar ulang event yang sama.
+          if (
+            !alreadyQueued &&
+            !alreadyPlayedInMemory &&
+            !(isTakbiranEvent && persistentPlayed)
+          ) {
             const url =
-              (String(event.audioType || '').toLowerCase() === 'takbiran'
+              (isTakbiranEvent
                 ? ((window.getLocalAudioUrl && window.getLocalAudioUrl('takbiran')) || './audio/takbiran.mp3')
                 : (audioConfig[event.audioType] || ''));
 
@@ -14246,7 +14257,9 @@ function startRealtimeAudioConfigPolling_() {
             if (liveNowSeconds > event.endSec) return;
 
             const url =
-              audioConfig[event.audioType] || '';
+              (String(event.audioType || '').trim().toLowerCase() === 'takbiran'
+                ? ((window.getLocalAudioUrl && window.getLocalAudioUrl('takbiran')) || './audio/takbiran.mp3')
+                : (audioConfig[event.audioType] || ''));
 
             console.log(
               'AUDIO DYNAMIC:',
