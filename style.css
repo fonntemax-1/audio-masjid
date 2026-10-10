@@ -4649,6 +4649,18 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
 .eid-fitri-video-widget video {
   animation: eidFitriGentleGlow 8s ease-in-out infinite alternate;
 }
+.eid-adha-video-widget img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  mix-blend-mode: normal !important;
+  animation: eidFitriGentleGlow 8s ease-in-out infinite alternate;
+}
 @keyframes eidFitriSoftAppear {
   from { opacity: 0; }
   to   { opacity: 1; }
