@@ -14309,9 +14309,8 @@ function startRealtimeAudioConfigPolling_() {
             );
           }
 
-          // TAKBIRAN dimulai 1 menit setelah overlay hitam berakhir.
-          // Overlay Panel AUTO berakhir 15 menit setelah iqomah selesai,
-          // sehingga target audio = akhir iqomah + 15 menit + 1 menit.
+          // TAKBIRAN dimulai 17 menit setelah iqomah selesai.
+          // Jadwal tidak bergantung pada status atau durasi overlay hitam.
           // Takbiran hanya dimainkan SATU KALI; jendela event dibatasi
           // ke durasi file aktual, bukan 24 jam, agar tidak looping/replay.
           if (audioState.takbiranEnabled) {
@@ -14327,7 +14326,7 @@ function startRealtimeAudioConfigPolling_() {
                 console.warn('TAKBIRAN TIDAK DIJADWALKAN: durasi file aktual tidak tersedia.');
               } else {
                 const takbiranTargetSec =
-                  Number(iqomahEvent.endSec) + (15 * 60) + 60;
+                  Number(iqomahEvent.endSec) + (17 * 60);
                 const takbiranEndSec =
                   takbiranTargetSec + Number(takbiranDuration);
                 const takbiranEventKey = getAudioEventKey(
@@ -14343,7 +14342,7 @@ function startRealtimeAudioConfigPolling_() {
                     eventName: 'takbiran',
                     targetSec: takbiranTargetSec,
                     endSec: takbiranEndSec,
-                    label: 'TAKBIRAN (1 MENIT SETELAH OVERLAY HITAM)',
+                    label: 'TAKBIRAN (17 MENIT SETELAH IQOMAH)',
                     audioType: 'takbiran',
                     status: 'ON',
                     _takbiranScheduled: true
@@ -14351,7 +14350,7 @@ function startRealtimeAudioConfigPolling_() {
                   console.log('TAKBIRAN MASUK JADWAL ANTREAN:', {
                     prayer: prayer.name,
                     iqomahEndSec: Number(iqomahEvent.endSec),
-                    overlayBlackEndSec: Number(iqomahEvent.endSec) + (15 * 60),
+                    takbiranStartAfterIqomahSec: 17 * 60,
                     targetSec: takbiranTargetSec,
                     durationSec: Number(takbiranDuration),
                     endSec: takbiranEndSec,
