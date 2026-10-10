@@ -118,13 +118,43 @@ async function connect(){
 async function refreshPanels(){
  try{
   const p=apiData(await jsonp('getDataFromSheet'));
-  const raw=apiData(await jsonp('getDisplayThemeSetting')).theme;
-  if(raw&&inputByCell.C18)inputByCell.C18[0].value=String(raw).toUpperCase();
-  // Getters yang tersedia tetap menjadi sumber status resmi; sel lain dimuat melalui struktur panels jika dikembalikan API.
+  const readAction=async(action)=>{try{return apiData(await jsonp(action))}catch(_){return null}};
+  const [theme,youtube,black,mode,source,activity,runText,eventCountdown,eventCustom]=await Promise.all([
+   readAction('getDisplayThemeSetting'),readAction('getYoutubeControl'),readAction('getPanelIqomahBlackMode'),
+   readAction('getPanelDisplayMode'),readAction('getPanelKeuanganSource'),readAction('getPanelKegiatan'),
+   readAction('getEventRunningText'),readAction('getEventCountdownConfig'),readAction('getEventCountdownConfig')
+  ]);
+  const put=(cell,value)=>{if(value===undefined||value===null||value===''||!inputByCell[cell])return;inputByCell[cell].forEach(el=>el.value=String(value))};
+  const first=(obj,keys)=>{if(!obj||typeof obj!=='object')return undefined;for(const k of keys)if(obj[k]!==undefined&&obj[k]!==null&&obj[k]!=='')return obj[k];return undefined};
   if(p&&typeof p==='object'){
-   const candidates={'C18':['DisplayTheme'],'C26':['PanelKeuanganSource','PanelDisplayMode']};
-   Object.keys(candidates).forEach(cell=>{for(const key of candidates[cell])if(p[key]!==undefined&&inputByCell[cell]){inputByCell[cell][0].value=String(p[key]);break}});
+   put('C2',first(p,['PanelMode','CountdownMode','Countdown']));
+   put('C18',first(p,['DisplayTheme']));
+   put('C20',first(p,['Youtube','YoutubeUrl','YouTubeUrl']));
+   put('F20',first(p,['YoutubeStatus','YoutubeControl']));
+   put('C22',first(p,['PanelIqomahBlackMode','IqomahBlackMode']));
+   put('C26',first(p,['KeuanganSelector','PanelKeuanganSource']));
+   put('C28',first(p,['PanelKegiatan']));
+   put('C41',first(p,['PanelSpecialMode','PanelInfaqMode']));
+   const e=p.EventCountdown;
+   if(e&&typeof e==='object'){
+    [['C60',['Ramadan','Ramadhan','name','label']],['D60',['RamadanDate','RamadhanDate','date']],['E60',['RamadanStatus','RamadhanStatus','status']],
+     ['C61',['Qadr','LailatulQadr','qadrName']],['D61',['QadrDate','LailatulQadrDate','qadrDate']],['E61',['QadrStatus','LailatulQadrStatus','qadrStatus']],
+     ['C62',['Fitri','IdulFitri','fitriName']],['D62',['FitriDate','IdulFitriDate','fitriDate']],['E62',['FitriStatus','IdulFitriStatus','fitriStatus']],
+     ['C63',['Adha','IdulAdha','adhaName']],['D63',['AdhaDate','IdulAdhaDate','adhaDate']],['E63',['AdhaStatus','IdulAdhaStatus','adhaStatus']]
+    ].forEach(([cell,keys])=>put(cell,first(e,keys)));
+   }
   }
+  put('C18',first(theme,['theme','value','color']));
+  put('F20',first(youtube,['status','mode','control','value']));
+  put('C22',first(black,['mode','status','value']));
+  put('C26',first(source,['value','source','mode','selector']));
+  put('C28',first(activity,['value','activity','mode','name']));
+  if(runText&&typeof runText==='object'){
+   const list=Array.isArray(runText)?runText:(runText.items||runText.texts||runText.data);
+   if(Array.isArray(list))list.slice(0,5).forEach((v,i)=>put('B'+(35+i),typeof v==='object'?(v.text||v.value||''):v));
+  }
+  // C26 ditampilkan di dua bagian; sinkronkan keduanya agar nilai yang terlihat sama.
+  if(inputByCell.C26&&inputByCell.C26.length>1)inputByCell.C26.forEach(el=>el.value=inputByCell.C26[0].value);
   setStatus('Data berhasil dimuat · '+new Date().toLocaleTimeString('id-ID'),true);
  }catch(e){setStatus('Terhubung; sebagian status belum dapat dibaca',false);show($('saveMsg'),'Sebagian nilai tidak dapat dimuat otomatis dari API yang tersedia. Periksa Spreadsheet sebelum menyimpan.',true)}
 }
