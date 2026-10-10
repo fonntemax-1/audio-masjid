@@ -19,7 +19,7 @@
     'doa-buka': 'doa-buka.mp3',
     'iqomah': 'iqomah.mp3',
     'sirine': 'sirine.mp3',
-    'takbiran': 'iqomah.mp3'
+    'takbiran': 'takbiran.mp3'
   };
 
   function localUrl(key) {
