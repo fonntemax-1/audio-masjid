@@ -1135,6 +1135,11 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
         // tanpa me-restart atau memotong sequence.
         currentAudioType: '',
 
+        // Kontrol takbiran dari panels!C57 dan jeda queue sesudah takbiran.
+        takbiranEnabled: false,
+        takbiranHoldUntilMs: 0,
+        takbiranScheduledLocks: new Set(),
+
         scheduleInitialized: false
 
       },
@@ -1503,6 +1508,21 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
         nextConfig['doa-buka'] || './audio/doa-buka.mp3';
 
       audioConfig = nextConfig;
+
+      // panels!C57 dibaca realtime dari getRealtimeAudioConfig.
+      WEB_APP_STATE.audio.takbiranEnabled =
+        data.TakbiranEnabled === true ||
+        String(data.TakbiranEnabled || '').trim().toUpperCase() === 'ON';
+
+      // Jika C57 dimatikan ketika takbiran sedang berjalan, mute suaranya;
+      // handler audio dibiarkan menyelesaikan queue secara aman.
+      if (!WEB_APP_STATE.audio.takbiranEnabled &&
+          WEB_APP_STATE.audio.currentAudioType === 'takbiran') {
+        const activeTakbiranAudio = getAudioElement();
+        if (activeTakbiranAudio) {
+          try { activeTakbiranAudio.defaultMuted = true; activeTakbiranAudio.muted = true; } catch (e) {}
+        }
+      }
 
       // Normalisasi AudioSchedule dari JSONP/API.
       // Backend terbaru mengirim object schedule langsung, tetapi
@@ -3124,17 +3144,71 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
     }
 
 
+    function scheduleTakbiranAfterIqomah_(iqomahItem) {
+      const state = WEB_APP_STATE.audio;
+      if (!state.takbiranEnabled || !iqomahItem) return;
+      if (String(iqomahItem.audioType || '').trim().toLowerCase() !== 'iqomah') return;
+
+      const sourceEventKey = String(iqomahItem.eventKey || '');
+      if (sourceEventKey && state.takbiranScheduledLocks.has(sourceEventKey)) return;
+      if (sourceEventKey) state.takbiranScheduledLocks.add(sourceEventKey);
+
+      const sourcePrayer = iqomahItem.prayerName || '';
+      const eventKey = 'TAKBIRAN_AFTER_IQOMAH_' + (sourceEventKey || String(Date.now()));
+
+      console.log('TAKBIRAN TERJADWAL: mulai 16 menit setelah iqomah selesai; C57 harus tetap ON.');
+      setTimeout(function() {
+        // Gunakan status C57 terbaru yang diterima dari polling realtime.
+        if (!state.takbiranEnabled) {
+          console.log('TAKBIRAN DIBATALKAN: panels!C57 sudah OFF.');
+          return;
+        }
+
+        const wita = getWitaTime();
+        const nowSeconds = Number(wita.hour) * 3600 + Number(wita.minute) * 60 + Number(wita.second);
+        state.queuedLocks.add(eventKey);
+        enqueueAudio(
+          audioConfig.takbiran || './audio/takbiran.mp3',
+          'TAKBIRAN',
+          eventKey,
+          {
+            audioType: 'takbiran',
+            prayerName: sourcePrayer,
+            eventName: 'TAKBIRAN (16 MENIT SETELAH IQOMAH)',
+            dateKey: getApiDate(),
+            targetSec: nowSeconds,
+            endSec: null,
+            status: 'ON'
+          }
+        );
+      }, 16 * 60 * 1000);
+    }
+
+
     function processAudioQueue() {
 
       const state =
         WEB_APP_STATE.audio;
 
-      if (
-        state.processing ||
-        state.queue.length === 0
-      ) {
+      if (state.processing) return;
+
+      // Jeda pasca-takbiran menahan seluruh antrean, termasuk bila queue
+      // sementara kosong lalu menerima event baru selama masa jeda.
+      const takbiranHoldUntilMs = Number(state.takbiranHoldUntilMs || 0);
+      const synchronizedNowMs = getSynchronizedNow().getTime();
+      if (takbiranHoldUntilMs > synchronizedNowMs) {
+        state.processing = false;
+        const holdWaitMs = Math.min(1000, Math.max(100, takbiranHoldUntilMs - synchronizedNowMs));
+        if (state.queueWakeTimer) clearTimeout(state.queueWakeTimer);
+        state.queueWakeTimer = setTimeout(function() {
+          state.queueWakeTimer = null;
+          processAudioQueue();
+        }, holdWaitMs);
         return;
       }
+      if (state.takbiranHoldUntilMs) state.takbiranHoldUntilMs = 0;
+
+      if (state.queue.length === 0) return;
 
       if (!state.initialized) {
         return;
@@ -3220,6 +3294,17 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
           setTimeout(function() { processAudioQueue(); }, 25);
           return;
 
+        }
+
+        // Takbiran harus dilewati bila panels!C57 berubah menjadi OFF.
+        if (String(item.audioType || '').trim().toLowerCase() === 'takbiran' && !state.takbiranEnabled) {
+          console.log('TAKBIRAN SKIP: panels!C57 bukan ON.');
+          state.queue.shift();
+          state.queuedLocks.delete(item.eventKey);
+          state.retryCount.delete(item.eventKey);
+          state.processing = false;
+          setTimeout(function() { processAudioQueue(); }, 25);
+          return;
         }
 
         // STATUS OFF HARUS MEMBLOKIR OUTPUT AUDIO DI SINI JUGA.
@@ -3604,6 +3689,18 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
                   markAudioEventPlayed(
                     item.eventKey
                   );
+                }
+
+                // Setelah IQOMAH benar-benar selesai, jadwalkan takbiran
+                // 16 menit kemudian jika panels!C57=ON.
+                if (String(item.audioType || '').trim().toLowerCase() === 'iqomah') {
+                  scheduleTakbiranAfterIqomah_(item);
+                }
+
+                // Setelah file takbiran berakhir natural, tahan queue 2 menit.
+                if (String(item.audioType || '').trim().toLowerCase() === 'takbiran') {
+                  state.takbiranHoldUntilMs = getSynchronizedNow().getTime() + (2 * 60 * 1000);
+                  console.log('TAKBIRAN SELESAI: antrean audio ditahan 2 menit.');
                 }
 
                 state.queue.shift();
