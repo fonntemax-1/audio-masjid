@@ -4587,11 +4587,12 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
 }
 
 
-/* ANIMASI IDUL FITRI — DIPERBESAR, TANPA FRAME, DI ATAS BANNER EVENT */
+/* ANIMASI IDUL FITRI — POSISI DI KIRI ATAS FRAME UTAMA */
 .eid-fitri-video-widget {
   left: 0% !important;
   right: auto !important;
-  bottom: calc(2.5vh + 2.5%) !important;
+  top: 0 !important;
+  bottom: auto !important;
   width: 70% !important;
   max-width: none !important;
   aspect-ratio: 16 / 9 !important;
@@ -4616,7 +4617,8 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
 @media screen and (max-width: 700px) {
   .eid-fitri-video-widget {
     left: 0% !important;
-    bottom: calc(2.5vh + 2.5%) !important;
+    top: 0 !important;
+    bottom: auto !important;
     width: 65% !important;
     max-width: none !important;
     border: 0 !important;
