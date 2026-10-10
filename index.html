@@ -12340,6 +12340,27 @@ function startRealtimeAudioConfigPolling_() {
 
       options = options || {};
 
+      // KUNCI PEMETAAN EVENT: nama event adalah sumber kebenaran untuk
+      // dua audio ini. Jika ada item lama/cache yang membawa audioType
+      // tertukar, jangan biarkan event IQOMAH memutar takbiran.mp3 (atau
+      // event TAKBIRAN memutar iqomah.mp3).
+      const canonicalEventName =
+        String(eventName || '').trim().toLowerCase();
+      const canonicalIncomingType =
+        String(audioType || '').trim().toLowerCase();
+
+      if (canonicalEventName === 'iqomah') {
+        audioType = 'iqomah';
+        url = './audio/iqomah.mp3';
+      } else if (canonicalEventName === 'takbiran') {
+        audioType = 'takbiran';
+        url = './audio/takbiran.mp3';
+      } else if (canonicalIncomingType === 'iqomah') {
+        url = './audio/iqomah.mp3';
+      } else if (canonicalIncomingType === 'takbiran') {
+        url = './audio/takbiran.mp3';
+      }
+
       const allowActiveCatchUp =
         options.allowActiveCatchUp === true;
 
