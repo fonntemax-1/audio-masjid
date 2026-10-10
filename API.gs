@@ -178,6 +178,10 @@ function handleGithubApiRequest_(params) {
         result = getYoutubeControlProtectionState();
         break;
 
+      case 'setRemoteCell':
+        result = setRemoteCellFromApi_(params);
+        break;
+
       case 'ping':
         result = {
           status: 'OK',
@@ -254,6 +258,51 @@ function handleGithubApiRequest_(params) {
  * Mengikuti pola akses spreadsheet yang dipakai kontrak YouTube.
  * Tidak mengubah pengaturan audio atau scheduler.
  */
+
+ // ============================================================
+ // REMOTE CONTROL - penulisan terbatas dengan PIN Script Properties
+ // Tidak mengubah scheduler, antrean audio, atau jadwal salat.
+ // ============================================================
+ function setRemoteCellFromApi_(params) {
+   params = params || {};
+   var configuredPin = String(PropertiesService.getScriptProperties().getProperty('REMOTE_CONTROL_PIN') || '');
+   var suppliedPin = String(params.pin || '');
+   if (!configuredPin || configuredPin.length < 6) {
+     throw new Error('Remote belum diaktifkan. Atur Script Property REMOTE_CONTROL_PIN (minimal 6 karakter).');
+   }
+   if (!suppliedPin || suppliedPin !== configuredPin) {
+     throw new Error('PIN remote salah.');
+   }
+   var sheetName = String(params.sheet || '').trim();
+   var cell = String(params.cell || '').trim().toUpperCase();
+   var value = params.value === undefined || params.value === null ? '' : String(params.value);
+   if (sheetName !== 'panels' || !isAllowedRemoteCell_(cell)) {
+     throw new Error('Lokasi sel tidak diizinkan untuk remote.');
+   }
+   if (value.length > 500) throw new Error('Nilai terlalu panjang (maksimal 500 karakter).');
+   var lock = LockService.getScriptLock();
+   lock.waitLock(10000);
+   try {
+     var ss = getSpreadsheet();
+     var sheet = ss.getSheetByName('panels');
+     if (!sheet) throw new Error('Sheet panels tidak ditemukan.');
+     sheet.getRange(cell).setValue(value);
+     SpreadsheetApp.flush();
+     return { success: true, sheet: sheetName, cell: cell, value: sheet.getRange(cell).getDisplayValue(), updatedAt: new Date().toISOString() };
+   } finally {
+     lock.releaseLock();
+   }
+ }
+ function isAllowedRemoteCell_(cell) {
+   var allowed = new Set([
+     'C18','F20','C22','C26','C28','C29','C30','C31','C32',
+     'B35','B36','B37','B38','B39','C41','C42','C43',
+     'C60','D60','E60','C61','D61','E61','C62','D62','E62',
+     'C63','D63','E63','C64','D64','E64','C69','D69','E69'
+   ]);
+   return allowed.has(String(cell || '').toUpperCase());
+ }
+
 function getEidFitriVideoConfigFromApi_() {
   try {
     var ss = getSpreadsheet();
