@@ -2822,6 +2822,7 @@ function getRealtimeAudioStatus() {
     }
 
     SpreadsheetApp.flush();
+    const takbiranSetting = String(sheet.getRange('C57').getDisplayValue() || '').trim().toUpperCase();
     const values = sheet.getRange('B46:Q55').getDisplayValues();
     const build = function(offset) {
       const list = [];
@@ -2838,6 +2839,7 @@ function getRealtimeAudioStatus() {
 
     return {
       success: true,
+      TakbiranEnabled: takbiranSetting === 'ON',
       AudioSchedule: {
         SUBUH_RAMADHAN: build(0),
         SUBUH_BIASA: build(2),
