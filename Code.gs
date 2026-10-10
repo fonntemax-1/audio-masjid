@@ -798,6 +798,11 @@ function getPanelEventCountdownCustomConfig_() {
 
     values.forEach(function(row, index) {
       const sheetRow = 64 + index;
+
+      // B68:E72 adalah penanda konfigurasi animasi teks, bukan countdown web.
+      // C68:E68 tetap dibaca secara terpisah oleh getEidFitriVideoConfig().
+      if (sheetRow >= 68 && sheetRow <= 72) return;
+
       const displayRow = displays[index] || [];
       const event = String(displayRow[0] || row[0] || '').trim();
       const start = normalizePanelCountdownDate_(row[1], displayRow[1], spreadsheetTimezone);
