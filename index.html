@@ -2761,9 +2761,9 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 
           }
 
-          // QIROAH terpilih wajib berhenti tepat saat event Tarhim berikutnya
-          // dimulai. Jangan menunggu file Qiroah selesai natural, karena itu
-          // akan menunda Tarhim dan membuat dua fase audio bergeser.
+          // QIROAH terpilih wajib berhenti tepat saat event Tarhim berikutnya.
+          // Takbiran juga wajib berhenti 5 menit sebelum Qiroah-1/2/3/4/5
+          // berikutnya, agar tidak bertabrakan dengan jadwal Qiroah.
           if (/^qiroah-[1-5]$/.test(normalizedAudioType) || normalizedAudioType === 'qiroah') {
             const boundary = Number(stopAtSeconds);
             const boundaryNow = getWitaTime();
@@ -2806,6 +2806,80 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
                 );
                 finish(true, false);
               }, Math.max(0, (boundary - boundaryNowSeconds) * 1000));
+            }
+          } else if (normalizedAudioType === 'takbiran') {
+            const boundaryNow = getWitaTime();
+            const boundaryNowSeconds =
+              Number(boundaryNow.hour) * 3600 +
+              Number(boundaryNow.minute) * 60 +
+              Number(boundaryNow.second);
+            let nextQiroahTarget = null;
+
+            try {
+              if (typeof getNextQiroahTargetSec_ === 'function') {
+                nextQiroahTarget =
+                  getNextQiroahTargetSec_(boundaryNowSeconds);
+              }
+            } catch (takbiranBoundaryError) {
+              console.warn(
+                'TAKBIRAN: gagal membaca target Qiroah berikutnya:',
+                takbiranBoundaryError
+              );
+            }
+
+            if (
+              Number.isFinite(Number(nextQiroahTarget)) &&
+              Number.isFinite(Number(boundaryNowSeconds))
+            ) {
+              const takbiranStopBoundary =
+                Number(nextQiroahTarget) - (5 * 60);
+
+              const stopTakbiranBeforeQiroah = function() {
+                qiroahStopBoundaryTimer = null;
+                if (finished) return;
+
+                const liveState = WEB_APP_STATE && WEB_APP_STATE.audio;
+                if (
+                  playbackEventKey &&
+                  liveState &&
+                  liveState.currentEventKey &&
+                  liveState.currentEventKey !== playbackEventKey
+                ) {
+                  return;
+                }
+
+                try {
+                  audio.pause();
+                  audio.currentTime = 0;
+                } catch (stopTakbiranError) {
+                  console.warn(
+                    'TAKBIRAN: gagal berhenti 5 menit sebelum Qiroah:',
+                    stopTakbiranError
+                  );
+                }
+
+                console.log(
+                  'TAKBIRAN DIHENTIKAN 5 MENIT SEBELUM QIROAH:',
+                  label,
+                  'qiroahTargetSec=', Number(nextQiroahTarget),
+                  'stopBoundarySec=', takbiranStopBoundary
+                );
+                finish(true, false);
+              };
+
+              if (takbiranStopBoundary <= boundaryNowSeconds) {
+                // Jika takbiran mulai ketika jendela 5 menit sudah masuk,
+                // hentikan segera; jangan biarkan audio berlanjut.
+                stopTakbiranBeforeQiroah();
+              } else {
+                qiroahStopBoundaryTimer = setTimeout(
+                  stopTakbiranBeforeQiroah,
+                  Math.max(
+                    0,
+                    (takbiranStopBoundary - boundaryNowSeconds) * 1000
+                  )
+                );
+              }
             }
           }
 
