@@ -2888,9 +2888,15 @@ function getRealtimeAudioConfig() {
       Logger.log('REALTIME AUDIO: Sheet Adzan tidak ditemukan; memakai URL lokal frontend.');
     }
 
+    const panelsSheet = ss.getSheetByName('panels');
+    const takbiranSetting = panelsSheet
+      ? String(panelsSheet.getRange('C57').getDisplayValue() || '').trim().toUpperCase()
+      : 'OFF';
+
     const result = {
       success: true,
       RamadanDisplay: getRamadanDisplaySetting(),
+      TakbiranEnabled: takbiranSetting === 'ON',
       Audio: audioResult.Audio || {},
       AudioSchedule: audioResult.AudioSchedule || {},
       AudioDurations: audioResult.AudioDurations || {},
