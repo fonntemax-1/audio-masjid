@@ -17670,12 +17670,12 @@ function setCountdownBlackMode(enabled) {
       const text = String(value || '').trim();
       if (!text) return null;
       // Mendukung yyyy-MM-dd, dd/MM/yyyy, dan dd-MM-yyyy.
-      let match = text.match(/^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})$/);
+      let match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
       let year, month, day;
       if (match) {
         year = Number(match[1]); month = Number(match[2]); day = Number(match[3]);
       } else {
-        match = text.match(/^(\\d{1,2})[/-](\\d{1,2})[/-](\\d{4})$/);
+        match = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
         if (!match) return null;
         day = Number(match[1]); month = Number(match[2]); year = Number(match[3]);
       }
