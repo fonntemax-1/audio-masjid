@@ -3247,8 +3247,16 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
         writeTakbiranPersistedState_(record);
       }
 
-      if (record.status === 'queued') {
-        enqueuePersistedTakbiran_(record);
+      // Jadwal takbiran kini dibuat oleh dynamic audio schedule.
+      // Jangan enqueue ulang record pending/queued dari implementasi lama,
+      // karena dapat menggandakan takbiran dan memakai metadata/URL usang.
+      if (record.status === 'queued' || record.status === 'pending') {
+        writeTakbiranPersistedState_(record.holdUntilMs ? {
+          status: 'completed',
+          holdUntilMs: record.holdUntilMs,
+          dateKey: record.dateKey || getApiDate()
+        } : null);
+        console.log('TAKBIRAN: record antrean lama dibersihkan; jadwal aktif berasal dari audio schedule.');
         return;
       }
 
