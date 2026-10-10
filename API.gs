@@ -69,6 +69,11 @@ function handleGithubApiRequest_(params) {
         result = getEidFitriVideoConfigFromApi_();
         break;
 
+      case 'getEidAdhaVideoConfig':
+        // Konfigurasi animasi Idul Adha dibaca terpisah dari C69:E69.
+        result = getEidAdhaVideoConfigFromApi_();
+        break;
+
       case 'getYoutubeControl':
         // Kontrak kontrol YouTube panels!C20/F20.
         // ON = suara aktif; OFF = video tetap berjalan dalam keadaan mute.
@@ -302,6 +307,70 @@ function getEidFitriVideoConfigFromApi_() {
   } catch (error) {
     var message = error && error.message ? error.message : String(error);
     Logger.log('IDUL FITRI VIDEO API CONFIG ERROR: ' + message);
+    return {
+      success: false,
+      error: message,
+      startDate: '',
+      stopDate: '',
+      status: 'OFF'
+    };
+  }
+}
+
+
+function getEidAdhaVideoConfigFromApi_() {
+  try {
+    var ss = getSpreadsheet();
+    var sheet = ss.getSheetByName('panels');
+    if (!sheet) {
+      return {
+        success: false,
+        error: 'Sheet panels tidak ditemukan.',
+        startDate: '',
+        stopDate: '',
+        status: 'OFF'
+      };
+    }
+
+    var values = sheet.getRange('C69:E69').getValues()[0] || [];
+    var timeZone = ss.getSpreadsheetTimeZone() ||
+      Session.getScriptTimeZone() || 'Asia/Makassar';
+
+    function normalizeVideoDate_(value) {
+      if (value instanceof Date && !isNaN(value.getTime())) {
+        return Utilities.formatDate(value, timeZone, 'yyyy-MM-dd');
+      }
+      var text = String(value == null ? '' : value).trim();
+      if (!text) return '';
+
+      var match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+      if (match) {
+        return match[1] + '-' +
+          ('0' + match[2]).slice(-2) + '-' +
+          ('0' + match[3]).slice(-2);
+      }
+
+      match = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+      if (match) {
+        return match[3] + '-' +
+          ('0' + match[2]).slice(-2) + '-' +
+          ('0' + match[1]).slice(-2);
+      }
+      return text;
+    }
+
+    var rawStatus = String(values[2] == null ? '' : values[2])
+      .trim().toUpperCase();
+
+    return {
+      success: true,
+      startDate: normalizeVideoDate_(values[0]),
+      stopDate: normalizeVideoDate_(values[1]),
+      status: rawStatus === 'ON' ? 'ON' : 'OFF'
+    };
+  } catch (error) {
+    var message = error && error.message ? error.message : String(error);
+    Logger.log('IDUL ADHA VIDEO API CONFIG ERROR: ' + message);
     return {
       success: false,
       error: message,
