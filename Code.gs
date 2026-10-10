@@ -799,8 +799,8 @@ function getPanelEventCountdownCustomConfig_() {
     values.forEach(function(row, index) {
       const sheetRow = 64 + index;
 
-      // B68:E72 adalah penanda konfigurasi animasi teks, bukan countdown web.
-      // C68:E68 tetap dibaca secara terpisah oleh getEidFitriVideoConfig().
+      // B68:E72 adalah penanda/konfigurasi animasi video, bukan teks countdown web.
+      // File video idul-fitri.webm ditampilkan oleh index.html; C68:E68 mengatur jadwalnya.
       if (sheetRow >= 68 && sheetRow <= 72) return;
 
       const displayRow = displays[index] || [];
