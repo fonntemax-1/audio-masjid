@@ -3239,8 +3239,9 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
       }
 
       if (record.status === 'playing') {
-        // Jika halaman direload saat audio sedang berjalan, antrekan ulang
-        // agar takbiran tidak hilang hanya karena timer/browser dimuat ulang.
+        // Jangan mengubah status selama playback masih aktif di halaman ini.
+        // Jika halaman direload, state audio kosong sehingga antrean dipulihkan.
+        if (String(state.currentAudioType || '').toLowerCase() === 'takbiran') return;
         record.status = 'queued';
         writeTakbiranPersistedState_(record);
       }
