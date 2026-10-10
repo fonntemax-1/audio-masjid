@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#073b2b">
+<title>Remote Masjid Al Mujahidin</title>
+<style>
+:root{color-scheme:dark;--bg:#071a15;--card:#102820;--line:#23473a;--text:#f4fff8;--muted:#a9c5b6;--accent:#00ffaa;--danger:#ff7676}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#071a15,#0d2820 55%,#071a15);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:22px 16px 16px;position:sticky;top:0;background:#071a15ed;backdrop-filter:blur(14px);border-bottom:1px solid var(--line);z-index:5}
+.head{max-width:850px;margin:auto;display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:15px;background:#123f30;display:grid;place-items:center;color:var(--accent);font-size:25px}
+h1{font-size:20px;margin:0}header p{margin:3px 0 0;color:var(--muted);font-size:12px}
+main{max-width:850px;margin:auto;padding:16px 14px 48px}.status{display:flex;align-items:center;gap:8px;margin:0 0 14px;color:var(--muted);font-size:13px}.dot{width:9px;height:9px;border-radius:50%;background:#eab308}.dot.ok{background:var(--accent)}
+.card{background:#102820e8;border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 8px 28px #0002}
+h2{font-size:16px;margin:0 0 12px;display:flex;align-items:center;gap:8px}.hint{font-size:12px;color:var(--muted);margin:-5px 0 13px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{min-width:0}.field.full{grid-column:1/-1}label{display:block;font-size:13px;color:#d9eee2;margin-bottom:6px}
+input,select,textarea{width:100%;min-height:46px;border:1px solid #315848;border-radius:12px;background:#071b14;color:#fff;padding:10px 11px;font:inherit;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px #00ffaa20}
+button{border:0;border-radius:12px;min-height:46px;padding:11px 14px;background:var(--accent);color:#062016;font-weight:750;font:inherit;cursor:pointer}button.secondary{background:#1a3b2e;border:1px solid #315848;color:#e8fff1}button.danger{background:#5b2424;color:#fff;border:1px solid #854141}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions button{flex:1}
+.note{font-size:12px;color:var(--muted);margin-top:10px}.message{padding:11px 12px;border-radius:12px;background:#173b2d;color:#caffdf;font-size:13px;margin-top:10px;display:none;overflow-wrap:anywhere}.message.error{background:#4a2525;color:#ffd6d6}
+.locked{display:block}.hidden{display:none!important}.section-title{font-size:12px;color:var(--accent);letter-spacing:.12em;font-weight:800;margin:20px 4px 6px}
+.quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.quick button{background:#163a2d;color:#eafff1;border:1px solid #2b5a45;text-align:left}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
+@media(max-width:440px){.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.card{padding:13px}.head h1{font-size:18px}}
+</style>
+</head>
+<body>
+<header><div class="head"><div class="logo">☾</div><div><h1>REMOTE MASJID</h1><p>Masjid Al Mujahidin · Control panel Android</p></div></div></header>
+<main>
+<div class="status"><span id="dot" class="dot"></span><span id="status">Belum terhubung ke Apps Script</span><span style="margin-left:auto" id="clock"></span></div>
+<section class="card" id="connection">
+<h2>🔐 Koneksi & keamanan</h2>
+<p class="hint">Masukkan URL Web App Apps Script yang digunakan oleh signage dan PIN remote.</p>
+<div class="grid">
+<div class="field full"><label for="apiUrl">URL Web App Apps Script (/exec)</label><input id="apiUrl" type="url" autocomplete="url" placeholder="https://script.google.com/macros/s/.../exec"></div>
+<div class="field full"><label for="pin">PIN remote</label><input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN yang disimpan di Script Properties"></div>
+</div>
+<div class="actions"><button id="connectBtn">Uji koneksi</button><button class="secondary" id="forgetBtn">Lupakan PIN</button></div>
+<div class="note">Untuk mengaktifkan penyimpanan, admin perlu menambahkan Script Property <b>REMOTE_CONTROL_PIN</b> (minimal 6 karakter) pada project Apps Script lalu memperbarui deployment Web App. PIN tidak ditanam di file GitHub.</div>
+<div id="connectionMsg" class="message"></div>
+</section>
+<div id="controls" class="hidden">
+<div class="section-title">KONTROL UTAMA</div>
+<section class="card"><h2>🎨 Tampilan & audio</h2><div class="grid">
+<div class="field"><label for="theme">Tema layar · panels!C18</label><select id="theme" data-cell="C18"><option>HIJAU</option><option>MERAH</option><option>KUNING</option></select></div>
+<div class="field"><label for="youtube">YouTube · panels!F20</label><select id="youtube" data-cell="F20"><option>AUTO</option><option>ON</option><option>OFF</option><option>STOP</option></select></div>
+<div class="field"><label for="black">Layar hitam iqomah · C22</label><select id="black" data-cell="C22"><option>OFF</option><option>AUTO</option><option>SLEEP</option></select></div>
+<div class="field"><label for="countdown">Countdown · C2*</label><select id="countdown"><option>AUTO</option><option>NORMAL</option><option>OFF</option></select><p class="note">Kontrol C2 belum diaktifkan untuk penulisan karena sel tersebut belum termasuk daftar sel remote yang diizinkan.</p></div>
+</div><div class="actions"><button class="secondary" data-refresh="display">Muat status dari Spreadsheet</button></div></section>
+<div class="section-title">PETUGAS & KEGIATAN</div>
+<section class="card"><h2>🕌 Petugas salat & jenis kegiatan</h2><div class="grid">
+<div class="field"><label for="activity">Jenis kegiatan · C28</label><select id="activity" data-cell="C28"><option>SHOLAT JUM'AT</option><option>TARAWIH</option><option>IDUL FITRI</option><option>IDUL ADHA</option></select></div>
+<div class="field"><label for="selector">Pilihan panel · C26</label><select id="selector" data-cell="C26"><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
+<div class="field"><label for="petugas1">Petugas 1 · C29</label><input id="petugas1" data-cell="C29" maxlength="150"></div>
+<div class="field"><label for="petugas2">Petugas 2 · C30</label><input id="petugas2" data-cell="C30" maxlength="150"></div>
+<div class="field"><label for="petugas3">Petugas 3 · C31</label><input id="petugas3" data-cell="C31" maxlength="150"></div>
+<div class="field"><label for="petugas4">Petugas 4 · C32</label><input id="petugas4" data-cell="C32" maxlength="150"></div>
+</div><div class="actions"><button class="secondary" data-refresh="panels">Muat status dari Spreadsheet</button><button data-save-group="officers">Simpan petugas & kegiatan</button></div></section>
+<section class="card"><h2>📢 Running text</h2><p class="hint">Teks kegiatan yang ditampilkan di layar. Isi teks pada baris yang ingin digunakan.</p><div class="grid">
+<div class="field full"><label for="run1">Running text 1 · B35</label><input id="run1" data-cell="B35" maxlength="500"></div>
+<div class="field full"><label for="run2">Running text 2 · B36</label><input id="run2" data-cell="B36" maxlength="500"></div>
+<div class="field full"><label for="run3">Running text 3 · B37</label><input id="run3" data-cell="B37" maxlength="500"></div>
+<div class="field full"><label for="run4">Running text 4 · B38</label><input id="run4" data-cell="B38" maxlength="500"></div>
+<div class="field full"><label for="run5">Running text 5 · B39</label><input id="run5" data-cell="B39" maxlength="500"></div>
+</div><div class="actions"><button class="secondary" data-refresh="panels">Muat teks</button><button data-save-group="running">Simpan running text</button></div></section>
+<div class="section-title">PANEL INFORMASI</div>
+<section class="card"><h2>💚 Infaq, keuangan & kurban</h2><div class="grid">
+<div class="field"><label for="panelMode">Mode panel · C41</label><select id="panelMode" data-cell="C41"><option>AUTO</option><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="financeMode">Sumber panel · C26</label><select id="financeMode"><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
+<div class="field full"><label for="infaqTitle">Teks bawah INFAQ · C42</label><input id="infaqTitle" data-cell="C42" maxlength="250"></div>
+<div class="field full"><label for="infaqSubtitle">Teks bawah SHADAQAH · C43</label><input id="infaqSubtitle" data-cell="C43" maxlength="250"></div>
+</div><div class="actions"><button class="secondary" data-refresh="panels">Muat status</button><button data-save-group="infaq">Simpan panel</button></div></section>
+<section class="card"><h2>🗓️ Countdown acara</h2><p class="hint">Nama, tanggal target, dan ON/OFF untuk acara khusus.</p><div class="grid">
+<div class="field"><label for="ramadanName">Ramadan · C60</label><input id="ramadanName" data-cell="C60" maxlength="120"></div><div class="field"><label for="ramadanDate">Tanggal Ramadan · D60</label><input id="ramadanDate" data-cell="D60" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="ramadanOn">Status Ramadan · E60</label><select id="ramadanOn" data-cell="E60"><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="qadrName">Lailatul Qadr · C61</label><input id="qadrName" data-cell="C61" maxlength="120"></div><div class="field"><label for="qadrDate">Tanggal Lailatul Qadr · D61</label><input id="qadrDate" data-cell="D61" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="qadrOn">Status Lailatul Qadr · E61</label><select id="qadrOn" data-cell="E61"><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="fitriName">Idul Fitri · C62</label><input id="fitriName" data-cell="C62" maxlength="120"></div><div class="field"><label for="fitriDate">Tanggal Idul Fitri · D62</label><input id="fitriDate" data-cell="D62" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="fitriOn">Status Idul Fitri · E62</label><select id="fitriOn" data-cell="E62"><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="adhaName">Idul Adha · C63</label><input id="adhaName" data-cell="C63" maxlength="120"></div><div class="field"><label for="adhaDate">Tanggal Idul Adha · D63</label><input id="adhaDate" data-cell="D63" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="adhaOn">Status Idul Adha · E63</label><select id="adhaOn" data-cell="E63"><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="customName">Countdown kustom · C64</label><input id="customName" data-cell="C64" maxlength="120"></div><div class="field"><label for="customStart">Tanggal mulai · D64</label><input id="customStart" data-cell="D64" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="customOn">Status kustom · E64</label><select id="customOn" data-cell="E64"><option>ON</option><option>OFF</option></select></div>
+</div><div class="actions"><button class="secondary" data-refresh="panels">Muat countdown</button><button data-save-group="events">Simpan countdown</button></div></section>
+<section class="card"><h2>🎞️ Video hari raya</h2><p class="hint">Sel C69:E69 hanya disediakan untuk pengaturan yang memang memakai sel ini. Pastikan format di Spreadsheet sesuai konfigurasi video yang aktif.</p><div class="grid">
+<div class="field"><label for="videoName">Konfigurasi video · C69</label><input id="videoName" data-cell="C69" maxlength="250"></div>
+<div class="field"><label for="videoDate">Tanggal · D69</label><input id="videoDate" data-cell="D69" placeholder="Tanggal sesuai format Spreadsheet"></div>
+<div class="field"><label for="videoOn">Status · E69</label><select id="videoOn" data-cell="E69"><option>ON</option><option>OFF</option></select></div>
+</div><div class="actions"><button class="secondary" data-refresh="panels">Muat konfigurasi</button><button data-save-group="video">Simpan konfigurasi</button></div></section>
+<section class="card"><h2>🧩 Editor sel terbatas</h2><p class="hint">Untuk sel panel lain yang telah diizinkan. Penulisan tetap dibatasi oleh daftar izin di API.gs.</p><div class="grid"><div class="field"><label for="cellPick">Sel panels</label><select id="cellPick"></select></div><div class="field"><label for="cellValue">Nilai baru</label><input id="cellValue" maxlength="500"></div></div><div class="actions"><button id="saveCell">Simpan nilai sel</button></div></section>
+<div id="saveMsg" class="message"></div>
+</div>
+<footer>Remote terpisah dari index.html · Tidak menjalankan atau mengubah scheduler audio.</footer>
+</main>
+<script>
+(function(){
+'use strict';
+const API_FALLBACK='https://script.google.com/macros/s/AKfycbxrmBOs_aFUSLjQy55gJDKBB9XMvNrJnpFwbOPWpzUmx-HAQcsnDMeDUH8JCvjA9hLh/exec';
+const $=id=>document.getElementById(id);
+const allowed=['C18','F20','C22','C26','C28','C29','C30','C31','C32','B35','B36','B37','B38','B39','C41','C42','C43','C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64','C69','D69','E69'];
+const groups={officers:['C26','C28','C29','C30','C31','C32'],running:['B35','B36','B37','B38','B39'],infaq:['C41','C42','C43'],events:['C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64'],video:['C69','D69','E69']};
+const inputByCell={};document.querySelectorAll('[data-cell]').forEach(el=>{(inputByCell[el.dataset.cell]||(inputByCell[el.dataset.cell]=[])).push(el)});
+$('apiUrl').value=localStorage.getItem('masjidRemoteApi')||API_FALLBACK;
+const show=(el,msg,error)=>{el.textContent=msg;el.className='message'+(error?' error':'');el.style.display='block'};
+const setStatus=(msg,ok)=>{$('status').textContent=msg;$('dot').className='dot'+(ok?' ok':'')};
+function jsonp(action,params={}){
+ return new Promise((resolve,reject)=>{
+  const url=$('apiUrl').value.trim();if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(url)){reject(new Error('URL Web App tidak valid. Gunakan URL Google Apps Script yang berakhiran /exec.'));return}
+  const cb='remoteCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+  const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('Waktu koneksi habis. Periksa deployment Apps Script.'))},15000);
+  function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
+  window[cb]=payload=>{cleanup();if(!payload||payload.success===false){reject(new Error(payload&&payload.error||'Respons API tidak valid.'));return}resolve(payload)};
+  const q=new URLSearchParams({api:'1',action,callback:cb,...params});script.src=url+'?'+q.toString();script.onerror=()=>{cleanup();reject(new Error('Gagal menghubungi Apps Script.'));};document.head.appendChild(script);
+ });
+}
+function apiData(payload){return payload&&Object.prototype.hasOwnProperty.call(payload,'data')?payload.data:payload}
+async function connect(){
+ $('connectBtn').disabled=true;setStatus('Menguji koneksi…',false);
+ try{const res=apiData(await jsonp('ping'));if(res.status!=='OK')throw new Error('API tidak mengembalikan status OK.');localStorage.setItem('masjidRemoteApi',$('apiUrl').value.trim());$('controls').classList.remove('hidden');setStatus('Apps Script terhubung · '+(res.timezone||''),true);show($('connectionMsg'),'Koneksi berhasil. PIN digunakan saat menyimpan perubahan.',false);await refreshPanels();}
+ catch(e){setStatus('Koneksi gagal',false);show($('connectionMsg'),e.message,true)}
+ finally{$('connectBtn').disabled=false}
+}
+async function refreshPanels(){
+ try{
+  const p=apiData(await jsonp('getDataFromSheet'));
+  const raw=apiData(await jsonp('getDisplayThemeSetting')).theme;
+  if(raw&&inputByCell.C18)inputByCell.C18[0].value=String(raw).toUpperCase();
+  // Getters yang tersedia tetap menjadi sumber status resmi; sel lain dimuat melalui struktur panels jika dikembalikan API.
+  if(p&&typeof p==='object'){
+   const candidates={'C18':['DisplayTheme','Tema','theme'],'F20':['YoutubeStatus','YouTubeStatus'],'C22':['IqomahBlackMode','PanelIqomahBlackMode'],'C26':['PanelKeuanganSource','PanelDisplayMode']};
+   Object.keys(candidates).forEach(cell=>{for(const key of candidates[cell])if(p[key]!==undefined&&inputByCell[cell]){inputByCell[cell][0].value=String(p[key]);break}});
+  }
+  setStatus('Data berhasil dimuat · '+new Date().toLocaleTimeString('id-ID'),true);
+ }catch(e){setStatus('Terhubung; sebagian status belum dapat dibaca',false);show($('saveMsg'),'Sebagian nilai tidak dapat dimuat otomatis dari API yang tersedia. Periksa Spreadsheet sebelum menyimpan.',true)}
+}
+async function saveCell(cell,value){
+ const pin=$('pin').value;if(!pin){throw new Error('Masukkan PIN remote terlebih dahulu.')}
+ await jsonp('setRemoteCell',{sheet:'panels',cell,value,pin});
+}
+async function saveCells(cells){
+ const box=$('saveMsg');const unique=[...new Set(cells)];
+ for(const cell of unique){const els=inputByCell[cell];if(!els||!els.length)continue;const value=els[0].value;await saveCell(cell,value)}
+ show(box,'Perubahan tersimpan ke Spreadsheet ('+unique.length+' sel).',false);setStatus('Perubahan tersimpan · '+new Date().toLocaleTimeString('id-ID'),true);
+}
+$('connectBtn').addEventListener('click',connect);
+$('forgetBtn').addEventListener('click',()=>{$('pin').value='';show($('connectionMsg'),'PIN dihapus dari kolom. URL Web App tetap tersimpan di perangkat ini.',false)});
+document.querySelectorAll('[data-save-group]').forEach(btn=>btn.addEventListener('click',async()=>{btn.disabled=true;try{await saveCells(groups[btn.dataset.saveGroup]||[])}catch(e){show($('saveMsg'),e.message,true)}finally{btn.disabled=false}}));
+document.querySelectorAll('[data-refresh]').forEach(btn=>btn.addEventListener('click',refreshPanels));
+$('saveCell').addEventListener('click',async()=>{try{await saveCell($('cellPick').value,$('cellValue').value);show($('saveMsg'),'Sel '+$('cellPick').value+' berhasil diperbarui.',false)}catch(e){show($('saveMsg'),e.message,true)}});
+allowed.forEach(cell=>{const o=document.createElement('option');o.value=cell;o.textContent='panels!'+cell;$('cellPick').appendChild(o)});
+$('cellPick').addEventListener('change',()=>{$('cellValue').value=(inputByCell[$('cellPick').value]||[])[0]?.value||''});
+$('clock').textContent=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'short'});
+// Each direct field saves on button; avoid accidental writes while typing.
+})();
+</script>
+</body>
+</html>
