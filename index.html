@@ -421,6 +421,10 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
           </video>
         </div>
 
+        <div class="eid-fitri-video-widget eid-adha-video-widget" id="eid-adha-video-widget" aria-hidden="true" style="display:none;">
+          <img id="eid-adha-image" src="https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/video/idul-adha.webp" alt="Animasi Selamat Hari Raya Idul Adha" decoding="async">
+        </div>
+
         <div class="event-countdown-display" id="event-countdown-display" aria-hidden="true">
             <div class="event-countdown-inner">
               <div class="event-countdown-number" id="event-countdown-number">270</div>
@@ -686,7 +690,8 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
       'getPanelKeuanganSource',
       'getPanelKegiatan',
       'getEventCountdownConfig',
-      'getEidFitriVideoConfig'
+      'getEidFitriVideoConfig',
+      'getEidAdhaVideoConfig'
     ]);
 
     function isRealtimeControlAction_(action) {
@@ -17808,6 +17813,109 @@ function setCountdownBlackMode(enabled) {
 
     refreshEidFitriVideoConfig_();
     setInterval(refreshEidFitriVideoConfig_, 30000);
+
+    
+    // =========================================================
+    // ANIMASI IDUL ADHA - panels!C69:E69
+    // C69 = tanggal mulai, D69 = tanggal berhenti, E69 = ON/OFF.
+    // Animated WebP berjalan sendiri; fitur ini hanya mengatur tampil/sembunyi.
+    // Independen dari animasi Idul Fitri, YouTube, audio, dan scheduler.
+    // =========================================================
+    let eidAdhaVideoConfig = null;
+    let eidAdhaVideoLastActive = false;
+    let eidAdhaVideoRequestBusy = false;
+
+    function parseEidAdhaVideoDate_(value) {
+      const text = String(value || '').trim();
+      if (!text) return null;
+      let match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+      let year, month, day;
+      if (match) {
+        year = Number(match[1]); month = Number(match[2]); day = Number(match[3]);
+      } else {
+        match = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+        if (!match) return null;
+        day = Number(match[1]); month = Number(match[2]); year = Number(match[3]);
+      }
+      const date = new Date(Date.UTC(year, month - 1, day));
+      if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+      return year * 10000 + month * 100 + day;
+    }
+
+    function isEidAdhaVideoTimeActive_(config, now) {
+      if (!config || String(config.status || '').trim().toUpperCase() !== 'ON') return false;
+      const startDate = parseEidAdhaVideoDate_(config.start);
+      const stopDate = parseEidAdhaVideoDate_(config.stop);
+      if (startDate === null || stopDate === null || startDate > stopDate) return false;
+      try {
+        const timeZone = String(
+          WEB_APP_STATE.location && WEB_APP_STATE.location.timezone
+            ? WEB_APP_STATE.location.timezone
+            : 'Asia/Makassar'
+        );
+        const parts = new Intl.DateTimeFormat('en-CA', {
+          timeZone: timeZone, year: 'numeric', month: '2-digit', day: '2-digit'
+        }).formatToParts(now);
+        const year = Number((parts.find(function(p) { return p.type === 'year'; }) || {}).value);
+        const month = Number((parts.find(function(p) { return p.type === 'month'; }) || {}).value);
+        const day = Number((parts.find(function(p) { return p.type === 'day'; }) || {}).value);
+        if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return false;
+        const currentDate = year * 10000 + month * 100 + day;
+        return currentDate >= startDate && currentDate <= stopDate;
+      } catch (error) {
+        console.warn('IDUL ADHA: timezone tidak valid:', error);
+        return false;
+      }
+    }
+
+    function applyEidAdhaVideoState_() {
+      const frame = document.getElementById('eid-adha-video-widget');
+      const image = document.getElementById('eid-adha-image');
+      if (!frame || !image) return;
+      const active = isEidAdhaVideoTimeActive_(eidAdhaVideoConfig, new Date());
+      if (active === eidAdhaVideoLastActive) return;
+      eidAdhaVideoLastActive = active;
+      frame.style.display = active ? 'block' : 'none';
+      frame.setAttribute('aria-hidden', active ? 'false' : 'true');
+      if (active) {
+        const src = image.getAttribute('src');
+        image.setAttribute('src', src);
+        console.log('IDUL ADHA: mulai sesuai panels!C69:E69');
+      } else {
+        console.log('IDUL ADHA: disembunyikan / OFF di luar jadwal');
+      }
+    }
+
+    function refreshEidAdhaVideoConfig_() {
+      if (eidAdhaVideoRequestBusy) {
+        applyEidAdhaVideoState_();
+        return;
+      }
+      eidAdhaVideoRequestBusy = true;
+      gasApiCall('getEidAdhaVideoConfig', {})
+        .then(function(data) {
+          if (data && data.success !== false) {
+            eidAdhaVideoConfig = {
+              start: String(data.startDate || data.start || '').trim(),
+              stop: String(data.stopDate || data.stop || '').trim(),
+              status: String(data.status || 'OFF').trim().toUpperCase()
+            };
+          } else {
+            eidAdhaVideoConfig = null;
+          }
+          applyEidAdhaVideoState_();
+        })
+        .catch(function(error) {
+          console.error('IDUL ADHA: konfigurasi gagal dibaca.', error);
+          eidAdhaVideoConfig = null;
+          applyEidAdhaVideoState_();
+        })
+        .finally(function() {
+          eidAdhaVideoRequestBusy = false;
+        });
+    }
+    refreshEidAdhaVideoConfig_();
+    setInterval(refreshEidAdhaVideoConfig_, 30000);
 
 </script>
 
