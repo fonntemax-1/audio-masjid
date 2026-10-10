@@ -3411,6 +3411,21 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
           return;
         }
 
+        // Jika C57 berubah ke OFF saat takbiran masih menunggu target,
+        // hapus item takbiran saja dan lanjutkan antrean audio lain.
+        if (
+          String(item.audioType || '').trim().toLowerCase() === 'takbiran' &&
+          !state.takbiranEnabled
+        ) {
+          console.log('TAKBIRAN DIBATALKAN: panels!C57 OFF sebelum waktu putar.');
+          state.queue.shift();
+          state.queuedLocks.delete(item.eventKey);
+          state.takbiranScheduledLocks.delete(item.eventKey);
+          state.processing = false;
+          setTimeout(function() { processAudioQueue(); }, 25);
+          return;
+        }
+
         const nowDate =
           getApiDate();
 
