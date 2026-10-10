@@ -1140,6 +1140,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
         takbiranHoldUntilMs: 0,
         takbiranScheduledLocks: new Set(),
         takbiranTimer: null,
+        takbiranPersistedRecord: null,
 
         scheduleInitialized: false
 
@@ -3159,21 +3160,26 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
     function readTakbiranPersistedState_() {
       try {
         const raw = window.localStorage.getItem(TAKBIRAN_STORAGE_KEY_);
-        if (!raw) return null;
-        const value = JSON.parse(raw);
-        return value && typeof value === 'object' ? value : null;
+        if (raw) {
+          const value = JSON.parse(raw);
+          if (value && typeof value === 'object') {
+            WEB_APP_STATE.audio.takbiranPersistedRecord = value;
+            return value;
+          }
+        }
       } catch (error) {
-        console.warn('TAKBIRAN: penyimpanan lokal tidak tersedia.', error);
-        return null;
+        console.warn('TAKBIRAN: penyimpanan lokal tidak tersedia; memakai status memori.', error);
       }
+      return WEB_APP_STATE.audio.takbiranPersistedRecord || null;
     }
 
     function writeTakbiranPersistedState_(value) {
+      WEB_APP_STATE.audio.takbiranPersistedRecord = value || null;
       try {
         if (!value) window.localStorage.removeItem(TAKBIRAN_STORAGE_KEY_);
         else window.localStorage.setItem(TAKBIRAN_STORAGE_KEY_, JSON.stringify(value));
       } catch (error) {
-        console.warn('TAKBIRAN: gagal menyimpan status jadwal.', error);
+        console.warn('TAKBIRAN: gagal menyimpan status jadwal; status memori tetap aktif.', error);
       }
     }
 
@@ -3769,6 +3775,15 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
           'endSec=', item.endSec,
           url
         );
+
+        if (String(item.audioType || '').trim().toLowerCase() === 'takbiran') {
+          const activeTakbiranState = readTakbiranPersistedState_() || {};
+          writeTakbiranPersistedState_(Object.assign({}, activeTakbiranState, {
+            status: 'playing',
+            eventKey: item.eventKey || activeTakbiranState.eventKey || '',
+            dateKey: getApiDate()
+          }));
+        }
 
         playSingleAudio(
           url,
