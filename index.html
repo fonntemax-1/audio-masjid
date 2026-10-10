@@ -3867,16 +3867,9 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
                   );
                 }
 
-                // Setelah IQOMAH benar-benar selesai, jadwalkan takbiran
-                // 16 menit kemudian jika panels!C57=ON.
-                if (isIqomahAudioItem_(item, url)) {
-                  console.log('TAKBIRAN TRIGGER: audio iqomah selesai terdeteksi.', {
-                    audioType: item.audioType || '',
-                    eventName: item.eventName || '',
-                    label: item.label || ''
-                  });
-                  scheduleTakbiranAfterIqomah_(item);
-                }
+                // Takbiran kini dibuat sebagai item jadwal antrean dari
+                // akhir iqomah + 16 menit. Hindari membuat item duplikat
+                // dari callback playback selesai.
 
                 // Setelah file takbiran berakhir natural, tahan queue 2 menit.
                 if (String(item.audioType || '').trim().toLowerCase() === 'takbiran') {
@@ -14168,6 +14161,48 @@ function startRealtimeAudioConfigPolling_() {
               prayer.name,
               audioPrayerCatchUpError
             );
+          }
+
+          // TAKBIRAN dijadwalkan dari jadwal iqomah, bukan menunggu callback
+          // playback selesai. target = akhir iqomah + 16 menit.
+          // Item masuk jalur antrean normal; targetSec menahan pemutaran
+          // sampai waktunya tanpa mengubah durasi event audio sholat.
+          if (audioState.takbiranEnabled) {
+            const iqomahEvent = result.events.find(function(candidate) {
+              return String(candidate && (candidate.eventName || candidate.audioType) || '')
+                .trim().toLowerCase() === 'iqomah' &&
+                Number.isFinite(Number(candidate.endSec)) &&
+                Number(candidate.endSec) > Number(candidate.targetSec);
+            });
+            if (iqomahEvent) {
+              const takbiranTargetSec = Number(iqomahEvent.endSec) + (16 * 60);
+              const takbiranEndSec = takbiranTargetSec + 86400;
+              const takbiranEventKey = getAudioEventKey(
+                prayer.name,
+                'takbiran',
+                dateKey,
+                takbiranTargetSec,
+                takbiranEndSec
+              );
+              if (!audioState.queuedLocks.has(takbiranEventKey) &&
+                  !audioState.playedLocks.has(takbiranEventKey)) {
+                result.events.push({
+                  eventName: 'takbiran',
+                  targetSec: takbiranTargetSec,
+                  endSec: takbiranEndSec,
+                  label: 'TAKBIRAN (16 MENIT SETELAH IQOMAH)',
+                  audioType: 'takbiran',
+                  status: 'ON',
+                  _takbiranScheduled: true
+                });
+                console.log('TAKBIRAN MASUK JADWAL ANTREAN:', {
+                  prayer: prayer.name,
+                  iqomahEndSec: Number(iqomahEvent.endSec),
+                  targetSec: takbiranTargetSec,
+                  enabled: audioState.takbiranEnabled
+                });
+              }
+            }
           }
 
           result.events.forEach(function(event) {
