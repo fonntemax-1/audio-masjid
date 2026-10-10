@@ -691,7 +691,8 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
       'getPanelKegiatan',
       'getEventCountdownConfig',
       'getEidFitriVideoConfig',
-      'getEidAdhaVideoConfig'
+      'getEidAdhaVideoConfig',
+      'getRealtimeAudioStatus'
     ]);
 
     function isRealtimeControlAction_(action) {
@@ -3271,9 +3272,17 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
       });
     }
 
+    function isIqomahAudioItem_(item) {
+      if (!item) return false;
+      const audioType = String(item.audioType || '').trim().toLowerCase();
+      const eventName = String(item.eventName || item.label || '').trim().toLowerCase();
+      // Beberapa schedule lama mengisi eventName/label tetapi tidak mengisi audioType.
+      return audioType === 'iqomah' || /(^|[^a-z])iqomah([^a-z]|$)/i.test(eventName);
+    }
+
     function scheduleTakbiranAfterIqomah_(iqomahItem) {
       const state = WEB_APP_STATE.audio;
-      if (!iqomahItem || String(iqomahItem.audioType || '').trim().toLowerCase() !== 'iqomah') return;
+      if (!isIqomahAudioItem_(iqomahItem)) return;
 
       const sourceEventKey = String(iqomahItem.eventKey || '');
       if (sourceEventKey && state.takbiranScheduledLocks.has(sourceEventKey)) return;
@@ -3853,7 +3862,12 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 
                 // Setelah IQOMAH benar-benar selesai, jadwalkan takbiran
                 // 16 menit kemudian jika panels!C57=ON.
-                if (String(item.audioType || '').trim().toLowerCase() === 'iqomah') {
+                if (isIqomahAudioItem_(item)) {
+                  console.log('TAKBIRAN TRIGGER: audio iqomah selesai terdeteksi.', {
+                    audioType: item.audioType || '',
+                    eventName: item.eventName || '',
+                    label: item.label || ''
+                  });
                   scheduleTakbiranAfterIqomah_(item);
                 }
 
