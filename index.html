@@ -14326,7 +14326,7 @@ function startRealtimeAudioConfigPolling_() {
                 console.warn('TAKBIRAN TIDAK DIJADWALKAN: durasi file aktual tidak tersedia.');
               } else {
                 const takbiranTargetSec =
-                  Number(iqomahEvent.endSec) + (17 * 60);
+                  Number(iqomahEvent.endSec) + (16 * 60);
                 const takbiranEndSec =
                   takbiranTargetSec + Number(takbiranDuration);
                 const takbiranEventKey = getAudioEventKey(
@@ -14342,7 +14342,7 @@ function startRealtimeAudioConfigPolling_() {
                     eventName: 'takbiran',
                     targetSec: takbiranTargetSec,
                     endSec: takbiranEndSec,
-                    label: 'TAKBIRAN (17 MENIT SETELAH IQOMAH)',
+                    label: 'TAKBIRAN (16 MENIT SETELAH IQOMAH)',
                     audioType: 'takbiran',
                     status: 'ON',
                     _takbiranScheduled: true
@@ -14350,7 +14350,7 @@ function startRealtimeAudioConfigPolling_() {
                   console.log('TAKBIRAN MASUK JADWAL ANTREAN:', {
                     prayer: prayer.name,
                     iqomahEndSec: Number(iqomahEvent.endSec),
-                    takbiranStartAfterIqomahSec: 17 * 60,
+                    takbiranStartAfterIqomahSec: 16 * 60,
                     targetSec: takbiranTargetSec,
                     durationSec: Number(takbiranDuration),
                     endSec: takbiranEndSec,
