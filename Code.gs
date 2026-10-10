@@ -777,6 +777,43 @@ function getEidFitriVideoConfig() {
   }
 }
 
+
+function getEidAdhaVideoConfig() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('panels');
+    if (!sheet) {
+      return { success: false, error: 'Sheet panels tidak ditemukan.', startDate: '', stopDate: '', status: 'OFF' };
+    }
+
+    // Baca nilai asli agar tanggal tidak bergantung pada format tampilan
+    // atau bahasa lokal spreadsheet (mis. 10 Okt 2026 vs 10/10/2026).
+    const values = sheet.getRange('C69:E69').getValues()[0] || [];
+    const timeZone = ss.getSpreadsheetTimeZone() || Session.getScriptTimeZone() || 'Asia/Makassar';
+    function normalizeDate(value) {
+      if (value instanceof Date && !isNaN(value.getTime())) {
+        return Utilities.formatDate(value, timeZone, 'yyyy-MM-dd');
+      }
+      const text = String(value == null ? '' : value).trim();
+      if (!text) return '';
+      let m = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+      if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
+      m = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+      if (m) return m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
+      return text;
+    }
+
+    const startDate = normalizeDate(values[0]);
+    const stopDate = normalizeDate(values[1]);
+    const rawStatus = String(values[2] == null ? '' : values[2]).trim().toUpperCase();
+    const status = rawStatus === 'ON' ? 'ON' : 'OFF';
+    return { success: true, startDate: startDate, stopDate: stopDate, status: status };
+  } catch (error) {
+    Logger.log('IDUL ADHA VIDEO CONFIG ERROR: ' + (error && error.message ? error.message : error));
+    return { success: false, error: String(error && error.message ? error.message : error), startDate: '', stopDate: '', status: 'OFF' };
+  }
+}
+
 function getPanelEventCountdownCustomConfig_() {
   const result = [];
   try {
