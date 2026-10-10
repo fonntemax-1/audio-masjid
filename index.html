@@ -3277,26 +3277,62 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 
       const sourceEventKey = String(iqomahItem.eventKey || '');
       if (sourceEventKey && state.takbiranScheduledLocks.has(sourceEventKey)) return;
-      if (sourceEventKey) state.takbiranScheduledLocks.add(sourceEventKey);
-      if (!state.takbiranEnabled) {
-        console.log('TAKBIRAN TIDAK DIJADWALKAN: panels!C57 bukan ON saat iqomah selesai.');
-        return;
-      }
 
-      const completedAtMs = getSynchronizedNow().getTime();
-      const eventKey = 'TAKBIRAN_AFTER_IQOMAH_' + (sourceEventKey || String(completedAtMs));
-      const record = {
-        status: 'pending',
-        eventKey: eventKey,
+      // Jangan bergantung pada polling status 5 detik yang mungkin terlambat
+      // tepat ketika iqomah selesai. Baca C57 langsung dari endpoint status.
+      console.log('TAKBIRAN: memeriksa panels!C57 langsung setelah iqomah selesai.', {
         sourceEventKey: sourceEventKey,
-        sourcePrayer: iqomahItem.prayerName || '',
-        dateKey: getApiDate(),
-        completedAtMs: completedAtMs,
-        dueAtMs: completedAtMs + (16 * 60 * 1000),
-        holdUntilMs: 0
-      };
-      writeTakbiranPersistedState_(record);
-      syncTakbiranSchedule_();
+        statusSebelumnya: state.takbiranEnabled
+      });
+
+      gasApiCall('getRealtimeAudioStatus')
+        .then(function(data) {
+          if (!data || typeof data !== 'object' || data.success === false) {
+            console.warn('TAKBIRAN GAGAL MEMBACA C57: respons status audio tidak valid.', data || null);
+            return;
+          }
+
+          if (Object.prototype.hasOwnProperty.call(data, 'TakbiranEnabled')) {
+            state.takbiranEnabled =
+              data.TakbiranEnabled === true ||
+              String(data.TakbiranEnabled || '').trim().toUpperCase() === 'ON';
+          }
+
+          console.log('TAKBIRAN: hasil pemeriksaan C57.', {
+            TakbiranEnabled: state.takbiranEnabled,
+            responseValue: data.TakbiranEnabled
+          });
+
+          if (!state.takbiranEnabled) {
+            console.log('TAKBIRAN TIDAK DIJADWALKAN: panels!C57 bukan ON.');
+            return;
+          }
+
+          if (sourceEventKey && state.takbiranScheduledLocks.has(sourceEventKey)) return;
+          if (sourceEventKey) state.takbiranScheduledLocks.add(sourceEventKey);
+
+          const completedAtMs = getSynchronizedNow().getTime();
+          const eventKey = 'TAKBIRAN_AFTER_IQOMAH_' + (sourceEventKey || String(completedAtMs));
+          const record = {
+            status: 'pending',
+            eventKey: eventKey,
+            sourceEventKey: sourceEventKey,
+            sourcePrayer: iqomahItem.prayerName || '',
+            dateKey: getApiDate(),
+            completedAtMs: completedAtMs,
+            dueAtMs: completedAtMs + (16 * 60 * 1000),
+            holdUntilMs: 0
+          };
+          writeTakbiranPersistedState_(record);
+          console.log('TAKBIRAN TERJADWAL: 16 menit setelah iqomah selesai.', {
+            eventKey: eventKey,
+            target: new Date(record.dueAtMs).toISOString()
+          });
+          syncTakbiranSchedule_();
+        })
+        .catch(function(error) {
+          console.warn('TAKBIRAN GAGAL MEMERIKSA C57:', error && error.message ? error.message : error);
+        });
     }
 
 
