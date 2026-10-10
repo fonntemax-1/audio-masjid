@@ -3198,7 +3198,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
       const nowSeconds = Number(wita.hour) * 3600 + Number(wita.minute) * 60 + Number(wita.second);
       state.queuedLocks.add(eventKey);
       enqueueAudio(
-        audioConfig.takbiran || './audio/takbiran.mp3',
+        (window.getLocalAudioUrl && window.getLocalAudioUrl('takbiran')) || './audio/takbiran.mp3',
         'TAKBIRAN',
         eventKey,
         {
@@ -13889,7 +13889,9 @@ function startRealtimeAudioConfigPolling_() {
           // dimainkan pada sesi halaman ini tetap tidak boleh di-replay.
           if (!alreadyQueued && !alreadyPlayedInMemory) {
             const url =
-              audioConfig[event.audioType] || '';
+              (String(event.audioType || '').toLowerCase() === 'takbiran'
+                ? ((window.getLocalAudioUrl && window.getLocalAudioUrl('takbiran')) || './audio/takbiran.mp3')
+                : (audioConfig[event.audioType] || ''));
 
             triggerAudioEvent(
               prayerName,
