@@ -1942,6 +1942,12 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
         return;
       }
 
+      // Keep takbiran silent whenever the live C57 setting is OFF.
+      if (String(state.currentAudioType || '').trim().toLowerCase() === 'takbiran' && !state.takbiranEnabled) {
+        try { audio.defaultMuted = true; audio.muted = true; audio.volume = 1; } catch (e) {}
+        return;
+      }
+
       const prayerName = String(state.currentPrayer || '').trim().toUpperCase();
 
       // Item queue adalah sumber utama status audio aktif.
