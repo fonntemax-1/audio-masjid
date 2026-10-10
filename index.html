@@ -3038,6 +3038,20 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 
       if (!item) return '';
 
+      // Audio khusus ini harus memakai file kanonis berdasarkan audioType,
+      // bukan URL lama yang mungkin tersimpan di queue/cache atau konfigurasi.
+      // Ini mencegah event TAKBIRAN salah memainkan iqomah.mp3, dan sebaliknya.
+      const explicitAudioType =
+        String(item.audioType || '').trim().toLowerCase();
+
+      if (explicitAudioType === 'takbiran') {
+        return './audio/takbiran.mp3';
+      }
+
+      if (explicitAudioType === 'iqomah') {
+        return './audio/iqomah.mp3';
+      }
+
       if (item.url) {
         return normalizeAudioUrl(item.url);
       }
