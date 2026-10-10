@@ -5184,6 +5184,20 @@ function getRealtimeAudioStatusSignature_(schedule, friday) {
 function applyRealtimeAudioStatusOnly_(data) {
   if (!data || typeof data !== 'object') return;
 
+  // C57 dibaca lewat polling realtime 5 detik, terpisah dari schedule audio.
+  if (Object.prototype.hasOwnProperty.call(data, 'TakbiranEnabled')) {
+    WEB_APP_STATE.audio.takbiranEnabled =
+      data.TakbiranEnabled === true ||
+      String(data.TakbiranEnabled || '').trim().toUpperCase() === 'ON';
+    if (!WEB_APP_STATE.audio.takbiranEnabled &&
+        WEB_APP_STATE.audio.currentAudioType === 'takbiran') {
+      const activeTakbiranAudio = getAudioElement();
+      if (activeTakbiranAudio) {
+        try { activeTakbiranAudio.defaultMuted = true; activeTakbiranAudio.muted = true; activeTakbiranAudio.volume = 1; } catch (e) {}
+      }
+    }
+  }
+
   let sourceSchedule = data.AudioSchedule || data.audioSchedule || data.AudioScheduleJSON || {};
   if (typeof sourceSchedule === 'string') {
     try { sourceSchedule = JSON.parse(sourceSchedule); } catch (e) { sourceSchedule = {}; }
