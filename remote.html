@@ -43,10 +43,10 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div class="section-title">KONTROL UTAMA</div>
 <section class="card"><h2>🎨 Tampilan & audio</h2><div class="grid">
 <div class="field"><label for="theme">Tema layar · panels!C18</label><select id="theme" data-cell="C18"><option>HIJAU</option><option>MERAH</option><option>KUNING</option></select></div>
-<div class="field"><label for="youtube">YouTube · panels!F20</label><select id="youtube" data-cell="F20"><option>AUTO</option><option>ON</option><option>OFF</option><option>STOP</option></select></div>
+<div class="field"><label for="youtube">YouTube · panels!F20</label><select id="youtube" data-cell="F20"><option>AUTO</option><option>ON</option><option>OFF</option><option>STOP</option></select></div><div class="field full"><label for="youtubeUrl">URL YouTube · panels!C20</label><input id="youtubeUrl" data-cell="C20" type="url" placeholder="https://www.youtube.com/watch?v=..."></div>
 <div class="field"><label for="black">Layar hitam iqomah · C22</label><select id="black" data-cell="C22"><option>OFF</option><option>AUTO</option><option>SLEEP</option></select></div>
-<div class="field"><label for="countdown">Countdown · C2*</label><select id="countdown"><option>AUTO</option><option>NORMAL</option><option>OFF</option></select><p class="note">Kontrol C2 belum diaktifkan untuk penulisan karena sel tersebut belum termasuk daftar sel remote yang diizinkan.</p></div>
-</div><div class="actions"><button class="secondary" data-refresh="display">Muat status dari Spreadsheet</button></div></section>
+<div class="field"><label for="countdown">Mode countdown · panels!C2</label><select id="countdown" data-cell="C2"><option>AUTO</option><option>OFF</option></select></div>
+</div><div class="actions"><button class="secondary" data-refresh="display">Muat status dari Spreadsheet</button><button data-save-group="display">Simpan tampilan & audio</button></div></section>
 <div class="section-title">PETUGAS & KEGIATAN</div>
 <section class="card"><h2>🕌 Petugas salat & jenis kegiatan</h2><div class="grid">
 <div class="field"><label for="activity">Jenis kegiatan · C28</label><select id="activity" data-cell="C28"><option>SHOLAT JUM'AT</option><option>TARAWIH</option><option>IDUL FITRI</option><option>IDUL ADHA</option></select></div>
@@ -92,8 +92,8 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 'use strict';
 const API_FALLBACK='https://script.google.com/macros/s/AKfycbxrmBOs_aFUSLjQy55gJDKBB9XMvNrJnpFwbOPWpzUmx-HAQcsnDMeDUH8JCvjA9hLh/exec';
 const $=id=>document.getElementById(id);
-const allowed=['C18','F20','C22','C26','C28','C29','C30','C31','C32','B35','B36','B37','B38','B39','C41','C42','C43','C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64','C69','D69','E69'];
-const groups={officers:['C26','C28','C29','C30','C31','C32'],running:['B35','B36','B37','B38','B39'],infaq:['C41','C42','C43'],events:['C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64'],video:['C69','D69','E69']};
+const allowed=['C2','C18','C20','F20','C22','C26','C28','C29','C30','C31','C32','B35','B36','B37','B38','B39','C41','C42','C43','C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64','C69','D69','E69'];
+const groups={display:['C2','C18','C20','F20','C22'],officers:['C26','C28','C29','C30','C31','C32'],running:['B35','B36','B37','B38','B39'],infaq:['C41','C42','C43'],events:['C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64'],video:['C69','D69','E69']};
 const inputByCell={};document.querySelectorAll('[data-cell]').forEach(el=>{(inputByCell[el.dataset.cell]||(inputByCell[el.dataset.cell]=[])).push(el)});
 $('apiUrl').value=localStorage.getItem('masjidRemoteApi')||API_FALLBACK;
 const show=(el,msg,error)=>{el.textContent=msg;el.className='message'+(error?' error':'');el.style.display='block'};
@@ -122,7 +122,7 @@ async function refreshPanels(){
   if(raw&&inputByCell.C18)inputByCell.C18[0].value=String(raw).toUpperCase();
   // Getters yang tersedia tetap menjadi sumber status resmi; sel lain dimuat melalui struktur panels jika dikembalikan API.
   if(p&&typeof p==='object'){
-   const candidates={'C18':['DisplayTheme','Tema','theme'],'F20':['YoutubeStatus','YouTubeStatus'],'C22':['IqomahBlackMode','PanelIqomahBlackMode'],'C26':['PanelKeuanganSource','PanelDisplayMode']};
+   const candidates={'C18':['DisplayTheme'],'C26':['PanelKeuanganSource','PanelDisplayMode']};
    Object.keys(candidates).forEach(cell=>{for(const key of candidates[cell])if(p[key]!==undefined&&inputByCell[cell]){inputByCell[cell][0].value=String(p[key]);break}});
   }
   setStatus('Data berhasil dimuat · '+new Date().toLocaleTimeString('id-ID'),true);
