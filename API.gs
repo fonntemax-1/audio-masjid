@@ -206,6 +206,12 @@ function handleGithubApiRequest_(params) {
         result = setRemoteCellsFromApi_(params);
         break;
 
+      case 'getQrisImageVersion':
+        result = {
+          version: String(PropertiesService.getScriptProperties().getProperty('QRIS_IMAGE_VERSION') || '0')
+        };
+        break;
+
       case 'ping':
         result = {
           status: 'OK',
