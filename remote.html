@@ -27,16 +27,12 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <body>
 <header><div class="head"><div class="logo">☾</div><div><h1>REMOTE MASJID</h1><p>Masjid Al Mujahidin · Control panel Android</p></div></div></header>
 <main>
-<div class="status"><span id="dot" class="dot"></span><span id="status">Belum terhubung ke Apps Script</span><span style="margin-left:auto" id="clock"></span></div>
+<div class="status hidden"><span id="dot" class="dot"></span><span id="status">Menyiapkan remote…</span><span id="clock"></span></div>
 <section class="card" id="connection">
-<h2>🔐 Koneksi & keamanan</h2>
-<p class="hint">Masukkan URL Web App Apps Script yang digunakan oleh signage dan PIN remote.</p>
-<div class="grid">
-<div class="field full"><label for="apiUrl">URL Web App Apps Script (/exec)</label><input id="apiUrl" type="url" autocomplete="url" placeholder="https://script.google.com/macros/s/.../exec"></div>
-<div class="field full"><label for="pin">PIN remote</label><input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN yang disimpan di Script Properties"></div>
-</div>
-<div class="actions"><button id="connectBtn">Uji koneksi</button><button class="secondary" id="forgetBtn">Lupakan PIN</button></div>
-<div class="note">Untuk mengaktifkan penyimpanan, admin perlu menambahkan Script Property <b>REMOTE_CONTROL_PIN</b> (minimal 6 karakter) pada project Apps Script lalu memperbarui deployment Web App. PIN tidak ditanam di file GitHub.</div>
+<h2>🔐 Masukkan PIN Remote</h2>
+<p class="hint">URL Apps Script sudah diatur otomatis.</p>
+<div class="grid"><div class="field full"><label for="pin">PIN remote</label><input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Masukkan PIN remote" autofocus></div></div>
+<div class="actions"><button id="connectBtn">Buka Remote</button></div>
 <div id="connectionMsg" class="message"></div>
 </section>
 <div id="controls" class="hidden">
@@ -109,12 +105,12 @@ const allowed=['C2','C5','C6','C7','C8','C9','C12','C13','C15','C27','C16','C18'
 const groups={profile:['C13','C15','C16'],display:['C2','C18','C20','F20','C22','C57'],officers:['C26','C27','C28','C29','C30','C31'],running:['B35','B36','B37','B38','B39'],infaq:['C41','C42','C43'],events:['C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64'],video:['C68','D68','E68','C69','D69','E69','C70','D70','E70','C71','D71','E71','C72','D72','E72']};
 const inputByCell={};document.querySelectorAll('[data-cell]').forEach(el=>{(inputByCell[el.dataset.cell]||(inputByCell[el.dataset.cell]=[])).push(el)});
 const readByCell={};document.querySelectorAll('[data-read-cell]').forEach(el=>{readByCell[el.dataset.readCell]=el});
-$('apiUrl').value=localStorage.getItem('masjidRemoteApi')||API_FALLBACK;
+
 const show=(el,msg,error)=>{el.textContent=msg;el.className='message'+(error?' error':'');el.style.display='block'};
 const setStatus=(msg,ok)=>{$('status').textContent=msg;$('dot').className='dot'+(ok?' ok':'')};
 function jsonp(action,params={}){
  return new Promise((resolve,reject)=>{
-  const url=$('apiUrl').value.trim();if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(url)){reject(new Error('URL Web App tidak valid. Gunakan URL Google Apps Script yang berakhiran /exec.'));return}
+  const url=API_FALLBACK;
   const cb='remoteCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
   const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('Waktu koneksi habis. Periksa deployment Apps Script.'))},15000);
   function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
@@ -125,7 +121,7 @@ function jsonp(action,params={}){
 function apiData(payload){return payload&&Object.prototype.hasOwnProperty.call(payload,'data')?payload.data:payload}
 async function connect(){
  $('connectBtn').disabled=true;setStatus('Menguji koneksi…',false);
- try{const res=apiData(await jsonp('ping'));if(res.status!=='OK')throw new Error('API tidak mengembalikan status OK.');localStorage.setItem('masjidRemoteApi',$('apiUrl').value.trim());$('controls').classList.remove('hidden');setStatus('Apps Script terhubung · '+(res.timezone||''),true);show($('connectionMsg'),'Koneksi berhasil. PIN digunakan saat menyimpan perubahan.',false);await refreshPanels();}
+ try{const res=apiData(await jsonp('ping'));if(res.status!=='OK')throw new Error('API tidak mengembalikan status OK.');$('controls').classList.remove('hidden');setStatus('Apps Script terhubung · '+(res.timezone||''),true);show($('connectionMsg'),'Koneksi berhasil. PIN digunakan saat menyimpan perubahan.',false);await refreshPanels();}
  catch(e){setStatus('Koneksi gagal',false);show($('connectionMsg'),e.message,true)}
  finally{$('connectBtn').disabled=false}
 }
@@ -187,13 +183,13 @@ async function saveCells(cells){
  show(box,'Perubahan tersimpan ke Spreadsheet ('+unique.length+' sel).',false);setStatus('Perubahan tersimpan · '+new Date().toLocaleTimeString('id-ID'),true);
 }
 $('connectBtn').addEventListener('click',connect);
-$('forgetBtn').addEventListener('click',()=>{$('pin').value='';show($('connectionMsg'),'PIN dihapus dari kolom. URL Web App tetap tersimpan di perangkat ini.',false)});
+
 document.querySelectorAll('[data-save-group]').forEach(btn=>btn.addEventListener('click',async()=>{btn.disabled=true;try{await saveCells(groups[btn.dataset.saveGroup]||[])}catch(e){show($('saveMsg'),e.message,true)}finally{btn.disabled=false}}));
 document.querySelectorAll('[data-refresh]').forEach(btn=>btn.addEventListener('click',refreshPanels));
 $('saveCell').addEventListener('click',async()=>{try{await saveCell($('cellPick').value,$('cellValue').value);show($('saveMsg'),'Sel '+$('cellPick').value+' berhasil diperbarui.',false)}catch(e){show($('saveMsg'),e.message,true)}});
 allowed.forEach(cell=>{const o=document.createElement('option');o.value=cell;o.textContent='panels!'+cell;$('cellPick').appendChild(o)});
 $('cellPick').addEventListener('change',()=>{$('cellValue').value=(inputByCell[$('cellPick').value]||[])[0]?.value||''});
-$('clock').textContent=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'short'});
+
 // Each direct field saves on button; avoid accidental writes while typing.
 })();
 </script>
