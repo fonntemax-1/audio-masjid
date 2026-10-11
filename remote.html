@@ -42,12 +42,12 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div id="controls" class="hidden">
 <div class="section-title">IDENTITAS MASJID</div>
 <section class="card"><h2>🏠 Informasi masjid</h2><div class="grid">
-<div class="field"><label>Nama · C12 (AUTO)</label><input value="Otomatis dari Spreadsheet" disabled></div>
-<div class="field"><label>Kota · C5 (AUTO)</label><input value="Otomatis" disabled></div>
-<div class="field"><label>Provinsi · C6 (AUTO)</label><input value="Otomatis" disabled></div>
-<div class="field"><label>Zona · C7 (AUTO)</label><input value="Otomatis" disabled></div>
-<div class="field"><label>Timezone · C8 (AUTO)</label><input value="Otomatis" disabled></div>
-<div class="field"><label>GMT · C9 (AUTO)</label><input value="Otomatis" disabled></div>
+<div class="field"><label>Nama · C12 (AUTO)</label><input data-read-cell="C12" value="Memuat…" readonly></div>
+<div class="field"><label>Kota · C5 (AUTO)</label><input data-read-cell="C5" value="Memuat…" readonly></div>
+<div class="field"><label>Provinsi · C6 (AUTO)</label><input data-read-cell="C6" value="Memuat…" readonly></div>
+<div class="field"><label>Zona · C7 (AUTO)</label><input data-read-cell="C7" value="Memuat…" readonly></div>
+<div class="field"><label>Timezone · C8 (AUTO)</label><input data-read-cell="C8" value="Memuat…" readonly></div>
+<div class="field"><label>GMT · C9 (AUTO)</label><input data-read-cell="C9" value="Memuat…" readonly></div>
 <div class="field full"><label>Alamat · C13 (manual)</label><input data-cell="C13" maxlength="250" placeholder="Alamat masjid"></div>
 <div class="field"><label>No. HP · C15 (manual)</label><input data-cell="C15" inputmode="tel" maxlength="40"></div>
 <div class="field"><label>Slogan · C16 (manual)</label><input data-cell="C16" maxlength="250"></div>
@@ -61,12 +61,12 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 </div><div class="actions"><button class="secondary" data-refresh="display">Muat status dari Spreadsheet</button><button data-save-group="display">Simpan tampilan & audio</button></div></section>
 <div class="section-title">PETUGAS & KEGIATAN</div>
 <section class="card"><h2>🕌 Petugas salat & jenis kegiatan</h2><div class="grid">
-<div class="field"><label for="activity">Jenis kegiatan · C28</label><select id="activity" data-cell="C28"><option>SHOLAT JUM'AT</option><option>TARAWIH</option><option>IDUL FITRI</option><option>IDUL ADHA</option></select></div>
-<div class="field"><label for="selector">Pilihan panel · C26</label><select id="selector" data-cell="C26"><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
-<div class="field"><label for="petugas1">Petugas 1 · C29</label><input id="petugas1" data-cell="C29" maxlength="150"></div>
-<div class="field"><label for="petugas2">Petugas 2 · C30</label><input id="petugas2" data-cell="C30" maxlength="150"></div>
-<div class="field"><label for="petugas3">Petugas 3 · C31</label><input id="petugas3" data-cell="C31" maxlength="150"></div>
-<div class="field"><label for="petugas4">Petugas 4 · C32</label><input id="petugas4" data-cell="C32" maxlength="150"></div>
+<div class="field"><label for="selector">Informasi · C26</label><select id="selector" data-cell="C26"><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
+<div class="field"><label for="activity">Petugas / kegiatan · C28</label><select id="activity" data-cell="C28"><option>SHOLAT JUM'AT</option><option>TARAWIH</option><option>IDUL FITRI</option><option>IDUL ADHA</option></select></div>
+<div class="field"><label for="officerDate">Tanggal petugas · C27 (manual)</label><input id="officerDate" data-cell="C27" placeholder="Isi tanggal kegiatan"></div>
+<div class="field"><label for="petugas1">Nama Khatib · C29</label><input id="petugas1" data-cell="C29" maxlength="150"></div>
+<div class="field"><label for="petugas2">Nama Imam · C30</label><input id="petugas2" data-cell="C30" maxlength="150"></div>
+<div class="field"><label for="petugas3">Nama Bilal · C31</label><input id="petugas3" data-cell="C31" maxlength="150"></div>
 </div><div class="actions"><button class="secondary" data-refresh="panels">Muat status dari Spreadsheet</button><button data-save-group="officers">Simpan petugas & kegiatan</button></div></section>
 <section class="card"><h2>📢 Running text</h2><p class="hint">Teks kegiatan yang ditampilkan di layar. Isi teks pada baris yang ingin digunakan.</p><div class="grid">
 <div class="field full"><label for="run1">Running text 1 · B35</label><input id="run1" data-cell="B35" maxlength="500"></div>
@@ -87,7 +87,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div class="field"><label for="qadrName">Lailatul Qadr · C61</label><input id="qadrName" data-cell="C61" maxlength="120"></div><div class="field"><label for="qadrDate">Tanggal Lailatul Qadr · D61</label><input id="qadrDate" data-cell="D61" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="qadrOn">Status Lailatul Qadr · E61</label><select id="qadrOn" data-cell="E61"><option>ON</option><option>OFF</option></select></div>
 <div class="field"><label for="fitriName">Idul Fitri · C62</label><input id="fitriName" data-cell="C62" maxlength="120"></div><div class="field"><label for="fitriDate">Tanggal Idul Fitri · D62</label><input id="fitriDate" data-cell="D62" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="fitriOn">Status Idul Fitri · E62</label><select id="fitriOn" data-cell="E62"><option>ON</option><option>OFF</option></select></div>
 <div class="field"><label for="adhaName">Idul Adha · C63</label><input id="adhaName" data-cell="C63" maxlength="120"></div><div class="field"><label for="adhaDate">Tanggal Idul Adha · D63</label><input id="adhaDate" data-cell="D63" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="adhaOn">Status Idul Adha · E63</label><select id="adhaOn" data-cell="E63"><option>ON</option><option>OFF</option></select></div>
-<div class="field"><label for="customName">Teks countdown kustom · B64</label><input id="customName" data-cell="B64" maxlength="120"></div><div class="field"><label for="customStart">Tanggal mulai · C64</label><input id="customStart" data-cell="C64" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="customEnd">Tanggal selesai · D64</label><input id="customEnd" data-cell="D64" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="customOn">Status kustom · E64</label><select id="customOn" data-cell="E64"><option>ON</option><option>OFF</option></select></div>
+<div class="field full"><label>Custom Text · C64 (tanggal mulai)</label><input id="customStart" data-cell="C64" placeholder="Tanggal mulai"></div><div class="field"><label for="customEnd">Tanggal akhir · D64</label><input id="customEnd" data-cell="D64" placeholder="Tanggal akhir"></div><div class="field"><label for="customOn">Status · E64</label><select id="customOn" data-cell="E64"><option>ON</option><option>OFF</option></select></div>
 </div><div class="actions"><button class="secondary" data-refresh="panels">Muat countdown</button><button data-save-group="events">Simpan countdown</button></div></section>
 <section class="card"><h2>🎞️ Advertising event</h2><p class="hint">Atur tanggal mulai, tanggal akhir, dan status setiap banner event.</p><div class="grid">
 <div class="field full"><label>Selamat Idul Fitri</label></div><div class="field"><label>Mulai · C68</label><input data-cell="C68" placeholder="Tanggal mulai"></div><div class="field"><label>Akhir · D68</label><input data-cell="D68" placeholder="Tanggal akhir"></div><div class="field"><label>Status · E68</label><select data-cell="E68"><option>ON</option><option>OFF</option></select></div>
@@ -105,9 +105,10 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 'use strict';
 const API_FALLBACK='https://script.google.com/macros/s/AKfycbxrmBOs_aFUSLjQy55gJDKBB9XMvNrJnpFwbOPWpzUmx-HAQcsnDMeDUH8JCvjA9hLh/exec';
 const $=id=>document.getElementById(id);
-const allowed=['C2','C5','C6','C7','C8','C9','C12','C13','C15','C16','C18','C20','F20','C22','C26','C28','C29','C30','C31','C32','C41','C42','C43','C57','B35','B36','B37','B38','B39','C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','B64','C64','D64','E64','C68','D68','E68','C69','D69','E69','C70','D70','E70','C71','D71','E71','C72','D72','E72'];
-const groups={profile:['C13','C15','C16'],display:['C2','C18','C20','F20','C22','C57'],officers:['C26','C28','C29','C30','C31','C32'],running:['B35','B36','B37','B38','B39'],infaq:['C41','C42','C43'],events:['C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','B64','C64','D64','E64'],video:['C68','D68','E68','C69','D69','E69','C70','D70','E70','C71','D71','E71','C72','D72','E72']};
+const allowed=['C2','C5','C6','C7','C8','C9','C12','C13','C15','C27','C16','C18','C20','F20','C22','C26','C28','C29','C30','C31','C32','C41','C42','C43','C57','B35','B36','B37','B38','B39','C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','B64','C64','D64','E64','C68','D68','E68','C69','D69','E69','C70','D70','E70','C71','D71','E71','C72','D72','E72'];
+const groups={profile:['C13','C15','C16'],display:['C2','C18','C20','F20','C22','C57'],officers:['C26','C27','C28','C29','C30','C31'],running:['B35','B36','B37','B38','B39'],infaq:['C41','C42','C43'],events:['C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64'],video:['C68','D68','E68','C69','D69','E69','C70','D70','E70','C71','D71','E71','C72','D72','E72']};
 const inputByCell={};document.querySelectorAll('[data-cell]').forEach(el=>{(inputByCell[el.dataset.cell]||(inputByCell[el.dataset.cell]=[])).push(el)});
+const readByCell={};document.querySelectorAll('[data-read-cell]').forEach(el=>{readByCell[el.dataset.readCell]=el});
 $('apiUrl').value=localStorage.getItem('masjidRemoteApi')||API_FALLBACK;
 const show=(el,msg,error)=>{el.textContent=msg;el.className='message'+(error?' error':'');el.style.display='block'};
 const setStatus=(msg,ok)=>{$('status').textContent=msg;$('dot').className='dot'+(ok?' ok':'')};
@@ -132,14 +133,18 @@ async function refreshPanels(){
  try{
   const p=apiData(await jsonp('getDataFromSheet'));
   const readAction=async(action)=>{try{return apiData(await jsonp(action))}catch(_){return null}};
-  const [theme,youtube,black,mode,source,activity,runText,eventCountdown,eventCustom]=await Promise.all([
+  const [theme,youtube,black,mode,source,activity,runText,eventCountdown]=await Promise.all([
    readAction('getDisplayThemeSetting'),readAction('getYoutubeControl'),readAction('getPanelIqomahBlackMode'),
    readAction('getPanelDisplayMode'),readAction('getPanelKeuanganSource'),readAction('getPanelKegiatan'),
-   readAction('getEventRunningText'),readAction('getEventCountdownConfig'),readAction('getEventCountdownConfig')
+   readAction('getEventRunningText'),readAction('getEventCountdownConfig')
   ]);
   const put=(cell,value)=>{if(value===undefined||value===null||value===''||!inputByCell[cell])return;inputByCell[cell].forEach(el=>el.value=String(value))};
   const first=(obj,keys)=>{if(!obj||typeof obj!=='object')return undefined;for(const k of keys)if(obj[k]!==undefined&&obj[k]!==null&&obj[k]!=='')return obj[k];return undefined};
   if(p&&typeof p==='object'){
+   const lokasi=p.Lokasi||p.lokasi||{};
+   const autoValues={'C12':first(p,['Nama','nama']),'C5':first(lokasi,['kota','Kota']),'C6':first(lokasi,['provinsi','Provinsi']),'C7':first(lokasi,['zona','Zona']),'C8':first(lokasi,['timezone','Timezone']),'C9':first(lokasi,['gmt','GMT'])};
+   Object.keys(autoValues).forEach(cell=>{if(readByCell[cell]&&autoValues[cell]!==undefined)readByCell[cell].value=String(autoValues[cell])});
+   put('C13',first(p,['Alamat','alamat']));put('C15',first(p,['No. Telp','NoTelp','NoHP']));put('C16',first(p,['Slogan','slogan']));
    put('C2',first(p,['PanelMode','CountdownMode','Countdown']));
    put('C18',first(p,['DisplayTheme']));
    put('C20',first(p,['Youtube','YoutubeUrl','YouTubeUrl']));
@@ -147,13 +152,14 @@ async function refreshPanels(){
    put('C22',first(p,['PanelIqomahBlackMode','IqomahBlackMode']));
    put('C26',first(p,['KeuanganSelector','PanelKeuanganSource']));
    put('C28',first(p,['PanelKegiatan']));
+   put('C27',first(p,['TanggalPetugas','TanggalKegiatan']));
    put('C41',first(p,['PanelSpecialMode','PanelInfaqMode']));
    const e=p.EventCountdown;
    if(e&&typeof e==='object'){
     [['C60',['Ramadan','Ramadhan','name','label']],['D60',['RamadanDate','RamadhanDate','date']],['E60',['RamadanStatus','RamadhanStatus','status']],
      ['C61',['Qadr','LailatulQadr','qadrName']],['D61',['QadrDate','LailatulQadrDate','qadrDate']],['E61',['QadrStatus','LailatulQadrStatus','qadrStatus']],
      ['C62',['Fitri','IdulFitri','fitriName']],['D62',['FitriDate','IdulFitriDate','fitriDate']],['E62',['FitriStatus','IdulFitriStatus','fitriStatus']],
-     ['C63',['Adha','IdulAdha','adhaName']],['D63',['AdhaDate','IdulAdhaDate','adhaDate']],['E63',['AdhaStatus','IdulAdhaStatus','adhaStatus']]
+     ['C63',['Adha','IdulAdha','adhaName']],['D63',['AdhaDate','IdulAdhaDate','adhaDate']],['E63',['AdhaStatus','IdulAdhaStatus','adhaStatus']],['C64',['CustomStart','CustomDate','customStart']],['D64',['CustomEnd','customEnd']],['E64',['CustomStatus','customStatus']]
     ].forEach(([cell,keys])=>put(cell,first(e,keys)));
    }
   }
