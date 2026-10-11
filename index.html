@@ -2116,7 +2116,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
         try {
           audio.defaultMuted = false;
           audio.muted =
-            document.body.classList.contains('panel-sleep-mode');
+            false;
           audio.volume = 1;
         } catch (outputStateError) {
           console.warn(
@@ -7228,11 +7228,11 @@ function startRealtimeAudioConfigPolling_() {
     setInterval(pollRealtimeDisplayConfig_, 5000);
 
     // =========================================================
-    // IQOMAH / SLEEP SCREEN CONTROL - panels!C22
-    // AUTO = black window sampai +15 menit setelah IQOMAH.
-    // OFF = normal.
-    // SLEEP = black window, lalu full sleep sampai 5 menit sebelum QIROAH.
-    // Berlaku sama untuk Ramadan dan non-Ramadan.
+    // OVERLAY WAKTU SHOLAT - panels!C22
+    // AUTO = overlay mengikuti jadwal iqomah.
+    // ON = overlay hitam dipaksa aktif.
+    // OFF / STOP = overlay dinonaktifkan.
+    // Hanya mengatur tampilan; scheduler audio tidak diubah.
     // =========================================================
     let iqomahBlackRequestInFlight = false;
     let iqomahBlackLastMode = '';
@@ -7252,11 +7252,9 @@ function startRealtimeAudioConfigPolling_() {
               .toUpperCase();
 
           const mode =
-            modeRaw === 'AUTO'
-              ? 'AUTO'
-              : modeRaw === 'SLEEP'
-                ? 'SLEEP'
-                : 'OFF';
+            ['AUTO', 'ON', 'OFF', 'STOP'].indexOf(modeRaw) >= 0
+              ? modeRaw
+              : 'OFF';
 
           if (mode === iqomahBlackLastMode) return;
 
@@ -7285,10 +7283,8 @@ function startRealtimeAudioConfigPolling_() {
     function startFastIqomahBlackModePolling_() {
       pollIqomahBlackModeFast_();
 
-      // C22 bukan data real-time per detik. Polling 1 detik
-      // membuat request JSONP GAS terus-menerus dan berpotensi
-      // membebani main thread/network TV. 10 detik cukup untuk
-      // perubahan AUTO/OFF/SLEEP tanpa mengganggu scheduler.
+      // C22 bukan data real-time per detik. Polling 10 detik cukup
+      // untuk perubahan AUTO/ON/OFF/STOP tanpa mengganggu scheduler.
       setInterval(
         pollIqomahBlackModeFast_,
         10000
@@ -15494,17 +15490,9 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           .toUpperCase();
 
       WEB_APP_STATE.panel.iqomahMode =
-        normalized === 'AUTO'
-          ? 'AUTO'
-          : normalized === 'SLEEP'
-            ? 'SLEEP'
-            : 'OFF';
-
-      document.body.classList.remove('panel-sleep-mode');
-
-      // Saat operator mengganti C22, lepaskan mute SLEEP terlebih dahulu.
-      // Kontrol berikutnya akan kembali mengikuti mode normal.
-      setSleepAudioMute_(false);
+        ['AUTO', 'ON', 'OFF', 'STOP'].indexOf(normalized) >= 0
+          ? normalized
+          : 'OFF';
 
       console.log(
         'PANELS C22 MODE =',
@@ -15695,13 +15683,13 @@ function refreshDisplayTheme() {
 
 
 function setCountdownBlackMode(enabled) {
-      // Panels!C22 menjadi MAIN CONTROL untuk mode hitam IQOMAH.
-      // AUTO = hitam 2 menit sebelum IQOMAH sampai 15 menit
-      //        setelah AUDIO IQOMAH selesai.
-      // OFF  = tampilan normal.
+      // C22 mengendalikan overlay waktu sholat:
+      // AUTO = mengikuti window iqomah; ON = paksa overlay aktif;
+      // OFF/STOP = overlay nonaktif.
+      const mode = WEB_APP_STATE.panel.iqomahMode;
       const shouldBlack =
-        WEB_APP_STATE.panel.iqomahMode === 'AUTO' &&
-        Boolean(enabled);
+        mode === 'ON' ||
+        (mode === 'AUTO' && Boolean(enabled));
 
       WEB_APP_STATE.panel.countdownBlack =
         shouldBlack;
@@ -15713,58 +15701,6 @@ function setCountdownBlackMode(enabled) {
     }
 
 
-    // =========================================================
-    // SLEEP MODE - AUDIO MUTE
-    // =========================================================
-    // SLEEP hanya membisukan output audio utama.
-    // Audio TIDAK dipause, currentTime TIDAK di-reset, dan scheduler
-    // tetap berjalan. Karena itu audio yang sudah berjalan tidak replay
-    // atau terpotong ketika SLEEP berakhir.
-    let sleepAudioMuted = false;
-
-    function setSleepAudioMute_(shouldMute) {
-      const mute = Boolean(shouldMute);
-      const audio = getAudioElement();
-
-      sleepAudioMuted = mute;
-
-      if (!audio) return;
-
-      try {
-        if (mute) {
-          // SLEEP selalu memprioritaskan mute.
-          audio.muted = true;
-          return;
-        }
-
-        // Saat SLEEP dilepas, jangan langsung unmute.
-        // Audio yang status Sheet-nya OFF harus tetap senyap.
-        // Sinkronkan ulang prioritas status ON/OFF audio aktif.
-        const state = WEB_APP_STATE.audio;
-        if (
-          state &&
-          state.currentEventKey &&
-          state.currentAudioType
-        ) {
-          syncCurrentAudioMuteStatus_();
-        } else {
-          audio.muted = false;
-        }
-      } catch (error) {
-        console.warn(
-          'SLEEP AUDIO MUTE GAGAL:',
-          error
-        );
-      }
-    }
-
-
-    // =========================================================
-    // SLEEP MODE - NEXT QIROAH WAKE TARGET
-    // =========================================================
-    // Mengikuti qiroah yang benar-benar dibangun oleh scheduler audio.
-    // Karena qiroah dipilih dari Sheet Adzan, mode SLEEP tidak bergantung
-    // pada RAMADAN_DISPLAY dan tidak memakai waktu qiroah hardcode.
     function getNextQiroahTargetSec_(nowSeconds) {
       const schedules = WEB_APP_STATE.audio.computedSchedules;
 
@@ -15804,66 +15740,6 @@ function setCountdownBlackMode(enabled) {
       });
 
       return nextTarget;
-    }
-
-    function updatePanelSleepMode_(
-      sleepAfterIqomah,
-      nowSeconds
-    ) {
-      let shouldSleep = false;
-
-      if (
-        WEB_APP_STATE.panel.iqomahMode === 'SLEEP' &&
-        sleepAfterIqomah
-      ) {
-        const nextQiroahTarget =
-          getNextQiroahTargetSec_(nowSeconds);
-
-        const wakeSec =
-          nextQiroahTarget === null
-            ? null
-            : nextQiroahTarget - (5 * 60);
-
-        shouldSleep =
-          wakeSec === null ||
-          Number(nowSeconds) < wakeSec;
-
-        // Jangan logging setiap detik di TV/Chrome.
-        // Console spam dapat menahan main thread dan membuat
-        // jam/tampilan terlihat berhenti.
-      }
-
-      document.body.classList.toggle(
-        'panel-sleep-mode',
-        shouldSleep
-      );
-
-      // SLEEP adalah prioritas mute sementara untuk audio utama.
-      // Saat wake, mute dilepas tanpa pause/replay audio.
-      setSleepAudioMute_(shouldSleep);
-
-      // updatePrayerCountdown() sudah mengevaluasi YouTube sekali
-      // pada tick yang sama. Di sini hanya lakukan evaluasi tambahan
-      // saat status SLEEP benar-benar berubah, agar tidak melakukan
-      // scan seluruh computedSchedules dua kali setiap detik.
-      const sleepStateChanged =
-        sleepAudioMuted !== shouldSleep;
-
-      if (sleepStateChanged) {
-        try {
-          updateYouTubeAudioStop(
-            nowSeconds,
-            WEB_APP_STATE.dateKey || getApiDate()
-          );
-        } catch (youtubeError) {
-          console.warn(
-            'SLEEP: sinkronisasi YouTube gagal:',
-            youtubeError
-          );
-        }
-      }
-
-      return shouldSleep;
     }
 
     // =========================================================
@@ -16232,7 +16108,6 @@ function setCountdownBlackMode(enabled) {
 // dan kembali normal 15 menit setelah waktu IQOMAH.
 // DISPLAY-ONLY; audio, YouTube, dan scheduler tetap sama.
       let panelBlackWindow = false;
-      let panelSleepWindow = false;
 
       // =======================================================
       // AUDIO PROCESSING
@@ -16676,14 +16551,6 @@ function setCountdownBlackMode(enabled) {
           nowSeconds < panelBlackEndSec
         ) {
           panelBlackWindow = true;
-        }
-
-        if (
-          WEB_APP_STATE.panel.iqomahMode === 'SLEEP' &&
-          p.hasIqomah &&
-          nowSeconds >= panelBlackEndSec
-        ) {
-          panelSleepWindow = true;
         }
 
         // -------------------------------------------------------
@@ -17387,12 +17254,6 @@ function setCountdownBlackMode(enabled) {
           }
         }
 
-        const effectiveSleep =
-          updatePanelSleepMode_(
-            panelSleepWindow,
-            nowSeconds
-          );
-
         const activeTitleForBlackOverlay =
           String(activeState.title || '').trim().toUpperCase();
         const isImsakOrBerbukaState =
@@ -17400,9 +17261,7 @@ function setCountdownBlackMode(enabled) {
           activeTitleForBlackOverlay.indexOf('BERBUKA') !== -1;
 
         setCountdownBlackMode(
-          effectiveSleep
-            ? false
-            : (panelBlackWindow && !isImsakOrBerbukaState)
+          panelBlackWindow && !isImsakOrBerbukaState
         );
 
         // Countdown utama tetap dipelihara untuk state normal/audio.
@@ -17441,17 +17300,7 @@ function setCountdownBlackMode(enabled) {
         // activeState dapat kosong tepat setelah fase SHOLAT selesai.
         // Panel AUTO tetap mengikuti window waktu sampai
         // 15 menit setelah IQOMAH selesai.
-        const effectiveSleep =
-          updatePanelSleepMode_(
-            panelSleepWindow,
-            nowSeconds
-          );
-
-        setCountdownBlackMode(
-          effectiveSleep
-            ? false
-            : panelBlackWindow
-        );
+        setCountdownBlackMode(panelBlackWindow);
 
         if (
           nextPrayer &&
