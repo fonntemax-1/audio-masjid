@@ -165,7 +165,7 @@ function jsonp(action,params={},timeoutMs=15000){
   const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('Waktu koneksi habis. Periksa deployment Apps Script.'))},timeoutMs);
   function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
   window[cb]=payload=>{cleanup();if(!payload||payload.success===false){reject(new Error(payload&&payload.error||'Respons API tidak valid.'));return}resolve(payload)};
-  const q=new URLSearchParams({api:'1',action,callback:cb,...params});script.src=url+'?'+q.toString();script.onerror=()=>{cleanup();reject(new Error('Gagal menghubungi Apps Script.'));};document.head.appendChild(script);
+  const q=new URLSearchParams({api:'1',action,callback:cb,...params});script.src=url+'?'+q.toString();script.onerror=()=>{cleanup();reject(new Error('Periksa jaringan anda.'));};document.head.appendChild(script);
  });
 }
 function apiData(payload){return payload&&Object.prototype.hasOwnProperty.call(payload,'data')?payload.data:payload}
