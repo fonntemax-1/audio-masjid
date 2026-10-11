@@ -365,9 +365,9 @@ function setRemoteCellsFromApi_(params) {
     var timeZone = ss.getSpreadsheetTimeZone() || Session.getScriptTimeZone() || 'Asia/Makassar';
     function canonicalDate_(value) {
       var text = String(value == null ? '' : value).trim();
-      var m = text.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})$/);
+      var m = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
       if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
-      m = text.match(/^(\\d{1,2})[\\/. -](\\d{1,2})[\\/. -](\\d{4})$/);
+      m = text.match(/^(\d{1,2})[\/. -](\d{1,2})[\/. -](\d{4})$/);
       if (m) return m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
       return null;
     }
