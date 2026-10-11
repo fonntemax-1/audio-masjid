@@ -189,7 +189,7 @@ async function connect(){
   $('controls').classList.remove('hidden');
   setStatus('Login berhasil · '+(res.timezone||''),true);
   await refreshPanels();
- }catch(e){setStatus('Login gagal',false);show($('connectionMsg'),e.message,true)}
+ }catch(e){setStatus('Login gagal',false);show($('connectionMsg'),'Login gagal, silahkan coba kembali.',true)}
  finally{$('connectBtn').disabled=false}
 }
 async function refreshPanels(){
