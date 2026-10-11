@@ -309,7 +309,7 @@ async function saveCell(cell,value){
 }
 async function saveCells(cells){
  const box=$('saveMsg');const unique=[...new Set(cells)];const items=[];
- for(const cell of unique){const els=inputByCell[cell];if(!els||!els.length)continue;let value=els[0].value;if(cell==='C29'&&/^\\d{4}-\\d{2}-\\d{2}$/.test(value)){const [y,m,d]=value.split('-');value=d+'/'+m+'/'+y}items.push({cell,value})}
+ for(const cell of unique){const els=inputByCell[cell];if(!els||!els.length)continue;let value=els[0].value;if(cell==='C29'&&/^\d{4}-\d{2}-\d{2}$/.test(value)){const [y,m,d]=value.split('-');value=d+'/'+m+'/'+y}items.push({cell,value})}
  if(!items.length)throw new Error('Tidak ada data untuk disimpan.');
  const result=apiData(await jsonp('setRemoteCells',{pin:$('pin').value,cells:JSON.stringify(items)},30000));
  if(!result||result.success!==true||Number(result.count)!==items.length)throw new Error('Konfirmasi penyimpanan tidak lengkap. Periksa Spreadsheet sebelum mencoba lagi.');
