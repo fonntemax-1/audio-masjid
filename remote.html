@@ -52,6 +52,7 @@ button.danger:active{background:#b91c1c;color:#fff}
  .event-table .field:before{content:attr(data-label);display:block;font-size:11px;color:var(--muted);margin:0 0 4px 2px}
  .event-table .field.status-field{grid-column:1/-1;max-width:180px}
 }
+.qris-upload-row{display:flex;align-items:stretch;gap:8px;width:100%}.qris-upload-row input[type=file]{flex:1;min-width:0}.qris-upload-row button{flex:0 0 auto;white-space:nowrap}@media(max-width:440px){.qris-upload-row{gap:6px}.qris-upload-row button{padding:10px 11px}}
 .logout-bar{position:sticky;top:var(--header-height,84px);display:flex;justify-content:flex-end;align-items:center;width:100%;margin:0 0 8px;padding:8px 0;z-index:4;background:#071a15ed;backdrop-filter:blur(10px)}.logout-bar button{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:max-content;min-width:0;min-height:0;padding:8px 14px;background:var(--accent);color:#062016;border:0;border-radius:12px;font-family:inherit;font-size:16px;font-weight:750;line-height:1.45;white-space:nowrap;box-shadow:0 4px 14px #0003}.logout-bar button:hover{background:#8affd6;box-shadow:0 0 0 2px #00ffaa30}.logout-bar button:active{background:#087f5b;color:#fff;transform:scale(.98);box-shadow:inset 0 2px 5px #0005}footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 @media(max-width:440px){.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.card{padding:13px}.head h1{font-size:18px}.audio-row{width:100%;gap:10px}.audio-url{flex:1 1 100%;min-width:0}.audio-mode{flex:0 0 150px}.audio-compact{flex:0 0 180px}.audio-theme{width:min(170px,100%)!important}}
 
@@ -145,12 +146,14 @@ button.danger:active{background:#b91c1c;color:#fff}
 <div class="section-title">INFAQ & SHADAQAH</div>
 <section class="card" id="infaqShadaqahCard"><h2>🤲 Infaq & Shadaqah</h2>
 <div class="grid">
-<div class="field"><label for="infaqMode">Infaq & Shadaqah</label><select id="infaqMode" data-cell="C41"><option>AUTO</option><option>OFF</option></select></div>
-<div class="field"><label for="infaqAccount">No. Rekening</label><input id="infaqAccount" data-cell="C42" maxlength="100" placeholder="Kolom kosong destination/source"></div>
-<div class="field full"><label for="infaqName">Nama</label><input id="infaqName" data-cell="C43" maxlength="150" placeholder="Kolom kosong destination/source"></div>
-<div class="field full"><label for="qrisFile">Upload Gambar QRIS</label><p class="hint">Pilih gambar QRIS format PNG. Gambar akan menggantikan image/QRIS.png dan dipakai otomatis pada layar signage.</p><input id="qrisFile" type="file" accept="image/png,.png"></div>
+<div class="field"><label for="infaqMode">Display QRIS</label><select id="infaqMode" data-cell="C41"><option>AUTO</option><option>OFF</option></select></div>
+<div class="field"><label for="infaqAccount">No. Rekening</label><input id="infaqAccount" data-cell="C42" maxlength="100"></div>
+<div class="field full"><label for="infaqName">Nama Rekening</label><input id="infaqName" data-cell="C43" maxlength="150"></div>
+<div class="field full"><label for="qrisFile">Upload Gambar QRIS</label><p class="hint">Pilih gambar QRIS format PNG. Gambar akan menggantikan image/QRIS.png dan dipakai otomatis pada layar signage.</p>
+<div class="qris-upload-row"><input id="qrisFile" type="file" accept="image/png,.png"><button id="qrisUploadBtn" type="button">Upload QRIS</button></div>
 </div>
-<div class="actions"><button data-save-group="infaq" type="button">Simpan Infaq & Shadaqah</button><button id="qrisUploadBtn" type="button">Upload QRIS</button></div>
+</div>
+<div class="actions"><button data-save-group="infaq" type="button">Simpan Infaq & Shadaqah</button></div>
 <div id="qrisUploadMsg" class="message" role="status" aria-live="polite"></div>
 <iframe name="qrisUploadFrame" id="qrisUploadFrame" title="Proses upload QRIS" class="hidden" style="display:none"></iframe>
 <form id="qrisUploadForm" method="post" enctype="application/x-www-form-urlencoded" target="qrisUploadFrame" action="https://script.google.com/macros/s/AKfycbxrmBOs_aFUSLjQy55gJDKBB9XMvNrJnpFwbOPWpzUmx-HAQcsnDMeDUH8JCvjA9hLh/exec" class="hidden" style="display:none">
