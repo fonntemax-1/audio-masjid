@@ -15,6 +15,7 @@ main{max-width:850px;margin:auto;padding:16px 14px 48px}.status{display:flex;ali
 .card{background:#102820e8;border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 8px 28px #0002}
 h2{font-size:16px;margin:0 0 12px;display:flex;align-items:center;gap:8px}.hint{font-size:12px;color:var(--muted);margin:-5px 0 13px}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{min-width:0}.field.full{grid-column:1/-1}
+.info-officers-grid{align-items:start}
 .audio-controls{display:flex;flex-direction:column;align-items:flex-start;gap:14px}.audio-controls .field{width:auto;max-width:100%}.audio-theme{width:170px!important}.audio-row{display:flex;align-items:flex-start;gap:14px;max-width:100%;width:fit-content;flex-wrap:wrap}.audio-url{flex:0 1 390px;min-width:220px;max-width:100%}.audio-mode{flex:0 0 150px;max-width:100%}.audio-compact{flex:0 0 180px;max-width:100%}
 .audio-controls input,.audio-controls select{width:100%}label{display:block;font-size:13px;color:#d9eee2;margin-bottom:6px}
 input,select,textarea{width:100%;min-height:46px;border:1px solid #315848;border-radius:12px;background:#071b14;color:#fff;padding:10px 11px;font:inherit;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px #00ffaa20}
@@ -74,14 +75,14 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div class="field audio-compact"><label for="takbiran">Takbiran</label><select id="takbiran" data-cell="C57"><option>OFF</option><option>ON</option></select></div>
 </div>
 </div><div class="actions"><button class="secondary" data-refresh="display">Muat status dari Spreadsheet</button><button data-save-group="display">Simpan tampilan & audio</button></div></section>
-<div class="section-title">PETUGAS & KEGIATAN</div>
-<section class="card"><h2>🕌 Petugas salat & jenis kegiatan</h2><div class="grid">
-<div class="field"><label for="selector">Informasi</label><select id="selector" data-cell="C26"><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
+<div class="section-title">INFORMASI & PETUGAS</div>
+<section class="card"><h2>🕌 Informasi & petugas salat</h2><div class="grid info-officers-grid">
+<div class="field full"><label for="selector">Informasi</label><select id="selector" data-cell="C26"><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
 <div class="field"><label for="activity">Petugas / kegiatan</label><select id="activity" data-cell="C28"><option>SHOLAT JUM'AT</option><option>TARAWIH</option><option>IDUL FITRI</option><option>IDUL ADHA</option></select></div>
-<div class="field"><label for="officerDate">Tanggal petugas</label><input id="officerDate" data-cell="C27" placeholder="Isi tanggal kegiatan"></div>
-<div class="field"><label for="petugas1">Nama Khatib</label><input id="petugas1" data-cell="C29" maxlength="150"></div>
-<div class="field"><label for="petugas2">Nama Imam</label><input id="petugas2" data-cell="C30" maxlength="150"></div>
-<div class="field"><label for="petugas3">Nama Bilal</label><input id="petugas3" data-cell="C31" maxlength="150"></div>
+<div class="field"><label for="officerDate">Tanggal</label><input id="officerDate" data-cell="C27" placeholder="Isi tanggal kegiatan"></div>
+<div class="field"><label id="petugas1Label" for="petugas1">Khatib</label><input id="petugas1" data-cell="C29" maxlength="150"></div>
+<div class="field"><label id="petugas2Label" for="petugas2">Imam</label><input id="petugas2" data-cell="C30" maxlength="150"></div>
+<div class="field"><label id="petugas3Label" for="petugas3">Bilal</label><input id="petugas3" data-cell="C31" maxlength="150"></div>
 </div><div class="actions"><button class="secondary" data-refresh="panels">Muat status dari Spreadsheet</button><button data-save-group="officers">Simpan petugas & kegiatan</button></div></section>
 <section class="card"><h2>📢 Running text</h2><p class="hint">Teks kegiatan yang ditampilkan di layar. Isi teks pada baris yang ingin digunakan.</p><div class="grid">
 <div class="field full"><label for="run1">Running text 1</label><input id="run1" data-cell="B35" maxlength="500"></div>
