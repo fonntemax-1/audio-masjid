@@ -97,18 +97,6 @@ button.danger:active{background:#b91c1c;color:#fff}
 </div>
 </div><div class="actions"><button class="secondary" data-refresh="display">Muat status dari Spreadsheet</button><button data-save-group="display">Simpan tampilan & audio</button></div></section>
 
-<div class="section-title">UPLOAD GAMBAR</div>
-<section class="card" id="qrisUploadCard"><h2>🧾 Upload Gambar QRIS</h2>
-<p class="hint">Pilih gambar QRIS format PNG. Gambar akan menggantikan image/QRIS.png dan dipakai otomatis pada layar signage.</p>
-<div class="field full"><label for="qrisFile">File gambar QRIS (PNG, maksimal 1 MB)</label><input id="qrisFile" type="file" accept="image/png,.png"></div>
-<div class="actions"><button id="qrisUploadBtn" type="button">Upload QRIS</button></div>
-<div id="qrisUploadMsg" class="message" role="status" aria-live="polite"></div>
-<iframe name="qrisUploadFrame" id="qrisUploadFrame" title="Proses upload QRIS" class="hidden" style="display:none"></iframe>
-<form id="qrisUploadForm" method="post" enctype="application/x-www-form-urlencoded" target="qrisUploadFrame" action="https://script.google.com/macros/s/AKfycbxrmBOs_aFUSLjQy55gJDKBB9XMvNrJnpFwbOPWpzUmx-HAQcsnDMeDUH8JCvjA9hLh/exec" class="hidden" style="display:none">
-<input name="action" value="uploadQris"><input name="pin" id="qrisUploadPin"><input name="imageBase64" id="qrisUploadBase64"><input name="mimeType" value="image/png">
-</form>
-<p class="note">Upload memakai PIN remote. Token GitHub disimpan di Script Properties Apps Script, bukan di halaman publik.</p>
-</section>
 
 <div class="section-title">INFORMASI & PETUGAS</div>
 <section class="card"><h2>🕌 Informasi & petugas salat</h2><div class="grid info-officers-grid">
@@ -154,6 +142,23 @@ button.danger:active{background:#b91c1c;color:#fff}
 <div class="event-name"><label for="eventName72">Nama iklan 3</label><input id="eventName72" data-cell="B72" maxlength="120" aria-label="Nama custom advertising 3" placeholder="Tulis nama iklan"></div><div class="field" data-label="Mulai"><input type="date" data-cell="C72" aria-label="Mulai Advertising Custom 3"></div><div class="field" data-label="Akhir"><input type="date" data-cell="D72" aria-label="Akhir Advertising Custom 3"></div><div class="field status-field" data-label="Status"><select data-cell="E72" aria-label="Status Advertising Custom 3"><option>ON</option><option>OFF</option></select></div>
 </div><div class="actions"><button class="secondary" data-refresh="panels">Muat status</button><button data-save-group="video">Simpan Advertising</button></div></section>
 </div>
+<div class="section-title">INFAQ & SHADAQAH</div>
+<section class="card" id="infaqShadaqahCard"><h2>🤲 Infaq & Shadaqah</h2>
+<div class="grid">
+<div class="field"><label for="infaqMode">Infaq & Shadaqah</label><select id="infaqMode" data-cell="C41"><option>AUTO</option><option>OFF</option></select></div>
+<div class="field"><label for="infaqAccount">No. Rekening</label><input id="infaqAccount" data-cell="C42" maxlength="100" placeholder="Kolom kosong destination/source"></div>
+<div class="field full"><label for="infaqName">Nama</label><input id="infaqName" data-cell="C43" maxlength="150" placeholder="Kolom kosong destination/source"></div>
+<div class="field full"><label for="qrisFile">Upload Gambar QRIS</label><p class="hint">Pilih gambar QRIS format PNG. Gambar akan menggantikan image/QRIS.png dan dipakai otomatis pada layar signage.</p><input id="qrisFile" type="file" accept="image/png,.png"></div>
+</div>
+<div class="actions"><button data-save-group="infaq" type="button">Simpan Infaq & Shadaqah</button><button id="qrisUploadBtn" type="button">Upload QRIS</button></div>
+<div id="qrisUploadMsg" class="message" role="status" aria-live="polite"></div>
+<iframe name="qrisUploadFrame" id="qrisUploadFrame" title="Proses upload QRIS" class="hidden" style="display:none"></iframe>
+<form id="qrisUploadForm" method="post" enctype="application/x-www-form-urlencoded" target="qrisUploadFrame" action="https://script.google.com/macros/s/AKfycbxrmBOs_aFUSLjQy55gJDKBB9XMvNrJnpFwbOPWpzUmx-HAQcsnDMeDUH8JCvjA9hLh/exec" class="hidden" style="display:none">
+<input name="action" value="uploadQris"><input name="pin" id="qrisUploadPin"><input name="imageBase64" id="qrisUploadBase64"><input name="mimeType" value="image/png">
+</form>
+<p class="note">File gambar QRIS (PNG, maksimal 1 MB). Upload memakai PIN remote. Token GitHub disimpan di Script Properties Apps Script, bukan di halaman publik.</p>
+</section>
+
 <div id="saveMsg" class="message"></div>
 </div>
 <footer>Seluruh hak atas aplikasi tidak boleh diperbanyak atau disebarkan tanpa izin.</footer>
