@@ -202,6 +202,10 @@ function handleGithubApiRequest_(params) {
         result = setRemoteCellFromApi_(params);
         break;
 
+      case 'setRemoteCells':
+        result = setRemoteCellsFromApi_(params);
+        break;
+
       case 'ping':
         result = {
           status: 'OK',
@@ -326,6 +330,51 @@ function setRemoteCellFromApi_(params) {
      lock.releaseLock();
    }
  }
+function setRemoteCellsFromApi_(params) {
+  params = params || {};
+  var configuredPin = String(PropertiesService.getScriptProperties().getProperty('REMOTE_CONTROL_PIN') || '');
+  var suppliedPin = String(params.pin || '');
+  if (!configuredPin || configuredPin.length < 6) {
+    throw new Error('Remote belum diaktifkan. Atur Script Property REMOTE_CONTROL_PIN (minimal 6 karakter).');
+  }
+  if (!suppliedPin || suppliedPin !== configuredPin) throw new Error('PIN remote salah.');
+
+  var items;
+  try { items = JSON.parse(String(params.cells || '[]')); }
+  catch (e) { throw new Error('Data update remote tidak valid.'); }
+  if (!Array.isArray(items) || !items.length || items.length > 30) {
+    throw new Error('Daftar sel update tidak valid (maksimal 30 sel).');
+  }
+
+  items = items.map(function(item) {
+    var cell = String(item && item.cell || '').trim().toUpperCase();
+    var value = item && item.value !== undefined && item.value !== null ? String(item.value) : '';
+    if (!isAllowedRemoteCell_(cell)) throw new Error('Lokasi sel tidak diizinkan untuk remote: ' + cell);
+    if (value.length > 500) throw new Error('Nilai terlalu panjang pada sel ' + cell + ' (maksimal 500 karakter).');
+    return { cell: cell, value: value };
+  });
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var ss = getSpreadsheet();
+    var sheet = ss.getSheetByName('panels');
+    if (!sheet) throw new Error('Sheet panels tidak ditemukan.');
+    items.forEach(function(item) { sheet.getRange(item.cell).setValue(item.value); });
+    SpreadsheetApp.flush();
+    var saved = items.map(function(item) {
+      var actual = sheet.getRange(item.cell).getDisplayValue();
+      if (String(actual) !== String(item.value)) {
+        throw new Error('Verifikasi gagal pada sel ' + item.cell + '.');
+      }
+      return { cell: item.cell, value: actual };
+    });
+    return { success: true, count: saved.length, cells: saved, updatedAt: new Date().toISOString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
  function isAllowedRemoteCell_(cell) {
    var allowed = new Set([
      'C2','C5','C6','C7','C8','C9','C12','C13','C15','C27','C16','C18','C20','F20','C22','C26','C28','C29','C30','C31','C32','C41','C42','C43','C57',
