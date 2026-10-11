@@ -15490,7 +15490,7 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
           .toUpperCase();
 
       WEB_APP_STATE.panel.iqomahMode =
-        ['AUTO', 'ON', 'OFF', 'STOP'].indexOf(normalized) >= 0
+        normalized === 'AUTO' || normalized === 'OFF'
           ? normalized
           : 'OFF';
 
@@ -15683,13 +15683,10 @@ function refreshDisplayTheme() {
 
 
 function setCountdownBlackMode(enabled) {
-      // C22 mengendalikan overlay waktu sholat:
-      // AUTO = mengikuti window iqomah; ON = paksa overlay aktif;
-      // OFF/STOP = overlay nonaktif.
+      // C22 hanya mendukung AUTO (mengikuti window overlay) dan OFF.
       const mode = WEB_APP_STATE.panel.iqomahMode;
       const shouldBlack =
-        mode === 'ON' ||
-        (mode === 'AUTO' && Boolean(enabled));
+        mode === 'AUTO' && Boolean(enabled);
 
       WEB_APP_STATE.panel.countdownBlack =
         shouldBlack;
