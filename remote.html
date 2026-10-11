@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#073b2b">
-<title>Remote TV Masjid Display Signage</title>
+<title>Control Panel TV Signage</title>
 <style>
 :root{color-scheme:dark;--bg:#071a15;--card:#102820;--line:#23473a;--text:#f4fff8;--muted:#a9c5b6;--accent:#00ffaa;--danger:#ff7676}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#071a15,#0d2820 55%,#071a15);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
@@ -25,14 +25,13 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 </style>
 </head>
 <body>
-<header><div class="head"><div class="logo">☾</div><div><h1>REMOTE MASJID</h1><p>Masjid Al Mujahidin · Control panel Android</p></div></div></header>
+<header><div class="head"><div class="logo">☾</div><div><h1>CONTROL PANEL TV SIGNAGE</h1><p id="masjidSubtitle">Memuat nama masjid…</p></div></div></header>
 <main>
 <div class="status hidden"><span id="dot" class="dot"></span><span id="status">Menyiapkan remote…</span><span id="clock"></span></div>
 <section class="card" id="connection">
-<h2>🔐 Masukkan PIN Remote</h2>
-<p class="hint">URL Apps Script sudah diatur otomatis.</p>
-<div class="grid"><div class="field full"><label for="pin">PIN remote</label><input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Masukkan PIN remote" autofocus></div></div>
-<div class="actions"><button id="connectBtn">Buka Remote</button></div>
+<h2>🔐 Masukkan PIN</h2>
+<div class="grid"><div class="field full"><label for="pin">PIN</label><input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Masukkan PIN" autofocus></div></div>
+<div class="actions"><button id="connectBtn">LOGIN</button></div>
 <div id="connectionMsg" class="message"></div>
 </section>
 <div id="controls" class="hidden">
@@ -94,7 +93,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 </div><div class="actions"><button data-save-group="video">Simpan advertising</button></div></section><section class="card"><h2>🧩 Editor sel terbatas</h2><p class="hint">Untuk sel panel lain yang telah diizinkan. Penulisan tetap dibatasi oleh daftar izin di API.gs.</p><div class="grid"><div class="field"><label for="cellPick">Sel panels</label><select id="cellPick"></select></div><div class="field"><label for="cellValue">Nilai baru</label><input id="cellValue" maxlength="500"></div></div><div class="actions"><button id="saveCell">Simpan nilai sel</button></div></section>
 <div id="saveMsg" class="message"></div>
 </div>
-<footer>Remote terpisah dari index.html · Tidak menjalankan atau mengubah scheduler audio.</footer>
+<footer>Seluruh hak atas aplikasi tidak boleh diperbanyak atau disebarkan tanpa izin.</footer>
 </main>
 <script>
 (function(){
@@ -140,6 +139,7 @@ async function refreshPanels(){
    const lokasi=p.Lokasi||p.lokasi||{};
    const autoValues={'C12':first(p,['Nama','nama']),'C5':first(lokasi,['kota','Kota']),'C6':first(lokasi,['provinsi','Provinsi']),'C7':first(lokasi,['zona','Zona']),'C8':first(lokasi,['timezone','Timezone']),'C9':first(lokasi,['gmt','GMT'])};
    Object.keys(autoValues).forEach(cell=>{if(readByCell[cell]&&autoValues[cell]!==undefined)readByCell[cell].value=String(autoValues[cell])});
+   if(autoValues.C12!==undefined&&$('masjidSubtitle'))$('masjidSubtitle').textContent=String(autoValues.C12);
    put('C13',first(p,['Alamat','alamat']));put('C15',first(p,['No. Telp','NoTelp','NoHP']));put('C16',first(p,['Slogan','slogan']));
    put('C2',first(p,['PanelMode','CountdownMode','Countdown']));
    put('C18',first(p,['DisplayTheme']));
