@@ -296,7 +296,7 @@ async function refreshPanels(){
   // Sel tanggal dan status event dibaca langsung dari object panels jika tersedia.
   if(p&&typeof p==='object'){
    const panel=p.panels||p.Panels||{};
-   ['C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64','C68','D68','E68','C69','D69','E69','C70','D70','E70','C71','D71','E71','C72','D72','E72'].forEach(cell=>{
+   ['B64','C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64','C68','D68','E68','C69','D69','E69','B70','C70','D70','E70','B71','C71','D71','E71','B72','C72','D72','E72'].forEach(cell=>{
     if(panel[cell]!==undefined)put(cell,panel[cell]);
    });
   }
