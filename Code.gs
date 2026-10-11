@@ -300,6 +300,43 @@ function createPanelIqomahBlackModeJsonpResponse_(callback, data) {
 }
 
 
+/**
+ * Jalankan SATU KALI dari Apps Script editor untuk menyelaraskan
+ * validasi dropdown panels!C22 ke AUTO / ON / OFF / STOP.
+ * Nilai lama yang tidak valid (termasuk SLEEP) diubah menjadi OFF.
+ */
+function repairPanelC22ValidationModes() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('panels');
+  if (!sheet) throw new Error('Sheet panels tidak ditemukan.');
+
+  const cell = sheet.getRange('C22');
+  const previous = String(cell.getDisplayValue() || '').trim().toUpperCase();
+  const allowedModes = ['AUTO', 'ON', 'OFF', 'STOP'];
+
+  if (allowedModes.indexOf(previous) < 0) {
+    cell.setValue('OFF');
+  }
+
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(allowedModes, true)
+    .setAllowInvalid(false)
+    .build();
+
+  cell.setDataValidation(rule);
+  SpreadsheetApp.flush();
+
+  const current = String(cell.getDisplayValue() || '').trim().toUpperCase();
+  Logger.log('PANELS C22 VALIDATION: previous=[' + previous + '] current=[' + current + '] options=' + allowedModes.join(','));
+
+  return {
+    success: true,
+    previous: previous,
+    current: current,
+    options: allowedModes
+  };
+}
+
 function getPanelIqomahBlackMode() {
   try {
     const ss = getSpreadsheet();
