@@ -344,7 +344,7 @@ const qrisUploadForm=$('qrisUploadForm');
 const qrisUploadFrame=$('qrisUploadFrame');
 let qrisUploadPending=false;
 window.addEventListener('message',function(event){
- if(event.origin!=='https://fonntemax-1.github.io')return;
+ if(event.source!==qrisUploadFrame.contentWindow)return;
  const data=event.data;
  if(!data||data.type!=='qrisUploadResult')return;
  qrisUploadPending=false;
