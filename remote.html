@@ -37,52 +37,52 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div id="controls" class="hidden">
 <div class="section-title">IDENTITAS MASJID</div>
 <section class="card"><h2>🏠 Informasi masjid</h2><div class="grid">
-<div class="field"><label>Nama · C12 (AUTO)</label><input data-read-cell="C12" value="Memuat…" readonly></div>
-<div class="field"><label>Kota · C5 (AUTO)</label><input data-read-cell="C5" value="Memuat…" readonly></div>
-<div class="field"><label>Provinsi · C6 (AUTO)</label><input data-read-cell="C6" value="Memuat…" readonly></div>
-<div class="field"><label>Zona · C7 (AUTO)</label><input data-read-cell="C7" value="Memuat…" readonly></div>
-<div class="field"><label>Timezone · C8 (AUTO)</label><input data-read-cell="C8" value="Memuat…" readonly></div>
-<div class="field"><label>GMT · C9 (AUTO)</label><input data-read-cell="C9" value="Memuat…" readonly></div>
-<div class="field full"><label>Alamat · C13 (manual)</label><input data-cell="C13" maxlength="250" placeholder="Alamat masjid"></div>
-<div class="field"><label>No. HP · C15 (manual)</label><input data-cell="C15" inputmode="tel" maxlength="40"></div>
-<div class="field"><label>Slogan · C16 (manual)</label><input data-cell="C16" maxlength="250"></div>
+<div class="field"><label>Nama</label><input data-read-cell="C12" value="Memuat…" readonly></div>
+<div class="field"><label>Kota</label><input data-read-cell="C5" value="Memuat…" readonly></div>
+<div class="field"><label>Provinsi</label><input data-read-cell="C6" value="Memuat…" readonly></div>
+<div class="field"><label>Zona</label><input data-read-cell="C7" value="Memuat…" readonly></div>
+<div class="field"><label>Timezone</label><input data-read-cell="C8" value="Memuat…" readonly></div>
+<div class="field"><label>GMT</label><input data-read-cell="C9" value="Memuat…" readonly></div>
+<div class="field full"><label>Alamat</label><input data-cell="C13" maxlength="250" placeholder="Alamat masjid"></div>
+<div class="field"><label>No. HP</label><input data-cell="C15" inputmode="tel" maxlength="40"></div>
+<div class="field"><label>Slogan</label><input data-cell="C16" maxlength="250"></div>
 </div><div class="actions"><button data-save-group="profile">Simpan identitas</button></div></section>
 <div class="section-title">KONTROL UTAMA</div>
 <section class="card"><h2>🎨 Tampilan & audio</h2><div class="grid">
-<div class="field"><label for="theme">Tema layar · panels!C18</label><select id="theme" data-cell="C18"><option>HIJAU</option><option>MERAH</option><option>KUNING</option></select></div>
-<div class="field"><label for="youtube">YouTube · panels!F20</label><select id="youtube" data-cell="F20"><option>AUTO</option><option>ON</option><option>OFF</option><option>STOP</option></select></div><div class="field full"><label for="youtubeUrl">URL YouTube · panels!C20</label><input id="youtubeUrl" data-cell="C20" type="url" placeholder="https://www.youtube.com/watch?v=..."></div>
-<div class="field"><label for="black">Overlay iqomah · C22</label><select id="black" data-cell="C22"><option>AUTO</option><option>OFF</option><option>SLEEP</option></select></div><div class="field"><label for="takbiran">Takbiran · C57</label><select id="takbiran" data-cell="C57"><option>OFF</option><option>ON</option></select></div>
-<div class="field"><label for="countdown">Mode countdown · panels!C2</label><select id="countdown" data-cell="C2"><option>AUTO</option><option>OFF</option></select></div>
+<div class="field"><label for="theme">Tema layar</label><select id="theme" data-cell="C18"><option>HIJAU</option><option>MERAH</option><option>KUNING</option></select></div>
+<div class="field"><label for="youtube">YouTube</label><select id="youtube" data-cell="F20"><option>AUTO</option><option>ON</option><option>OFF</option><option>STOP</option></select></div><div class="field full"><label for="youtubeUrl">URL YouTube</label><input id="youtubeUrl" data-cell="C20" type="url" placeholder="https://www.youtube.com/watch?v=..."></div>
+<div class="field"><label for="black">Overlay iqomah</label><select id="black" data-cell="C22"><option>AUTO</option><option>OFF</option><option>SLEEP</option></select></div><div class="field"><label for="takbiran">Takbiran</label><select id="takbiran" data-cell="C57"><option>OFF</option><option>ON</option></select></div>
+
 </div><div class="actions"><button class="secondary" data-refresh="display">Muat status dari Spreadsheet</button><button data-save-group="display">Simpan tampilan & audio</button></div></section>
 <div class="section-title">PETUGAS & KEGIATAN</div>
 <section class="card"><h2>🕌 Petugas salat & jenis kegiatan</h2><div class="grid">
-<div class="field"><label for="selector">Informasi · C26</label><select id="selector" data-cell="C26"><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
-<div class="field"><label for="activity">Petugas / kegiatan · C28</label><select id="activity" data-cell="C28"><option>SHOLAT JUM'AT</option><option>TARAWIH</option><option>IDUL FITRI</option><option>IDUL ADHA</option></select></div>
-<div class="field"><label for="officerDate">Tanggal petugas · C27 (manual)</label><input id="officerDate" data-cell="C27" placeholder="Isi tanggal kegiatan"></div>
-<div class="field"><label for="petugas1">Nama Khatib · C29</label><input id="petugas1" data-cell="C29" maxlength="150"></div>
-<div class="field"><label for="petugas2">Nama Imam · C30</label><input id="petugas2" data-cell="C30" maxlength="150"></div>
-<div class="field"><label for="petugas3">Nama Bilal · C31</label><input id="petugas3" data-cell="C31" maxlength="150"></div>
+<div class="field"><label for="selector">Informasi</label><select id="selector" data-cell="C26"><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
+<div class="field"><label for="activity">Petugas / kegiatan</label><select id="activity" data-cell="C28"><option>SHOLAT JUM'AT</option><option>TARAWIH</option><option>IDUL FITRI</option><option>IDUL ADHA</option></select></div>
+<div class="field"><label for="officerDate">Tanggal petugas</label><input id="officerDate" data-cell="C27" placeholder="Isi tanggal kegiatan"></div>
+<div class="field"><label for="petugas1">Nama Khatib</label><input id="petugas1" data-cell="C29" maxlength="150"></div>
+<div class="field"><label for="petugas2">Nama Imam</label><input id="petugas2" data-cell="C30" maxlength="150"></div>
+<div class="field"><label for="petugas3">Nama Bilal</label><input id="petugas3" data-cell="C31" maxlength="150"></div>
 </div><div class="actions"><button class="secondary" data-refresh="panels">Muat status dari Spreadsheet</button><button data-save-group="officers">Simpan petugas & kegiatan</button></div></section>
 <section class="card"><h2>📢 Running text</h2><p class="hint">Teks kegiatan yang ditampilkan di layar. Isi teks pada baris yang ingin digunakan.</p><div class="grid">
-<div class="field full"><label for="run1">Running text 1 · B35</label><input id="run1" data-cell="B35" maxlength="500"></div>
-<div class="field full"><label for="run2">Running text 2 · B36</label><input id="run2" data-cell="B36" maxlength="500"></div>
-<div class="field full"><label for="run3">Running text 3 · B37</label><input id="run3" data-cell="B37" maxlength="500"></div>
-<div class="field full"><label for="run4">Running text 4 · B38</label><input id="run4" data-cell="B38" maxlength="500"></div>
-<div class="field full"><label for="run5">Running text 5 · B39</label><input id="run5" data-cell="B39" maxlength="500"></div>
+<div class="field full"><label for="run1">Running text 1</label><input id="run1" data-cell="B35" maxlength="500"></div>
+<div class="field full"><label for="run2">Running text 2</label><input id="run2" data-cell="B36" maxlength="500"></div>
+<div class="field full"><label for="run3">Running text 3</label><input id="run3" data-cell="B37" maxlength="500"></div>
+<div class="field full"><label for="run4">Running text 4</label><input id="run4" data-cell="B38" maxlength="500"></div>
+<div class="field full"><label for="run5">Running text 5</label><input id="run5" data-cell="B39" maxlength="500"></div>
 </div><div class="actions"><button class="secondary" data-refresh="panels">Muat teks</button><button data-save-group="running">Simpan running text</button></div></section>
 <div class="section-title">PANEL INFORMASI</div>
 <section class="card"><h2>💚 Infaq, keuangan & kurban</h2><div class="grid">
-<div class="field"><label for="panelMode">Mode panel · C41</label><select id="panelMode" data-cell="C41"><option>AUTO</option><option>ON</option><option>OFF</option></select></div>
-<div class="field"><label for="financeMode">Sumber panel · C26</label><select id="financeMode"><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
-<div class="field full"><label for="infaqTitle">Teks bawah INFAQ · C42</label><input id="infaqTitle" data-cell="C42" maxlength="250"></div>
-<div class="field full"><label for="infaqSubtitle">Teks bawah SHADAQAH · C43</label><input id="infaqSubtitle" data-cell="C43" maxlength="250"></div>
+<div class="field"><label for="panelMode">Mode panel</label><select id="panelMode" data-cell="C41"><option>AUTO</option><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="financeMode">Sumber panel</label><select id="financeMode"><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
+<div class="field full"><label for="infaqTitle">Teks bawah INFAQ</label><input id="infaqTitle" data-cell="C42" maxlength="250"></div>
+<div class="field full"><label for="infaqSubtitle">Teks bawah SHADAQAH</label><input id="infaqSubtitle" data-cell="C43" maxlength="250"></div>
 </div><div class="actions"><button class="secondary" data-refresh="panels">Muat status</button><button data-save-group="infaq">Simpan panel</button></div></section>
 <section class="card"><h2>🗓️ Countdown acara</h2><p class="hint">Nama, tanggal target, dan ON/OFF untuk acara khusus.</p><div class="grid">
-<div class="field"><label for="ramadanName">Ramadan · C60</label><input id="ramadanName" data-cell="C60" maxlength="120"></div><div class="field"><label for="ramadanDate">Tanggal Ramadan · D60</label><input id="ramadanDate" data-cell="D60" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="ramadanOn">Status Ramadan · E60</label><select id="ramadanOn" data-cell="E60"><option>ON</option><option>OFF</option></select></div>
-<div class="field"><label for="qadrName">Lailatul Qadr · C61</label><input id="qadrName" data-cell="C61" maxlength="120"></div><div class="field"><label for="qadrDate">Tanggal Lailatul Qadr · D61</label><input id="qadrDate" data-cell="D61" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="qadrOn">Status Lailatul Qadr · E61</label><select id="qadrOn" data-cell="E61"><option>ON</option><option>OFF</option></select></div>
-<div class="field"><label for="fitriName">Idul Fitri · C62</label><input id="fitriName" data-cell="C62" maxlength="120"></div><div class="field"><label for="fitriDate">Tanggal Idul Fitri · D62</label><input id="fitriDate" data-cell="D62" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="fitriOn">Status Idul Fitri · E62</label><select id="fitriOn" data-cell="E62"><option>ON</option><option>OFF</option></select></div>
-<div class="field"><label for="adhaName">Idul Adha · C63</label><input id="adhaName" data-cell="C63" maxlength="120"></div><div class="field"><label for="adhaDate">Tanggal Idul Adha · D63</label><input id="adhaDate" data-cell="D63" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="adhaOn">Status Idul Adha · E63</label><select id="adhaOn" data-cell="E63"><option>ON</option><option>OFF</option></select></div>
-<div class="field full"><label>Custom Text · C64 (tanggal mulai)</label><input id="customStart" data-cell="C64" placeholder="Tanggal mulai"></div><div class="field"><label for="customEnd">Tanggal akhir · D64</label><input id="customEnd" data-cell="D64" placeholder="Tanggal akhir"></div><div class="field"><label for="customOn">Status · E64</label><select id="customOn" data-cell="E64"><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="ramadanName">Ramadan</label><input id="ramadanName" data-cell="C60" maxlength="120"></div><div class="field"><label for="ramadanDate">Tanggal Ramadan</label><input id="ramadanDate" data-cell="D60" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="ramadanOn">Status Ramadan</label><select id="ramadanOn" data-cell="E60"><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="qadrName">Lailatul Qadr</label><input id="qadrName" data-cell="C61" maxlength="120"></div><div class="field"><label for="qadrDate">Tanggal Lailatul Qadr</label><input id="qadrDate" data-cell="D61" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="qadrOn">Status Lailatul Qadr</label><select id="qadrOn" data-cell="E61"><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="fitriName">Idul Fitri</label><input id="fitriName" data-cell="C62" maxlength="120"></div><div class="field"><label for="fitriDate">Tanggal Idul Fitri</label><input id="fitriDate" data-cell="D62" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="fitriOn">Status Idul Fitri</label><select id="fitriOn" data-cell="E62"><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="adhaName">Idul Adha</label><input id="adhaName" data-cell="C63" maxlength="120"></div><div class="field"><label for="adhaDate">Tanggal Idul Adha</label><input id="adhaDate" data-cell="D63" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="adhaOn">Status Idul Adha</label><select id="adhaOn" data-cell="E63"><option>ON</option><option>OFF</option></select></div>
+<div class="field full"><label>Custom Text</label><input id="customStart" data-cell="C64" placeholder="Tanggal mulai"></div><div class="field"><label for="customEnd">Tanggal akhir</label><input id="customEnd" data-cell="D64" placeholder="Tanggal akhir"></div><div class="field"><label for="customOn">Status</label><select id="customOn" data-cell="E64"><option>ON</option><option>OFF</option></select></div>
 </div><div class="actions"><button class="secondary" data-refresh="panels">Muat countdown</button><button data-save-group="events">Simpan countdown</button></div></section>
 <section class="card"><h2>🎞️ Advertising event</h2><p class="hint">Atur tanggal mulai, tanggal akhir, dan status setiap banner event.</p><div class="grid">
 <div class="field full"><label>Selamat Idul Fitri</label></div><div class="field"><label>Mulai · C68</label><input data-cell="C68" placeholder="Tanggal mulai"></div><div class="field"><label>Akhir · D68</label><input data-cell="D68" placeholder="Tanggal akhir"></div><div class="field"><label>Status · E68</label><select data-cell="E68"><option>ON</option><option>OFF</option></select></div>
