@@ -203,9 +203,11 @@ async function refreshPanels(){
   put('C28',first(activity,['value','activity','mode','name']));
   if(activity&&activity.fields&&typeof activity.fields==='object'){
    put('C29',activity.fields.Tanggal);
-   put('C30',activity.fields.Khatib||activity.fields.Imam);
-   put('C31',activity.fields.Imam||activity.fields.Bilal);
-   put('C32',activity.fields.Bilal||activity.fields.Kultum);
+   if(String(activity.jenis||'').toUpperCase()==='SHOLAT TARAWIH'){
+    put('C30',activity.fields.Imam);put('C31',activity.fields.Bilal);put('C32',activity.fields.Kultum);
+   }else{
+    put('C30',activity.fields.Khatib);put('C31',activity.fields.Imam);put('C32',activity.fields.Bilal);
+   }
   }
   updateOfficerLabels();
   if(runText&&typeof runText==='object'){
