@@ -62,6 +62,10 @@ function handleGithubApiRequest_(params) {
         result = getPanelEventCountdownConfig_();
         break;
 
+      case 'getEventAdvertisingConfig':
+        result = getEventAdvertisingConfigFromApi_();
+        break;
+
       case 'getEidFitriVideoConfig':
         // Konfigurasi video Idul Fitri dibaca melalui helper bridge lokal.
         // Ini menghindari ReferenceError jika deployment belum memuat
@@ -330,6 +334,43 @@ function setRemoteCellFromApi_(params) {
    ]);
    return allowed.has(String(cell || '').toUpperCase());
  }
+
+function getEventAdvertisingConfigFromApi_() {
+  try {
+    var ss = getSpreadsheet();
+    var sheet = ss.getSheetByName('panels');
+    if (!sheet) throw new Error('Sheet panels tidak ditemukan.');
+    var values = sheet.getRange('C68:E72').getValues();
+    var displays = sheet.getRange('C68:E72').getDisplayValues();
+    var timeZone = ss.getSpreadsheetTimeZone() || Session.getScriptTimeZone() || 'Asia/Makassar';
+    function normalizeDate(value, display) {
+      if (value instanceof Date && !isNaN(value.getTime())) {
+        return Utilities.formatDate(value, timeZone, 'yyyy-MM-dd');
+      }
+      var text = String(display || value || '').trim();
+      if (!text) return '';
+      var m = text.match(/^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})$/);
+      if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
+      m = text.match(/^(\\d{1,2})[/.\\-](\\d{1,2})[/.\\-](\\d{4})$/);
+      if (m) return m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
+      return '';
+    }
+    return values.map(function(row, index) {
+      var display = displays[index] || [];
+      var sheetRow = index + 68;
+      var status = String(row[2] == null ? display[2] || '' : row[2]).trim().toUpperCase();
+      return {
+        row: sheetRow,
+        start: normalizeDate(row[0], display[0]),
+        end: normalizeDate(row[1], display[1]),
+        status: status === 'ON' ? 'ON' : 'OFF'
+      };
+    });
+  } catch (error) {
+    Logger.log('EVENT ADVERTISING CONFIG ERROR: ' + (error && error.message ? error.message : error));
+    return [];
+  }
+}
 
 function getEidFitriVideoConfigFromApi_() {
   try {
