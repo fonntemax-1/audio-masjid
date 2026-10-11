@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#073b2b">
+<title>Control Panel TV Signage</title>
+<style>
+:root{color-scheme:dark;--bg:#071a15;--card:#102820;--line:#23473a;--text:#f4fff8;--muted:#a9c5b6;--accent:#00ffaa;--danger:#ff7676}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#071a15,#0d2820 55%,#071a15);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:22px 16px 16px;position:sticky;top:0;background:#071a15ed;backdrop-filter:blur(14px);border-bottom:1px solid var(--line);z-index:5}
+.head{max-width:850px;margin:auto;display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:15px;background:#123f30;display:grid;place-items:center;color:var(--accent);font-size:25px}
+h1{font-size:20px;margin:0}header p{margin:3px 0 0;color:var(--muted);font-size:12px}
+main{max-width:850px;margin:auto;padding:16px 14px 48px}.status{display:flex;align-items:center;gap:8px;margin:0 0 14px;color:var(--muted);font-size:13px}.dot{width:9px;height:9px;border-radius:50%;background:#eab308}.dot.ok{background:var(--accent)}
+.card{background:#102820e8;border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 8px 28px #0002}
+h2{font-size:16px;margin:0 0 12px;display:flex;align-items:center;gap:8px}.hint{font-size:12px;color:var(--muted);margin:-5px 0 13px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{min-width:0}.field.full{grid-column:1/-1}
+.info-officers-grid{align-items:start;grid-template-columns:repeat(2,minmax(180px,280px));max-width:580px}.info-officers-grid .info-selector{grid-column:1/-1;max-width:260px}
+.audio-controls{display:flex;flex-direction:column;align-items:flex-start;gap:14px}.audio-controls .field{width:auto;max-width:100%}.audio-theme{width:170px!important}.audio-row{display:flex;align-items:flex-start;gap:14px;max-width:100%;width:fit-content;flex-wrap:wrap}.audio-url{flex:0 1 390px;min-width:220px;max-width:100%}.audio-mode{flex:0 0 150px;max-width:100%}.audio-compact{flex:0 0 180px;max-width:100%}
+.audio-controls input,.audio-controls select{width:100%}label{display:block;font-size:13px;color:#d9eee2;margin-bottom:6px}
+input,select,textarea{width:100%;min-height:46px;border:1px solid #315848;border-radius:12px;background:#071b14;color:#fff;padding:10px 11px;font:inherit;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px #00ffaa20}
+button{border:0;border-radius:12px;min-height:46px;padding:11px 14px;background:var(--accent);color:#062016;font-weight:750;font:inherit;cursor:pointer;transition:background-color .15s ease, color .15s ease, transform .12s ease, box-shadow .15s ease;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:hover{background:#8affd6;box-shadow:0 0 0 2px #00ffaa30}
+button:active{background:#087f5b;color:#fff;transform:scale(.98);box-shadow:inset 0 2px 5px #0005}
+button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+button:disabled{opacity:.55;cursor:wait;transform:none;box-shadow:none}
+button.secondary{background:#1a3b2e;border:1px solid #315848;color:#e8fff1}
+button.secondary:hover{background:#285743}
+button.secondary:active{background:#00a875;color:#041b12}
+button.danger{background:#5b2424;color:#fff;border:1px solid #854141}
+button.danger:hover{background:#813333}
+button.danger:active{background:#b91c1c;color:#fff}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions button{flex:1}
+.note{font-size:12px;color:var(--muted);margin-top:10px}.message{padding:11px 12px;border-radius:12px;background:#173b2d;color:#caffdf;font-size:13px;margin-top:10px;display:none;overflow-wrap:anywhere}.message.error{background:#4a2525;color:#ffd6d6}
+.locked{display:block}.hidden{display:none!important}.section-title{font-size:12px;color:var(--accent);letter-spacing:.12em;font-weight:800;margin:20px 4px 6px}
+.quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.quick button{background:#163a2d;color:#eafff1;border:1px solid #2b5a45;text-align:left}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
+@media(max-width:440px){.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.card{padding:13px}.head h1{font-size:18px}.audio-row{width:100%;gap:10px}.audio-url{flex:1 1 100%;min-width:0}.audio-mode{flex:0 0 150px}.audio-compact{flex:0 0 180px}.audio-theme{width:min(170px,100%)!important}}
+</style>
+</head>
+<body>
+<header><div class="head"><div class="logo">☾</div><div><h1>CONTROL PANEL TV SIGNAGE</h1></div></div></header>
+<main>
+<div class="status hidden"><span id="dot" class="dot"></span><span id="status">Menyiapkan remote…</span><span id="clock"></span></div>
+<section class="card" id="connection">
+<h2>🔐 Masukan PIN</h2>
+<div class="grid"><div class="field full"><label for="pin">PIN</label><input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Masukan PIN" autofocus></div></div>
+<div class="actions"><button id="connectBtn">LOGIN</button></div>
+<div id="connectionMsg" class="message"></div>
+</section>
+<div id="controls" class="hidden">
+<div class="section-title">IDENTITAS MASJID</div>
+<section class="card"><h2>🏠 Informasi masjid</h2><div class="grid">
+<div class="field"><label>Nama</label><input data-read-cell="C12" value="Memuat…" readonly></div>
+<div class="field"><label>Kota</label><input data-read-cell="C5" value="Memuat…" readonly></div>
+<div class="field"><label>Provinsi</label><input data-read-cell="C6" value="Memuat…" readonly></div>
+<div class="field"><label>Zona</label><input data-read-cell="C7" value="Memuat…" readonly></div>
+<div class="field"><label>Timezone</label><input data-read-cell="C8" value="Memuat…" readonly></div>
+<div class="field"><label>GMT</label><input data-read-cell="C9" value="Memuat…" readonly></div>
+<div class="field full"><label>Alamat</label><input data-cell="C13" maxlength="250" placeholder="Alamat masjid"></div>
+<div class="field"><label>No. HP</label><input data-cell="C15" inputmode="tel" maxlength="40"></div>
+<div class="field"><label>Slogan</label><input data-cell="C16" maxlength="250"></div>
+</div><div class="actions"><button data-save-group="profile">Simpan identitas</button></div></section>
+<div class="section-title">KONTROL UTAMA</div>
+<section class="card"><h2>🎨 Tampilan & audio</h2><div class="audio-controls">
+<div class="field audio-theme"><label for="theme">Tema layar</label><select id="theme" data-cell="C18"><option>HIJAU</option><option>MERAH</option><option>KUNING</option></select></div>
+<div class="audio-row">
+<div class="field audio-url"><label for="youtubeUrl">URL YouTube</label><input id="youtubeUrl" data-cell="C20" type="url" placeholder="https://www.youtube.com/watch?v=..."></div>
+<div class="field audio-mode"><label for="youtube">YouTube Mode</label><select id="youtube" data-cell="F20"><option>AUTO</option><option>ON</option><option>OFF</option><option>STOP</option></select></div>
+</div>
+<div class="audio-row">
+<div class="field audio-compact"><label for="black">Overlay Waktu Sholat</label><select id="black" data-cell="C22"><option>AUTO</option><option>OFF</option></select></div>
+</div>
+<div class="audio-row">
+<div class="field audio-compact"><label for="takbiran">Takbiran</label><select id="takbiran" data-cell="C57"><option>OFF</option><option>ON</option></select></div>
+</div>
+</div><div class="actions"><button class="secondary" data-refresh="display">Muat status dari Spreadsheet</button><button data-save-group="display">Simpan tampilan & audio</button></div></section>
+<div class="section-title">INFORMASI & PETUGAS</div>
+<section class="card"><h2>🕌 Informasi & petugas salat</h2><div class="grid info-officers-grid">
+<div class="field info-selector"><label for="selector">Informasi</label><select id="selector" data-cell="C26"><option>PENGURUS</option><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
+<div class="field"><label for="activity">Petugas / kegiatan</label><select id="activity" data-cell="C28"><option>SHOLAT JUM'AT</option><option>SHOLAT TARAWIH</option><option>SHOLAT IDUL FITRI</option><option>SHOLAT IDUL ADHA</option></select></div>
+<div class="field"><label for="officerDate">Tanggal</label><input id="officerDate" data-cell="C29" type="date" aria-label="Pilih tanggal kegiatan"></div>
+<div class="field"><label id="petugas1Label" for="petugas1">Khatib</label><input id="petugas1" data-cell="C30" maxlength="150"></div>
+<div class="field"><label id="petugas2Label" for="petugas2">Imam</label><input id="petugas2" data-cell="C31" maxlength="150"></div>
+<div class="field"><label id="petugas3Label" for="petugas3">Bilal</label><input id="petugas3" data-cell="C32" maxlength="150"></div>
+</div><div class="actions"><button class="secondary" data-refresh="panels">Muat status dari Spreadsheet</button><button data-save-group="officers">Simpan petugas & kegiatan</button></div></section>
+<div class="section-title">BANNER</div>
+<section class="card"><h2>📢 Banner Teks</h2><p class="hint">Isi teks pada baris yang ingin digunakan.</p><div class="grid">
+<div class="field full"><label for="run1">Kalimat 1</label><input id="run1" data-cell="B35" maxlength="500"></div>
+<div class="field full"><label for="run2">Kalimat 2</label><input id="run2" data-cell="B36" maxlength="500"></div>
+<div class="field full"><label for="run3">Kalimat 3</label><input id="run3" data-cell="B37" maxlength="500"></div>
+<div class="field full"><label for="run4">Kalimat 4</label><input id="run4" data-cell="B38" maxlength="500"></div>
+<div class="field full"><label for="run5">Kalimat 5</label><input id="run5" data-cell="B39" maxlength="500"></div>
+</div><div class="actions"><button class="secondary" data-refresh="panels">Muat teks</button><button data-save-group="running">Simpan Banner Teks</button></div></section>
+<div class="section-title">PANEL INFORMASI</div>
+<section class="card"><h2>💚 Infaq, keuangan & kurban</h2><div class="grid">
+<div class="field"><label for="panelMode">Mode panel</label><select id="panelMode" data-cell="C41"><option>AUTO</option><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="financeMode">Sumber panel</label><select id="financeMode"><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
+<div class="field full"><label for="infaqTitle">Teks bawah INFAQ</label><input id="infaqTitle" data-cell="C42" maxlength="250"></div>
+<div class="field full"><label for="infaqSubtitle">Teks bawah SHADAQAH</label><input id="infaqSubtitle" data-cell="C43" maxlength="250"></div>
+</div><div class="actions"><button class="secondary" data-refresh="panels">Muat status</button><button data-save-group="infaq">Simpan panel</button></div></section>
+<section class="card"><h2>🗓️ Countdown acara</h2><p class="hint">Nama, tanggal target, dan ON/OFF untuk acara khusus.</p><div class="grid">
+<div class="field"><label for="ramadanName">Ramadan</label><input id="ramadanName" data-cell="C60" maxlength="120"></div><div class="field"><label for="ramadanDate">Tanggal Ramadan</label><input id="ramadanDate" data-cell="D60" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="ramadanOn">Status Ramadan</label><select id="ramadanOn" data-cell="E60"><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="qadrName">Lailatul Qadr</label><input id="qadrName" data-cell="C61" maxlength="120"></div><div class="field"><label for="qadrDate">Tanggal Lailatul Qadr</label><input id="qadrDate" data-cell="D61" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="qadrOn">Status Lailatul Qadr</label><select id="qadrOn" data-cell="E61"><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="fitriName">Idul Fitri</label><input id="fitriName" data-cell="C62" maxlength="120"></div><div class="field"><label for="fitriDate">Tanggal Idul Fitri</label><input id="fitriDate" data-cell="D62" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="fitriOn">Status Idul Fitri</label><select id="fitriOn" data-cell="E62"><option>ON</option><option>OFF</option></select></div>
+<div class="field"><label for="adhaName">Idul Adha</label><input id="adhaName" data-cell="C63" maxlength="120"></div><div class="field"><label for="adhaDate">Tanggal Idul Adha</label><input id="adhaDate" data-cell="D63" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="adhaOn">Status Idul Adha</label><select id="adhaOn" data-cell="E63"><option>ON</option><option>OFF</option></select></div>
+<div class="field full"><label>Custom Text</label><input id="customStart" data-cell="C64" placeholder="Tanggal mulai"></div><div class="field"><label for="customEnd">Tanggal akhir</label><input id="customEnd" data-cell="D64" placeholder="Tanggal akhir"></div><div class="field"><label for="customOn">Status</label><select id="customOn" data-cell="E64"><option>ON</option><option>OFF</option></select></div>
+</div><div class="actions"><button class="secondary" data-refresh="panels">Muat countdown</button><button data-save-group="events">Simpan countdown</button></div></section>
+<section class="card"><h2>🎞️ Advertising event</h2><p class="hint">Atur tanggal mulai, tanggal akhir, dan status setiap banner event.</p><div class="grid">
+<div class="field full"><label>Selamat Idul Fitri</label></div><div class="field"><label>Mulai</label><input data-cell="C68" placeholder="Tanggal mulai"></div><div class="field"><label>Akhir</label><input data-cell="D68" placeholder="Tanggal akhir"></div><div class="field"><label>Status</label><select data-cell="E68"><option>ON</option><option>OFF</option></select></div>
+<div class="field full"><label>Selamat Idul Adha</label></div><div class="field"><label>Mulai</label><input data-cell="C69" placeholder="Tanggal mulai"></div><div class="field"><label>Akhir</label><input data-cell="D69" placeholder="Tanggal akhir"></div><div class="field"><label>Status</label><select data-cell="E69"><option>ON</option><option>OFF</option></select></div>
+<div class="field full"><label>Custom 3</label></div><div class="field"><label>Mulai</label><input data-cell="C70" placeholder="Tanggal mulai"></div><div class="field"><label>Akhir</label><input data-cell="D70" placeholder="Tanggal akhir"></div><div class="field"><label>Status</label><select data-cell="E70"><option>ON</option><option>OFF</option></select></div>
+<div class="field full"><label>Custom 2</label></div><div class="field"><label>Mulai</label><input data-cell="C71" placeholder="Tanggal mulai"></div><div class="field"><label>Akhir</label><input data-cell="D71" placeholder="Tanggal akhir"></div><div class="field"><label>Status</label><select data-cell="E71"><option>ON</option><option>OFF</option></select></div>
+<div class="field full"><label>Custom 1</label></div><div class="field"><label>Mulai</label><input data-cell="C72" placeholder="Tanggal mulai"></div><div class="field"><label>Akhir</label><input data-cell="D72" placeholder="Tanggal akhir"></div><div class="field"><label>Status</label><select data-cell="E72"><option>ON</option><option>OFF</option></select></div>
+</div><div class="actions"><button data-save-group="video">Simpan advertising</button></div></section><section class="card"><h2>🧩 Editor sel terbatas</h2><p class="hint">Untuk sel panel lain yang telah diizinkan. Penulisan tetap dibatasi oleh daftar izin di API.gs.</p><div class="grid"><div class="field"><label for="cellPick">Sel panels</label><select id="cellPick"></select></div><div class="field"><label for="cellValue">Nilai baru</label><input id="cellValue" maxlength="500"></div></div><div class="actions"><button id="saveCell">Simpan nilai sel</button></div></section>
+<div id="saveMsg" class="message"></div>
+</div>
+<footer>Seluruh hak atas aplikasi tidak boleh diperbanyak atau disebarkan tanpa izin.</footer>
+</main>
+<script>
+(function(){
+'use strict';
+const API_FALLBACK='https://script.google.com/macros/s/AKfycbxrmBOs_aFUSLjQy55gJDKBB9XMvNrJnpFwbOPWpzUmx-HAQcsnDMeDUH8JCvjA9hLh/exec';
+const $=id=>document.getElementById(id);
+const allowed=['C2','C5','C6','C7','C8','C9','C12','C13','C15','C27','C16','C18','C20','F20','C22','C26','C28','C29','C30','C31','C32','C41','C42','C43','C57','B35','B36','B37','B38','B39','C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','B64','C64','D64','E64','C68','D68','E68','C69','D69','E69','C70','D70','E70','C71','D71','E71','C72','D72','E72'];
+const groups={profile:['C13','C15','C16'],display:['C2','C18','C20','F20','C22','C57'],officers:['C26','C28','C29','C30','C31','C32'],running:['B35','B36','B37','B38','B39'],infaq:['C41','C42','C43'],events:['C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64'],video:['C68','D68','E68','C69','D69','E69','C70','D70','E70','C71','D71','E71','C72','D72','E72']};
+const inputByCell={};document.querySelectorAll('[data-cell]').forEach(el=>{(inputByCell[el.dataset.cell]||(inputByCell[el.dataset.cell]=[])).push(el)});
+const readByCell={};document.querySelectorAll('[data-read-cell]').forEach(el=>{readByCell[el.dataset.readCell]=el});
+
+const show=(el,msg,error)=>{el.textContent=msg;el.className='message'+(error?' error':'');el.style.display='block'};
+const setStatus=(msg,ok)=>{$('status').textContent=msg;$('dot').className='dot'+(ok?' ok':'')};
+function jsonp(action,params={}){
+ return new Promise((resolve,reject)=>{
+  const url=API_FALLBACK;
+  const cb='remoteCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+  const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('Waktu koneksi habis. Periksa deployment Apps Script.'))},15000);
+  function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
+  window[cb]=payload=>{cleanup();if(!payload||payload.success===false){reject(new Error(payload&&payload.error||'Respons API tidak valid.'));return}resolve(payload)};
+  const q=new URLSearchParams({api:'1',action,callback:cb,...params});script.src=url+'?'+q.toString();script.onerror=()=>{cleanup();reject(new Error('Gagal menghubungi Apps Script.'));};document.head.appendChild(script);
+ });
+}
+function apiData(payload){return payload&&Object.prototype.hasOwnProperty.call(payload,'data')?payload.data:payload}
+function updateOfficerLabels(){
+ const activity=String($('activity').value||'').trim().toUpperCase();
+ const labels=activity==='SHOLAT TARAWIH'?['Imam','Bilal','Kultum']:['Khatib','Imam','Bilal'];
+ $('petugas1Label').textContent=labels[0];
+ $('petugas2Label').textContent=labels[1];
+ $('petugas3Label').textContent=labels[2];
+}
+async function connect(){
+ const pin=$('pin').value.trim();
+ if(!pin){show($('connectionMsg'),'Masukan PIN terlebih dahulu.',true);$('pin').focus();return}
+ $('connectBtn').disabled=true;setStatus('Memverifikasi PIN…',false);
+ try{
+  const auth=apiData(await jsonp('validateRemotePin',{pin}));
+  if(!auth||auth.valid!==true)throw new Error('PIN remote tidak valid.');
+  const res=apiData(await jsonp('ping'));
+  if(res.status!=='OK')throw new Error('API tidak mengembalikan status OK.');
+  $('connection').classList.add('hidden');
+  $('controls').classList.remove('hidden');
+  setStatus('Login berhasil · '+(res.timezone||''),true);
+  await refreshPanels();
+ }catch(e){setStatus('Login gagal',false);show($('connectionMsg'),e.message,true)}
+ finally{$('connectBtn').disabled=false}
+}
+async function refreshPanels(){
+ try{
+  const p=apiData(await jsonp('getDataFromSheet'));
+  const readAction=async(action)=>{try{return apiData(await jsonp(action))}catch(_){return null}};
+  const [theme,youtube,black,mode,source,activity,runText,eventCountdown]=await Promise.all([
+   readAction('getDisplayThemeSetting'),readAction('getYoutubeControl'),readAction('getPanelIqomahBlackMode'),
+   readAction('getPanelDisplayMode'),readAction('getPanelKeuanganSource'),readAction('getPanelKegiatanRows'),
+   readAction('getEventRunningTextRows'),readAction('getEventCountdownConfig')
+  ]);
+  const dateForPicker=(value)=>{
+   const raw=String(value||'').trim();if(!raw)return '';
+   let m=raw.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return m[1]+'-'+m[2]+'-'+m[3];
+   m=raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+   const d=new Date(raw);if(!Number.isNaN(d.getTime()))return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+   return '';
+  };
+  const put=(cell,value)=>{if(value===undefined||value===null||value===''||!inputByCell[cell])return;inputByCell[cell].forEach(el=>el.value=cell==='C29'&&el.type==='date'?dateForPicker(value):String(value))};
+  const first=(obj,keys)=>{if(!obj||typeof obj!=='object')return undefined;for(const k of keys)if(obj[k]!==undefined&&obj[k]!==null&&obj[k]!=='')return obj[k];return undefined};
+  if(p&&typeof p==='object'){
+   const lokasi=p.Lokasi||p.lokasi||{};
+   const autoValues={'C12':first(p,['Nama','nama']),'C5':first(lokasi,['kota','Kota']),'C6':first(lokasi,['provinsi','Provinsi']),'C7':first(lokasi,['zona','Zona']),'C8':first(lokasi,['timezone','Timezone']),'C9':first(lokasi,['gmt','GMT'])};
+   Object.keys(autoValues).forEach(cell=>{if(readByCell[cell]&&autoValues[cell]!==undefined)readByCell[cell].value=String(autoValues[cell])});
+   put('C13',first(p,['Alamat','alamat']));put('C15',first(p,['No. Telp','NoTelp','NoHP']));put('C16',first(p,['Slogan','slogan']));
+   put('C2',first(p,['PanelMode','CountdownMode','Countdown']));
+   put('C18',first(p,['DisplayTheme']));
+   put('C20',first(p,['Youtube','YoutubeUrl','YouTubeUrl']));
+   put('F20',first(p,['YoutubeStatus','YoutubeControl']));
+   put('C22',first(p,['PanelIqomahBlackMode','IqomahBlackMode']));
+   put('C26',first(p,['KeuanganSelector','PanelKeuanganSource']));
+   put('C28',first(p,['PanelKegiatan']));
+   put('C29',first(p,['TanggalPetugas','TanggalKegiatan']));
+   put('C41',first(p,['PanelSpecialMode','PanelInfaqMode']));
+   const e=p.EventCountdown;
+   if(e&&typeof e==='object'){
+    [['C60',['Ramadan','Ramadhan','name','label']],['D60',['RamadanDate','RamadhanDate','date']],['E60',['RamadanStatus','RamadhanStatus','status']],
+     ['C61',['Qadr','LailatulQadr','qadrName']],['D61',['QadrDate','LailatulQadrDate','qadrDate']],['E61',['QadrStatus','LailatulQadrStatus','qadrStatus']],
+     ['C62',['Fitri','IdulFitri','fitriName']],['D62',['FitriDate','IdulFitriDate','fitriDate']],['E62',['FitriStatus','IdulFitriStatus','fitriStatus']],
+     ['C63',['Adha','IdulAdha','adhaName']],['D63',['AdhaDate','IdulAdhaDate','adhaDate']],['E63',['AdhaStatus','IdulAdhaStatus','adhaStatus']],['C64',['CustomStart','CustomDate','customStart']],['D64',['CustomEnd','customEnd']],['E64',['CustomStatus','customStatus']]
+    ].forEach(([cell,keys])=>put(cell,first(e,keys)));
+   }
+  }
+  put('C18',first(theme,['theme','value','color']));
+  put('F20',first(youtube,['status','mode','control','value']));
+  put('C22',first(black,['mode','status','value']));
+  put('C26',first(source,['value','source','mode','selector']));
+  // Baca langsung C28:C32 dari Spreadsheet. Array berurutan juga mempertahankan sel kosong.
+  if(Array.isArray(activity)){
+   for(let i=0;i<5;i++){
+    const cell='C'+(28+i);
+    const value=activity[i]===undefined||activity[i]===null?'':String(activity[i]);
+    (inputByCell[cell]||[]).forEach(el=>{el.value=cell==='C29'&&el.type==='date'?dateForPicker(value):value});
+   }
+  }else if(activity&&activity.fields&&typeof activity.fields==='object'){
+   put('C28',activity.jenis);
+   put('C29',activity.fields.Tanggal||'');
+   if(String(activity.jenis||'').toUpperCase()==='SHOLAT TARAWIH'){
+    put('C30',activity.fields.Imam||'');put('C31',activity.fields.Bilal||'');put('C32',activity.fields.Kultum||'');
+   }else{
+    put('C30',activity.fields.Khatib||'');put('C31',activity.fields.Imam||'');put('C32',activity.fields.Bilal||'');
+   }
+  }
+  updateOfficerLabels();
+  if(Array.isArray(runText)){
+   for(let i=0;i<5;i++){
+    const cells=inputByCell['B'+(35+i)]||[];
+    const value=runText[i]===undefined||runText[i]===null?'':String(runText[i]);
+    cells.forEach(el=>{el.value=value});
+   }
+  }
+  // C26 ditampilkan di dua bagian; sinkronkan keduanya agar nilai yang terlihat sama.
+  if(inputByCell.C26&&inputByCell.C26.length>1)inputByCell.C26.forEach(el=>el.value=inputByCell.C26[0].value);
+  setStatus('Data berhasil dimuat · '+new Date().toLocaleTimeString('id-ID'),true);
+ }catch(e){setStatus('Terhubung; sebagian status belum dapat dibaca',false);show($('saveMsg'),'Sebagian nilai tidak dapat dimuat otomatis dari API yang tersedia. Periksa Spreadsheet sebelum menyimpan.',true)}
+}
+async function saveCell(cell,value){
+ const pin=$('pin').value;if(!pin){throw new Error('Masukan PIN remote terlebih dahulu.')}
+ await jsonp('setRemoteCell',{sheet:'panels',cell,value,pin});
+}
+async function saveCells(cells){
+ const box=$('saveMsg');const unique=[...new Set(cells)];
+ for(const cell of unique){const els=inputByCell[cell];if(!els||!els.length)continue;let value=els[0].value;if(cell==='C29'&&/^\d{4}-\d{2}-\d{2}$/.test(value)){const [y,m,d]=value.split('-');value=d+'/'+m+'/'+y}await saveCell(cell,value)}
+ show(box,'Perubahan tersimpan ke Spreadsheet ('+unique.length+' sel).',false);setStatus('Perubahan tersimpan · '+new Date().toLocaleTimeString('id-ID'),true);
+}
+$('connectBtn').addEventListener('click',connect);
+$('activity').addEventListener('change',updateOfficerLabels);
+updateOfficerLabels();
+
+document.querySelectorAll('[data-save-group]').forEach(btn=>btn.addEventListener('click',async()=>{btn.disabled=true;try{await saveCells(groups[btn.dataset.saveGroup]||[])}catch(e){show($('saveMsg'),e.message,true)}finally{btn.disabled=false}}));
+document.querySelectorAll('[data-refresh]').forEach(btn=>btn.addEventListener('click',refreshPanels));
+$('saveCell').addEventListener('click',async()=>{try{await saveCell($('cellPick').value,$('cellValue').value);show($('saveMsg'),'Sel '+$('cellPick').value+' berhasil diperbarui.',false)}catch(e){show($('saveMsg'),e.message,true)}});
+allowed.forEach(cell=>{const o=document.createElement('option');o.value=cell;o.textContent='panels!'+cell;$('cellPick').appendChild(o)});
+$('cellPick').addEventListener('change',()=>{$('cellValue').value=(inputByCell[$('cellPick').value]||[])[0]?.value||''});
+
+// Each direct field saves on button; avoid accidental writes while typing.
+})();
+</script>
+</body>
+</html>
