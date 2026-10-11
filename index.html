@@ -1004,6 +1004,25 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
       return requestPromise;
     }
 
+    // QRIS image version is published by the remote upload endpoint.
+    // Polling only refreshes the image URL; it does not touch audio or scheduler.
+    let qrisImageVersion_ = '';
+    async function refreshQrisImageVersion_() {
+      try {
+        const result = await gasApiCall('getQrisImageVersion');
+        const version = String(result && result.version || '0');
+        if (!version || version === qrisImageVersion_) return;
+        qrisImageVersion_ = version;
+        const imageUrl = DEFAULT_QRIS_IMAGE + '?v=' + encodeURIComponent(version);
+        document.querySelectorAll('#infaq-left-content img, #petugas-infaq-display .petugas-infaq-content img').forEach(function(img) {
+          if (img.getAttribute('src') !== imageUrl) img.setAttribute('src', imageUrl);
+        });
+        console.log('QRIS IMAGE: versi terbaru diterapkan', version);
+      } catch (error) {
+        console.warn('QRIS IMAGE: versi terbaru belum dapat diperiksa.', error);
+      }
+    }
+
     async function loadGitHubStage1Config_() {
       const base = './data/';
       const ts = Date.now();
@@ -7577,6 +7596,8 @@ function startRealtimeAudioConfigPolling_() {
           startLogoResponsive_();
 
     startAutoRefresh();
+    refreshQrisImageVersion_();
+    setInterval(refreshQrisImageVersion_, 60000);
           updateClock();
           updateGregorianDate();
           updateHijriDate();
