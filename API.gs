@@ -118,6 +118,12 @@ function handleGithubApiRequest_(params) {
         result = getPanelKegiatan();
         break;
 
+      case 'getPanelKegiatanRows': {
+        var kegiatanSheet = getSpreadsheet().getSheetByName('panels');
+        result = kegiatanSheet ? kegiatanSheet.getRange('C28:C32').getDisplayValues().map(function(row) { return row[0] == null ? '' : String(row[0]); }) : ['', '', '', '', ''];
+        break;
+      }
+
       case 'getPanelIqomahBlackMode':
         result = getPanelIqomahBlackMode();
         break;
