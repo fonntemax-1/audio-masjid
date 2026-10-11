@@ -25,12 +25,12 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 </style>
 </head>
 <body>
-<header><div class="head"><div class="logo">☾</div><div><h1>CONTROL PANEL TV SIGNAGE</h1><p id="masjidSubtitle">Memuat nama masjid…</p></div></div></header>
+<header><div class="head"><div class="logo">☾</div><div><h1>CONTROL PANEL TV SIGNAGE</h1></div></div></header>
 <main>
 <div class="status hidden"><span id="dot" class="dot"></span><span id="status">Menyiapkan remote…</span><span id="clock"></span></div>
 <section class="card" id="connection">
-<h2>🔐 Masukkan PIN</h2>
-<div class="grid"><div class="field full"><label for="pin">PIN</label><input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Masukkan PIN" autofocus></div></div>
+<h2>🔐 Masukan PIN</h2>
+<div class="grid"><div class="field full"><label for="pin">PIN</label><input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Masukan PIN" autofocus></div></div>
 <div class="actions"><button id="connectBtn">LOGIN</button></div>
 <div id="connectionMsg" class="message"></div>
 </section>
@@ -119,9 +119,19 @@ function jsonp(action,params={}){
 }
 function apiData(payload){return payload&&Object.prototype.hasOwnProperty.call(payload,'data')?payload.data:payload}
 async function connect(){
- $('connectBtn').disabled=true;setStatus('Menguji koneksi…',false);
- try{const res=apiData(await jsonp('ping'));if(res.status!=='OK')throw new Error('API tidak mengembalikan status OK.');$('controls').classList.remove('hidden');setStatus('Apps Script terhubung · '+(res.timezone||''),true);show($('connectionMsg'),'Koneksi berhasil. PIN digunakan saat menyimpan perubahan.',false);await refreshPanels();}
- catch(e){setStatus('Koneksi gagal',false);show($('connectionMsg'),e.message,true)}
+ const pin=$('pin').value.trim();
+ if(!pin){show($('connectionMsg'),'Masukan PIN terlebih dahulu.',true);$('pin').focus();return}
+ $('connectBtn').disabled=true;setStatus('Memverifikasi PIN…',false);
+ try{
+  const auth=apiData(await jsonp('validateRemotePin',{pin}));
+  if(!auth||auth.valid!==true)throw new Error('PIN remote tidak valid.');
+  const res=apiData(await jsonp('ping'));
+  if(res.status!=='OK')throw new Error('API tidak mengembalikan status OK.');
+  $('connection').classList.add('hidden');
+  $('controls').classList.remove('hidden');
+  setStatus('Login berhasil · '+(res.timezone||''),true);
+  await refreshPanels();
+ }catch(e){setStatus('Login gagal',false);show($('connectionMsg'),e.message,true)}
  finally{$('connectBtn').disabled=false}
 }
 async function refreshPanels(){
@@ -139,7 +149,6 @@ async function refreshPanels(){
    const lokasi=p.Lokasi||p.lokasi||{};
    const autoValues={'C12':first(p,['Nama','nama']),'C5':first(lokasi,['kota','Kota']),'C6':first(lokasi,['provinsi','Provinsi']),'C7':first(lokasi,['zona','Zona']),'C8':first(lokasi,['timezone','Timezone']),'C9':first(lokasi,['gmt','GMT'])};
    Object.keys(autoValues).forEach(cell=>{if(readByCell[cell]&&autoValues[cell]!==undefined)readByCell[cell].value=String(autoValues[cell])});
-   if(autoValues.C12!==undefined&&$('masjidSubtitle'))$('masjidSubtitle').textContent=String(autoValues.C12);
    put('C13',first(p,['Alamat','alamat']));put('C15',first(p,['No. Telp','NoTelp','NoHP']));put('C16',first(p,['Slogan','slogan']));
    put('C2',first(p,['PanelMode','CountdownMode','Countdown']));
    put('C18',first(p,['DisplayTheme']));
