@@ -67,6 +67,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div id="connectionMsg" class="message"></div>
 </section>
 <div id="controls" class="hidden">
+<div class="actions" style="margin:0 0 12px"><button id="logoutBtn" class="danger" type="button">LOGOUT</button></div>
 <div class="section-title">IDENTITAS MASJID</div>
 <section class="card"><h2>🏠 Informasi masjid</h2><div class="grid">
 <div class="field"><label>Nama</label><input data-read-cell="C12" value="Memuat…" readonly></div>
@@ -137,7 +138,6 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div class="event-name"><label for="eventName72">Nama iklan 3</label><input id="eventName72" data-cell="B72" maxlength="120" aria-label="Nama custom advertising 3" placeholder="Tulis nama iklan"></div><div class="field" data-label="Mulai"><input type="date" data-cell="C72" aria-label="Mulai Advertising Custom 3"></div><div class="field" data-label="Akhir"><input type="date" data-cell="D72" aria-label="Akhir Advertising Custom 3"></div><div class="field status-field" data-label="Status"><select data-cell="E72" aria-label="Status Advertising Custom 3"><option>ON</option><option>OFF</option></select></div>
 </div><div class="actions"><button class="secondary" data-refresh="panels">Muat status</button><button data-save-group="video">Simpan Advertising</button></div></section>
 </div>
-<section class="card"><h2>🧩 Editor sel terbatas</h2><p class="hint">Untuk sel panel lain yang telah diizinkan. Penulisan tetap dibatasi oleh daftar izin di API.gs.</p><div class="grid"><div class="field"><label for="cellPick">Sel panels</label><select id="cellPick"></select></div><div class="field"><label for="cellValue">Nilai baru</label><input id="cellValue" maxlength="500"></div></div><div class="actions"><button id="saveCell">Simpan nilai sel</button></div></section>
 <div id="saveMsg" class="message"></div>
 </div>
 <footer>Seluruh hak atas aplikasi tidak boleh diperbanyak atau disebarkan tanpa izin.</footer>
@@ -150,7 +150,6 @@ const $=id=>document.getElementById(id);
 function updateHeaderClock(){const now=new Date();$('currentDate').textContent=new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).format(now);$('currentTime').textContent=new Intl.DateTimeFormat('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now)+' '+(Intl.DateTimeFormat('id-ID',{timeZoneName:'short'}).formatToParts(now).find(p=>p.type==='timeZoneName')?.value||'');}
 function markLastUpdate(){const now=new Date();$('lastUpdate').textContent=new Intl.DateTimeFormat('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now)+' '+(Intl.DateTimeFormat('id-ID',{timeZoneName:'short'}).formatToParts(now).find(p=>p.type==='timeZoneName')?.value||'');$('lastUpdateWrap').classList.remove('hidden');}
 updateHeaderClock();setInterval(updateHeaderClock,1000);
-const allowed=['C2','C5','C6','C7','C8','C9','C12','C13','C15','C27','C16','C18','C20','F20','C22','C26','C28','C29','C30','C31','C32','C41','C42','C43','C57','B35','B36','B37','B38','B39','C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','B64','C64','D64','E64','C68','D68','E68','C69','D69','E69','B70','C70','D70','E70','B71','C71','D71','E71','B72','C72','D72','E72'];
 const groups={profile:['C13','C15','C16'],display:['C2','C18','C20','F20','C22','C57'],officers:['C26','C28','C29','C30','C31','C32'],running:['B35','B36','B37','B38','B39'],infaq:['C41','C42','C43'],events:['B64','C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64'],video:['C68','D68','E68','C69','D69','E69','B70','C70','D70','E70','B71','C71','D71','E71','B72','C72','D72','E72']};
 const inputByCell={};document.querySelectorAll('[data-cell]').forEach(el=>{(inputByCell[el.dataset.cell]||(inputByCell[el.dataset.cell]=[])).push(el)});
 const readByCell={};document.querySelectorAll('[data-read-cell]').forEach(el=>{readByCell[el.dataset.readCell]=el});
@@ -322,14 +321,23 @@ document.querySelectorAll('[data-event-tab]').forEach(btn=>btn.addEventListener(
  });
 }));
 $('connectBtn').addEventListener('click',connect);
+$('logoutBtn').addEventListener('click',()=>{
+ $('controls').classList.add('hidden');
+ $('connection').classList.remove('hidden');
+ $('pin').value='';
+ $('lastUpdateWrap').classList.add('hidden');
+ $('lastUpdate').textContent='Belum dimuat';
+ $('saveMsg').style.display='none';
+ $('connectionMsg').style.display='none';
+ $('connectBtn').disabled=false;
+ setStatus('Anda telah logout',false);
+ $('pin').focus();
+});
 $('activity').addEventListener('change',updateOfficerLabels);
 updateOfficerLabels();
 
 document.querySelectorAll('[data-save-group]').forEach(btn=>btn.addEventListener('click',async()=>{btn.disabled=true;try{await saveCells(groups[btn.dataset.saveGroup]||[])}catch(e){show($('saveMsg'),e.message,true)}finally{btn.disabled=false}}));
 document.querySelectorAll('[data-refresh]').forEach(btn=>btn.addEventListener('click',refreshPanels));
-$('saveCell').addEventListener('click',async()=>{try{await saveCell($('cellPick').value,$('cellValue').value);show($('saveMsg'),'Sel '+$('cellPick').value+' berhasil diperbarui.',false)}catch(e){show($('saveMsg'),e.message,true)}});
-allowed.forEach(cell=>{const o=document.createElement('option');o.value=cell;o.textContent='panels!'+cell;$('cellPick').appendChild(o)});
-$('cellPick').addEventListener('change',()=>{$('cellValue').value=(inputByCell[$('cellPick').value]||[])[0]?.value||''});
 
 // Each direct field saves on button; avoid accidental writes while typing.
 })();
