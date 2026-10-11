@@ -170,7 +170,7 @@ async function refreshPanels(){
   const [theme,youtube,black,mode,source,activity,runText,eventCountdown]=await Promise.all([
    readAction('getDisplayThemeSetting'),readAction('getYoutubeControl'),readAction('getPanelIqomahBlackMode'),
    readAction('getPanelDisplayMode'),readAction('getPanelKeuanganSource'),readAction('getPanelKegiatan'),
-   readAction('getEventRunningText'),readAction('getEventCountdownConfig')
+   readAction('getEventRunningTextRows'),readAction('getEventCountdownConfig')
   ]);
   const dateForPicker=(value)=>{
    const raw=String(value||'').trim();if(!raw)return '';
@@ -218,9 +218,12 @@ async function refreshPanels(){
    }
   }
   updateOfficerLabels();
-  if(runText&&typeof runText==='object'){
-   const list=Array.isArray(runText)?runText:(runText.items||runText.texts||runText.data);
-   if(Array.isArray(list))list.slice(0,5).forEach((v,i)=>put('B'+(35+i),typeof v==='object'?(v.text||v.value||''):v));
+  if(Array.isArray(runText)){
+   for(let i=0;i<5;i++){
+    const cells=inputByCell['B'+(35+i)]||[];
+    const value=runText[i]===undefined||runText[i]===null?'':String(runText[i]);
+    cells.forEach(el=>{el.value=value});
+   }
   }
   // C26 ditampilkan di dua bagian; sinkronkan keduanya agar nilai yang terlihat sama.
   if(inputByCell.C26&&inputByCell.C26.length>1)inputByCell.C26.forEach(el=>el.value=inputByCell.C26[0].value);
