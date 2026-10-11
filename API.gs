@@ -178,6 +178,10 @@ function handleGithubApiRequest_(params) {
         result = getYoutubeControlProtectionState();
         break;
 
+      case 'validateRemotePin':
+        result = validateRemotePinFromApi_(params);
+        break;
+
       case 'setRemoteCell':
         result = setRemoteCellFromApi_(params);
         break;
@@ -263,7 +267,20 @@ function handleGithubApiRequest_(params) {
  // REMOTE CONTROL - penulisan terbatas dengan PIN Script Properties
  // Tidak mengubah scheduler, antrean audio, atau jadwal salat.
  // ============================================================
- function setRemoteCellFromApi_(params) {
+ function validateRemotePinFromApi_(params) {
+  params = params || {};
+  var configuredPin = String(PropertiesService.getScriptProperties().getProperty('REMOTE_CONTROL_PIN') || '');
+  var suppliedPin = String(params.pin || '');
+  if (!configuredPin || configuredPin.length < 6) {
+    throw new Error('Remote belum diaktifkan. Atur Script Property REMOTE_CONTROL_PIN (minimal 6 karakter).');
+  }
+  if (!suppliedPin || suppliedPin !== configuredPin) {
+    throw new Error('PIN remote salah.');
+  }
+  return { valid: true };
+}
+
+function setRemoteCellFromApi_(params) {
    params = params || {};
    var configuredPin = String(PropertiesService.getScriptProperties().getProperty('REMOTE_CONTROL_PIN') || '');
    var suppliedPin = String(params.pin || '');
