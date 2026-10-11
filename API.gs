@@ -134,6 +134,12 @@ function handleGithubApiRequest_(params) {
         result = getEventRunningText();
         break;
 
+      case 'getEventRunningTextRows': {
+        var runningSheet = getSpreadsheet().getSheetByName('panels');
+        result = runningSheet ? runningSheet.getRange('B35:B39').getDisplayValues().map(function(row) { return row[0] == null ? '' : String(row[0]); }) : ['', '', '', '', ''];
+        break;
+      }
+
       case 'getHijriDateFromApi':
         result = getHijriDateFromApi(String(params.date || ''));
         break;
