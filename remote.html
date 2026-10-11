@@ -79,7 +79,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <section class="card"><h2>🕌 Informasi & petugas salat</h2><div class="grid info-officers-grid">
 <div class="field info-selector"><label for="selector">Informasi</label><select id="selector" data-cell="C26"><option>PENGURUS</option><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
 <div class="field"><label for="activity">Petugas / kegiatan</label><select id="activity" data-cell="C28"><option>SHOLAT JUM'AT</option><option>SHOLAT TARAWIH</option><option>SHOLAT IDUL FITRI</option><option>SHOLAT IDUL ADHA</option></select></div>
-<div class="field"><label for="officerDate">Tanggal</label><input id="officerDate" data-cell="C29" placeholder="Tanggal kegiatan"></div>
+<div class="field"><label for="officerDate">Tanggal</label><input id="officerDate" data-cell="C29" type="date" aria-label="Pilih tanggal kegiatan"></div>
 <div class="field"><label id="petugas1Label" for="petugas1">Khatib</label><input id="petugas1" data-cell="C30" maxlength="150"></div>
 <div class="field"><label id="petugas2Label" for="petugas2">Imam</label><input id="petugas2" data-cell="C31" maxlength="150"></div>
 <div class="field"><label id="petugas3Label" for="petugas3">Bilal</label><input id="petugas3" data-cell="C32" maxlength="150"></div>
@@ -171,7 +171,14 @@ async function refreshPanels(){
    readAction('getPanelDisplayMode'),readAction('getPanelKeuanganSource'),readAction('getPanelKegiatan'),
    readAction('getEventRunningText'),readAction('getEventCountdownConfig')
   ]);
-  const put=(cell,value)=>{if(value===undefined||value===null||value===''||!inputByCell[cell])return;inputByCell[cell].forEach(el=>el.value=String(value))};
+  const dateForPicker=(value)=>{
+   const raw=String(value||'').trim();if(!raw)return '';
+   let m=raw.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return m[1]+'-'+m[2]+'-'+m[3];
+   m=raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+   const d=new Date(raw);if(!Number.isNaN(d.getTime()))return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+   return '';
+  };
+  const put=(cell,value)=>{if(value===undefined||value===null||value===''||!inputByCell[cell])return;inputByCell[cell].forEach(el=>el.value=cell==='C29'&&el.type==='date'?dateForPicker(value):String(value))};
   const first=(obj,keys)=>{if(!obj||typeof obj!=='object')return undefined;for(const k of keys)if(obj[k]!==undefined&&obj[k]!==null&&obj[k]!=='')return obj[k];return undefined};
   if(p&&typeof p==='object'){
    const lokasi=p.Lokasi||p.lokasi||{};
@@ -225,7 +232,7 @@ async function saveCell(cell,value){
 }
 async function saveCells(cells){
  const box=$('saveMsg');const unique=[...new Set(cells)];
- for(const cell of unique){const els=inputByCell[cell];if(!els||!els.length)continue;const value=els[0].value;await saveCell(cell,value)}
+ for(const cell of unique){const els=inputByCell[cell];if(!els||!els.length)continue;let value=els[0].value;if(cell==='C29'&&/^\d{4}-\d{2}-\d{2}$/.test(value)){const [y,m,d]=value.split('-');value=d+'/'+m+'/'+y}await saveCell(cell,value)}
  show(box,'Perubahan tersimpan ke Spreadsheet ('+unique.length+' sel).',false);setStatus('Perubahan tersimpan · '+new Date().toLocaleTimeString('id-ID'),true);
 }
 $('connectBtn').addEventListener('click',connect);
