@@ -302,8 +302,8 @@ function createPanelIqomahBlackModeJsonpResponse_(callback, data) {
 
 /**
  * Jalankan SATU KALI dari Apps Script editor untuk menyelaraskan
- * validasi dropdown panels!C22 ke AUTO / ON / OFF / STOP.
- * Nilai lama yang tidak valid (termasuk SLEEP) diubah menjadi OFF.
+ * validasi dropdown panels!C22 ke AUTO / OFF saja.
+ * Nilai lama yang tidak valid (termasuk SLEEP, ON, dan STOP) diubah menjadi OFF.
  */
 function repairPanelC22ValidationModes() {
   const ss = getSpreadsheet();
@@ -312,7 +312,7 @@ function repairPanelC22ValidationModes() {
 
   const cell = sheet.getRange('C22');
   const previous = String(cell.getDisplayValue() || '').trim().toUpperCase();
-  const allowedModes = ['AUTO', 'ON', 'OFF', 'STOP'];
+  const allowedModes = ['AUTO', 'OFF'];
 
   if (allowedModes.indexOf(previous) < 0) {
     cell.setValue('OFF');
@@ -350,10 +350,7 @@ function getPanelIqomahBlackMode() {
       sheet.getRange('C22').getDisplayValue() || ''
     ).trim().toUpperCase();
 
-    const mode =
-      ['AUTO', 'ON', 'OFF', 'STOP'].indexOf(raw) >= 0
-        ? raw
-        : 'OFF';
+    const mode = raw === 'AUTO' || raw === 'OFF' ? raw : 'OFF';
 
     Logger.log(
       'PANELS API C22 = [' +
@@ -5384,7 +5381,7 @@ function getRealtimeDisplayConfig() {
       DisplayTheme: theme,
       Youtube: youtube,
       YoutubeStatus: ['ON','OFF','AUTO','STOP'].indexOf(youtubeStatusRaw) >= 0 ? youtubeStatusRaw : 'AUTO',
-      IqomahMode: ['AUTO', 'ON', 'OFF', 'STOP'].indexOf(c22Raw) >= 0 ? c22Raw : 'OFF',
+      IqomahMode: c22Raw === 'AUTO' || c22Raw === 'OFF' ? c22Raw : 'OFF',
       // SINGLE MASJID MODE: seluruh identitas langsung dari Spreadsheet ORIGINAL.
       Nama: cell(12,3),
       Alamat: header.ALAMAT || '',
