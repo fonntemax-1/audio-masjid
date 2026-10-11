@@ -96,6 +96,20 @@ button.danger:active{background:#b91c1c;color:#fff}
 <div class="field audio-compact"><label for="takbiran">Takbiran</label><select id="takbiran" data-cell="C57"><option>OFF</option><option>ON</option></select></div>
 </div>
 </div><div class="actions"><button class="secondary" data-refresh="display">Muat status dari Spreadsheet</button><button data-save-group="display">Simpan tampilan & audio</button></div></section>
+
+<div class="section-title">UPLOAD GAMBAR</div>
+<section class="card" id="qrisUploadCard"><h2>🧾 Upload Gambar QRIS</h2>
+<p class="hint">Pilih gambar QRIS format PNG. Gambar akan menggantikan image/QRIS.png dan dipakai otomatis pada layar signage.</p>
+<div class="field full"><label for="qrisFile">File gambar QRIS (PNG, maksimal 1 MB)</label><input id="qrisFile" type="file" accept="image/png,.png"></div>
+<div class="actions"><button id="qrisUploadBtn" type="button">Upload QRIS</button></div>
+<div id="qrisUploadMsg" class="message" role="status" aria-live="polite"></div>
+<iframe name="qrisUploadFrame" id="qrisUploadFrame" title="Proses upload QRIS" class="hidden" style="display:none"></iframe>
+<form id="qrisUploadForm" method="post" enctype="application/x-www-form-urlencoded" target="qrisUploadFrame" action="https://script.google.com/macros/s/AKfycbxrmBOs_aFUSLjQy55gJDKBB9XMvNrJnpFwbOPWpzUmx-HAQcsnDMeDUH8JCvjA9hLh/exec" class="hidden" style="display:none">
+<input name="action" value="uploadQris"><input name="pin" id="qrisUploadPin"><input name="imageBase64" id="qrisUploadBase64"><input name="mimeType" value="image/png">
+</form>
+<p class="note">Upload memakai PIN remote. Token GitHub disimpan di Script Properties Apps Script, bukan di halaman publik.</p>
+</section>
+
 <div class="section-title">INFORMASI & PETUGAS</div>
 <section class="card"><h2>🕌 Informasi & petugas salat</h2><div class="grid info-officers-grid">
 <div class="field info-selector"><label for="selector">Informasi</label><select id="selector" data-cell="C26"><option>PENGURUS</option><option>QUR'BAN</option><option>KEUANGAN</option></select></div>
@@ -325,6 +339,49 @@ document.querySelectorAll('[data-event-tab]').forEach(btn=>btn.addEventListener(
   tab.classList.toggle('secondary',!selected);
  });
 }));
+
+const qrisUploadForm=$('qrisUploadForm');
+const qrisUploadFrame=$('qrisUploadFrame');
+let qrisUploadPending=false;
+window.addEventListener('message',function(event){
+ if(event.origin!=='https://fonntemax-1.github.io')return;
+ const data=event.data;
+ if(!data||data.type!=='qrisUploadResult')return;
+ qrisUploadPending=false;
+ $('qrisUploadBtn').disabled=false;
+ if(data.success){
+  show($('qrisUploadMsg'),'QRIS berhasil diunggah. Layar signage akan memperbarui gambar secara otomatis.',false);
+  $('qrisFile').value='';
+ }else{
+  show($('qrisUploadMsg'),data.message||'Upload QRIS gagal. Periksa konfigurasi Apps Script.',true);
+ }
+});
+$('qrisUploadBtn').addEventListener('click',async function(){
+ if(qrisUploadPending)return;
+ const file=$('qrisFile').files&&$('qrisFile').files[0];
+ if(!file){show($('qrisUploadMsg'),'Pilih file QRIS PNG terlebih dahulu.',true);return}
+ if(file.type!=='image/png'&&!/\.png$/i.test(file.name)){show($('qrisUploadMsg'),'File harus berformat PNG.',true);return}
+ if(file.size>1024*1024){show($('qrisUploadMsg'),'Ukuran gambar maksimal 1 MB.',true);return}
+ const pin=String($('pin').value||'').trim();
+ if(!pin){show($('qrisUploadMsg'),'Sesi PIN tidak ditemukan. Login kembali.',true);return}
+ try{
+  $('qrisUploadBtn').disabled=true;
+  show($('qrisUploadMsg'),'Menyiapkan gambar QRIS…',false);
+  const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('File gambar tidak dapat dibaca.'));reader.readAsDataURL(file)});
+  const base64=dataUrl.split(',')[1]||'';
+  if(!base64)throw new Error('Data gambar kosong.');
+  $('qrisUploadPin').value=pin;
+  $('qrisUploadBase64').value=base64;
+  qrisUploadPending=true;
+  show($('qrisUploadMsg'),'Mengunggah QRIS ke GitHub…',false);
+  qrisUploadForm.submit();
+  setTimeout(function(){if(qrisUploadPending){qrisUploadPending=false;$('qrisUploadBtn').disabled=false;show($('qrisUploadMsg'),'Upload belum menerima konfirmasi. Periksa konfigurasi token GitHub di Apps Script.',true)}},60000);
+ }catch(error){
+  qrisUploadPending=false;$('qrisUploadBtn').disabled=false;
+  show($('qrisUploadMsg'),error&&error.message?error.message:'Upload QRIS gagal.',true);
+ }
+});
+
 $('connectBtn').addEventListener('click',connect);
 $('logoutBtn').addEventListener('click',()=>{
  $('controls').classList.add('hidden');
