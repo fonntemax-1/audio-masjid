@@ -26,7 +26,7 @@ function doPost(e) {
       throw new Error('Token GitHub belum dikonfigurasi pada Script Properties.');
     }
     var mimeType = String(params.mimeType || '').trim().toLowerCase();
-    var base64 = String(params.imageBase64 || '').replace(/\\s/g, '');
+    var base64 = String(params.imageBase64 || '').replace(/\s/g, '');
     if (mimeType !== 'image/png') throw new Error('Format gambar harus PNG.');
     if (!base64 || base64.length > 1400000 || !/^[A-Za-z0-9+/]+=*$/.test(base64)) {
       throw new Error('Data gambar kosong atau melebihi batas 1 MB.');
@@ -36,7 +36,7 @@ function doPost(e) {
       throw new Error('Ukuran gambar maksimal 1 MB.');
     }
     // Validasi signature PNG agar konten bukan file lain yang hanya berganti ekstensi.
-    if (bytes.length < 8 || bytes[0] !== 137 || bytes[1] !== 80 || bytes[2] !== 78 || bytes[3] !== 71) {
+    if (bytes.length < 8 || (bytes[0] & 255) !== 137 || (bytes[1] & 255) !== 80 || (bytes[2] & 255) !== 78 || (bytes[3] & 255) !== 71) {
       throw new Error('Isi file bukan gambar PNG yang valid.');
     }
 
