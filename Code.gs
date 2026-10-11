@@ -314,9 +314,9 @@ function getPanelIqomahBlackMode() {
     ).trim().toUpperCase();
 
     const mode =
-      raw === 'AUTO' ? 'AUTO' :
-      raw === 'SLEEP' ? 'SLEEP' :
-      'OFF';
+      ['AUTO', 'ON', 'OFF', 'STOP'].indexOf(raw) >= 0
+        ? raw
+        : 'OFF';
 
     Logger.log(
       'PANELS API C22 = [' +
@@ -5347,7 +5347,7 @@ function getRealtimeDisplayConfig() {
       DisplayTheme: theme,
       Youtube: youtube,
       YoutubeStatus: ['ON','OFF','AUTO','STOP'].indexOf(youtubeStatusRaw) >= 0 ? youtubeStatusRaw : 'AUTO',
-      IqomahMode: c22Raw === 'AUTO' ? 'AUTO' : c22Raw === 'SLEEP' ? 'SLEEP' : 'OFF',
+      IqomahMode: ['AUTO', 'ON', 'OFF', 'STOP'].indexOf(c22Raw) >= 0 ? c22Raw : 'OFF',
       // SINGLE MASJID MODE: seluruh identitas langsung dari Spreadsheet ORIGINAL.
       Nama: cell(12,3),
       Alamat: header.ALAMAT || '',
