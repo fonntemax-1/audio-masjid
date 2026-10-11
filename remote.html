@@ -298,7 +298,8 @@ async function refreshPanels(){
   }
   // C26 ditampilkan di dua bagian; sinkronkan keduanya agar nilai yang terlihat sama.
   if(inputByCell.C26&&inputByCell.C26.length>1)inputByCell.C26.forEach(el=>el.value=inputByCell.C26[0].value);
-  markLastUpdate();\n  setStatus('Data berhasil dimuat · '+new Date().toLocaleTimeString('id-ID'),true);
+  markLastUpdate();
+  setStatus('Data berhasil dimuat · '+new Date().toLocaleTimeString('id-ID'),true);
  }catch(e){setStatus('Terhubung; sebagian status belum dapat dibaca',false);show($('saveMsg'),'Sebagian nilai tidak dapat dimuat otomatis dari API yang tersedia. Periksa Spreadsheet sebelum menyimpan.',true)}
 }
 async function saveCell(cell,value){
