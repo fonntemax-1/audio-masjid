@@ -158,11 +158,11 @@ const readByCell={};document.querySelectorAll('[data-read-cell]').forEach(el=>{r
 
 const show=(el,msg,error)=>{el.textContent=msg;el.className='message'+(error?' error':'');el.style.display='block'};
 const setStatus=(msg,ok)=>{$('status').textContent=msg;$('dot').className='dot'+(ok?' ok':'')};
-function jsonp(action,params={}){
+function jsonp(action,params={},timeoutMs=15000){
  return new Promise((resolve,reject)=>{
   const url=API_FALLBACK;
   const cb='remoteCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-  const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('Waktu koneksi habis. Periksa deployment Apps Script.'))},15000);
+  const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('Waktu koneksi habis. Periksa deployment Apps Script.'))},timeoutMs);
   function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
   window[cb]=payload=>{cleanup();if(!payload||payload.success===false){reject(new Error(payload&&payload.error||'Respons API tidak valid.'));return}resolve(payload)};
   const q=new URLSearchParams({api:'1',action,callback:cb,...params});script.src=url+'?'+q.toString();script.onerror=()=>{cleanup();reject(new Error('Gagal menghubungi Apps Script.'));};document.head.appendChild(script);
@@ -308,8 +308,11 @@ async function saveCell(cell,value){
  await jsonp('setRemoteCell',{sheet:'panels',cell,value,pin});
 }
 async function saveCells(cells){
- const box=$('saveMsg');const unique=[...new Set(cells)];
- for(const cell of unique){const els=inputByCell[cell];if(!els||!els.length)continue;let value=els[0].value;if(cell==='C29'&&/^\d{4}-\d{2}-\d{2}$/.test(value)){const [y,m,d]=value.split('-');value=d+'/'+m+'/'+y}await saveCell(cell,value)}
+ const box=$('saveMsg');const unique=[...new Set(cells)];const items=[];
+ for(const cell of unique){const els=inputByCell[cell];if(!els||!els.length)continue;let value=els[0].value;if(cell==='C29'&&/^\\d{4}-\\d{2}-\\d{2}$/.test(value)){const [y,m,d]=value.split('-');value=d+'/'+m+'/'+y}items.push({cell,value})}
+ if(!items.length)throw new Error('Tidak ada data untuk disimpan.');
+ const result=apiData(await jsonp('setRemoteCells',{pin:$('pin').value,cells:JSON.stringify(items)},30000));
+ if(!result||result.success!==true||Number(result.count)!==items.length)throw new Error('Konfirmasi penyimpanan tidak lengkap. Periksa Spreadsheet sebelum mencoba lagi.');
  box.textContent='';box.style.display='none';setStatus('Update berhasil · '+new Date().toLocaleTimeString('id-ID'),true);window.alert('Update Berhasil');
 }
 document.querySelectorAll('[data-event-tab]').forEach(btn=>btn.addEventListener('click',()=>{
