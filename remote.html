@@ -34,6 +34,24 @@ button.danger:active{background:#b91c1c;color:#fff}
 .note{font-size:12px;color:var(--muted);margin-top:10px}.message{padding:11px 12px;border-radius:12px;background:#173b2d;color:#caffdf;font-size:13px;margin-top:10px;display:none;overflow-wrap:anywhere}.message.error{background:#4a2525;color:#ffd6d6}
 .locked{display:block}.hidden{display:none!important}.section-title{font-size:12px;color:var(--accent);letter-spacing:.12em;font-weight:800;margin:20px 4px 6px}
 .quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.quick button{background:#163a2d;color:#eafff1;border:1px solid #2b5a45;text-align:left}
+.event-menu{display:flex;gap:9px;flex-wrap:wrap;margin:0 0 12px}
+.event-menu button{flex:0 0 auto;min-width:150px}
+.event-menu button[aria-selected="true"]{background:var(--accent);color:#062016;border-color:var(--accent)}
+.event-panel{min-width:0}
+.event-table{display:grid;grid-template-columns:minmax(175px,max-content) repeat(3,minmax(125px,max-content));gap:8px 10px;align-items:center;width:fit-content;max-width:100%}
+.event-table-head{font-size:12px;font-weight:750;color:var(--muted);padding:0 5px 3px}
+.event-name{font-size:13px;font-weight:700;overflow-wrap:anywhere;padding:7px 5px}
+.event-table input,.event-table select{width:100%;min-width:0;min-height:42px}
+.event-table .field{min-width:0;width:100%;max-width:190px}
+.event-note{font-size:11px;color:var(--muted);margin-top:3px;font-weight:400}
+@media(max-width:620px){
+ .event-table{width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px}
+ .event-table-head{display:none}
+ .event-name{grid-column:1/-1;background:#0b2119;border:1px solid var(--line);border-radius:9px;padding:8px}
+ .event-table .field{max-width:none}
+ .event-table .field:before{content:attr(data-label);display:block;font-size:11px;color:var(--muted);margin:0 0 4px 2px}
+ .event-table .field.status-field{grid-column:1/-1;max-width:180px}
+}
 footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 @media(max-width:440px){.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.card{padding:13px}.head h1{font-size:18px}.audio-row{width:100%;gap:10px}.audio-url{flex:1 1 100%;min-width:0}.audio-mode{flex:0 0 150px}.audio-compact{flex:0 0 180px}.audio-theme{width:min(170px,100%)!important}}
 </style>
@@ -99,20 +117,34 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div class="field full"><label for="infaqTitle">Teks bawah INFAQ</label><input id="infaqTitle" data-cell="C42" maxlength="250"></div>
 <div class="field full"><label for="infaqSubtitle">Teks bawah SHADAQAH</label><input id="infaqSubtitle" data-cell="C43" maxlength="250"></div>
 </div><div class="actions"><button class="secondary" data-refresh="panels">Muat status</button><button data-save-group="infaq">Simpan panel</button></div></section>
-<section class="card"><h2>🗓️ Countdown acara</h2><p class="hint">Nama, tanggal target, dan ON/OFF untuk acara khusus.</p><div class="grid">
-<div class="field"><label for="ramadanName">Ramadan</label><input id="ramadanName" data-cell="C60" maxlength="120"></div><div class="field"><label for="ramadanDate">Tanggal Ramadan</label><input id="ramadanDate" data-cell="D60" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="ramadanOn">Status Ramadan</label><select id="ramadanOn" data-cell="E60"><option>ON</option><option>OFF</option></select></div>
-<div class="field"><label for="qadrName">Lailatul Qadr</label><input id="qadrName" data-cell="C61" maxlength="120"></div><div class="field"><label for="qadrDate">Tanggal Lailatul Qadr</label><input id="qadrDate" data-cell="D61" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="qadrOn">Status Lailatul Qadr</label><select id="qadrOn" data-cell="E61"><option>ON</option><option>OFF</option></select></div>
-<div class="field"><label for="fitriName">Idul Fitri</label><input id="fitriName" data-cell="C62" maxlength="120"></div><div class="field"><label for="fitriDate">Tanggal Idul Fitri</label><input id="fitriDate" data-cell="D62" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="fitriOn">Status Idul Fitri</label><select id="fitriOn" data-cell="E62"><option>ON</option><option>OFF</option></select></div>
-<div class="field"><label for="adhaName">Idul Adha</label><input id="adhaName" data-cell="C63" maxlength="120"></div><div class="field"><label for="adhaDate">Tanggal Idul Adha</label><input id="adhaDate" data-cell="D63" placeholder="Tanggal sesuai format Spreadsheet"></div><div class="field"><label for="adhaOn">Status Idul Adha</label><select id="adhaOn" data-cell="E63"><option>ON</option><option>OFF</option></select></div>
-<div class="field full"><label>Custom Text</label><input id="customStart" data-cell="C64" placeholder="Tanggal mulai"></div><div class="field"><label for="customEnd">Tanggal akhir</label><input id="customEnd" data-cell="D64" placeholder="Tanggal akhir"></div><div class="field"><label for="customOn">Status</label><select id="customOn" data-cell="E64"><option>ON</option><option>OFF</option></select></div>
-</div><div class="actions"><button class="secondary" data-refresh="panels">Muat countdown</button><button data-save-group="events">Simpan countdown</button></div></section>
-<section class="card"><h2>🎞️ Advertising event</h2><p class="hint">Atur tanggal mulai, tanggal akhir, dan status setiap banner event.</p><div class="grid">
-<div class="field full"><label>Selamat Idul Fitri</label></div><div class="field"><label>Mulai</label><input data-cell="C68" placeholder="Tanggal mulai"></div><div class="field"><label>Akhir</label><input data-cell="D68" placeholder="Tanggal akhir"></div><div class="field"><label>Status</label><select data-cell="E68"><option>ON</option><option>OFF</option></select></div>
-<div class="field full"><label>Selamat Idul Adha</label></div><div class="field"><label>Mulai</label><input data-cell="C69" placeholder="Tanggal mulai"></div><div class="field"><label>Akhir</label><input data-cell="D69" placeholder="Tanggal akhir"></div><div class="field"><label>Status</label><select data-cell="E69"><option>ON</option><option>OFF</option></select></div>
-<div class="field full"><label>Custom 3</label></div><div class="field"><label>Mulai</label><input data-cell="C70" placeholder="Tanggal mulai"></div><div class="field"><label>Akhir</label><input data-cell="D70" placeholder="Tanggal akhir"></div><div class="field"><label>Status</label><select data-cell="E70"><option>ON</option><option>OFF</option></select></div>
-<div class="field full"><label>Custom 2</label></div><div class="field"><label>Mulai</label><input data-cell="C71" placeholder="Tanggal mulai"></div><div class="field"><label>Akhir</label><input data-cell="D71" placeholder="Tanggal akhir"></div><div class="field"><label>Status</label><select data-cell="E71"><option>ON</option><option>OFF</option></select></div>
-<div class="field full"><label>Custom 1</label></div><div class="field"><label>Mulai</label><input data-cell="C72" placeholder="Tanggal mulai"></div><div class="field"><label>Akhir</label><input data-cell="D72" placeholder="Tanggal akhir"></div><div class="field"><label>Status</label><select data-cell="E72"><option>ON</option><option>OFF</option></select></div>
-</div><div class="actions"><button data-save-group="video">Simpan advertising</button></div></section><section class="card"><h2>🧩 Editor sel terbatas</h2><p class="hint">Untuk sel panel lain yang telah diizinkan. Penulisan tetap dibatasi oleh daftar izin di API.gs.</p><div class="grid"><div class="field"><label for="cellPick">Sel panels</label><select id="cellPick"></select></div><div class="field"><label for="cellValue">Nilai baru</label><input id="cellValue" maxlength="500"></div></div><div class="actions"><button id="saveCell">Simpan nilai sel</button></div></section>
+<div class="section-title">EVENT</div>
+<div class="event-menu" role="tablist" aria-label="Menu EVENT">
+<button type="button" class="secondary" data-event-tab="countdown" role="tab" aria-selected="true">🗓️ Event Countdown</button>
+<button type="button" class="secondary" data-event-tab="advertising" role="tab" aria-selected="false">🎞️ Advertising</button>
+</div>
+<div id="eventCountdownPanel" class="event-panel">
+<section class="card"><h2>🗓️ Event Countdown</h2><p class="hint">Pilih tanggal mulai dan akhir melalui kalender. Nama acara tetap mengikuti konfigurasi Spreadsheet.</p>
+<div class="event-table" aria-label="Pengaturan Event Countdown">
+<div class="event-table-head">Countdown Event</div><div class="event-table-head">Mulai</div><div class="event-table-head">Akhir</div><div class="event-table-head">Status</div>
+<div class="event-name">MENUJU RAMADHAN</div><div class="field" data-label="Mulai"><input id="start60" type="date" data-cell="C60" aria-label="Mulai Menuju Ramadan"></div><div class="field" data-label="Akhir"><input id="end60" type="date" data-cell="D60" aria-label="Akhir Menuju Ramadan"></div><div class="field status-field" data-label="Status"><select data-cell="E60" aria-label="Status Menuju Ramadan"><option>ON</option><option>OFF</option></select></div>
+<div class="event-name">MENUJU LAILATUL QAD'R</div><div class="field" data-label="Mulai"><input id="start61" type="date" data-cell="C61" aria-label="Mulai Lailatul Qadr"></div><div class="field" data-label="Akhir"><input id="end61" type="date" data-cell="D61" aria-label="Akhir Lailatul Qadr"></div><div class="field status-field" data-label="Status"><select data-cell="E61" aria-label="Status Lailatul Qadr"><option>ON</option><option>OFF</option></select></div>
+<div class="event-name">MENUJU IDUL FITRI</div><div class="field" data-label="Mulai"><input id="start62" type="date" data-cell="C62" aria-label="Mulai Idul Fitri"></div><div class="field" data-label="Akhir"><input id="end62" type="date" data-cell="D62" aria-label="Akhir Idul Fitri"></div><div class="field status-field" data-label="Status"><select data-cell="E62" aria-label="Status Idul Fitri"><option>ON</option><option>OFF</option></select></div>
+<div class="event-name">MENUJU IDUL ADHA</div><div class="field" data-label="Mulai"><input id="start63" type="date" data-cell="C63" aria-label="Mulai Idul Adha"></div><div class="field" data-label="Akhir"><input id="end63" type="date" data-cell="D63" aria-label="Akhir Idul Adha"></div><div class="field status-field" data-label="Status"><select data-cell="E63" aria-label="Status Idul Adha"><option>ON</option><option>OFF</option></select></div>
+<div class="event-name">CUSTOM <div class="event-note">Nama acara dari B64</div></div><div class="field" data-label="Mulai"><input id="start64" type="date" data-cell="C64" aria-label="Mulai Custom Countdown"></div><div class="field" data-label="Akhir"><input id="end64" type="date" data-cell="D64" aria-label="Akhir Custom Countdown"></div><div class="field status-field" data-label="Status"><select data-cell="E64" aria-label="Status Custom Countdown"><option>ON</option><option>OFF</option></select></div>
+</div><div class="actions"><button class="secondary" data-refresh="panels">Muat countdown</button><button data-save-group="events">Simpan Event Countdown</button></div></section>
+</div>
+<div id="eventAdvertisingPanel" class="event-panel hidden">
+<section class="card"><h2>🎞️ Advertising</h2><p class="hint">Atur jadwal tampilan animasi. B68 dan B69 hanya menjadi nama/label; file video yang digunakan tetap.</p>
+<div class="event-table" aria-label="Pengaturan Advertising">
+<div class="event-table-head">Advertising</div><div class="event-table-head">Mulai</div><div class="event-table-head">Akhir</div><div class="event-table-head">Status</div>
+<div class="event-name">SELAMAT IDUL FITRI <div class="event-note">Label B68 · video idul-fitri.webm</div></div><div class="field" data-label="Mulai"><input type="date" data-cell="C68" aria-label="Mulai video Idul Fitri"></div><div class="field" data-label="Akhir"><input type="date" data-cell="D68" aria-label="Akhir video Idul Fitri"></div><div class="field status-field" data-label="Status"><select data-cell="E68" aria-label="Status video Idul Fitri"><option>ON</option><option>OFF</option></select></div>
+<div class="event-name">SELAMAT IDUL ADHA <div class="event-note">Label B69 · video idul-adha.webm</div></div><div class="field" data-label="Mulai"><input type="date" data-cell="C69" aria-label="Mulai video Idul Adha"></div><div class="field" data-label="Akhir"><input type="date" data-cell="D69" aria-label="Akhir video Idul Adha"></div><div class="field status-field" data-label="Status"><select data-cell="E69" aria-label="Status video Idul Adha"><option>ON</option><option>OFF</option></select></div>
+<div class="event-name">CUSTOM 1 <div class="event-note">Nama dari B70</div></div><div class="field" data-label="Mulai"><input type="date" data-cell="C70" aria-label="Mulai Advertising Custom 1"></div><div class="field" data-label="Akhir"><input type="date" data-cell="D70" aria-label="Akhir Advertising Custom 1"></div><div class="field status-field" data-label="Status"><select data-cell="E70" aria-label="Status Advertising Custom 1"><option>ON</option><option>OFF</option></select></div>
+<div class="event-name">CUSTOM 2 <div class="event-note">Nama dari B71</div></div><div class="field" data-label="Mulai"><input type="date" data-cell="C71" aria-label="Mulai Advertising Custom 2"></div><div class="field" data-label="Akhir"><input type="date" data-cell="D71" aria-label="Akhir Advertising Custom 2"></div><div class="field status-field" data-label="Status"><select data-cell="E71" aria-label="Status Advertising Custom 2"><option>ON</option><option>OFF</option></select></div>
+<div class="event-name">CUSTOM 3 <div class="event-note">Nama dari B72</div></div><div class="field" data-label="Mulai"><input type="date" data-cell="C72" aria-label="Mulai Advertising Custom 3"></div><div class="field" data-label="Akhir"><input type="date" data-cell="D72" aria-label="Akhir Advertising Custom 3"></div><div class="field status-field" data-label="Status"><select data-cell="E72" aria-label="Status Advertising Custom 3"><option>ON</option><option>OFF</option></select></div>
+</div><div class="actions"><button class="secondary" data-refresh="panels">Muat status</button><button data-save-group="video">Simpan Advertising</button></div></section>
+</div>
+<section class="card"><h2>🧩 Editor sel terbatas</h2><p class="hint">Untuk sel panel lain yang telah diizinkan. Penulisan tetap dibatasi oleh daftar izin di API.gs.</p><div class="grid"><div class="field"><label for="cellPick">Sel panels</label><select id="cellPick"></select></div><div class="field"><label for="cellValue">Nilai baru</label><input id="cellValue" maxlength="500"></div></div><div class="actions"><button id="saveCell">Simpan nilai sel</button></div></section>
 <div id="saveMsg" class="message"></div>
 </div>
 <footer>Seluruh hak atas aplikasi tidak boleh diperbanyak atau disebarkan tanpa izin.</footer>
@@ -203,12 +235,20 @@ async function refreshPanels(){
    put('C29',first(p,['TanggalPetugas','TanggalKegiatan']));
    put('C41',first(p,['PanelSpecialMode','PanelInfaqMode']));
    const e=p.EventCountdown;
-   if(e&&typeof e==='object'){
-    [['C60',['Ramadan','Ramadhan','name','label']],['D60',['RamadanDate','RamadhanDate','date']],['E60',['RamadanStatus','RamadhanStatus','status']],
-     ['C61',['Qadr','LailatulQadr','qadrName']],['D61',['QadrDate','LailatulQadrDate','qadrDate']],['E61',['QadrStatus','LailatulQadrStatus','qadrStatus']],
-     ['C62',['Fitri','IdulFitri','fitriName']],['D62',['FitriDate','IdulFitriDate','fitriDate']],['E62',['FitriStatus','IdulFitriStatus','fitriStatus']],
-     ['C63',['Adha','IdulAdha','adhaName']],['D63',['AdhaDate','IdulAdhaDate','adhaDate']],['E63',['AdhaStatus','IdulAdhaStatus','adhaStatus']],['C64',['CustomStart','CustomDate','customStart']],['D64',['CustomEnd','customEnd']],['E64',['CustomStatus','customStatus']]
-    ].forEach(([cell,keys])=>put(cell,first(e,keys)));
+   if(Array.isArray(e)){
+    e.forEach(item=>{
+     const row=Number(item&&item.row);
+     if(row>=60&&row<=63){
+      put('C'+row,item.start);put('D'+row,item.end);put('E'+row,item.status);
+     }
+    });
+   }
+   const customEvents=p.EventCountdownCustom;
+   if(Array.isArray(customEvents)){
+    customEvents.forEach(item=>{
+     const row=Number(item&&item.row);
+     if(row===64){put('C64',item.start);put('D64',item.end);put('E64',item.status);}
+    });
    }
   }
   put('C18',first(theme,['theme','value','color']));
@@ -239,6 +279,13 @@ async function refreshPanels(){
     cells.forEach(el=>{el.value=value});
    }
   }
+  // Sel tanggal dan status event dibaca langsung dari object panels jika tersedia.
+  if(p&&typeof p==='object'){
+   const panel=p.panels||p.Panels||{};
+   ['C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64','C68','D68','E68','C69','D69','E69','C70','D70','E70','C71','D71','E71','C72','D72','E72'].forEach(cell=>{
+    if(panel[cell]!==undefined)put(cell,panel[cell]);
+   });
+  }
   // C26 ditampilkan di dua bagian; sinkronkan keduanya agar nilai yang terlihat sama.
   if(inputByCell.C26&&inputByCell.C26.length>1)inputByCell.C26.forEach(el=>el.value=inputByCell.C26[0].value);
   setStatus('Data berhasil dimuat · '+new Date().toLocaleTimeString('id-ID'),true);
@@ -253,6 +300,16 @@ async function saveCells(cells){
  for(const cell of unique){const els=inputByCell[cell];if(!els||!els.length)continue;let value=els[0].value;if(cell==='C29'&&/^\d{4}-\d{2}-\d{2}$/.test(value)){const [y,m,d]=value.split('-');value=d+'/'+m+'/'+y}await saveCell(cell,value)}
  show(box,'Perubahan tersimpan ke Spreadsheet ('+unique.length+' sel).',false);setStatus('Perubahan tersimpan · '+new Date().toLocaleTimeString('id-ID'),true);
 }
+document.querySelectorAll('[data-event-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+ const advertising=btn.dataset.eventTab==='advertising';
+ $('eventCountdownPanel').classList.toggle('hidden',advertising);
+ $('eventAdvertisingPanel').classList.toggle('hidden',!advertising);
+ document.querySelectorAll('[data-event-tab]').forEach(tab=>{
+  const selected=tab===btn;
+  tab.setAttribute('aria-selected',selected?'true':'false');
+  tab.classList.toggle('secondary',!selected);
+ });
+}));
 $('connectBtn').addEventListener('click',connect);
 $('activity').addEventListener('change',updateOfficerLabels);
 updateOfficerLabels();
