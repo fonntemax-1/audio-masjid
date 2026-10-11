@@ -183,7 +183,7 @@ async function refreshPanels(){
  }catch(e){setStatus('Terhubung; sebagian status belum dapat dibaca',false);show($('saveMsg'),'Sebagian nilai tidak dapat dimuat otomatis dari API yang tersedia. Periksa Spreadsheet sebelum menyimpan.',true)}
 }
 async function saveCell(cell,value){
- const pin=$('pin').value;if(!pin){throw new Error('Masukkan PIN remote terlebih dahulu.')}
+ const pin=$('pin').value;if(!pin){throw new Error('Masukan PIN remote terlebih dahulu.')}
  await jsonp('setRemoteCell',{sheet:'panels',cell,value,pin});
 }
 async function saveCells(cells){
