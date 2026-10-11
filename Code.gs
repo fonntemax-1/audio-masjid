@@ -9,6 +9,94 @@
 // WEB APP
 // =========================================================
 
+function doPost(e) {
+  var params = e && e.parameter ? e.parameter : {};
+  if (String(params.action || '') !== 'uploadQris') {
+    return qrisUploadResultPage_(false, 'Permintaan upload tidak dikenal.');
+  }
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var expectedPin = String(props.getProperty('REMOTE_CONTROL_PIN') || '');
+    var suppliedPin = String(params.pin || '');
+    if (!expectedPin || expectedPin.length < 6 || suppliedPin !== expectedPin) {
+      throw new Error('PIN remote tidak valid.');
+    }
+    var token = String(props.getProperty('GITHUB_UPLOAD_TOKEN') || '').trim();
+    if (!token) {
+      throw new Error('Token GitHub belum dikonfigurasi pada Script Properties.');
+    }
+    var mimeType = String(params.mimeType || '').trim().toLowerCase();
+    var base64 = String(params.imageBase64 || '').replace(/\\s/g, '');
+    if (mimeType !== 'image/png') throw new Error('Format gambar harus PNG.');
+    if (!base64 || base64.length > 1400000 || !/^[A-Za-z0-9+/]+=*$/.test(base64)) {
+      throw new Error('Data gambar kosong atau melebihi batas 1 MB.');
+    }
+    var bytes = Utilities.base64Decode(base64);
+    if (!bytes || !bytes.length || bytes.length > 1024 * 1024) {
+      throw new Error('Ukuran gambar maksimal 1 MB.');
+    }
+    // Validasi signature PNG agar konten bukan file lain yang hanya berganti ekstensi.
+    if (bytes.length < 8 || bytes[0] !== 137 || bytes[1] !== 80 || bytes[2] !== 78 || bytes[3] !== 71) {
+      throw new Error('Isi file bukan gambar PNG yang valid.');
+    }
+
+    var apiUrl = 'https://api.github.com/repos/fonntemax-1/audio-masjid/contents/image/QRIS.png?ref=main';
+    var headers = {
+      Authorization: 'Bearer ' + token,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+    var getResponse = UrlFetchApp.fetch(apiUrl, {
+      method: 'get',
+      headers: headers,
+      muteHttpExceptions: true
+    });
+    var getCode = getResponse.getResponseCode();
+    if (getCode !== 200) {
+      throw new Error('Tidak dapat membaca file QRIS di GitHub (HTTP ' + getCode + '). Periksa izin Contents token.');
+    }
+    var existing = JSON.parse(getResponse.getContentText());
+    var payload = {
+      message: 'Update QRIS signage via remote control',
+      content: base64,
+      sha: existing.sha,
+      branch: 'main'
+    };
+    var putResponse = UrlFetchApp.fetch(apiUrl, {
+      method: 'put',
+      contentType: 'application/json',
+      headers: headers,
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    var putCode = putResponse.getResponseCode();
+    if (putCode < 200 || putCode >= 300) {
+      var detail = '';
+      try { detail = String((JSON.parse(putResponse.getContentText()) || {}).message || ''); } catch (ignore) {}
+      throw new Error('GitHub menolak upload (HTTP ' + putCode + ')' + (detail ? ': ' + detail : '') + '.');
+    }
+    var version = String(new Date().getTime());
+    props.setProperty('QRIS_IMAGE_VERSION', version);
+    return qrisUploadResultPage_(true, 'QRIS berhasil diunggah.', version);
+  } catch (error) {
+    return qrisUploadResultPage_(false, error && error.message ? error.message : String(error));
+  }
+}
+
+function qrisUploadResultPage_(success, message, version) {
+  var result = {
+    type: 'qrisUploadResult',
+    success: success === true,
+    message: String(message || ''),
+    version: String(version || '')
+  };
+  var encoded = JSON.stringify(result).replace(/</g, '\\u003c');
+  var html = '<!doctype html><html><head><meta charset="utf-8"></head><body><script>window.top.postMessage(' +
+    encoded + ', "https://fonntemax-1.github.io");</script>Upload selesai.</body></html>';
+  return HtmlService.createHtmlOutput(html)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
 function doGet(e) {
   // API GitHub Pages ditangani oleh API.gs.
   const params = e && e.parameter ? e.parameter : {};
