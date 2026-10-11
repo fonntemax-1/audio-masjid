@@ -362,12 +362,31 @@ function setRemoteCellsFromApi_(params) {
     if (!sheet) throw new Error('Sheet panels tidak ditemukan.');
     items.forEach(function(item) { sheet.getRange(item.cell).setValue(item.value); });
     SpreadsheetApp.flush();
+    var timeZone = ss.getSpreadsheetTimeZone() || Session.getScriptTimeZone() || 'Asia/Makassar';
+    function canonicalDate_(value) {
+      var text = String(value == null ? '' : value).trim();
+      var m = text.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})$/);
+      if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
+      m = text.match(/^(\\d{1,2})[\\/. -](\\d{1,2})[\\/. -](\\d{4})$/);
+      if (m) return m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
+      return null;
+    }
     var saved = items.map(function(item) {
-      var actual = sheet.getRange(item.cell).getDisplayValue();
-      if (String(actual) !== String(item.value)) {
-        throw new Error('Verifikasi gagal pada sel ' + item.cell + '.');
+      var range = sheet.getRange(item.cell);
+      var actualValue = range.getValue();
+      var actualDisplay = range.getDisplayValue();
+      var expectedDate = canonicalDate_(item.value);
+      var actualDate = actualValue instanceof Date && !isNaN(actualValue.getTime())
+        ? Utilities.formatDate(actualValue, timeZone, 'yyyy-MM-dd')
+        : canonicalDate_(actualValue);
+      var matches = expectedDate
+        ? (actualDate === expectedDate || canonicalDate_(actualDisplay) === expectedDate)
+        : String(actualValue == null ? '' : actualValue).trim() === String(item.value).trim()
+          || String(actualDisplay == null ? '' : actualDisplay).trim() === String(item.value).trim();
+      if (!matches) {
+        throw new Error('Verifikasi gagal pada sel ' + item.cell + '. Nilai aktual: ' + String(actualDisplay));
       }
-      return { cell: item.cell, value: actual };
+      return { cell: item.cell, value: actualDisplay };
     });
     return { success: true, count: saved.length, cells: saved, updatedAt: new Date().toISOString() };
   } finally {
