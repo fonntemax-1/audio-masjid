@@ -3756,20 +3756,33 @@ function getPrayerSchedule(dateString) {
       return String(row[0] || '').trim();
     });
 
-    const kota = locationValues[0] || '';
+    const kotaPilihan = locationValues[0] || '';
     const provinsi = locationValues[1] || '';
     const zona = locationValues[2] || '';
     const panelTimezone = locationValues[3] || '';
     const gmt = locationValues[4] || '';
     const panelSlug = locationValues[5] || '';
 
+    // C14 adalah nama kota aktual hasil Link Google Maps.
+    // Jika belum diisi, salin kota dropdown C5 sebagai fallback awal.
+    var kota = String(panels.getRange('C14').getDisplayValue() || '').trim();
+    if (!kota && kotaPilihan) {
+      panels.getRange('C14').setValue(kotaPilihan);
+      SpreadsheetApp.flush();
+      kota = String(panels.getRange('C14').getDisplayValue() || '').trim();
+      if (!kota) kota = kotaPilihan;
+    }
+
+    // Pakai slug C10 hanya bila kota aktif masih sama dengan kota dropdown C5.
+    // Untuk kota dari C14, bentuk slug dari nama kota agar API mencari kota tersebut.
     const kotaSlug = (
-      panelSlug ||
-      kota.toLowerCase()
-        .replace(/[()]/g, '')
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
+      kota && kota.toLowerCase() === kotaPilihan.toLowerCase() && panelSlug
+        ? panelSlug
+        : kota.toLowerCase()
+            .replace(/[()]/g, '')
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-')
     );
 
     const timezone = panelTimezone || timezoneDefault;
