@@ -777,6 +777,76 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 }
 </style>
 
+
+<style id="mobile-portrait-hijri-gregorian-fit-v1">
+/* Portrait mobile: tanggal Hijriah + Masehi harus muat di lebar frame keuangan. */
+@media screen and (max-width: 900px) and (orientation: portrait) {
+  #fin-panel-box #fin-sub {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    overflow-wrap: normal !important;
+    word-break: keep-all !important;
+    text-overflow: clip !important;
+    letter-spacing: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+</style>
+<script id="mobile-portrait-hijri-gregorian-fit-script">
+(function () {
+  var query = window.matchMedia('(max-width: 900px) and (orientation: portrait)');
+  var dateEl = document.getElementById('fin-sub');
+  if (!dateEl) return;
+
+  function fitFinanceHijriGregorianDate() {
+    /* Jangan menyentuh style/ukuran tanggal pada mode landscape. */
+    if (!query.matches || !dateEl.isConnected || !dateEl.textContent.trim()) return;
+    var parentWidth = dateEl.clientWidth;
+    if (!parentWidth) return;
+
+    var style = window.getComputedStyle(dateEl);
+    var size = parseFloat(style.fontSize) || 10;
+    var minSize = 5;
+    dateEl.style.setProperty('white-space', 'nowrap', 'important');
+    dateEl.style.setProperty('overflow', 'hidden', 'important');
+    dateEl.style.setProperty('width', '100%', 'important');
+    dateEl.style.setProperty('max-width', '100%', 'important');
+    dateEl.style.setProperty('box-sizing', 'border-box', 'important');
+
+    /* Mulai dari ukuran saat ini, lalu perkecil hanya bila teks melewati frame. */
+    for (var i = 0; i < 24 && dateEl.scrollWidth > dateEl.clientWidth + 1 && size > minSize; i++) {
+      size -= 0.35;
+      dateEl.style.setProperty('font-size', Math.max(minSize, size).toFixed(2) + 'px', 'important');
+    }
+  }
+
+  var observer = new MutationObserver(function () {
+    window.requestAnimationFrame(fitFinanceHijriGregorianDate);
+  });
+  observer.observe(dateEl, { childList: true, characterData: true, subtree: true });
+  if (typeof ResizeObserver === 'function') {
+    var resizeObserver = new ResizeObserver(function () {
+      window.requestAnimationFrame(fitFinanceHijriGregorianDate);
+    });
+    resizeObserver.observe(dateEl.parentElement || dateEl);
+  }
+  window.addEventListener('resize', function () {
+    window.requestAnimationFrame(fitFinanceHijriGregorianDate);
+  });
+  if (query.addEventListener) {
+    query.addEventListener('change', function () {
+      window.requestAnimationFrame(fitFinanceHijriGregorianDate);
+    });
+  }
+  window.requestAnimationFrame(fitFinanceHijriGregorianDate);
+})();
+</script>
+
 </head>
 
 <body class="startup-visual-hold">
