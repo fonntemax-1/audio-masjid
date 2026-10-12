@@ -720,6 +720,63 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 }
 </style>
 
+
+<style id="mobile-portrait-one-line-headings-v3">
+/* PORTRAIT SAJA: judul dan tanggal laporan masing-masing satu baris;
+   judul INFAQ & SHADAQAH juga satu baris di dalam frame. */
+@media screen and (max-width: 900px) and (orientation: portrait) {
+  #fin-panel-box #fin-title,
+  #fin-panel-box .panel-title,
+  #fin-panel-box #fin-sub,
+  #fin-panel-box #fin-extra,
+  #fin-panel-box .panel-sub,
+  #fin-panel-box .fin-extra {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: clip !important;
+    overflow-wrap: normal !important;
+    word-break: keep-all !important;
+    line-height: 1.05 !important;
+  }
+  #fin-panel-box #fin-title,
+  #fin-panel-box .panel-title {
+    font-size: clamp(0.34rem, 1.45vw, 0.58rem) !important;
+    letter-spacing: 0 !important;
+    margin: 0 0 0.12vh !important;
+    padding: 0 !important;
+  }
+  #fin-panel-box #fin-sub,
+  #fin-panel-box #fin-extra,
+  #fin-panel-box .panel-sub,
+  #fin-panel-box .fin-extra {
+    font-size: clamp(0.32rem, 1.18vw, 0.46rem) !important;
+    letter-spacing: 0 !important;
+    margin: 0 0 0.08vh !important;
+    padding: 0 !important;
+  }
+  #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: clip !important;
+    overflow-wrap: normal !important;
+    word-break: keep-all !important;
+    font-size: clamp(0.4rem, 1.7vw, 0.62rem) !important;
+    line-height: 1.05 !important;
+    letter-spacing: 0 !important;
+    margin: 0 auto 0.2vh !important;
+    padding: 0 !important;
+  }
+}
+</style>
+
 </head>
 
 <body class="startup-visual-hold">
