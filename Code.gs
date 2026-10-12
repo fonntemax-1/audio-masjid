@@ -11,9 +11,13 @@
 
 function doPost(e) {
   var params = e && e.parameter ? e.parameter : {};
-  if (String(params.action || '') !== 'uploadQris') {
+  var action = String(params.action || '');
+  var isLogo = action === 'uploadLogo';
+  if (action !== 'uploadQris' && !isLogo) {
     return qrisUploadResultPage_(false, 'Permintaan upload tidak dikenal.');
   }
+  var resultType = isLogo ? 'logoUploadResult' : 'qrisUploadResult';
+  var label = isLogo ? 'Logo' : 'QRIS';
   try {
     var props = PropertiesService.getScriptProperties();
     var expectedPin = String(props.getProperty('REMOTE_CONTROL_PIN') || '');
@@ -26,7 +30,7 @@ function doPost(e) {
       throw new Error('Token GitHub belum dikonfigurasi pada Script Properties.');
     }
     var mimeType = String(params.mimeType || '').trim().toLowerCase();
-    var base64 = String(params.imageBase64 || '').replace(/\s/g, '');
+    var base64 = String(params.imageBase64 || '').replace(/\\s/g, '');
     if (mimeType !== 'image/png') throw new Error('Format gambar harus PNG.');
     if (!base64 || base64.length > 1400000 || !/^[A-Za-z0-9+/]+=*$/.test(base64)) {
       throw new Error('Data gambar kosong atau melebihi batas 1 MB.');
@@ -35,29 +39,28 @@ function doPost(e) {
     if (!bytes || !bytes.length || bytes.length > 1024 * 1024) {
       throw new Error('Ukuran gambar maksimal 1 MB.');
     }
-    // Validasi signature PNG agar konten bukan file lain yang hanya berganti ekstensi.
-    if (bytes.length < 8 || (bytes[0] & 255) !== 137 || (bytes[1] & 255) !== 80 || (bytes[2] & 255) !== 78 || (bytes[3] & 255) !== 71) {
+    if (bytes.length < 8 || (bytes[0] & 255) !== 137 || (bytes[1] & 255) !== 80 ||
+        (bytes[2] & 255) !== 78 || (bytes[3] & 255) !== 71) {
       throw new Error('Isi file bukan gambar PNG yang valid.');
     }
 
-    var apiUrl = 'https://api.github.com/repos/fonntemax-1/audio-masjid/contents/image/QRIS.png?ref=main';
+    var filePath = isLogo ? 'image/logo.png' : 'image/QRIS.png';
+    var apiUrl = 'https://api.github.com/repos/fonntemax-1/audio-masjid/contents/' + filePath + '?ref=main';
     var headers = {
       Authorization: 'Bearer ' + token,
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28'
     };
     var getResponse = UrlFetchApp.fetch(apiUrl, {
-      method: 'get',
-      headers: headers,
-      muteHttpExceptions: true
+      method: 'get', headers: headers, muteHttpExceptions: true
     });
     var getCode = getResponse.getResponseCode();
     if (getCode !== 200) {
-      throw new Error('Tidak dapat membaca file QRIS di GitHub (HTTP ' + getCode + '). Periksa izin Contents token.');
+      throw new Error('Tidak dapat membaca ' + filePath + ' di GitHub (HTTP ' + getCode + '). Pastikan file sudah ada dan token memiliki izin Contents.');
     }
     var existing = JSON.parse(getResponse.getContentText());
     var payload = {
-      message: 'Update QRIS signage via remote control',
+      message: 'Update ' + label + ' signage via remote control',
       content: base64,
       sha: existing.sha,
       branch: 'main'
@@ -72,20 +75,21 @@ function doPost(e) {
     var putCode = putResponse.getResponseCode();
     if (putCode < 200 || putCode >= 300) {
       var detail = '';
-      try { detail = String((JSON.parse(putResponse.getContentText()) || {}).message || ''); } catch (ignore) {}
-      throw new Error('GitHub menolak upload (HTTP ' + putCode + ')' + (detail ? ': ' + detail : '') + '.');
+      try { detail = JSON.parse(putResponse.getContentText()).message || ''; } catch (ignore) {}
+      throw new Error('GitHub menolak upload ' + label + ' (HTTP ' + putCode + ')' +
+        (detail ? ': ' + detail : '') + '.');
     }
     var version = String(new Date().getTime());
-    props.setProperty('QRIS_IMAGE_VERSION', version);
-    return qrisUploadResultPage_(true, 'QRIS berhasil diunggah.', version);
+    props.setProperty(isLogo ? 'LOGO_IMAGE_VERSION' : 'QRIS_IMAGE_VERSION', version);
+    return qrisUploadResultPage_(true, label + ' berhasil diunggah.', version, resultType);
   } catch (error) {
-    return qrisUploadResultPage_(false, error && error.message ? error.message : String(error));
+    return qrisUploadResultPage_(false, error && error.message ? error.message : String(error), '', resultType);
   }
 }
 
-function qrisUploadResultPage_(success, message, version) {
+function qrisUploadResultPage_(success, message, version, resultType) {
   var result = {
-    type: 'qrisUploadResult',
+    type: String(resultType || 'qrisUploadResult'),
     success: success === true,
     message: String(message || ''),
     version: String(version || '')
