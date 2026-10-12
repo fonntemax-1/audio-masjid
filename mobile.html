@@ -433,6 +433,59 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 }
 </style>
 
+
+<style id="mobile-font-reduction">
+/* Ukuran huruf lebih kecil khusus mobile.html; index.html dan scheduler audio tidak disentuh. */
+@media screen and (max-width: 900px) {
+  #nama_masjid, .header-center .latin-name {
+    font-size: clamp(1.15rem, 2.25vh, 2.8rem) !important;
+    line-height: 1.08 !important;
+  }
+  #alamat_masjid, .header-center .sub {
+    font-size: clamp(0.68rem, 1.35vh, 1.05rem) !important;
+    line-height: 1.15 !important;
+  }
+  #slogan_masjid, .header-center .slogan {
+    font-size: clamp(0.62rem, 1.15vh, 0.95rem) !important;
+    line-height: 1.15 !important;
+  }
+  .prayer-name, .waktu-sholat-prayer {
+    font-size: clamp(0.68rem, 1.35vw, 1rem) !important;
+    line-height: 1.1 !important;
+  }
+  .prayer-time {
+    font-size: clamp(0.78rem, 1.65vw, 1.2rem) !important;
+    line-height: 1.05 !important;
+  }
+  .countdown-title, #countdown-title, .countdown-title-theme, .countdown-title-white, .countdown-prayer-theme {
+    font-size: clamp(9px, min(2.6vw, 2.8vh), 18px) !important;
+    line-height: 1.1 !important;
+  }
+  .countdown-timer, #countdown {
+    font-size: clamp(16px, min(5vw, 5.5vh), 32px) !important;
+    line-height: 1.02 !important;
+  }
+  .tz-text {
+    font-size: clamp(8px, min(1.7vw, 2vh), 12px) !important;
+  }
+  .pengurus-tugas-label, .pengurus-tugas-italic {
+    font-size: clamp(9px, min(1.8vw, 2vh), 14px) !important;
+    line-height: 1.12 !important;
+  }
+}
+@media screen and (max-width: 900px) and (orientation: landscape) {
+  #nama_masjid, .header-center .latin-name {
+    font-size: clamp(1rem, 2.8vh, 2rem) !important;
+  }
+  #alamat_masjid, .header-center .sub {
+    font-size: clamp(0.58rem, 1.7vh, 0.85rem) !important;
+  }
+  #slogan_masjid, .header-center .slogan {
+    font-size: clamp(0.54rem, 1.45vh, 0.78rem) !important;
+  }
+}
+</style>
+
 </head>
 
 <body class="startup-visual-hold">
