@@ -272,7 +272,7 @@ async function connect(){
   setStatus('Login berhasil · '+(res.timezone||''),true);
   await loadRemoteCityOptions();
   await refreshPanels();
- }catch(e){setStatus('Login gagal',false);show($('connectionMsg'),'Login gagal: '+(e&&e.message?e.message:'kesalahan tidak diketahui')+'. Pastikan deployment Apps Script terbaru dan PIN benar.',true)}
+ }catch(e){setStatus('Login gagal',false);show($('connectionMsg'),'Login gagal, silahkan coba kembali.',true)}
  finally{$('connectBtn').disabled=false}
 }
 async function refreshPanels(){
