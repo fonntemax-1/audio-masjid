@@ -857,11 +857,26 @@ function findNearestMuslimKitaCity_(sheet, latitude, longitude) {
       }
     }
 
-    // Jika dropdown tidak memakai validasi eksplisit, jangan menebak daftar kota.
+    // Fallback jika C5 tidak memiliki validasi dropdown yang dapat dibaca.
+    // Daftar kandidat umum lintas wilayah agar pencarian tetap berjalan.
+    if (!candidates.length) {
+      candidates = [
+        'Banda Aceh','Medan','Padang','Pekanbaru','Jambi','Palembang','Bengkulu','Bandar Lampung',
+        'DKI Jakarta','Bandung','Bekasi','Bogor','Cirebon','Tasikmalaya','Semarang','Surakarta (Solo)',
+        'Yogyakarta','Surabaya','Malang','Denpasar','Mataram','Kupang','Pontianak','Palangka Raya',
+        'Banjarmasin','Balikpapan','Samarinda','Tarakan','Makassar','Palu','Kendari','Manado',
+        'Gorontalo','Ambon','Ternate','Sorong','Manokwari','Jayapura','Merauke','Tangerang',
+        'Tangerang Selatan','Serang','Cilegon','Depok','Cimahi','Sukabumi','Cianjur','Garut',
+        'Purwokerto','Magelang','Pekalongan','Tegal','Kediri','Madiun','Jember','Banyuwangi',
+        'Batam','Tanjungpinang','Bontang','Singkawang','Banjarbaru','Bima','Labuan Bajo','Timika'
+      ];
+    }
     candidates = candidates.map(function(value) { return String(value || '').trim(); })
-      .filter(function(value, index, all) { return value && all.indexOf(value) === index; })
-      .slice(0, 90);
-    if (!candidates.length) return null;
+      .filter(function(value, index, all) { return value && all.indexOf(value) === index; });
+    if (!candidates.length) {
+      console.warn('MUSLIMKITA_NEAREST_CITY: kandidat kota kosong.');
+      return null;
+    }
 
     // Nama dropdown tidak selalu sama dengan slug resmi API (contoh DKI Jakarta -> jakarta).
     var slugAliases = {
@@ -870,9 +885,17 @@ function findNearestMuslimKitaCity_(sheet, latitude, longitude) {
       'tanjung pandan (belitung)': 'tanjung-pandan',
       'watampone (bone)': 'watampone',
       'tanjung pinang': 'tanjungpinang',
+      'tanjungpinang': 'tanjungpinang',
       'pematang siantar': 'pematangsiantar',
       'kota jakarta': 'jakarta',
-      'jakarta': 'jakarta'
+      'jakarta': 'jakarta',
+      'palangka raya': 'palangkaraya',
+      'labuan bajo': 'labuan-bajo',
+      'banda aceh': 'banda-aceh',
+      'bandar lampung': 'bandar-lampung',
+      'tangerang selatan': 'tangerang-selatan',
+      'kota balikpapan': 'balikpapan',
+      'kota samarinda': 'samarinda'
     };
     var requests = candidates.map(function(name) {
       var normalizedName = String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
