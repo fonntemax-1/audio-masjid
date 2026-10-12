@@ -356,6 +356,8 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
       var patterns = [
         // Format pin spesifik Google Maps.
         /!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/i,
+        // Beberapa tautan memakai urutan !2dLONGITUDE!3dLATITUDE.
+        /!2d(-?\d{1,3}(?:\.\d+)?)!3d(-?\d{1,2}(?:\.\d+)?)/i,
         // Parameter tujuan eksplisit; jangan gunakan center/origin yang bisa
         // menunjuk posisi peta atau titik awal perjalanan.
         /[?&](?:q|query|destination|daddr)=(-?\d{1,2}(?:\.\d+)?)[,%2C\s]+(-?\d{1,3}(?:\.\d+)?)/i
@@ -369,6 +371,10 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
         var m = candidate.match(patterns[pi]);
         if (!m) continue;
         var lat = Number(m[1]), lng = Number(m[2]);
+        if (pi === 1 && /!2d/i.test(patterns[pi].source)) {
+          lat = Number(m[2]);
+          lng = Number(m[1]);
+        }
         if (isFinite(lat) && lat >= -90 && lat <= 90 && isFinite(lng) && lng >= -180 && lng <= 180) {
           return { latitude: lat, longitude: lng };
         }
@@ -431,15 +437,43 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
     coords = findCoordinates_(body, false);
     if (coords) break;
 
-    // Jika HTML hanya memuat tautan tujuan, ikuti tautan itu pada iterasi berikutnya.
-    var targetMatch = body.match(/(?:href|content)\s*=\s*["']([^"']*(?:maps\.google|google\.com\/maps)[^"']*)["']/i);
-    if (targetMatch && targetMatch[1]) {
-      var target = targetMatch[1].replace(/&amp;/gi, '&').replace(/\\\//g, '/');
-      if (target.indexOf('//') === 0) target = 'https:' + target;
-      else if (target.charAt(0) === '/') {
-        var targetOrigin = current.match(/^(https?:\/\/[^\/]+)/i);
-        if (targetOrigin) target = targetOrigin[0] + target;
+    // Short link kadang menaruh URL tujuan di script/JSON, bukan di href.
+    // Normalisasi escape umum dan URL-encoding sebelum mencari URL tujuan.
+    var bodyVariants = [body];
+    var normalizedBody = body
+      .replace(/&amp;/gi, '&')
+      .replace(/\\u003d/gi, '=')
+      .replace(/\\u0026/gi, '&')
+      .replace(/\\u002f/gi, '/')
+      .replace(/\\\//g, '/')
+      .replace(/&#x3d;|&#61;/gi, '=');
+    if (normalizedBody !== body) bodyVariants.push(normalizedBody);
+    try {
+      var decodedBody = decodeURIComponent(normalizedBody);
+      if (bodyVariants.indexOf(decodedBody) < 0) bodyVariants.push(decodedBody);
+      try {
+        var decodedBody2 = decodeURIComponent(decodedBody);
+        if (bodyVariants.indexOf(decodedBody2) < 0) bodyVariants.push(decodedBody2);
+      } catch (ignoreDecode2) {}
+    } catch (ignoreDecode1) {}
+
+    var target = '';
+    for (var bv = 0; bv < bodyVariants.length && !target; bv++) {
+      var variant = bodyVariants[bv];
+      // Coba koordinat pin eksplisit setelah encoding dinormalisasi.
+      coords = findCoordinates_(variant, false);
+      if (coords) break;
+      var targetMatch = variant.match(/(?:href|content|url|window\.location(?:\.href)?|location\.href)\s*[:=]\s*["']?((?:https?:)?\/\/[^"'<>\\s]*(?:maps\.google|google\.com\/maps)[^"'<>\\s]*)/i);
+      if (targetMatch && targetMatch[1]) target = targetMatch[1];
+      if (!target) {
+        targetMatch = variant.match(/["']((?:https?:)?\\?\/\\?\/(?:www\.)?(?:google\.[^/]+|maps\.google\.[^/]+)[^"']*)["']/i);
+        if (targetMatch && targetMatch[1]) target = targetMatch[1];
       }
+    }
+    if (coords) break;
+    if (target) {
+      target = target.replace(/&amp;/gi, '&').replace(/\\\//g, '/').replace(/\\u0026/gi, '&');
+      if (target.indexOf('//') === 0) target = 'https:' + target;
       if (/^https?:\/\//i.test(target)) {
         current = target;
         continue;
