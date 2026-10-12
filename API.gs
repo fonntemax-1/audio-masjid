@@ -198,6 +198,10 @@ function handleGithubApiRequest_(params) {
         result = validateRemotePinFromApi_(params);
         break;
 
+      case 'resolveCoordinatesCity':
+        result = resolveCoordinatesCityFromApi_(params);
+        break;
+
       case 'setRemoteCell':
         result = setRemoteCellFromApi_(params);
         break;
@@ -304,6 +308,58 @@ function handleGithubApiRequest_(params) {
     throw new Error('PIN remote salah.');
   }
   return { valid: true };
+}
+
+function resolveCoordinatesCityFromApi_(params) {
+  params = params || {};
+  var configuredPin = String(PropertiesService.getScriptProperties().getProperty('REMOTE_CONTROL_PIN') || '');
+  var suppliedPin = String(params.pin || '');
+  if (!configuredPin || configuredPin.length < 6) {
+    throw new Error('Remote belum diaktifkan. Atur Script Property REMOTE_CONTROL_PIN.');
+  }
+  if (!suppliedPin || suppliedPin !== configuredPin) throw new Error('PIN remote salah.');
+
+  var lat = Number(params.latitude);
+  var lng = Number(params.longitude);
+  if (!isFinite(lat) || lat < -90 || lat > 90 || !isFinite(lng) || lng < -180 || lng > 180) {
+    throw new Error('Latitude atau Longitude tidak valid.');
+  }
+
+  var response = Maps.newGeocoder().setLanguage('id').reverseGeocode(lat, lng);
+  var results = response && response.results ? response.results : [];
+  if (!results.length) throw new Error('Koordinat tidak menemukan nama kota.');
+
+  var cityName = '';
+  var fallback = '';
+  results.some(function(result) {
+    var components = result.address_components || [];
+    components.forEach(function(component) {
+      var types = component.types || [];
+      var name = String(component.long_name || '').trim();
+      if (!name) return;
+      if (!cityName && (types.indexOf('locality') >= 0 || types.indexOf('administrative_area_level_2') >= 0 || types.indexOf('sublocality') >= 0 || types.indexOf('postal_town') >= 0)) {
+        cityName = name;
+      }
+      if (!fallback && types.indexOf('administrative_area_level_1') >= 0) fallback = name;
+    });
+    return !!cityName;
+  });
+  cityName = cityName || fallback;
+  if (!cityName) throw new Error('Nama kota tidak tersedia untuk koordinat tersebut.');
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var sheet = getSpreadsheet().getSheetByName('panels');
+    if (!sheet) throw new Error('Sheet panels tidak ditemukan.');
+    sheet.getRange('C14').setValue(cityName);
+    SpreadsheetApp.flush();
+    var actual = sheet.getRange('C14').getDisplayValue();
+    if (String(actual).trim() !== cityName) throw new Error('Nama kota gagal diverifikasi pada C14.');
+    return { success: true, city: actual, cell: 'C14', latitude: lat, longitude: lng };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function setRemoteCellFromApi_(params) {
