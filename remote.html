@@ -79,7 +79,7 @@ button.danger:active{background:#b91c1c;color:#fff}
 <div class="field"><label>Kota</label><select data-cell="C5" id="remoteCity"><option value="">Memuat daftar kota…</option></select></div>
 <div class="field full"><label for="googleMapsLinkInput">Link Google Maps</label><input id="googleMapsLinkInput" type="url" inputmode="url" maxlength="2000" placeholder="Tempel link lokasi Google Maps di sini"></div>
 <div class="field full"><label for="resolvedCityDisplay">Nama daerah ditemukan / lokasi aktif (C14)</label><input id="resolvedCityDisplay" type="text" placeholder="Belum ada lokasi tersimpan" readonly aria-live="polite"></div>
-<div class="field full"><button id="resolveGoogleMapsLinkBtn" class="secondary" type="button">Gunakan Lokasi dari Google Maps</button><div id="coordinateMessage" class="message" role="status" aria-live="polite"></div><p class="note">Nama kota hasil lokasi disimpan ke C14. Jika C14 kosong, sistem menggunakan kota pada C5 sebagai lokasi awal.</p></div>
+<div class="field full"><button id="resolveGoogleMapsLinkBtn" class="secondary" type="button">Gunakan Lokasi dari Google Maps</button><div id="coordinateMessage" class="message" role="status" aria-live="polite"></div></div>
 <div class="field"><label>Provinsi</label><input data-read-cell="C6" value="Memuat…" readonly></div>
 <div class="field"><label>Zona</label><input data-read-cell="C7" value="Memuat…" readonly></div>
 <div class="field"><label>Timezone</label><input data-read-cell="C8" value="Memuat…" readonly></div>
@@ -519,7 +519,7 @@ $('resolveGoogleMapsLinkBtn').addEventListener('click',async()=>{
   const response=apiData(await jsonp('resolveGoogleMapsLinkCity',{pin:$('pin').value,mapsUrl},40000));
   if(!response||response.success!==true||!String(response.city||'').trim())throw new Error('Link Google Maps tidak valid atau nama kota tidak ditemukan.');
   $('resolvedCityDisplay').value=String(response.city).trim();
-  show(msg,'Update Berhasil: '+response.city+' tersimpan di C14.',false);
+  show(msg,'Update Berhasil: '+response.city+' tersimpan',false);
   setStatus('Update Berhasil',true);
   await loadRemotePrayerSchedule();
  }catch(error){
