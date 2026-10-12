@@ -351,39 +351,81 @@ document.querySelectorAll('[data-event-tab]').forEach(btn=>btn.addEventListener(
 const qrisUploadForm=$('qrisUploadForm');
 const qrisUploadFrame=$('qrisUploadFrame');
 let qrisUploadPending=false;
+let qrisUploadPollTimer=null;
+let qrisUploadTimeoutTimer=null;
+let qrisUploadStartedAt=0;
+let qrisUploadPreviousVersion='';
+function finishQrisUpload(success,message){
+ if(!qrisUploadPending)return;
+ qrisUploadPending=false;
+ if(qrisUploadPollTimer)clearTimeout(qrisUploadPollTimer);
+ if(qrisUploadTimeoutTimer)clearTimeout(qrisUploadTimeoutTimer);
+ qrisUploadPollTimer=null;qrisUploadTimeoutTimer=null;
+ $('qrisUploadBtn').disabled=false;
+ if(success){
+  show($('qrisUploadMsg'),message||'QRIS berhasil diunggah. Layar signage akan memperbarui gambar secara otomatis.',false);
+  $('qrisFile').value='';
+ }else{
+  show($('qrisUploadMsg'),message||'Upload QRIS belum dapat diverifikasi. Periksa status file di GitHub.',true);
+ }
+}
+async function pollQrisUploadVersion(){
+ if(!qrisUploadPending)return;
+ try{
+  const response=apiData(await jsonp('getQrisImageVersion',{},10000));
+  const version=String(response&&response.version||'');
+  if(version && version!=='0' && version!==qrisUploadPreviousVersion){
+   finishQrisUpload(true,'QRIS berhasil diunggah. Layar signage akan memperbarui gambar secara otomatis.');
+   return;
+  }
+ }catch(ignore){}
+ if(!qrisUploadPending)return;
+ if(Date.now()-qrisUploadStartedAt>=55000){
+  finishQrisUpload(false,'Upload telah dikirim, tetapi konfirmasi otomatis belum diterima. Karena file QRIS di GitHub dapat sudah berubah, periksa file sebelum mengunggah ulang.');
+  return;
+ }
+ qrisUploadPollTimer=setTimeout(pollQrisUploadVersion,2500);
+}
 window.addEventListener('message',function(event){
  if(event.source!==qrisUploadFrame.contentWindow)return;
  const data=event.data;
  if(!data||data.type!=='qrisUploadResult')return;
- qrisUploadPending=false;
- $('qrisUploadBtn').disabled=false;
  if(data.success){
-  show($('qrisUploadMsg'),'QRIS berhasil diunggah. Layar signage akan memperbarui gambar secara otomatis.',false);
-  $('qrisFile').value='';
+  finishQrisUpload(true,data.message||'QRIS berhasil diunggah. Layar signage akan memperbarui gambar secara otomatis.');
  }else{
-  show($('qrisUploadMsg'),data.message||'Upload QRIS gagal. Periksa konfigurasi Apps Script.',true);
+  finishQrisUpload(false,data.message||'Upload QRIS gagal. Periksa konfigurasi Apps Script.');
  }
 });
 $('qrisUploadBtn').addEventListener('click',async function(){
  if(qrisUploadPending)return;
  const file=$('qrisFile').files&&$('qrisFile').files[0];
  if(!file){show($('qrisUploadMsg'),'Pilih file QRIS PNG terlebih dahulu.',true);return}
- if(file.type!=='image/png'&&!/\.png$/i.test(file.name)){show($('qrisUploadMsg'),'File harus berformat PNG.',true);return}
+ if(file.type!=='image/png'&&!/\\.png$/i.test(file.name)){show($('qrisUploadMsg'),'File harus berformat PNG.',true);return}
  if(file.size>1024*1024){show($('qrisUploadMsg'),'Ukuran gambar maksimal 1 MB.',true);return}
  const pin=String($('pin').value||'').trim();
  if(!pin){show($('qrisUploadMsg'),'Sesi PIN tidak ditemukan. Login kembali.',true);return}
  try{
   $('qrisUploadBtn').disabled=true;
-  show($('qrisUploadMsg'),'Menyiapkan gambar QRIS…',false);
+  show($('qrisUploadMsg'),'Memeriksa status QRIS…',false);
+  let previousVersion='0';
+  try{
+   const current=apiData(await jsonp('getQrisImageVersion',{},10000));
+   previousVersion=String(current&&current.version||'0');
+  }catch(ignore){}
   const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('File gambar tidak dapat dibaca.'));reader.readAsDataURL(file)});
   const base64=dataUrl.split(',')[1]||'';
   if(!base64)throw new Error('Data gambar kosong.');
   $('qrisUploadPin').value=pin;
   $('qrisUploadBase64').value=base64;
+  qrisUploadPreviousVersion=previousVersion;
+  qrisUploadStartedAt=Date.now();
   qrisUploadPending=true;
-  show($('qrisUploadMsg'),'Mengunggah QRIS ke GitHub…',false);
+  show($('qrisUploadMsg'),'Mengunggah QRIS ke GitHub… memverifikasi hasil otomatis.',false);
   qrisUploadForm.submit();
-  setTimeout(function(){if(qrisUploadPending){qrisUploadPending=false;$('qrisUploadBtn').disabled=false;show($('qrisUploadMsg'),'Upload belum menerima konfirmasi. Periksa konfigurasi token GitHub di Apps Script.',true)}},60000);
+  qrisUploadPollTimer=setTimeout(pollQrisUploadVersion,2500);
+  qrisUploadTimeoutTimer=setTimeout(function(){
+   if(qrisUploadPending)finishQrisUpload(false,'Upload belum menerima konfirmasi otomatis. Periksa apakah image/QRIS.png sudah berubah di GitHub sebelum mencoba upload ulang.');
+  },60000);
  }catch(error){
   qrisUploadPending=false;$('qrisUploadBtn').disabled=false;
   show($('qrisUploadMsg'),error&&error.message?error.message:'Upload QRIS gagal.',true);
