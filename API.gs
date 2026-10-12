@@ -798,10 +798,162 @@ function resolveCoordinatesCityFromApi_(params) {
     SpreadsheetApp.flush();
     var actual = sheet.getRange('C14').getDisplayValue();
     if (String(actual).trim() !== cityName) throw new Error('Nama kota gagal diverifikasi pada C14.');
-    return { success: true, city: actual, cell: 'C14', latitude: lat, longitude: lng };
+
+    // Pilih kota terdekat yang benar-benar tersedia di API MuslimKita.
+    // Jika katalog kota tidak dapat dibaca, C14 tetap diperbarui dan C5:C10 tidak diubah.
+    var nearest = findNearestMuslimKitaCity_(sheet, lat, lng);
+    if (nearest) {
+      sheet.getRange('C5:C10').setValues([[
+        nearest.kota,
+        nearest.provinsi,
+        nearest.zona,
+        nearest.timezone,
+        nearest.gmt,
+        nearest.slug
+      ]]);
+      SpreadsheetApp.flush();
+      var verifiedCity = String(sheet.getRange('C5').getDisplayValue() || '').trim();
+      if (verifiedCity !== nearest.kota) throw new Error('C14 tersimpan, tetapi verifikasi kota terdekat pada C5 gagal.');
+    }
+    return {
+      success: true,
+      city: actual,
+      cell: 'C14',
+      latitude: lat,
+      longitude: lng,
+      nearestCity: nearest ? nearest.kota : '',
+      nearestSlug: nearest ? nearest.slug : '',
+      cityAutoUpdated: !!nearest,
+      message: nearest ? ('C14 diperbarui; kota jadwal otomatis menjadi ' + nearest.kota + '.') : 'C14 diperbarui, tetapi katalog kota MuslimKita tidak tersedia; C5 tetap seperti sebelumnya.'
+    };
   } finally {
     lock.releaseLock();
   }
+}
+
+
+/**
+ * Menemukan kota API MuslimKita terdekat dari koordinat Google Maps.
+ * Sumber kandidat adalah dropdown panels!C5 supaya hasilnya sesuai daftar
+ * kota yang digunakan oleh spreadsheet. Metadata dan koordinat diverifikasi
+ * langsung ke endpoint MuslimKita, lalu disimpan di cache.
+ */
+function findNearestMuslimKitaCity_(sheet, latitude, longitude) {
+  var cache = CacheService.getScriptCache();
+  var cacheKey = 'MUSLIMKITA_CITY_CATALOG_V1';
+  var cached = cache.get(cacheKey);
+  var cities = [];
+
+  if (cached) {
+    try { cities = JSON.parse(cached) || []; } catch (ignoreCache) { cities = []; }
+  }
+
+  if (!cities.length) {
+    var candidates = [];
+    var validation = sheet.getRange('C5').getDataValidation();
+    if (validation) {
+      var criteria = validation.getCriteriaType();
+      var values = validation.getCriteriaValues() || [];
+      if (criteria === SpreadsheetApp.DataValidationCriteria.VALUE_IN_LIST && values[0]) {
+        candidates = values[0];
+      } else if (criteria === SpreadsheetApp.DataValidationCriteria.VALUE_IN_RANGE && values[0]) {
+        candidates = values[0].getDisplayValues().reduce(function(all, row) {
+          return all.concat(row);
+        }, []);
+      }
+    }
+
+    // Jika dropdown tidak memakai validasi eksplisit, jangan menebak daftar kota.
+    candidates = candidates.map(function(value) { return String(value || '').trim(); })
+      .filter(function(value, index, all) { return value && all.indexOf(value) === index; })
+      .slice(0, 90);
+    if (!candidates.length) return null;
+
+    var requests = candidates.map(function(name) {
+      var slug = name.toLowerCase()
+        .replace(/[()]/g, '')
+        .replace(/[^a-z0-9\\s-]/g, '')
+        .trim()
+        .replace(/\\s+/g, '-');
+      return {
+        url: 'https://www.muslimkita.id/api/jadwal-sholat/v1/' + encodeURIComponent(slug) + '?metode=kemenag',
+        method: 'get',
+        muteHttpExceptions: true
+      };
+    });
+
+    var responses = [];
+    // Batch kecil mengurangi risiko satu permintaan besar gagal.
+    for (var offset = 0; offset < requests.length; offset += 25) {
+      var batch = requests.slice(offset, offset + 25);
+      try {
+        responses = responses.concat(UrlFetchApp.fetchAll(batch));
+      } catch (batchError) {
+        batch.forEach(function(request) {
+          try { responses.push(UrlFetchApp.fetch(request)); } catch (ignoreFetch) { responses.push(null); }
+        });
+      }
+    }
+
+    responses.forEach(function(response) {
+      if (!response) return;
+      try {
+        if (response.getResponseCode() < 200 || response.getResponseCode() >= 300) return;
+        var data = JSON.parse(response.getContentText() || '{}');
+        var point = data.koordinat || {};
+        var cityLat = Number(point.latitude);
+        var cityLng = Number(point.longitude);
+        var citySlug = String(data.slug || '').trim();
+        if (!citySlug || !data.kota || !isFinite(cityLat) || !isFinite(cityLng)) return;
+        var timezone = String(data.timezone || '').trim();
+        var zona = timezone === 'Asia/Jakarta' ? 'WIB' :
+          timezone === 'Asia/Jayapura' ? 'WIT' :
+          timezone ? 'WITA' : '';
+        var offset = timezone === 'Asia/Jakarta' ? '+7' :
+          timezone === 'Asia/Jayapura' ? '+9' :
+          timezone === 'Asia/Makassar' ? '+8' : '';
+        cities.push({
+          kota: String(data.kota).trim(),
+          provinsi: String(data.provinsi || '').trim(),
+          zona: zona,
+          timezone: timezone,
+          gmt: offset ? 'GMT' + offset : '',
+          slug: citySlug,
+          latitude: cityLat,
+          longitude: cityLng
+        });
+      } catch (ignoreCityResponse) {}
+    });
+
+    // Simpan hanya katalog yang sudah diverifikasi oleh endpoint.
+    if (cities.length) {
+      try { cache.put(cacheKey, JSON.stringify(cities), 21600); } catch (ignorePutCache) {}
+    }
+  }
+
+  if (!cities.length) return null;
+
+  function distanceKm_(lat1, lng1, lat2, lng2) {
+    var rad = Math.PI / 180;
+    var dLat = (lat2 - lat1) * rad;
+    var dLng = (lng2 - lng1) * rad;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
+  }
+
+  var nearest = null;
+  var shortest = Infinity;
+  cities.forEach(function(city) {
+    var distance = distanceKm_(latitude, longitude, city.latitude, city.longitude);
+    if (distance < shortest) {
+      shortest = distance;
+      nearest = city;
+    }
+  });
+  if (nearest) nearest.distanceKm = Math.round(shortest * 10) / 10;
+  return nearest;
 }
 
 function setRemoteCellFromApi_(params) {
