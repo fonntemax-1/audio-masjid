@@ -6530,10 +6530,17 @@ function startRealtimeAudioConfigPolling_() {
        * Jadi scrolling tidak pernah menjadi pemicu perubahan font A1/A2.
        */
       const panelWidth = Math.max(1, panel.clientWidth);
-      const responsiveFontPx = Math.max(
-        16,
-        Math.min(34.5, panelWidth * 0.06375)
-      );
+      const isPortraitMobile =
+        window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches;
+
+      // Portrait QURBAN/PENGURUS mengikuti skala judul dan tanggal KEUANGAN.
+      // Skala besar hanya dipakai pada layar TV/landscape.
+      const responsiveTitleFontPx = isPortraitMobile
+        ? Math.max(7.04, Math.min(9.92, window.innerWidth * 0.0155))
+        : Math.max(16, Math.min(34.5, panelWidth * 0.06375));
+      const responsiveSubFontPx = isPortraitMobile
+        ? Math.max(6.08, Math.min(8, window.innerWidth * 0.0125))
+        : responsiveTitleFontPx;
 
       const titleFontFamily =
         window.getComputedStyle(title).fontFamily || 'Arial, sans-serif';
@@ -6561,12 +6568,30 @@ function startRealtimeAudioConfigPolling_() {
         // Nilai ini BUKAN fixed: dihitung ulang dari lebar FRAME.
         // Browser TV yang tidak mendukung cqw tetap mendapatkan ukuran
         // responsive yang stabil.
+        const targetFontPx = el.id === 'fin-title'
+          ? responsiveTitleFontPx
+          : responsiveSubFontPx;
         el.style.setProperty(
           'font-size',
-          responsiveFontPx.toFixed(2) + 'px',
+          targetFontPx.toFixed(2) + 'px',
           'important'
         );
       });
+
+      // Tanggal tambahan PENGURUS juga mengikuti ukuran tanggal KEUANGAN.
+      if (isPortraitMobile) {
+        const extra = document.getElementById('fin-extra');
+        if (extra && extra.style.display !== 'none') {
+          extra.style.setProperty('font-size', responsiveSubFontPx.toFixed(2) + 'px', 'important');
+          extra.style.setProperty('line-height', '1', 'important');
+          extra.style.setProperty('letter-spacing', '0', 'important');
+          extra.style.setProperty('white-space', 'nowrap', 'important');
+          extra.style.setProperty('overflow', 'hidden', 'important');
+          extra.style.setProperty('width', '100%', 'important');
+          extra.style.setProperty('max-width', '100%', 'important');
+          extra.style.setProperty('box-sizing', 'border-box', 'important');
+        }
+      }
     }
 
     function fitPetugasHeaderText_() {
