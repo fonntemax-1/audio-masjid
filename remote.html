@@ -77,6 +77,9 @@ button.danger:active{background:#b91c1c;color:#fff}
 <section class="card"><h2>🏠 Informasi masjid</h2><div class="grid">
 <div class="field"><label>Nama Masjid</label><input data-cell="C12" maxlength="150" placeholder="Nama masjid"></div>
 <div class="field"><label>Kota</label><select data-cell="C5" id="remoteCity"><option value="">Memuat daftar kota…</option></select></div>
+<div class="field"><label for="latitudeInput">Latitude</label><input id="latitudeInput" type="number" inputmode="decimal" step="any" min="-90" max="90" placeholder="-1.2379"></div>
+<div class="field"><label for="longitudeInput">Longitude</label><input id="longitudeInput" type="number" inputmode="decimal" step="any" min="-180" max="180" placeholder="116.8529"></div>
+<div class="field full"><button id="resolveCoordinatesBtn" class="secondary" type="button">Gunakan Latitude &amp; Longitude</button><div id="manualCoordinateMessage" class="message" role="status" aria-live="polite"></div></div>
 <div class="field full"><label for="googleMapsLinkInput">Link Google Maps</label><input id="googleMapsLinkInput" type="url" inputmode="url" maxlength="2000" placeholder="Tempel link lokasi Google Maps di sini"></div>
 <div class="field full"><label for="resolvedCityDisplay">Nama daerah ditemukan</label><input id="resolvedCityDisplay" data-cell="C14" type="text" maxlength="200" placeholder="Isi otomatis dari Google Maps atau ketik manual" aria-live="polite"></div>
 <div class="field full"><button id="resolveGoogleMapsLinkBtn" class="secondary" type="button">Gunakan Lokasi dari Google Maps</button><div id="coordinateMessage" class="message" role="status" aria-live="polite"></div></div>
@@ -510,6 +513,22 @@ $('logoutBtn').addEventListener('click',()=>{
  $('pin').focus();
 });
 $('activity').addEventListener('change',updateOfficerLabels);
+$('resolveCoordinatesBtn').addEventListener('click',async()=>{
+ const latitude=$('latitudeInput').value.trim(),longitude=$('longitudeInput').value.trim(),msg=$('manualCoordinateMessage'),btn=$('resolveCoordinatesBtn');
+ if(latitude===''||longitude===''){show(msg,'Update Gagal: isi Latitude dan Longitude terlebih dahulu.',true);return;}
+ btn.disabled=true;show(msg,'Mencari nama daerah dari koordinat…',false);
+ try{
+  const response=apiData(await jsonp('resolveCoordinatesCity',{pin:$('pin').value,latitude,longitude},30000));
+  if(!response||response.success!==true||!String(response.city||'').trim())throw new Error('Nama daerah tidak ditemukan dari koordinat tersebut.');
+  $('resolvedCityDisplay').value=String(response.city).trim();
+  show(msg,'Update Berhasil: '+response.city+' tersimpan di C14.',false);
+  setStatus('Update Berhasil',true);
+  await loadRemotePrayerSchedule();
+ }catch(error){
+  show(msg,'Update Gagal'+(error&&error.message?': '+error.message.replace(/^Update Gagal:?\s*/i,''):'.'),true);
+  setStatus('Update Gagal',false);
+ }finally{btn.disabled=false;}
+});
 $('resolveGoogleMapsLinkBtn').addEventListener('click',async()=>{
  const mapsUrl=$('googleMapsLinkInput').value.trim(),msg=$('coordinateMessage'),btn=$('resolveGoogleMapsLinkBtn');
  if(!mapsUrl){show(msg,'Update Gagal: tempel Link Google Maps terlebih dahulu.',true);setStatus('Update Gagal',false);return;}
