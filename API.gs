@@ -379,14 +379,40 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
     var headers = response.getHeaders() || {};
     var location = headers.Location || headers.location || '';
     if (status >= 300 && status < 400 && location) {
-      var previousOrigin = current.match(/^https?:\/\/[^/]+/i);
-      var nextLocation = String(location);
-      if (!/^https?:\/\//i.test(nextLocation)) {
-        if (!previousOrigin) throw new Error('Arah link Google Maps tidak valid.');
-        nextLocation = previousOrigin[0] + (nextLocation.charAt(0) === '/' ? '' : '/') + nextLocation;
+      var nextLocation = String(location).trim();
+      // Redirect Google kadang memakai URL protocol-relative: //maps.google.com/...
+      if (nextLocation.indexOf('//') === 0) {
+        nextLocation = 'https:' + nextLocation;
+      } else if (nextLocation.indexOf('http://') !== 0 && nextLocation.indexOf('https://') !== 0) {
+        var previousOriginMatch = current.match(/^(https?:\/\/[^/]+)/i);
+        if (!previousOriginMatch) throw new Error('Arah link Google Maps tidak valid.');
+        if (nextLocation.charAt(0) === '/') {
+          nextLocation = previousOriginMatch[0] + nextLocation;
+        } else if (nextLocation.charAt(0) === '?') {
+          nextLocation = current.split('?')[0].split('#')[0] + nextLocation;
+        } else {
+          var currentPath = current.split('?')[0].split('#')[0];
+          currentPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+          nextLocation = currentPath + nextLocation;
+        }
       }
       current = nextLocation;
       continue;
+    }
+
+    // Jika tautan pendek berakhir pada halaman HTML, coba temukan koordinat di isi halaman.
+    var body = '';
+    try { body = response.getContentText() || ''; } catch (ignoreBody) {}
+    body = body.replace(/&amp;/gi, '&').replace(/\\u003d/gi, '=').replace(/\\u0026/gi, '&').replace(/\\\//g, '/');
+    var bodyDecoded = body;
+    try { bodyDecoded = decodeURIComponent(body); } catch (ignoreBodyDecode) {}
+    var bodyMatch = bodyDecoded.match(/!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/) ||
+      bodyDecoded.match(/@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/);
+    if (bodyMatch) {
+      var bodyLat = Number(bodyMatch[1]), bodyLng = Number(bodyMatch[2]);
+      if (isFinite(bodyLat) && bodyLat >= -90 && bodyLat <= 90 && isFinite(bodyLng) && bodyLng >= -180 && bodyLng <= 180) {
+        coords = { latitude: bodyLat, longitude: bodyLng };
+      }
     }
     break;
   }
