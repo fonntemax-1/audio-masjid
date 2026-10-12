@@ -8544,14 +8544,16 @@ function startRealtimeAudioConfigPolling_() {
 
       if (finSub) {
         if (keuanganSelector === 'PENGURUS') {
-          currentKeuanganGregorianDate_ = '';
-          keuanganDateConversionToken_++;
-          finSub.innerText =
+          // PENGURUS: baris kedua adalah tanggal; gunakan renderer yang
+          // sama dengan KEUANGAN agar tampil Hijriah | Masehi satu baris.
+          currentKeuanganGregorianDate_ =
             String(data.KeuanganTanggal || '').trim();
+          renderKeuanganDateHeader_(currentKeuanganGregorianDate_);
         } else if (keuanganSelector === 'QURBAN') {
           currentKeuanganGregorianDate_ = '';
           keuanganDateConversionToken_++;
-          // QURBAN: baris kedua menampilkan nilai A2 apa adanya; tidak menambahkan teks hardcode.
+          // QURBAN: baris kedua tetap menampilkan A2 apa adanya.
+          // Tanggal Hijriah | Masehi berada di baris ketiga (A3).
           finSub.innerText =
             String(data.KeuanganTanggal || '').trim();
         } else {
