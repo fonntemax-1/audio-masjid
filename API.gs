@@ -325,6 +325,8 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
   if (!/^https?:\/\//i.test(url) || url.length > 2000) throw new Error('Link Google Maps tidak valid.');
   var current = url;
   var coords = null;
+  var placeLabel = '';
+
   for (var hop = 0; hop < 6; hop++) {
     var hostMatch = current.match(/^https?:\/\/([^\/?#]+)/i);
     if (!hostMatch) throw new Error('Format Link Google Maps tidak valid.');
@@ -334,6 +336,25 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
       host === 'google.co.id' || host.endsWith('.google.co.id') ||
       host === 'maps.google.com' || host === 'maps.google.co.id';
     if (!allowed) throw new Error('Gunakan link dari Google Maps.');
+
+    // Ambil label tempat langsung dari jalur /place/ pada URL Google Maps.
+    // Ini lebih sesuai dengan nama pin/tempat di Maps dibanding nama kota umum
+    // yang dikembalikan reverse geocoding.
+    if (!placeLabel) {
+      var placeMatch = current.match(/\/place\/([^\/?#]+)/i);
+      if (placeMatch && placeMatch[1]) {
+        try {
+          placeLabel = decodeURIComponent(placeMatch[1].replace(/\+/g, ' ')).trim();
+        } catch (ignorePlaceDecode) {
+          placeLabel = String(placeMatch[1]).replace(/\+/g, ' ').trim();
+        }
+        placeLabel = placeLabel.replace(/\s+/g, ' ');
+        if (/^-?\d{1,2}(?:\.\d+)?\s*,\s*-?\d{1,3}(?:\.\d+)?$/.test(placeLabel)) {
+          placeLabel = '';
+        }
+      }
+    }
+
     var decoded = current;
     try { decoded = decodeURIComponent(current); } catch (ignore) {}
     var match = decoded.match(/@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/) ||
@@ -346,6 +367,7 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
         break;
       }
     }
+
     var response;
     try {
       response = UrlFetchApp.fetch(current, { method: 'get', followRedirects: false, muteHttpExceptions: true });
@@ -367,7 +389,35 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
     }
     break;
   }
+
   if (!coords) throw new Error('Koordinat tidak ditemukan. Pastikan link Google Maps mengarah ke pin/lokasi tertentu, bukan hanya halaman utama.');
+
+  // Jika URL menyertakan nama tempat, simpan label tersebut persis sebagai
+  // nama lokasi yang terbaca dari Google Maps. Jika tidak ada label /place/,
+  // gunakan reverse geocoding sebagai cadangan.
+  if (placeLabel) {
+    var lock = LockService.getScriptLock();
+    lock.waitLock(10000);
+    try {
+      var sheet = getSpreadsheet().getSheetByName('panels');
+      if (!sheet) throw new Error('Sheet panels tidak ditemukan.');
+      sheet.getRange('C14').setValue(placeLabel);
+      SpreadsheetApp.flush();
+      var actual = sheet.getRange('C14').getDisplayValue();
+      if (String(actual).trim() !== placeLabel) throw new Error('Nama lokasi gagal diverifikasi pada C14.');
+      return {
+        success: true,
+        city: actual,
+        cell: 'C14',
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        source: 'google-maps-place-label'
+      };
+    } finally {
+      lock.releaseLock();
+    }
+  }
+
   return resolveCoordinatesCityFromApi_({
     pin: suppliedPin,
     latitude: String(coords.latitude),
