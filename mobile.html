@@ -288,6 +288,151 @@ body.startup-visual-ready .screen-container { visibility:visible !important; }
 #startup-visual-overlay { position:fixed; inset:0; z-index:999999; background:#000; pointer-events:none; opacity:1; transition:opacity .12s ease; }
 body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 </style>
+
+<style id="mobile-frame-fit-sizing">
+/* Responsif berbasis ukuran frame. Tidak mengubah susunan layout atau JavaScript. */
+@media screen and (max-width: 900px) {
+  .screen-container, .header, .main-body, .center-panel,
+  .clock-overlay, .countdown-box, .digital-clock-box,
+  .analog-clock, .event-banner, .panel-box {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
+
+  /* Seluruh elemen teks dibolehkan membungkus sebelum keluar frame. */
+  .screen-container *, .screen-container *::before, .screen-container *::after {
+    box-sizing: border-box;
+  }
+  .header-center, .header-center #nama_masjid, .header-center .latin-name,
+  .header-center #alamat_masjid, .header-center .sub,
+  .header-center #slogan_masjid, .header-center .slogan,
+  .panel-title, .panel-sub, .event-running, .prayer-name, .prayer-time {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+  }
+
+  /* Jam analog tetap bundar dan skalanya dibatasi ruang yang tersedia. */
+  .analog-clock {
+    width: clamp(48px, min(18vw, 18vh), 124px) !important;
+    height: clamp(48px, min(18vw, 18vh), 124px) !important;
+    max-width: 100% !important;
+    flex: 0 1 auto !important;
+    aspect-ratio: 1 / 1 !important;
+  }
+  .analog-clock .clock-face-svg, .clock-face-svg {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+  }
+
+  /* Jam digital dan label zona waktu mengikuti frame induknya. */
+  .digital-clock-box {
+    width: auto !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 0 1 auto !important;
+    text-align: center !important;
+    overflow: hidden !important;
+  }
+  .digital-time, #digital-clock, .panel-black-digital-clock {
+    display: block !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    font-size: clamp(16px, min(5.5vw, 6.5vh), 42px) !important;
+    line-height: 1.05 !important;
+    letter-spacing: clamp(0px, 0.12vw, 1px) !important;
+    white-space: nowrap !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+  .tz-text {
+    max-width: 100% !important;
+    font-size: clamp(9px, min(2.4vw, 2.8vh), 18px) !important;
+    line-height: 1.1 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* Countdown membatasi judul dan angka agar tidak menembus batas frame. */
+  .clock-overlay {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+  .countdown-box {
+    width: fit-content !important;
+    max-width: calc(100% - 12px) !important;
+    min-width: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: clamp(4px, 1.2vw, 12px) !important;
+    overflow: hidden !important;
+  }
+  .countdown-title, #countdown-title {
+    max-width: 100% !important;
+    font-size: clamp(10px, min(3.2vw, 3.8vh), 24px) !important;
+    line-height: 1.15 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+  .countdown-timer, #countdown {
+    display: block !important;
+    max-width: 100% !important;
+    font-size: clamp(18px, min(6.5vw, 7vh), 48px) !important;
+    line-height: 1.05 !important;
+    letter-spacing: clamp(0px, 0.15vw, 1.5px) !important;
+    white-space: nowrap !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+
+  /* Frame video, gambar dan SVG tidak boleh melebar melebihi induknya. */
+  .center-panel img, .center-panel video, .center-panel iframe,
+  .center-panel svg, .panel-box img, .panel-box svg {
+    max-width: 100% !important;
+  }
+  .center-panel img, .panel-box img {
+    object-fit: contain !important;
+  }
+}
+
+/* Landscape HP: gunakan tinggi viewport sebagai batas tambahan untuk jam/teks. */
+@media screen and (max-width: 900px) and (orientation: landscape) {
+  .analog-clock {
+    width: clamp(42px, min(12vw, 16vh), 92px) !important;
+    height: clamp(42px, min(12vw, 16vh), 92px) !important;
+  }
+  .digital-time, #digital-clock, .panel-black-digital-clock {
+    font-size: clamp(15px, min(3.2vw, 5.5vh), 30px) !important;
+  }
+  .countdown-title, #countdown-title {
+    font-size: clamp(9px, min(2vw, 3vh), 17px) !important;
+  }
+  .countdown-timer, #countdown {
+    font-size: clamp(16px, min(4vw, 6vh), 34px) !important;
+  }
+  .tz-text { font-size: clamp(8px, min(1.6vw, 2.4vh), 13px) !important; }
+}
+
+/* Portrait HP: skala dibatasi lebar frame, tanpa mengubah posisi komponen. */
+@media screen and (max-width: 900px) and (orientation: portrait) {
+  .analog-clock {
+    width: clamp(50px, min(22vw, 16vh), 112px) !important;
+    height: clamp(50px, min(22vw, 16vh), 112px) !important;
+  }
+  .digital-time, #digital-clock, .panel-black-digital-clock {
+    font-size: clamp(17px, min(6vw, 4.8vh), 34px) !important;
+  }
+  .countdown-title, #countdown-title {
+    font-size: clamp(10px, min(3.8vw, 3.4vh), 19px) !important;
+  }
+  .countdown-timer, #countdown {
+    font-size: clamp(20px, min(7.5vw, 5.5vh), 38px) !important;
+  }
+}
+</style>
+
 </head>
 
 <body class="startup-visual-hold">
