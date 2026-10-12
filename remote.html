@@ -80,6 +80,7 @@ button.danger:active{background:#b91c1c;color:#fff}
 <div class="field"><label>Zona</label><input data-read-cell="C7" value="Memuat…" readonly></div>
 <div class="field"><label>Timezone</label><input data-read-cell="C8" value="Memuat…" readonly></div>
 <div class="field"><label>GMT</label><input data-read-cell="C9" value="Memuat…" readonly></div>
+<div class="field"><label>Slug</label><input data-read-cell="C10" value="Memuat…" readonly></div>
 <div class="field full"><label>Alamat</label><input data-cell="C13" maxlength="250" placeholder="Alamat masjid"></div>
 <div class="field"><label>No. HP</label><input data-cell="C15" inputmode="tel" maxlength="40"></div>
 <div class="field"><label>Slogan</label><input data-cell="C16" maxlength="250"></div>
@@ -231,6 +232,7 @@ function updateOfficerLabels(){
  $('petugas2Label').textContent=labels[1];
  $('petugas3Label').textContent=labels[2];
 }
+let remoteCityRecords={};
 async function loadRemoteCityOptions(){
  const select=$('remoteCity');if(!select)return;
  const previous=String(select.value||'');
@@ -239,9 +241,10 @@ async function loadRemoteCityOptions(){
   if(!response.ok)throw new Error('Daftar kota tidak tersedia');
   const payload=await response.json();
   const cities=payload&&payload.cities&&typeof payload.cities==='object'?payload.cities:{};
-  const entries=Object.keys(cities).map(key=>({key,name:String(cities[key]&&cities[key].kota||key),province:String(cities[key]&&cities[key].provinsi||'')})).sort((a,b)=>a.name.localeCompare(b.name,'id'));
+  const entries=Object.keys(cities).map(key=>{const item=cities[key]||{};return {key,name:String(item.kota||key),province:String(item.provinsi||''),zona:String(item.zona||''),timezone:String(item.timezone||''),gmt:String(item.gmt||''),slug:String(item.slug||key)}}).sort((a,b)=>a.name.localeCompare(b.name,'id'));
+  remoteCityRecords={};
   select.replaceChildren(new Option('Pilih kota…',''));
-  entries.forEach(city=>select.add(new Option(city.province?city.name+' — '+city.province:city.name,city.name)));
+  entries.forEach(city=>{remoteCityRecords[city.name]=city;select.add(new Option(city.province?city.name+' — '+city.province:city.name,city.name));});
   if(previous)select.value=previous;
  }catch(error){
   if(!select.options.length||!select.options[0].value)select.replaceChildren(new Option('Daftar kota gagal dimuat',''));
@@ -295,7 +298,9 @@ async function refreshPanels(){
   const first=(obj,keys)=>{if(!obj||typeof obj!=='object')return undefined;for(const k of keys)if(obj[k]!==undefined&&obj[k]!==null&&obj[k]!=='')return obj[k];return undefined};
   if(p&&typeof p==='object'){
    const lokasi=p.Lokasi||p.lokasi||{};
-   const autoValues={'C12':first(p,['Nama','nama']),'C5':first(lokasi,['kota','Kota']),'C6':first(lokasi,['provinsi','Provinsi']),'C7':first(lokasi,['zona','Zona']),'C8':first(lokasi,['timezone','Timezone']),'C9':first(lokasi,['gmt','GMT'])};
+   const autoValues={'C6':first(lokasi,['provinsi','Provinsi']),'C7':first(lokasi,['zona','Zona']),'C8':first(lokasi,['timezone','Timezone']),'C9':first(lokasi,['gmt','GMT']),'C10':first(lokasi,['slug','Slug'])};
+   put('C12',first(p,['Nama','nama']));
+   put('C5',first(lokasi,['kota','Kota']));
    Object.keys(autoValues).forEach(cell=>{if(readByCell[cell]&&autoValues[cell]!==undefined)readByCell[cell].value=String(autoValues[cell])});
    put('C13',first(p,['Alamat','alamat']));put('C15',first(p,['No. Telp','NoTelp','NoHP']));put('C16',first(p,['Slogan','slogan']));
    put('C2',first(p,['PanelMode','CountdownMode','Countdown']));
@@ -499,6 +504,21 @@ $('logoutBtn').addEventListener('click',()=>{
  $('pin').focus();
 });
 $('activity').addEventListener('change',updateOfficerLabels);
+$('remoteCity').addEventListener('change',async function(){
+ const cityName=String(this.value||'').trim();const city=remoteCityRecords[cityName];if(!city)return;
+ const cells=[{cell:'C5',value:city.name},{cell:'C6',value:city.province},{cell:'C7',value:city.zona},{cell:'C8',value:city.timezone},{cell:'C9',value:city.gmt},{cell:'C10',value:city.slug}];
+ Object.keys(readByCell).forEach(cell=>{const item=cells.find(x=>x.cell===cell);if(item)readByCell[cell].value=item.value;});
+ const select=this;select.disabled=true;setStatus('Memperbarui data lokasi…',false);
+ try{
+  const result=apiData(await jsonp('setRemoteCells',{pin:$('pin').value,cells:JSON.stringify(cells)},30000));
+  if(!result||result.success!==true||Number(result.count)!==cells.length)throw new Error('Konfirmasi update lokasi tidak lengkap.');
+  setStatus('Data kota dan zona waktu berhasil diperbarui',true);
+ }catch(error){
+  setStatus('Update lokasi gagal',false);
+  window.alert('Kota belum tersimpan lengkap. Periksa koneksi dan Spreadsheet, lalu coba lagi.');
+  await refreshPanels();
+ }finally{select.disabled=false;}
+});
 updateOfficerLabels();
 
 const logoUploadForm=$('logoUploadForm');
