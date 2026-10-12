@@ -326,6 +326,7 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
   var current = url;
   var coords = null;
   var placeTextCandidates = [];
+  var resolverDiagnostics = [];
 
   // URL dan HTML diproses berbeda. HTML Google Maps sering memuat @lat,lng
   // sebagai pusat/viewport peta, bukan lokasi pin yang dibagikan.
@@ -410,6 +411,7 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
     }
 
     var status = response.getResponseCode();
+    resolverDiagnostics.push('redirect HTTP ' + status + ' host ' + host);
     var headers = response.getHeaders() || {};
     var location = headers.Location || headers.location || '';
     if (status >= 300 && status < 400 && location) {
@@ -579,6 +581,7 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
         headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TVSholat/1.0)' }
       });
       var titleStatus = titleResponse.getResponseCode();
+      resolverDiagnostics.push('title HTTP ' + titleStatus);
       if (titleStatus >= 200 && titleStatus < 400) {
         var titleHtml = titleResponse.getContentText() || '';
         var titleMatch = titleHtml.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i);
@@ -593,6 +596,7 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
             .replace(/\s+/g, ' ')
             .trim();
           if (pageTitle && !/^(google maps|maps|google)$/i.test(pageTitle)) {
+            resolverDiagnostics.push('judul terbaca: ' + pageTitle.substring(0, 120));
             if (placeTextCandidates.indexOf(pageTitle) < 0) {
               placeTextCandidates.unshift(pageTitle);
             }
@@ -609,16 +613,20 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
                   coords = { latitude: titleLat, longitude: titleLng };
                 }
               }
-            } catch (ignoreTitleGeocode) {}
+            } catch (titleGeocodeError) { resolverDiagnostics.push('geocode judul: ' + String(titleGeocodeError).substring(0, 180)); }
           }
         }
       }
-    } catch (ignoreTitleFetch) {
-      // Kegagalan fallback judul tidak menimpa error utama resolver.
+    } catch (titleFetchError) {
+      resolverDiagnostics.push('fetch judul: ' + String(titleFetchError).substring(0, 180));
     }
   }
 
-  if (!coords) throw new Error('Google Maps belum memberikan koordinat atau alamat tempat yang dapat dibaca. Coba salin link melalui Bagikan pada pin tempat di aplikasi Google Maps.');
+  if (!coords) {
+    var diagnosticText = resolverDiagnostics.length ? ' Detail: ' + resolverDiagnostics.slice(-5).join(' | ') : ' Tidak ada redirect/metadata yang terbaca.';
+    if (placeTextCandidates.length) diagnosticText += ' Kandidat nama: ' + placeTextCandidates.slice(0, 3).join(' / ').substring(0, 220);
+    throw new Error('Google Maps belum memberikan koordinat yang bisa dipakai untuk menentukan wilayah C14.' + diagnosticText + ' Gunakan tautan Bagikan pada pin tempat atau tautan Google Maps lengkap.');
+  }
 
   return resolveCoordinatesCityFromApi_({
     pin: suppliedPin,
