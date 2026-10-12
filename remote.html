@@ -272,6 +272,7 @@ async function connect(){
   setStatus('Login berhasil · '+(res.timezone||''),true);
   await loadRemoteCityOptions();
   await refreshPanels();
+  try{await syncCoordinateCityFallback()}catch(fallbackError){setStatus('Data dimuat; nama kota C14 belum tersinkron',false)}
  }catch(e){setStatus('Login gagal',false);show($('connectionMsg'),'Login gagal, silahkan coba kembali.',true)}
  finally{$('connectBtn').disabled=false}
 }
@@ -392,6 +393,13 @@ async function saveCell(cell,value){
  const pin=$('pin').value;if(!pin){throw new Error('Masukan PIN remote terlebih dahulu.')}
  await jsonp('setRemoteCell',{sheet:'panels',cell,value,pin});
 }
+async function syncCoordinateCityFallback(){
+ const lat=$('coordinateLatitude').value.trim(),lon=$('coordinateLongitude').value.trim();
+ if(lat||lon)return;
+ const city=String($('remoteCity').value||'').trim();if(!city)return;
+ const result=apiData(await jsonp('setRemoteCell',{sheet:'panels',cell:'C14',value:city,pin:$('pin').value},20000));
+ if(result&&result.success===false)throw new Error(result.error||'Nama kota cadangan gagal disimpan ke C14.');
+}
 async function saveCells(cells){
  const box=$('saveMsg');const unique=[...new Set(cells)];const items=[];
  for(const cell of unique){const els=inputByCell[cell];if(!els||!els.length)continue;let value=els[0].value;if(cell==='C29'&&/^\d{4}-\d{2}-\d{2}$/.test(value)){const [y,m,d]=value.split('-');value=d+'/'+m+'/'+y}items.push({cell,value})}
@@ -510,6 +518,8 @@ $('logoutBtn').addEventListener('click',()=>{
  $('pin').focus();
 });
 $('activity').addEventListener('change',updateOfficerLabels);
+$('coordinateLatitude').addEventListener('change',async()=>{if(!$('coordinateLatitude').value.trim()&&!$('coordinateLongitude').value.trim()){try{await syncCoordinateCityFallback();show($('coordinateMessage'),'Koordinat kosong; C14 mengikuti Kota (C5).',false)}catch(error){show($('coordinateMessage'),error.message||'Gagal menyinkronkan C14.',true)}}});
+$('coordinateLongitude').addEventListener('change',async()=>{if(!$('coordinateLatitude').value.trim()&&!$('coordinateLongitude').value.trim()){try{await syncCoordinateCityFallback();show($('coordinateMessage'),'Koordinat kosong; C14 mengikuti Kota (C5).',false)}catch(error){show($('coordinateMessage'),error.message||'Gagal menyinkronkan C14.',true)}}});
 $('resolveCoordinatesBtn').addEventListener('click',async()=>{
  const latText=$('coordinateLatitude').value.trim(),lonText=$('coordinateLongitude').value.trim();
  const lat=Number(latText),lon=Number(lonText),msg=$('coordinateMessage'),btn=$('resolveCoordinatesBtn');
@@ -536,7 +546,8 @@ $('remoteCity').addEventListener('change',async function(){
   try{
    const slugResult=apiData(await jsonp('setRemoteCells',{pin:$('pin').value,cells:JSON.stringify([slugCell])},30000));
    if(!slugResult||slugResult.success!==true||Number(slugResult.count)!==1)throw new Error('Slug belum tersimpan.');
-   setStatus('Kota, Provinsi, Zona, Timezone, GMT, dan Slug berhasil diperbarui',true);
+   await syncCoordinateCityFallback();
+   setStatus('Kota, Provinsi, Zona, Timezone, GMT, Slug, dan C14 berhasil diperbarui',true);
   }catch(slugError){
    setStatus('Data lokasi tersimpan; Slug perlu deploy API.gs terbaru',false);
    showResult(false);
