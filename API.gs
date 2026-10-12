@@ -326,9 +326,10 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
   var current = url;
   var coords = null;
 
-  // Pencari koordinat dipakai pada URL dan HTML karena link pendek Maps kadang
-  // berakhir pada halaman perantara yang menyimpan URL tujuan di JavaScript.
-  function findCoordinates_(text) {
+  // URL dan HTML diproses berbeda. HTML Google Maps sering memuat @lat,lng
+  // sebagai pusat/viewport peta, bukan lokasi pin yang dibagikan.
+  // Karena itu, pola @lat,lng tidak pernah dibaca dari HTML.
+  function findCoordinates_(text, isUrl) {
     var candidates = [String(text || '')];
     var cleaned = candidates[0]
       .replace(/&amp;/gi, '&')
@@ -353,11 +354,17 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
     for (var ci = 0; ci < candidates.length; ci++) {
       var candidate = candidates[ci];
       var patterns = [
+        // Format pin spesifik Google Maps.
         /!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/i,
-        /@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/,
-        /[?&](?:q|query|ll|center|destination|origin|daddr|saddr)=(-?\d{1,2}(?:\.\d+)?)[,%2C\s]+(-?\d{1,3}(?:\.\d+)?)/i,
-        /(?:latitude|lat)["']?\s*[:=]\s*(-?\d{1,2}(?:\.\d+)?)[\s\S]{0,120}?(?:longitude|lng|lon)["']?\s*[:=]\s*(-?\d{1,3}(?:\.\d+)?)/i
+        // Parameter tujuan eksplisit; jangan gunakan center/origin yang bisa
+        // menunjuk posisi peta atau titik awal perjalanan.
+        /[?&](?:q|query|destination|daddr)=(-?\d{1,2}(?:\.\d+)?)[,%2C\s]+(-?\d{1,3}(?:\.\d+)?)/i
       ];
+      if (isUrl) {
+        // @lat,lng hanya dipertimbangkan pada URL, tidak pada isi HTML.
+        // HTML Maps dapat memuat koordinat viewport yang tidak terkait pin.
+        patterns.push(/@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/);
+      }
       for (var pi = 0; pi < patterns.length; pi++) {
         var m = candidate.match(patterns[pi]);
         if (!m) continue;
@@ -380,7 +387,7 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
       host === 'maps.google.com' || host === 'maps.google.co.id';
     if (!allowed) throw new Error('Gunakan link dari Google Maps.');
 
-    coords = findCoordinates_(current);
+    coords = findCoordinates_(current, true);
     if (coords) break;
 
     var response;
@@ -421,7 +428,7 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
 
     var body = '';
     try { body = response.getContentText() || ''; } catch (ignoreBody) {}
-    coords = findCoordinates_(body);
+    coords = findCoordinates_(body, false);
     if (coords) break;
 
     // Jika HTML hanya memuat tautan tujuan, ikuti tautan itu pada iterasi berikutnya.
