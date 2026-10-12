@@ -74,14 +74,13 @@ button.danger:active{background:#b91c1c;color:#fff}
 <div class="logout-bar"><button id="logoutBtn" type="button">LOGOUT</button></div>
 <div class="section-title">IDENTITAS MASJID</div>
 <section class="card"><h2>🏠 Informasi masjid</h2><div class="grid">
-<div class="field"><label>Nama</label><input data-cell="C12" maxlength="150" placeholder="Nama masjid"></div>
+<div class="field"><label>Nama Masjid</label><input data-cell="C12" maxlength="150" placeholder="Nama masjid"></div>
 <div class="field"><label>Kota</label><select data-cell="C5" id="remoteCity"><option value="">Memuat daftar kota…</option></select></div>
 <div class="field"><label>Provinsi</label><input data-read-cell="C6" value="Memuat…" readonly></div>
 <div class="field"><label>Zona</label><input data-read-cell="C7" value="Memuat…" readonly></div>
 <div class="field"><label>Timezone</label><input data-read-cell="C8" value="Memuat…" readonly></div>
 <div class="field"><label>GMT</label><input data-read-cell="C9" value="Memuat…" readonly></div>
 <div class="field"><label>Slug</label><input data-read-cell="C10" value="Memuat…" readonly></div>
-<div class="field full"><label>Nama Masjid</label><input data-cell="C14" maxlength="150" placeholder="Nama masjid"></div>
 <div class="field full"><label>Alamat</label><input data-cell="C13" maxlength="250" placeholder="Alamat masjid"></div>
 <div class="field"><label>No. HP</label><input data-cell="C15" inputmode="tel" maxlength="40"></div>
 <div class="field"><label>Slogan</label><input data-cell="C16" maxlength="250"></div>
@@ -185,7 +184,7 @@ const $=id=>document.getElementById(id);
 function updateHeaderClock(){const now=new Date();$('currentDate').textContent=new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).format(now);$('currentTime').textContent=new Intl.DateTimeFormat('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now)+' '+(Intl.DateTimeFormat('id-ID',{timeZoneName:'short'}).formatToParts(now).find(p=>p.type==='timeZoneName')?.value||'');}
 function markLastUpdate(){const now=new Date();$('lastUpdate').textContent=new Intl.DateTimeFormat('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now)+' '+(Intl.DateTimeFormat('id-ID',{timeZoneName:'short'}).formatToParts(now).find(p=>p.type==='timeZoneName')?.value||'');$('lastUpdateWrap').classList.remove('hidden');}
 function syncHeaderHeight(){document.documentElement.style.setProperty('--header-height',Math.ceil(document.querySelector('header').getBoundingClientRect().height)+'px')}syncHeaderHeight();window.addEventListener('resize',syncHeaderHeight);if('ResizeObserver'in window)new ResizeObserver(syncHeaderHeight).observe(document.querySelector('header'));updateHeaderClock();setInterval(updateHeaderClock,1000);
-const groups={profile:['C12','C5','C14','C13','C15','C16'],display:['C2','C18','C20','F20','C22','C57','G57'],officers:['C26','C28','C29','C30','C31','C32'],running:['B35','B36','B37','B38','B39'],infaq:['C41','C42','C43'],events:['B64','C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64'],video:['C68','D68','E68','C69','D69','E69','B70','C70','D70','E70','B71','C71','D71','E71','B72','C72','D72','E72']};
+const groups={profile:['C12','C5','C13','C15','C16'],display:['C2','C18','C20','F20','C22','C57','G57'],officers:['C26','C28','C29','C30','C31','C32'],running:['B35','B36','B37','B38','B39'],infaq:['C41','C42','C43'],events:['B64','C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64'],video:['C68','D68','E68','C69','D69','E69','B70','C70','D70','E70','B71','C71','D71','E71','B72','C72','D72','E72']};
 const inputByCell={};document.querySelectorAll('[data-cell]').forEach(el=>{(inputByCell[el.dataset.cell]||(inputByCell[el.dataset.cell]=[])).push(el)});
 const readByCell={};document.querySelectorAll('[data-read-cell]').forEach(el=>{readByCell[el.dataset.readCell]=el});
 
@@ -373,7 +372,7 @@ async function refreshPanels(){
   // Sel tanggal dan status event dibaca langsung dari object panels jika tersedia.
   if(p&&typeof p==='object'){
    const panel=p.panels||p.Panels||{};
-   ['C14','B64','C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64','C57','G57','C68','D68','E68','C69','D69','E69','B70','C70','D70','E70','B71','C71','D71','E71','B72','C72','D72','E72'].forEach(cell=>{
+   ['B64','C60','D60','E60','C61','D61','E61','C62','D62','E62','C63','D63','E63','C64','D64','E64','C57','G57','C68','D68','E68','C69','D69','E69','B70','C70','D70','E70','B71','C71','D71','E71','B72','C72','D72','E72'].forEach(cell=>{
     if(panel[cell]!==undefined)put(cell,panel[cell]);
    });
   }
