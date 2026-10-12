@@ -325,9 +325,52 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
   if (!/^https?:\/\//i.test(url) || url.length > 2000) throw new Error('Link Google Maps tidak valid.');
   var current = url;
   var coords = null;
-  var placeLabel = '';
 
-  for (var hop = 0; hop < 6; hop++) {
+  // Pencari koordinat dipakai pada URL dan HTML karena link pendek Maps kadang
+  // berakhir pada halaman perantara yang menyimpan URL tujuan di JavaScript.
+  function findCoordinates_(text) {
+    var candidates = [String(text || '')];
+    var cleaned = candidates[0]
+      .replace(/&amp;/gi, '&')
+      .replace(/&#x3d;|&#61;/gi, '=')
+      .replace(/&#x26;|&#38;/gi, '&')
+      .replace(/\\u003d/gi, '=')
+      .replace(/\\u0026/gi, '&')
+      .replace(/\\u002f/gi, '/')
+      .replace(/\\\//g, '/')
+      .replace(/\\x3d/gi, '=')
+      .replace(/\\x26/gi, '&');
+    if (cleaned !== candidates[0]) candidates.push(cleaned);
+    try {
+      var decodedOnce = decodeURIComponent(cleaned);
+      if (candidates.indexOf(decodedOnce) < 0) candidates.push(decodedOnce);
+      try {
+        var decodedTwice = decodeURIComponent(decodedOnce);
+        if (candidates.indexOf(decodedTwice) < 0) candidates.push(decodedTwice);
+      } catch (ignoreTwice) {}
+    } catch (ignoreOnce) {}
+
+    for (var ci = 0; ci < candidates.length; ci++) {
+      var candidate = candidates[ci];
+      var patterns = [
+        /!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/i,
+        /@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/,
+        /[?&](?:q|query|ll|center|destination|origin|daddr|saddr)=(-?\d{1,2}(?:\.\d+)?)[,%2C\s]+(-?\d{1,3}(?:\.\d+)?)/i,
+        /(?:latitude|lat)["']?\s*[:=]\s*(-?\d{1,2}(?:\.\d+)?)[\s\S]{0,120}?(?:longitude|lng|lon)["']?\s*[:=]\s*(-?\d{1,3}(?:\.\d+)?)/i
+      ];
+      for (var pi = 0; pi < patterns.length; pi++) {
+        var m = candidate.match(patterns[pi]);
+        if (!m) continue;
+        var lat = Number(m[1]), lng = Number(m[2]);
+        if (isFinite(lat) && lat >= -90 && lat <= 90 && isFinite(lng) && lng >= -180 && lng <= 180) {
+          return { latitude: lat, longitude: lng };
+        }
+      }
+    }
+    return null;
+  }
+
+  for (var hop = 0; hop < 8; hop++) {
     var hostMatch = current.match(/^https?:\/\/([^\/?#]+)/i);
     if (!hostMatch) throw new Error('Format Link Google Maps tidak valid.');
     var host = hostMatch[1].toLowerCase().replace(/:\d+$/, '');
@@ -337,57 +380,33 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
       host === 'maps.google.com' || host === 'maps.google.co.id';
     if (!allowed) throw new Error('Gunakan link dari Google Maps.');
 
-    // Ambil label tempat langsung dari jalur /place/ pada URL Google Maps.
-    // Ini lebih sesuai dengan nama pin/tempat di Maps dibanding nama kota umum
-    // yang dikembalikan reverse geocoding.
-    if (!placeLabel) {
-      var placeMatch = current.match(/\/place\/([^\/?#]+)/i);
-      if (placeMatch && placeMatch[1]) {
-        try {
-          placeLabel = decodeURIComponent(placeMatch[1].replace(/\+/g, ' ')).trim();
-        } catch (ignorePlaceDecode) {
-          placeLabel = String(placeMatch[1]).replace(/\+/g, ' ').trim();
-        }
-        placeLabel = placeLabel.replace(/\s+/g, ' ');
-        if (/^-?\d{1,2}(?:\.\d+)?\s*,\s*-?\d{1,3}(?:\.\d+)?$/.test(placeLabel)) {
-          placeLabel = '';
-        }
-      }
-    }
-
-    var decoded = current;
-    try { decoded = decodeURIComponent(current); } catch (ignore) {}
-    // Prioritaskan koordinat pin tempat (!3d!4d); @lat,lng hanya pusat tampilan peta.
-    var match = decoded.match(/!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/) ||
-      decoded.match(/[?&](?:q|query|ll|center|destination|origin)=(-?\d{1,2}(?:\.\d+)?)[,%2C\s]+(-?\d{1,3}(?:\.\d+)?)/i) ||
-      decoded.match(/@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/);
-    if (match) {
-      var lat = Number(match[1]), lng = Number(match[2]);
-      if (isFinite(lat) && lat >= -90 && lat <= 90 && isFinite(lng) && lng >= -180 && lng <= 180) {
-        coords = { latitude: lat, longitude: lng };
-        break;
-      }
-    }
+    coords = findCoordinates_(current);
+    if (coords) break;
 
     var response;
     try {
-      response = UrlFetchApp.fetch(current, { method: 'get', followRedirects: false, muteHttpExceptions: true });
+      response = UrlFetchApp.fetch(current, {
+        method: 'get',
+        followRedirects: false,
+        muteHttpExceptions: true,
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TVSholat/1.0)' }
+      });
     } catch (err) {
       throw new Error('Link Google Maps tidak dapat dibuka oleh server.');
     }
+
     var status = response.getResponseCode();
     var headers = response.getHeaders() || {};
     var location = headers.Location || headers.location || '';
     if (status >= 300 && status < 400 && location) {
       var nextLocation = String(location).trim();
-      // Redirect Google kadang memakai URL protocol-relative: //maps.google.com/...
       if (nextLocation.indexOf('//') === 0) {
         nextLocation = 'https:' + nextLocation;
-      } else if (nextLocation.indexOf('http://') !== 0 && nextLocation.indexOf('https://') !== 0) {
-        var previousOriginMatch = current.match(/^(https?:\/\/[^/]+)/i);
-        if (!previousOriginMatch) throw new Error('Arah link Google Maps tidak valid.');
+      } else if (!/^https?:\/\//i.test(nextLocation)) {
+        var originMatch = current.match(/^(https?:\/\/[^\/]+)/i);
+        if (!originMatch) throw new Error('Arah link Google Maps tidak valid.');
         if (nextLocation.charAt(0) === '/') {
-          nextLocation = previousOriginMatch[0] + nextLocation;
+          nextLocation = originMatch[0] + nextLocation;
         } else if (nextLocation.charAt(0) === '?') {
           nextLocation = current.split('?')[0].split('#')[0] + nextLocation;
         } else {
@@ -400,27 +419,30 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
       continue;
     }
 
-    // Jika tautan pendek berakhir pada halaman HTML, coba temukan koordinat di isi halaman.
     var body = '';
     try { body = response.getContentText() || ''; } catch (ignoreBody) {}
-    body = body.replace(/&amp;/gi, '&').replace(/\\u003d/gi, '=').replace(/\\u0026/gi, '&').replace(/\\\//g, '/');
-    var bodyDecoded = body;
-    try { bodyDecoded = decodeURIComponent(body); } catch (ignoreBodyDecode) {}
-    var bodyMatch = bodyDecoded.match(/!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/) ||
-      bodyDecoded.match(/@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/);
-    if (bodyMatch) {
-      var bodyLat = Number(bodyMatch[1]), bodyLng = Number(bodyMatch[2]);
-      if (isFinite(bodyLat) && bodyLat >= -90 && bodyLat <= 90 && isFinite(bodyLng) && bodyLng >= -180 && bodyLng <= 180) {
-        coords = { latitude: bodyLat, longitude: bodyLng };
+    coords = findCoordinates_(body);
+    if (coords) break;
+
+    // Jika HTML hanya memuat tautan tujuan, ikuti tautan itu pada iterasi berikutnya.
+    var targetMatch = body.match(/(?:href|content)\s*=\s*["']([^"']*(?:maps\.google|google\.com\/maps)[^"']*)["']/i);
+    if (targetMatch && targetMatch[1]) {
+      var target = targetMatch[1].replace(/&amp;/gi, '&').replace(/\\\//g, '/');
+      if (target.indexOf('//') === 0) target = 'https:' + target;
+      else if (target.charAt(0) === '/') {
+        var targetOrigin = current.match(/^(https?:\/\/[^\/]+)/i);
+        if (targetOrigin) target = targetOrigin[0] + target;
+      }
+      if (/^https?:\/\//i.test(target)) {
+        current = target;
+        continue;
       }
     }
     break;
   }
 
-  if (!coords) throw new Error('Koordinat tidak ditemukan. Pastikan link Google Maps mengarah ke pin/lokasi tertentu, bukan hanya halaman utama.');
+  if (!coords) throw new Error('Koordinat tidak ditemukan. Server Google Maps tidak mengirim koordinat pin pada link ini. Coba salin link melalui Bagikan pada pin tempat di aplikasi Google Maps, atau masukkan Latitude dan Longitude secara langsung.');
 
-  // Semua link Maps diselesaikan dari koordinat melalui reverse geocoding bahasa Indonesia.
-  // Nama tempat diambil sebagai wilayah + kabupaten/kota; provinsi tidak ditampilkan.
   return resolveCoordinatesCityFromApi_({
     pin: suppliedPin,
     latitude: String(coords.latitude),
