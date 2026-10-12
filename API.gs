@@ -480,9 +480,9 @@ function resolveCoordinatesCityFromApi_(params) {
   // Hilangkan awalan administratif dari nama area agar C14 ringkas.
   // Contoh: "Kecamatan Balikpapan Kota" menjadi "Balikpapan Kota".
   areaName = String(areaName || '')
-    .replace(/^Kecamatan\\s+/i, '')
-    .replace(/^Kelurahan\\s+/i, '')
-    .replace(/^Desa\\s+/i, '')
+    .replace(/^Kecamatan\s+/i, '')
+    .replace(/^Kelurahan\s+/i, '')
+    .replace(/^Desa\s+/i, '')
     .trim();
 
   // C14 cukup menampilkan "nama wilayah, nama kabupaten/kota" tanpa label administratif.
