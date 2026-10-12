@@ -19006,16 +19006,30 @@ function setCountdownBlackMode(enabled) {
     });
   }
 
+  var fitRetryTimers = [];
+
   function requestFit() {
     if (fitPending) return;
     fitPending = true;
-    window.requestAnimationFrame(fitPortraitHeaders);
+    window.requestAnimationFrame(function () {
+      fitPortraitHeaders();
+      // Renderer tanggal lama menjadwalkan auto-fit dalam dua animation frame.
+      // Jalankan ulang setelahnya agar ukuran portrait menjadi hasil terakhir.
+      fitRetryTimers.forEach(function (timer) { window.clearTimeout(timer); });
+      fitRetryTimers = [
+        window.setTimeout(fitPortraitHeaders, 80),
+        window.setTimeout(fitPortraitHeaders, 220),
+        window.setTimeout(fitPortraitHeaders, 500)
+      ];
+    });
   }
 
   var observer = new MutationObserver(requestFit);
   [titleEl, subEl, extraEl].forEach(function(el) {
     if (el) observer.observe(el, { childList: true, characterData: true, subtree: true });
   });
+  // Selector panel berubah saat data Spreadsheet masuk; pantau atributnya juga.
+  observer.observe(frame, { attributes: true, attributeFilter: ['data-panel-selector', 'class'] });
   if (typeof ResizeObserver === 'function') {
     var resizeObserver = new ResizeObserver(requestFit);
     resizeObserver.observe(frame);
