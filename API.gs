@@ -357,9 +357,10 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
 
     var decoded = current;
     try { decoded = decodeURIComponent(current); } catch (ignore) {}
-    var match = decoded.match(/@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/) ||
-      decoded.match(/!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/) ||
-      decoded.match(/[?&](?:q|query|ll|center|destination|origin)=(-?\d{1,2}(?:\.\d+)?)[,%2C\s]+(-?\d{1,3}(?:\.\d+)?)/i);
+    // Prioritaskan koordinat pin tempat (!3d!4d); @lat,lng hanya pusat tampilan peta.
+    var match = decoded.match(/!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/) ||
+      decoded.match(/[?&](?:q|query|ll|center|destination|origin)=(-?\d{1,2}(?:\.\d+)?)[,%2C\s]+(-?\d{1,3}(?:\.\d+)?)/i) ||
+      decoded.match(/@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/);
     if (match) {
       var lat = Number(match[1]), lng = Number(match[2]);
       if (isFinite(lat) && lat >= -90 && lat <= 90 && isFinite(lng) && lng >= -180 && lng <= 180) {
