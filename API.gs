@@ -872,9 +872,9 @@ function findNearestMuslimKitaCity_(sheet, latitude, longitude) {
     var requests = candidates.map(function(name) {
       var slug = name.toLowerCase()
         .replace(/[()]/g, '')
-        .replace(/[^a-z0-9\\s-]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
         .trim()
-        .replace(/\\s+/g, '-');
+        .replace(/\s+/g, '-');
       return {
         url: 'https://www.muslimkita.id/api/jadwal-sholat/v1/' + encodeURIComponent(slug) + '?metode=kemenag',
         method: 'get',
