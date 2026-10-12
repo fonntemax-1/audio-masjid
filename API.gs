@@ -581,7 +581,7 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
       var titleStatus = titleResponse.getResponseCode();
       if (titleStatus >= 200 && titleStatus < 400) {
         var titleHtml = titleResponse.getContentText() || '';
-        var titleMatch = titleHtml.match(/<title\\b[^>]*>([\\s\\S]*?)<\\/title>/i);
+        var titleMatch = titleHtml.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i);
         if (titleMatch && titleMatch[1]) {
           var pageTitle = titleMatch[1]
             .replace(/&amp;/gi, '&')
@@ -589,8 +589,8 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
             .replace(/&#39;|&apos;/gi, "'")
             .replace(/&lt;/gi, '<')
             .replace(/&gt;/gi, '>')
-            .replace(/\\s*[-–|]\\s*Google Maps\\s*$/i, '')
-            .replace(/\\s+/g, ' ')
+            .replace(/\s*[-–|]\s*Google Maps\s*$/i, '')
+            .replace(/\s+/g, ' ')
             .trim();
           if (pageTitle && !/^(google maps|maps|google)$/i.test(pageTitle)) {
             if (placeTextCandidates.indexOf(pageTitle) < 0) {
