@@ -6926,32 +6926,29 @@ function startRealtimeAudioConfigPolling_() {
 
       // Cari ukuran terbesar yang masih membuat SEMUA tanggal muat
       // di frame masing-masing. Tanggal paling panjang menjadi penentu.
-      const minPx = 7;
-      const maxPx = Math.max.apply(null, elements.map(function(el) {
-        return parseFloat(el.dataset.autoFitBaseSize || getComputedStyle(el).fontSize) || 16;
-      }));
-
-      let low = minPx;
-      let high = maxPx;
-
-      for (let n = 0; n < 18; n++) {
-        const mid = (low + high) / 2;
-        elements.forEach(function(el) {
-          el.style.setProperty('font-size', mid.toFixed(2) + 'px', 'important');
-        });
-
-        const allFit = elements.every(function(el) {
-          return el.scrollWidth <= el.clientWidth + 1;
-        });
-
-        if (allFit) {
-          low = mid;
-        } else {
-          high = mid;
-        }
-      }
-
+      // Fit setiap tanggal secara TERPISAH. Jangan memakai satu ukuran
+      // bersama, karena lebar panel QURBAN/PENGURUS/KEUANGAN berbeda.
       elements.forEach(function(el) {
+        const minPx = 7;
+        const basePx = Math.max(
+          minPx,
+          parseFloat(el.dataset.autoFitBaseSize) ||
+          parseFloat(getComputedStyle(el).fontSize) ||
+          16
+        );
+        let low = minPx;
+        let high = basePx;
+
+        for (let n = 0; n < 18; n++) {
+          const mid = (low + high) / 2;
+          el.style.setProperty('font-size', mid.toFixed(2) + 'px', 'important');
+          if (el.scrollWidth <= el.clientWidth + 1) {
+            low = mid;
+          } else {
+            high = mid;
+          }
+        }
+
         el.style.setProperty('font-size', low.toFixed(2) + 'px', 'important');
       });
     }
@@ -7292,9 +7289,10 @@ function startRealtimeAudioConfigPolling_() {
       const finSub = document.getElementById('fin-sub');
       if (finSub) {
         if (isPengurus) {
-          currentKeuanganGregorianDate_ = '';
-          keuanganDateConversionToken_++;
-          finSub.innerText = date.trim();
+          // PENGURUS: tanggal berada di baris kedua (A2).
+          // Pakai renderer Hijriah + Masehi yang sama dengan KEUANGAN.
+          currentKeuanganGregorianDate_ = date.trim();
+          renderKeuanganDateHeader_(currentKeuanganGregorianDate_);
         } else if (isQurban) {
           currentKeuanganGregorianDate_ = '';
           keuanganDateConversionToken_++;
