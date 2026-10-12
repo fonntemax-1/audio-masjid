@@ -464,16 +464,18 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
 
       // Simpan metadata alamat/nama tempat sebagai fallback jika short link
       // tidak menampilkan koordinat di header redirect atau URL tujuan.
-      var metaMatches = [
-        /<meta[^>]+property\s*=\s*["']og:description["'][^>]+content\s*=\s*["']([^"']{4,500})["']/i,
-        /<meta[^>]+name\s*=\s*["']description["'][^>]+content\s*=\s*["']([^"']{4,500})["']/i,
-        /<meta[^>]+property\s*=\s*["']og:title["'][^>]+content\s*=\s*["']([^"']{3,250})["']/i,
-        /<title[^>]*>([^<]{3,250})<\/title>/i
-      ];
-      for (var mt = 0; mt < metaMatches.length; mt++) {
-        var metaMatch = variant.match(metaMatches[mt]);
-        if (metaMatch && metaMatch[1]) {
-          var metaText = metaMatch[1]
+      // Urutan atribut HTML tidak tetap: content dapat muncul sebelum property/name.
+      // Parse tag meta satu per satu agar kedua urutan didukung.
+      var metaTagRegex = /<meta\b[^>]*>/gi;
+      var metaTag;
+      while ((metaTag = metaTagRegex.exec(variant)) !== null) {
+        var tag = metaTag[0];
+        var keyMatch = tag.match(/(?:property|name)\s*=\s*["']([^"']+)["']/i);
+        var contentMatch = tag.match(/content\s*=\s*["']([^"']{3,500})["']/i);
+        var metaKey = keyMatch ? keyMatch[1].toLowerCase() : '';
+        if (contentMatch && (metaKey === 'og:description' || metaKey === 'description' ||
+            metaKey === 'og:title' || metaKey === 'twitter:title' || metaKey === 'twitter:description')) {
+          var metaText = contentMatch[1]
             .replace(/&amp;/gi, '&')
             .replace(/&#39;|&apos;/gi, "'")
             .replace(/&quot;/gi, '"')
@@ -485,6 +487,15 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
               placeTextCandidates.indexOf(metaText) < 0) {
             placeTextCandidates.push(metaText);
           }
+        }
+      }
+      var titleMatch = variant.match(/<title[^>]*>([^<]{3,250})<\/title>/i);
+      if (titleMatch && titleMatch[1]) {
+        var titleText = titleMatch[1].replace(/&amp;/gi, '&').replace(/\s+/g, ' ')
+          .replace(/\s*[-|–]\s*Google Maps\s*$/i, '').trim();
+        if (titleText && !/^(google maps|maps|google)$/i.test(titleText) &&
+            placeTextCandidates.indexOf(titleText) < 0) {
+          placeTextCandidates.push(titleText);
         }
       }
 
