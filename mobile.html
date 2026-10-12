@@ -8548,8 +8548,9 @@ function startRealtimeAudioConfigPolling_() {
         } else if (keuanganSelector === 'QURBAN') {
           currentKeuanganGregorianDate_ = '';
           keuanganDateConversionToken_++;
+          // QURBAN: baris kedua menampilkan nilai A2 apa adanya; tidak menambahkan teks hardcode.
           finSub.innerText =
-            ('MASJID ' + String(data.KeuanganTanggal || '').trim()).trim();
+            String(data.KeuanganTanggal || '').trim();
         } else {
           currentKeuanganGregorianDate_ =
             String(data.KeuanganTanggal || '').trim();
