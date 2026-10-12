@@ -18952,21 +18952,27 @@ function setCountdownBlackMode(enabled) {
     el.style.setProperty('margin-right', '0', 'important');
     el.style.setProperty('letter-spacing', '0', 'important');
     el.style.setProperty('word-spacing', '0', 'important');
+    el.style.setProperty('flex-shrink', '1', 'important');
+    el.style.setProperty('min-inline-size', '0', 'important');
 
-    var lo = 1, hi = maxFontPx;
-    for (var i = 0; i < 22; i++) {
-      var mid = (lo + hi) / 2;
-      el.style.setProperty('font-size', mid.toFixed(3) + 'px', 'important');
-      if (el.scrollWidth <= el.clientWidth + 1) lo = mid;
-      else hi = mid;
-    }
-    el.style.setProperty('font-size', lo.toFixed(2) + 'px', 'important');
+    // Ukur lebar teks secara langsung. scrollWidth dapat menyesatkan saat
+    // elemen berada dalam panel/overflow yang dibatasi CSS lain.
+    var available = el.getBoundingClientRect().width;
+    if (!available || available < 2) available = el.parentElement ? el.parentElement.getBoundingClientRect().width : 0;
+    if (!available || available < 2) return;
+    var canvas = fitOneLine.canvas || (fitOneLine.canvas = document.createElement('canvas'));
+    var ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    var cs = window.getComputedStyle(el);
+    var text = (el.innerText || el.textContent || '').replace(/\\s+/g, ' ').trim();
+    var basePx = Math.max(5, Math.min(Number(maxFontPx) || 16, 16));
+    ctx.font = (cs.fontStyle || 'normal') + ' ' + (cs.fontWeight || '400') + ' 100px ' + (cs.fontFamily || 'sans-serif');
+    var measuredAt100 = ctx.measureText(text).width;
+    if (!measuredAt100) return;
+    var fittedPx = Math.min(basePx, (available / measuredAt100) * 100 * 0.97);
+    fittedPx = Math.max(4, fittedPx);
+    el.style.setProperty('font-size', fittedPx.toFixed(2) + 'px', 'important');
     el.style.setProperty('line-height', '1.05', 'important');
-    var guard = 0;
-    while (el.scrollWidth > el.clientWidth + 1 && lo > 1 && guard++ < 20) {
-      lo -= 0.1;
-      el.style.setProperty('font-size', lo.toFixed(2) + 'px', 'important');
-    }
   }
 
   function fitPortraitHeaders() {
