@@ -3763,27 +3763,15 @@ function getPrayerSchedule(dateString) {
     const gmt = locationValues[4] || '';
     const panelSlug = locationValues[5] || '';
 
-    // C14 adalah nama kota aktual hasil Link Google Maps.
-    // Jika belum diisi, salin kota dropdown C5 sebagai fallback awal.
-    var kota = String(panels.getRange('C14').getDisplayValue() || '').trim();
-    if (!kota && kotaPilihan) {
-      panels.getRange('C14').setValue(kotaPilihan);
-      SpreadsheetApp.flush();
-      kota = String(panels.getRange('C14').getDisplayValue() || '').trim();
-      if (!kota) kota = kotaPilihan;
-    }
-
-    // Pakai slug C10 hanya bila kota aktif masih sama dengan kota dropdown C5.
-    // Untuk kota dari C14, bentuk slug dari nama kota agar API mencari kota tersebut.
-    const kotaSlug = (
-      kota && kota.toLowerCase() === kotaPilihan.toLowerCase() && panelSlug
-        ? panelSlug
-        : kota.toLowerCase()
-            .replace(/[()]/g, '')
-            .replace(/[^a-z0-9\s-]/g, '')
-            .trim()
-            .replace(/\s+/g, '-')
-    );
+    // C5 tetap menjadi acuan resmi kota untuk API MuslimKita.
+    // C14 hanya menyimpan nama wilayah aktual hasil Google Maps dan tidak
+    // boleh langsung mengganti sumber jadwal agar jadwal/audio tetap konsisten.
+    var kota = kotaPilihan;
+    const kotaSlug = panelSlug || kota.toLowerCase()
+      .replace(/[()]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
 
     const timezone = panelTimezone || timezoneDefault;
 
