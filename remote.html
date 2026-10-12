@@ -400,7 +400,7 @@ $('qrisUploadBtn').addEventListener('click',async function(){
  if(qrisUploadPending)return;
  const file=$('qrisFile').files&&$('qrisFile').files[0];
  if(!file){show($('qrisUploadMsg'),'Pilih file QRIS PNG terlebih dahulu.',true);return}
- if(file.type!=='image/png'&&!/\\.png$/i.test(file.name)){show($('qrisUploadMsg'),'File harus berformat PNG.',true);return}
+ if(file.type!=='image/png'&&!/\.png$/i.test(file.name)){show($('qrisUploadMsg'),'File harus berformat PNG.',true);return}
  if(file.size>1024*1024){show($('qrisUploadMsg'),'Ukuran gambar maksimal 1 MB.',true);return}
  const pin=String($('pin').value||'').trim();
  if(!pin){show($('qrisUploadMsg'),'Sesi PIN tidak ditemukan. Login kembali.',true);return}
