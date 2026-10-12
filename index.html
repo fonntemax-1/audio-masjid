@@ -1157,6 +1157,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 
         // Kontrol takbiran dari panels!C57 dan jeda queue sesudah takbiran.
         takbiranEnabled: false,
+        masterMuted: false,
         takbiranHoldUntilMs: 0,
         takbiranScheduledLocks: new Set(),
         takbiranTimer: null,
@@ -1963,9 +1964,15 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
       const audio = getAudioElement();
       const state = WEB_APP_STATE.audio;
 
-      if (!audio || !state.currentEventKey || !state.currentAudioType) {
+      if (!audio) return;
+
+      // G57 hanya menimpa output mute; tidak mengubah status item, queue, atau jadwal.
+      if (state.masterMuted) {
+        try { audio.defaultMuted = true; audio.muted = true; audio.volume = 1; } catch (e) {}
         return;
       }
+
+      if (!state.currentEventKey || !state.currentAudioType) return;
 
       // Keep takbiran silent whenever the live C57 setting is OFF.
       if (String(state.currentAudioType || '').trim().toLowerCase() === 'takbiran' && !state.takbiranEnabled) {
@@ -5530,6 +5537,38 @@ function getRealtimeAudioStatusSignature_(schedule, friday) {
 function applyRealtimeAudioStatusOnly_(data) {
   if (!data || typeof data !== 'object') return;
 
+  // G57 master mute: hanya menimpa output suara, tanpa mengubah scheduler/queue.
+  if (Object.prototype.hasOwnProperty.call(data, 'MasterAudioMuted')) {
+    const nextMuted = data.MasterAudioMuted === true ||
+      String(data.MasterAudioMuted || '').trim().toUpperCase() === 'MUTED';
+    const wasMuted = WEB_APP_STATE.audio.masterMuted === true;
+    WEB_APP_STATE.audio.masterMuted = nextMuted;
+    if (nextMuted) {
+      const active = getAudioElement();
+      if (active) {
+        try { active.defaultMuted = true; active.muted = true; active.volume = 1; } catch (e) {}
+      }
+      sendYouTubeCommand('mute');
+      if (!wasMuted) console.log('MASTER AUDIO G57: MUTED (playback dan scheduler tetap berjalan)');
+    } else if (wasMuted) {
+      // Pulihkan YouTube berdasarkan F20 yang berlaku saat ini; tanpa reload atau pause.
+      if (youtubeControlMode === 'ON') {
+        sendYouTubeCommand('unMute');
+      } else if (youtubeControlMode === 'OFF') {
+        sendYouTubeCommand('mute');
+      } else if (youtubeControlMode === 'AUTO') {
+        // Paksa evaluasi ulang status AUTO tanpa menyentuh jadwal audio.
+        youtubeAutoMuted = !youtubeAutoMuted;
+        youtubeAutoScheduleEvaluated = false;
+        const t = getWitaTime();
+        updateYouTubeAudioStop(Number(t.hour) * 3600 + Number(t.minute) * 60 + Number(t.second), getApiDate());
+        sendYouTubeCommand(youtubeAutoMuted ? 'mute' : 'unMute');
+      }
+      syncCurrentAudioMuteStatus_();
+      console.log('MASTER AUDIO G57: UNMUTED (aturan dasar audio dipulihkan)');
+    }
+  }
+
   // C57 dibaca lewat polling realtime 5 detik, terpisah dari schedule audio.
   if (Object.prototype.hasOwnProperty.call(data, 'TakbiranEnabled')) {
     WEB_APP_STATE.audio.takbiranEnabled =
@@ -5710,7 +5749,7 @@ function applyRealtimeAudioStatusOnly_(data) {
           // setiap kali polling menerima payload parsial.
           if (activeStatus === 'ON' || activeStatus === 'OFF') {
             realtimeAudioOutputOverride_[activeState.currentEventKey] = activeStatus;
-            const shouldMuteNow = activeStatus === 'OFF';
+            const shouldMuteNow = WEB_APP_STATE.audio.masterMuted || activeStatus === 'OFF';
 
             activeAudio.defaultMuted = shouldMuteNow;
             activeAudio.muted = shouldMuteNow;
@@ -11105,6 +11144,12 @@ function startRealtimeAudioConfigPolling_() {
       }
 
       const mode = youtubeControlMode;
+
+      // G57 master mute: bisukan saja, jangan menjalankan STOP atau mengubah state AUTO.
+      if (WEB_APP_STATE.audio.masterMuted) {
+        sendYouTubeCommand('mute');
+        return;
+      }
 
       // =======================================================
       // MODE STOP / OFF / ON
