@@ -2945,6 +2945,7 @@ function getRealtimeAudioStatus() {
 
     SpreadsheetApp.flush();
     const takbiranSetting = String(sheet.getRange('C57').getDisplayValue() || '').trim().toUpperCase();
+    const masterAudioSetting = String(sheet.getRange('G57').getDisplayValue() || '').trim().toUpperCase();
     const values = sheet.getRange('B46:Q55').getDisplayValues();
     const build = function(offset) {
       const list = [];
@@ -2962,6 +2963,7 @@ function getRealtimeAudioStatus() {
     return {
       success: true,
       TakbiranEnabled: takbiranSetting === 'ON',
+      MasterAudioMuted: masterAudioSetting === 'MUTED',
       AudioSchedule: {
         SUBUH_RAMADHAN: build(0),
         SUBUH_BIASA: build(2),
@@ -3016,11 +3018,15 @@ function getRealtimeAudioConfig() {
     const takbiranSetting = panelsSheet
       ? String(panelsSheet.getRange('C57').getDisplayValue() || '').trim().toUpperCase()
       : 'OFF';
+    const masterAudioSetting = panelsSheet
+      ? String(panelsSheet.getRange('G57').getDisplayValue() || '').trim().toUpperCase()
+      : 'UNMUTED';
 
     const result = {
       success: true,
       RamadanDisplay: getRamadanDisplaySetting(),
       TakbiranEnabled: takbiranSetting === 'ON',
+      MasterAudioMuted: masterAudioSetting === 'MUTED',
       Audio: audioResult.Audio || {},
       AudioSchedule: audioResult.AudioSchedule || {},
       AudioDurations: audioResult.AudioDurations || {},
