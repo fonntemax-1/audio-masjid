@@ -675,6 +675,51 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 }
 </style>
 
+
+<style id="mobile-portrait-finance-no-clip-v2">
+/* OVERRIDE TERAKHIR: hanya portrait mobile.html.
+   Ringkas judul, tanggal, dan semua isi laporan agar tidak terpotong.
+   Landscape dan header/logo tidak disentuh. */
+@media screen and (max-width: 900px) and (orientation: portrait) {
+  #fin-panel-box .panel-title,
+  #fin-panel-box .panel-title * {
+    font-size: clamp(0.44rem, 1.55vw, 0.62rem) !important;
+    line-height: 1 !important; letter-spacing: 0 !important;
+    margin: 0 0 0.1vh !important; padding: 0 !important;
+    max-width: 100% !important; overflow-wrap: anywhere !important; word-break: break-word !important;
+  }
+  #fin-panel-box #fin-sub, #fin-panel-box #fin-extra,
+  #fin-panel-box .panel-sub, #fin-panel-box .fin-extra,
+  #fin-panel-box #fin-sub *, #fin-panel-box #fin-extra * {
+    font-size: clamp(0.38rem, 1.25vw, 0.5rem) !important;
+    line-height: 1 !important; letter-spacing: 0 !important;
+    margin: 0 !important; padding: 0 !important; max-width: 100% !important;
+    white-space: normal !important; overflow-wrap: anywhere !important; word-break: break-word !important;
+  }
+  #fin-panel-box .keuangan-scroll-area {
+    height: calc(100% - 2.8vh) !important; min-height: 0 !important; overflow: hidden !important;
+  }
+  #fin-panel-box .keuangan-table, #fin-panel-box .keuangan-table tbody,
+  #fin-panel-box .keuangan-table tr, #fin-panel-box .keuangan-table td,
+  #fin-panel-box .keuangan-table th, #fin-panel-box .keuangan-table td *,
+  #fin-panel-box .keuangan-table th * {
+    font-size: clamp(0.36rem, 1.12cqw, 0.48rem) !important;
+    line-height: 1 !important; letter-spacing: 0 !important;
+  }
+  #fin-panel-box .keuangan-table td, #fin-panel-box .keuangan-table th {
+    padding: 0.025rem 0.04rem !important; vertical-align: middle !important;
+    white-space: normal !important; overflow-wrap: anywhere !important; word-break: break-word !important;
+  }
+  #fin-panel-box .keuangan-table .pengurus-scroll-text,
+  #fin-panel-box .keuangan-table .qurban-scroll-text,
+  #fin-panel-box .keuangan-table .pengurus-scroll-text *,
+  #fin-panel-box .keuangan-table .qurban-scroll-text * {
+    font-size: inherit !important; line-height: 1 !important; white-space: normal !important;
+    overflow-wrap: anywhere !important; word-break: break-word !important;
+  }
+}
+</style>
+
 </head>
 
 <body class="startup-visual-hold">
