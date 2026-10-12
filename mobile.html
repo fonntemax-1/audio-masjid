@@ -437,6 +437,91 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
       body { overflow:hidden; }
     }
   </style>
+
+  <style id="mobile-header-proportional-fix">
+    /* Header HP: logo, nama, alamat, dan slogan dibatasi oleh frame. */
+    @media screen and (max-width:700px) {
+      .header, .header * { box-sizing:border-box !important; }
+      .header {
+        width:100% !important; max-width:100% !important; min-width:0 !important;
+        overflow:hidden !important; align-content:start !important;
+        grid-template-columns:clamp(40px,14vw,60px) minmax(0,1fr) !important;
+        gap:clamp(6px,2vw,10px) !important;
+        padding:clamp(7px,2.4vw,12px) !important;
+      }
+      .header-logo {
+        width:100% !important; max-width:60px !important;
+        height:clamp(42px,14vw,64px) !important; min-width:0 !important;
+        max-height:64px !important; overflow:hidden !important;
+        justify-self:center !important; align-self:center !important;
+      }
+      .header-logo img, #logo_masjid {
+        display:block !important; width:100% !important; height:100% !important;
+        max-width:100% !important; max-height:100% !important;
+        object-fit:contain !important; object-position:center !important;
+      }
+      .header-center {
+        display:flex !important; flex-direction:column !important;
+        justify-content:center !important; align-items:stretch !important;
+        width:100% !important; max-width:100% !important; min-width:0 !important;
+        overflow:hidden !important; padding:0 !important; margin:0 !important;
+        text-align:center !important;
+      }
+      .header-center #nama_masjid,
+      .header-center .latin-name {
+        display:block !important; width:100% !important; max-width:100% !important;
+        min-width:0 !important; margin:0 auto !important; padding:0 !important;
+        white-space:normal !important; overflow-wrap:anywhere !important;
+        word-break:normal !important; text-overflow:clip !important;
+        overflow:hidden !important; font-size:clamp(13px,4vw,21px) !important;
+        line-height:1.12 !important; max-height:2.5em !important;
+      }
+      .header-center #alamat_masjid,
+      .header-center .sub {
+        display:block !important; width:100% !important; max-width:100% !important;
+        min-width:0 !important; margin:3px 0 0 !important; padding:0 !important;
+        white-space:normal !important; overflow-wrap:anywhere !important;
+        word-break:normal !important; text-overflow:clip !important;
+        overflow:hidden !important; font-size:clamp(9px,2.8vw,12px) !important;
+        line-height:1.25 !important; max-height:2.5em !important;
+      }
+      .header-center #slogan_masjid,
+      .header-center .slogan {
+        width:100% !important; max-width:100% !important; min-width:0 !important;
+        margin:3px 0 0 !important; padding:0 !important;
+        white-space:normal !important; overflow-wrap:anywhere !important;
+        word-break:normal !important; text-overflow:clip !important;
+        overflow:hidden !important; font-size:clamp(9px,2.7vw,12px) !important;
+        line-height:1.25 !important; max-height:2.5em !important;
+      }
+      .header-right {
+        width:100% !important; max-width:100% !important; min-width:0 !important;
+        overflow:hidden !important; grid-column:1 / -1 !important;
+      }
+      .header-right .date-box {
+        min-width:0 !important; max-width:48% !important;
+        overflow:hidden !important; overflow-wrap:anywhere !important;
+      }
+      .header-right .date-box > * {
+        max-width:100% !important; overflow-wrap:anywhere !important;
+        white-space:normal !important;
+      }
+    }
+    @media screen and (max-width:380px) {
+      .header {
+        grid-template-columns:clamp(36px,12vw,46px) minmax(0,1fr) !important;
+        gap:6px !important; padding:7px !important;
+      }
+      .header-logo { height:clamp(38px,12vw,46px) !important; }
+      .header-center #nama_masjid,
+      .header-center .latin-name { font-size:clamp(12px,3.7vw,15px) !important; }
+      .header-center #alamat_masjid,
+      .header-center .sub,
+      .header-center #slogan_masjid,
+      .header-center .slogan { font-size:clamp(9px,2.7vw,10px) !important; }
+    }
+  </style>
+
 </head>
 
 <body class="startup-visual-hold">
