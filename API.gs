@@ -356,11 +356,13 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
     var headers = response.getHeaders() || {};
     var location = headers.Location || headers.location || '';
     if (status >= 300 && status < 400 && location) {
-      current = String(location);
-      if (current.indexOf('http') !== 0) {
-        var origin = current.match(/^https?:\/\/[^/]+/i);
-        current = origin ? origin[0] + (current.charAt(0) === '/' ? '' : '/') + current : current;
+      var previousOrigin = current.match(/^https?:\/\/[^/]+/i);
+      var nextLocation = String(location);
+      if (!/^https?:\/\//i.test(nextLocation)) {
+        if (!previousOrigin) throw new Error('Arah link Google Maps tidak valid.');
+        nextLocation = previousOrigin[0] + (nextLocation.charAt(0) === '/' ? '' : '/') + nextLocation;
       }
+      current = nextLocation;
       continue;
     }
     break;
