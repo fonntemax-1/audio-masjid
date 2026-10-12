@@ -6565,17 +6565,22 @@ function startRealtimeAudioConfigPolling_() {
           'important'
         );
 
-        // Nilai ini BUKAN fixed: dihitung ulang dari lebar FRAME.
-        // Browser TV yang tidak mendukung cqw tetap mendapatkan ukuran
-        // responsive yang stabil.
-        const targetFontPx = el.id === 'fin-title'
-          ? responsiveTitleFontPx
-          : responsiveSubFontPx;
-        el.style.setProperty(
-          'font-size',
-          targetFontPx.toFixed(2) + 'px',
-          'important'
-        );
+        // PORTRAIT HP: jangan menimpa font-size KEUANGAN dengan ukuran
+        // 7–10 px khusus QURBAN/PENGURUS. Biarkan aturan CSS portrait
+        // KEUANGAN yang sama menentukan ukuran judul dan baris kedua.
+        // TV/landscape tetap memakai ukuran responsif yang sudah ada.
+        if (!isPortraitMobile) {
+          const targetFontPx = el.id === 'fin-title'
+            ? responsiveTitleFontPx
+            : responsiveSubFontPx;
+          el.style.setProperty(
+            'font-size',
+            targetFontPx.toFixed(2) + 'px',
+            'important'
+          );
+        } else {
+          el.style.removeProperty('font-size');
+        }
       });
 
       // Tanggal tambahan PENGURUS juga mengikuti ukuran tanggal KEUANGAN.
