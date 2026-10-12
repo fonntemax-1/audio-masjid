@@ -18964,7 +18964,7 @@ function setCountdownBlackMode(enabled) {
     var ctx = canvas.getContext('2d');
     if (!ctx) return;
     var cs = window.getComputedStyle(el);
-    var text = (el.innerText || el.textContent || '').replace(/\\s+/g, ' ').trim();
+    var text = (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
     var basePx = Math.max(5, Math.min(Number(maxFontPx) || 16, 16));
     ctx.font = (cs.fontStyle || 'normal') + ' ' + (cs.fontWeight || '400') + ' 100px ' + (cs.fontFamily || 'sans-serif');
     var measuredAt100 = ctx.measureText(text).width;
