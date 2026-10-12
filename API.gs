@@ -463,11 +463,30 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
       // Coba koordinat pin eksplisit setelah encoding dinormalisasi.
       coords = findCoordinates_(variant, false);
       if (coords) break;
-      var targetMatch = variant.match(/(?:href|content|url|window\.location(?:\.href)?|location\.href)\s*[:=]\s*["']?((?:https?:)?\/\/[^"'<>\\s]*(?:maps\.google|google\.com\/maps)[^"'<>\\s]*)/i);
+
+      // Google kadang menampilkan halaman perantara, bukan HTTP redirect.
+      // Coba meta-refresh, canonical, dan og:url terlebih dahulu.
+      var targetMatch = variant.match(/<meta[^>]+http-equiv\\s*=\\s*["']?refresh["']?[^>]+content\\s*=\\s*["'][^"']*?url\\s*=\\s*([^"'\\s>]+)[^>]*>/i);
       if (targetMatch && targetMatch[1]) target = targetMatch[1];
       if (!target) {
-        targetMatch = variant.match(/["']((?:https?:)?\\?\/\\?\/(?:www\.)?(?:google\.[^/]+|maps\.google\.[^/]+)[^"']*)["']/i);
+        targetMatch = variant.match(/<link[^>]+rel\\s*=\\s*["']?canonical["']?[^>]+href\\s*=\\s*["']([^"']+)["']/i);
         if (targetMatch && targetMatch[1]) target = targetMatch[1];
+      }
+      if (!target) {
+        targetMatch = variant.match(/<meta[^>]+property\\s*=\\s*["']og:url["'][^>]+content\\s*=\\s*["']([^"']+)["']/i);
+        if (targetMatch && targetMatch[1]) target = targetMatch[1];
+      }
+      if (!target) {
+        targetMatch = variant.match(/(?:href|content|url|window\\.location(?:\\.href)?|location\\.href)\\s*[:=]\\s*["']?((?:https?:)?\\/\\/[^"'<>\\\\s]*(?:maps\\.google|google\\.com\\/maps)[^"'<>\\\\s]*)/i);
+        if (targetMatch && targetMatch[1]) target = targetMatch[1];
+      }
+      if (!target) {
+        targetMatch = variant.match(/["']((?:https?:)?\\\\?\\/\\\\?\\/(?:www\\.)?(?:google\\.[^/]+|maps\\.google\\.[^/]+)[^"']*)["']/i);
+        if (targetMatch && targetMatch[1]) target = targetMatch[1];
+      }
+      if (!target) {
+        targetMatch = variant.match(/https?:\\/\\/(?:www\\.)?(?:google\\.[a-z.]+|maps\\.google\\.[a-z.]+)\\/[^"'<>\\\\s]*/i);
+        if (targetMatch && targetMatch[0]) target = targetMatch[0];
       }
     }
     if (coords) break;
