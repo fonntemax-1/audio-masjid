@@ -6967,8 +6967,12 @@ function startRealtimeAudioConfigPolling_() {
         if (!el || el.dataset.autoFitInstalled === '1') return;
 
         el.dataset.autoFitInstalled = '1';
-        el.dataset.autoFitBaseSize =
-          parseFloat(getComputedStyle(el).fontSize) || 16;
+        // CSS portrait lama mengecilkan font tanggal sampai sekitar 4px.
+        // Jadikan 16px sebagai ukuran awal, lalu perkecil hanya bila perlu.
+        el.dataset.autoFitBaseSize = Math.max(
+          16,
+          parseFloat(getComputedStyle(el).fontSize) || 16
+        );
 
         const textObserver = new MutationObserver(function() {
           schedulePanelDatesSharedAutoFit_();
@@ -6994,6 +6998,10 @@ function startRealtimeAudioConfigPolling_() {
       const dateEl = document.getElementById('fin-sub');
       if (!dateEl) return;
 
+      // Aktifkan auto-fit untuk KEUANGAN dan PENGURUS juga.
+      // Sebelumnya fungsi ini tidak memasang penyesuaian ukuran secara mandiri.
+      installPanelDateAutoFit_();
+
       const rawGregorian = String(
         gregorianValue !== undefined
           ? gregorianValue
@@ -7004,6 +7012,7 @@ function startRealtimeAudioConfigPolling_() {
 
       if (!rawGregorian) {
         dateEl.innerText = '';
+        schedulePanelDatesSharedAutoFit_();
         return;
       }
 
@@ -7012,6 +7021,7 @@ function startRealtimeAudioConfigPolling_() {
       const isoDate = parseQurbanDateToIso_(rawGregorian);
       if (!isoDate) {
         dateEl.innerText = rawGregorian;
+        schedulePanelDatesSharedAutoFit_();
         return;
       }
 
@@ -7022,6 +7032,7 @@ function startRealtimeAudioConfigPolling_() {
       if (cachedHijri) {
         dateEl.innerText = cachedHijri + ' | ' + rawGregorian;
         dateEl.dataset.hijriDateKey = isoDate;
+        schedulePanelDatesSharedAutoFit_();
         return;
       }
 
@@ -7029,6 +7040,7 @@ function startRealtimeAudioConfigPolling_() {
       // Masehi hanya dipakai sebagai fallback pertama sebelum konversi.
       if (dateEl.dataset.hijriDateKey !== isoDate) {
         dateEl.innerText = rawGregorian;
+        schedulePanelDatesSharedAutoFit_();
       }
 
       const token = ++keuanganDateConversionToken_;
@@ -7052,6 +7064,7 @@ function startRealtimeAudioConfigPolling_() {
           hijriDateConversionCache_[isoDate] = hijri;
           dateEl.dataset.hijriDateKey = isoDate;
           dateEl.innerText = hijri + ' | ' + rawGregorian;
+          schedulePanelDatesSharedAutoFit_();
         })
         .catch(function(error) {
           console.warn(
