@@ -804,16 +804,19 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 (function () {
   var query = window.matchMedia('(max-width: 900px) and (orientation: portrait)');
   var dateEl = document.getElementById('fin-sub');
-  if (!dateEl) return;
+  var frame = document.getElementById('fin-panel-box');
+  if (!dateEl || !frame) return;
   var fitPending = false;
 
   function fitFinanceHijriGregorianDate() {
     fitPending = false;
-    /* Perbaikan khusus portrait; mode landscape tidak disentuh. */
+    /* Hanya mode portrait; landscape dibiarkan seperti semula. */
     if (!query.matches || !dateEl.isConnected) return;
-    var text = (dateEl.textContent || '').trim();
-    if (!text) return;
+    if (!(dateEl.textContent || '').trim()) return;
 
+    frame.style.setProperty('min-width', '0', 'important');
+    frame.style.setProperty('max-width', '100%', 'important');
+    frame.style.setProperty('overflow', 'hidden', 'important');
     dateEl.style.setProperty('display', 'block', 'important');
     dateEl.style.setProperty('width', '100%', 'important');
     dateEl.style.setProperty('min-width', '0', 'important');
@@ -824,42 +827,33 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
     dateEl.style.setProperty('text-overflow', 'clip', 'important');
     dateEl.style.setProperty('padding-left', '0', 'important');
     dateEl.style.setProperty('padding-right', '0', 'important');
+    dateEl.style.setProperty('margin-left', '0', 'important');
+    dateEl.style.setProperty('margin-right', '0', 'important');
     dateEl.style.setProperty('letter-spacing', '0', 'important');
+    dateEl.style.setProperty('word-spacing', '0', 'important');
 
     var width = dateEl.clientWidth;
-    if (!width) {
-      width = dateEl.parentElement ? dateEl.parentElement.clientWidth : 0;
-    }
-    if (!width) {
-      requestFit();
-      return;
-    }
+    if (!width) width = Math.max(0, frame.clientWidth - 2);
+    if (!width) return;
 
-    var style = window.getComputedStyle(dateEl);
-    var canvas = fitFinanceHijriGregorianDate.canvas ||
-      (fitFinanceHijriGregorianDate.canvas = document.createElement('canvas'));
-    var ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    var weight = style.fontWeight || '400';
-    var family = style.fontFamily || 'sans-serif';
-    var base = Math.max(1, parseFloat(style.fontSize) || 12);
-    var min = 1.5;
-    var max = Math.max(base, 16);
-    function measure(size) {
-      ctx.font = weight + ' ' + size + 'px ' + family;
-      return ctx.measureText(text).width;
-    }
-
-    /* Cari ukuran font terbesar yang benar-benar muat dalam lebar frame. */
-    var lo = min, hi = max;
-    for (var i = 0; i < 18; i++) {
+    /* Uji ukuran teks yang benar-benar dirender browser, bukan perkiraan canvas.
+       Ini dijalankan ulang saat tanggal Masehi berubah menjadi Hijriah + Masehi. */
+    var lo = 1, hi = 18;
+    for (var i = 0; i < 22; i++) {
       var mid = (lo + hi) / 2;
-      if (measure(mid) <= width - 2) lo = mid;
+      dateEl.style.setProperty('font-size', mid.toFixed(3) + 'px', 'important');
+      if (dateEl.scrollWidth <= dateEl.clientWidth + 1) lo = mid;
       else hi = mid;
     }
-    var chosen = measure(lo) <= width - 1 ? lo : min;
-    dateEl.style.setProperty('font-size', chosen.toFixed(2) + 'px', 'important');
+    dateEl.style.setProperty('font-size', lo.toFixed(2) + 'px', 'important');
     dateEl.style.setProperty('line-height', '1.05', 'important');
+
+    /* Jika browser tetap menghitung lebar berlebih, turunkan ukuran sedikit lagi. */
+    var guard = 0;
+    while (dateEl.scrollWidth > dateEl.clientWidth + 1 && lo > 1 && guard++ < 20) {
+      lo -= 0.1;
+      dateEl.style.setProperty('font-size', lo.toFixed(2) + 'px', 'important');
+    }
   }
 
   function requestFit() {
@@ -874,8 +868,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
     var resizeObserver = new ResizeObserver(requestFit);
     resizeObserver.observe(dateEl);
     if (dateEl.parentElement) resizeObserver.observe(dateEl.parentElement);
-    var frame = document.getElementById('fin-panel-box');
-    if (frame) resizeObserver.observe(frame);
+    resizeObserver.observe(frame);
   }
   window.addEventListener('resize', requestFit);
   window.addEventListener('orientationchange', requestFit);
