@@ -6902,14 +6902,12 @@ function startRealtimeAudioConfigPolling_() {
       const elements = ids.map(function(id) {
         return document.getElementById(id);
       }).filter(function(el) {
-        // QUR'BAN: fin-sub adalah A2, bukan tanggal.
-        // Jangan biarkan auto-fit tanggal mengubah ukuran A2.
-        if (
-          el &&
-          el.id === 'fin-sub' &&
-          document.getElementById('fin-panel-box') &&
-          document.getElementById('fin-panel-box').classList.contains('qurban-display')
-        ) {
+        // Hanya QURBAN yang memakai fin-sub untuk isi A2, bukan tanggal.
+        // PENGURUS memakai fin-sub sebagai tanggal seperti KEUANGAN,
+        // jadi tanggal PENGURUS harus ikut auto-fit yang sama.
+        const panel = document.getElementById('fin-panel-box');
+        const selector = String(panel && panel.dataset.panelSelector || '').trim().toUpperCase();
+        if (el && el.id === 'fin-sub' && selector === 'QURBAN') {
           return false;
         }
         return el && el.isConnected && el.innerText.trim() && el.offsetParent !== null;
@@ -18966,14 +18964,12 @@ function setCountdownBlackMode(enabled) {
     frame.style.setProperty('overflow', 'hidden', 'important');
 
     var selector = String(frame.dataset.panelSelector || '').trim().toUpperCase();
-    var isQurbanOrPengurus = frame.classList.contains('qurban-display') ||
-      selector === 'QURBAN' || selector === 'PENGURUS';
 
-    /* Semua pilihan panel memakai perilaku portrait yang sama dengan
-       KEUANGAN: ukuran judul mengikuti CSS KEUANGAN, sedangkan tanggal
-       menyesuaikan lebar frame agar tetap satu baris. Jangan memberi
-       ukuran font inline khusus untuk QURBAN/PENGURUS. */
-    fitOneLine(subEl, 18);
+    /* Ukuran judul dan baris isi mengikuti CSS portrait KEUANGAN.
+       Jangan menjalankan fitOneLine() pada fin-sub: di QURBAN elemen ini
+       berisi A2, bukan tanggal. Ukuran tanggal KEUANGAN, PENGURUS, dan
+       tanggal QURBAN (fin-extra) ditangani autoFitPanelDatesShared_()
+       yang dipakai bersama oleh ketiga format. */
   }
 
   function requestFit() {
