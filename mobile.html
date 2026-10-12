@@ -627,6 +627,54 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 }
 </style>
 
+
+<style id="mobile-portrait-finance-compact">
+/* KHUSUS mobile.html PORTRAIT:
+   ringkas teks laporan keuangan agar lebih banyak isi terlihat.
+   Tidak berlaku untuk landscape, header, tanggal, logo, atau audio. */
+@media screen and (max-width: 900px) and (orientation: portrait) {
+  #fin-panel-box .panel-title {
+    font-size: clamp(0.62rem, 2.15vw, 0.92rem) !important;
+    line-height: 1.05 !important;
+    margin-bottom: 0.2vh !important;
+    padding-top: 0.1vh !important;
+    padding-bottom: 0.1vh !important;
+  }
+
+  #fin-panel-box .panel-sub,
+  #fin-panel-box .fin-extra {
+    font-size: clamp(0.48rem, 1.55vw, 0.7rem) !important;
+    line-height: 1.05 !important;
+    margin-bottom: 0.15vh !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  #fin-panel-box .keuangan-scroll-area {
+    height: calc(100% - 4.2vh) !important;
+  }
+
+  #fin-panel-box .keuangan-table {
+    font-size: clamp(0.46rem, 1.45cqw, 0.68rem) !important;
+    line-height: 1.04 !important;
+  }
+
+  #fin-panel-box .keuangan-table td,
+  #fin-panel-box .keuangan-table th {
+    padding: 0.06rem 0.08rem !important;
+    line-height: 1.04 !important;
+  }
+
+  #fin-panel-box .keuangan-table .pengurus-scroll-text,
+  #fin-panel-box .keuangan-table .pengurus-scroll-text *,
+  #fin-panel-box .keuangan-table .qurban-scroll-text,
+  #fin-panel-box .keuangan-table .qurban-scroll-text * {
+    font-size: inherit !important;
+    line-height: 1.04 !important;
+  }
+}
+</style>
+
 </head>
 
 <body class="startup-visual-hold">
