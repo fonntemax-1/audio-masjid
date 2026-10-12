@@ -834,7 +834,7 @@ function resolveCoordinatesCityFromApi_(params) {
  */
 function findNearestMuslimKitaCity_(sheet, latitude, longitude) {
   var cache = CacheService.getScriptCache();
-  var cacheKey = 'MUSLIMKITA_CITY_CATALOG_V1';
+  var cacheKey = 'MUSLIMKITA_CITY_CATALOG_V2';
   var cached = cache.get(cacheKey);
   var cities = [];
 
