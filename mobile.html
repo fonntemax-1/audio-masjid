@@ -18964,17 +18964,11 @@ function setCountdownBlackMode(enabled) {
     var isQurbanOrPengurus = frame.classList.contains('qurban-display') ||
       selector === 'QURBAN' || selector === 'PENGURUS';
 
-    if (isQurbanOrPengurus) {
-      /* Samakan format portrait QURBAN/PENGURUS dengan KEUANGAN:
-         judul dan setiap baris tanggal satu baris, auto-fit berdasarkan
-         lebar nyata yang tersedia di dalam frame. */
-      fitOneLine(titleEl, Math.max(7.04, Math.min(9.92, window.innerWidth * 0.0155)));
-      fitOneLine(subEl, 18);
-      fitOneLine(extraEl, 18);
-    } else {
-      /* KEUANGAN tetap memakai perilaku fit tanggal yang sudah berjalan. */
-      fitOneLine(subEl, 18);
-    }
+    /* Semua pilihan panel memakai perilaku portrait yang sama dengan
+       KEUANGAN: ukuran judul mengikuti CSS KEUANGAN, sedangkan tanggal
+       menyesuaikan lebar frame agar tetap satu baris. Jangan memberi
+       ukuran font inline khusus untuk QURBAN/PENGURUS. */
+    fitOneLine(subEl, 18);
   }
 
   function requestFit() {
