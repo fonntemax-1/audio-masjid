@@ -202,6 +202,10 @@ function handleGithubApiRequest_(params) {
         result = resolveCoordinatesCityFromApi_(params);
         break;
 
+      case 'resolveGoogleMapsLinkCity':
+        result = resolveGoogleMapsLinkCityFromApi_(params);
+        break;
+
       case 'setRemoteCell':
         result = setRemoteCellFromApi_(params);
         break;
@@ -308,6 +312,65 @@ function handleGithubApiRequest_(params) {
     throw new Error('PIN remote salah.');
   }
   return { valid: true };
+}
+
+function resolveGoogleMapsLinkCityFromApi_(params) {
+  params = params || {};
+  var configuredPin = String(PropertiesService.getScriptProperties().getProperty('REMOTE_CONTROL_PIN') || '');
+  var suppliedPin = String(params.pin || '');
+  if (!configuredPin || configuredPin.length < 6) throw new Error('Remote belum diaktifkan. Atur Script Property REMOTE_CONTROL_PIN.');
+  if (!suppliedPin || suppliedPin !== configuredPin) throw new Error('PIN remote salah.');
+
+  var url = String(params.mapsUrl || '').trim();
+  if (!/^https?:\/\//i.test(url) || url.length > 2000) throw new Error('Link Google Maps tidak valid.');
+  var current = url;
+  var coords = null;
+  for (var hop = 0; hop < 6; hop++) {
+    var hostMatch = current.match(/^https?:\/\/([^\/?#]+)/i);
+    if (!hostMatch) throw new Error('Format Link Google Maps tidak valid.');
+    var host = hostMatch[1].toLowerCase().replace(/:\d+$/, '');
+    var allowed = host === 'maps.app.goo.gl' || host === 'goo.gl' ||
+      host === 'google.com' || host.endsWith('.google.com') ||
+      host === 'google.co.id' || host.endsWith('.google.co.id') ||
+      host === 'maps.google.com' || host === 'maps.google.co.id';
+    if (!allowed) throw new Error('Gunakan link dari Google Maps.');
+    var decoded = current;
+    try { decoded = decodeURIComponent(current); } catch (ignore) {}
+    var match = decoded.match(/@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/) ||
+      decoded.match(/!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/) ||
+      decoded.match(/[?&](?:q|query|ll|center|destination|origin)=(-?\d{1,2}(?:\.\d+)?)[,%2C\s]+(-?\d{1,3}(?:\.\d+)?)/i);
+    if (match) {
+      var lat = Number(match[1]), lng = Number(match[2]);
+      if (isFinite(lat) && lat >= -90 && lat <= 90 && isFinite(lng) && lng >= -180 && lng <= 180) {
+        coords = { latitude: lat, longitude: lng };
+        break;
+      }
+    }
+    var response;
+    try {
+      response = UrlFetchApp.fetch(current, { method: 'get', followRedirects: false, muteHttpExceptions: true });
+    } catch (err) {
+      throw new Error('Link Google Maps tidak dapat dibuka oleh server.');
+    }
+    var status = response.getResponseCode();
+    var headers = response.getHeaders() || {};
+    var location = headers.Location || headers.location || '';
+    if (status >= 300 && status < 400 && location) {
+      current = String(location);
+      if (current.indexOf('http') !== 0) {
+        var origin = current.match(/^https?:\/\/[^/]+/i);
+        current = origin ? origin[0] + (current.charAt(0) === '/' ? '' : '/') + current : current;
+      }
+      continue;
+    }
+    break;
+  }
+  if (!coords) throw new Error('Koordinat tidak ditemukan. Pastikan link Google Maps mengarah ke pin/lokasi tertentu, bukan hanya halaman utama.');
+  return resolveCoordinatesCityFromApi_({
+    pin: suppliedPin,
+    latitude: String(coords.latitude),
+    longitude: String(coords.longitude)
+  });
 }
 
 function resolveCoordinatesCityFromApi_(params) {
