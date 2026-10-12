@@ -477,7 +477,7 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
         if (targetMatch && targetMatch[1]) target = targetMatch[1];
       }
       if (!target) {
-        targetMatch = variant.match(/(?:href|content|url|window\.location(?:\.href)?|location\.href)\s*[:=]\s*["']?((?:https?:)?\/\/[^"'<>\\s]*(?:maps\.google|google\.com\/maps)[^"'<>\\s]*)/i);
+        targetMatch = variant.match(/(?:href|content|url|window\.location(?:\.href)?|location\.href)\s*[:=]\s*["']?((?:https?:)?\/\/[^"'<> ]*(?:maps\.google|google\.com\/maps)[^"'<> ]*)/i);
         if (targetMatch && targetMatch[1]) target = targetMatch[1];
       }
       if (!target) {
@@ -485,7 +485,7 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
         if (targetMatch && targetMatch[1]) target = targetMatch[1];
       }
       if (!target) {
-        targetMatch = variant.match(/https?:\/\/(?:www\.)?(?:google\.[a-z.]+|maps\.google\.[a-z.]+)\/[^"'<>\\s]*/i);
+        targetMatch = variant.match(/https?:\/\/(?:www\.)?(?:google\.[a-z.]+|maps\.google\.[a-z.]+)\/[^"'<> ]*/i);
         if (targetMatch && targetMatch[0]) target = targetMatch[0];
       }
     }
