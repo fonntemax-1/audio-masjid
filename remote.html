@@ -77,8 +77,9 @@ button.danger:active{background:#b91c1c;color:#fff}
 <section class="card"><h2>🏠 Informasi masjid</h2><div class="grid">
 <div class="field"><label>Nama Masjid</label><input data-cell="C12" maxlength="150" placeholder="Nama masjid"></div>
 <div class="field"><label>Kota</label><select data-cell="C5" id="remoteCity"><option value="">Memuat daftar kota…</option></select></div>
-<div class="field full"><label for="googleMapsLink">Link Google Maps</label><input id="googleMapsLink" type="url" inputmode="url" placeholder="Tempel link lokasi dari Google Maps"></div>
-<div class="field full"><button id="resolveCoordinatesBtn" class="secondary" type="button">Cari nama kota dari link</button><div id="coordinateMessage" class="message" role="status" aria-live="polite"></div><p class="note">Nama kota dari link disimpan ke C14. Jadwal sholat, zona, dan timezone tetap mengikuti kota terpilih pada daftar Kota (C5).</p></div>
+<div class="field"><label for="latitudeInput">Latitude</label><input id="latitudeInput" type="number" inputmode="decimal" step="any" min="-90" max="90" placeholder="Contoh: -1.2379"></div>
+<div class="field"><label for="longitudeInput">Longitude</label><input id="longitudeInput" type="number" inputmode="decimal" step="any" min="-180" max="180" placeholder="Contoh: 116.8529"></div>
+<div class="field full"><button id="resolveCoordinatesBtn" class="secondary" type="button">Cari nama kota dari koordinat</button><div id="coordinateMessage" class="message" role="status" aria-live="polite"></div><p class="note">Nama kota hasil koordinat disimpan ke C14. Jadwal sholat, zona waktu, dan timezone tetap mengikuti kota terdekat yang dipilih pada daftar Kota (C5).</p></div>
 <div class="field"><label>Provinsi</label><input data-read-cell="C6" value="Memuat…" readonly></div>
 <div class="field"><label>Zona</label><input data-read-cell="C7" value="Memuat…" readonly></div>
 <div class="field"><label>Timezone</label><input data-read-cell="C8" value="Memuat…" readonly></div>
@@ -393,8 +394,8 @@ async function saveCell(cell,value){
  await jsonp('setRemoteCell',{sheet:'panels',cell,value,pin});
 }
 async function syncCoordinateCityFallback(){
- const mapLink=$('googleMapsLink').value.trim();
- if(mapLink)return;
+ const latitude=$('latitudeInput').value.trim(),longitude=$('longitudeInput').value.trim();
+ if(latitude!==''&&longitude!=='')return;
  const city=String($('remoteCity').value||'').trim();if(!city)return;
  const result=apiData(await jsonp('setRemoteCell',{sheet:'panels',cell:'C14',value:city,pin:$('pin').value},20000));
  if(result&&result.success===false)throw new Error(result.error||'Nama kota cadangan gagal disimpan ke C14.');
@@ -517,18 +518,21 @@ $('logoutBtn').addEventListener('click',()=>{
  $('pin').focus();
 });
 $('activity').addEventListener('change',updateOfficerLabels);
-$('googleMapsLink').addEventListener('change',async()=>{if(!$('googleMapsLink').value.trim()){try{await syncCoordinateCityFallback();show($('coordinateMessage'),'Link kosong; C14 mengikuti Kota (C5).',false)}catch(error){show($('coordinateMessage'),error.message||'Gagal menyinkronkan C14.',true)}}});
+$('latitudeInput').addEventListener('change',()=>{if(!$('latitudeInput').value.trim()&&!$('longitudeInput').value.trim())syncCoordinateCityFallback().catch(error=>show($('coordinateMessage'),error.message||'Gagal menyinkronkan C14.',true));});
+ $('longitudeInput').addEventListener('change',()=>{if(!$('latitudeInput').value.trim()&&!$('longitudeInput').value.trim())syncCoordinateCityFallback().catch(error=>show($('coordinateMessage'),error.message||'Gagal menyinkronkan C14.',true));});
 $('resolveCoordinatesBtn').addEventListener('click',async()=>{
- const mapLink=$('googleMapsLink').value.trim(),msg=$('coordinateMessage'),btn=$('resolveCoordinatesBtn');
- if(!mapLink){show(msg,'Tempel Link Google Maps terlebih dahulu.',true);return;}
- if(!/^https?:\/\//i.test(mapLink)){show(msg,'Link harus diawali https:// atau http://.',true);return;}
- btn.disabled=true;show(msg,'Mencari nama kota dari link Google Maps…',false);
+ const latitude=$('latitudeInput').value.trim(),longitude=$('longitudeInput').value.trim(),msg=$('coordinateMessage'),btn=$('resolveCoordinatesBtn');
+ if(latitude===''||longitude===''){show(msg,'Isi Latitude dan Longitude terlebih dahulu.',true);return;}
+ const lat=Number(latitude),lng=Number(longitude);
+ if(!Number.isFinite(lat)||lat < -90||lat > 90){show(msg,'Latitude harus antara -90 dan 90.',true);return;}
+ if(!Number.isFinite(lng)||lng < -180||lng > 180){show(msg,'Longitude harus antara -180 dan 180.',true);return;}
+ btn.disabled=true;show(msg,'Mencari nama kota dari koordinat…',false);
  try{
-  const response=apiData(await jsonp('resolveGoogleMapsLinkCity',{pin:$('pin').value,mapsUrl:mapLink},35000));
-  if(!response||response.success!==true||!String(response.city||'').trim())throw new Error('Nama kota tidak berhasil ditemukan dari link tersebut.');
+  const response=apiData(await jsonp('resolveCoordinatesCity',{pin:$('pin').value,latitude:String(lat),longitude:String(lng)},35000));
+  if(!response||response.success!==true||!String(response.city||'').trim())throw new Error('Nama kota tidak berhasil ditemukan dari koordinat.');
   show(msg,'Nama kota: '+response.city+' (tersimpan di C14). Jadwal dan timezone tetap mengikuti Kota (C5).',false);
-  setStatus('Nama kota dari Google Maps berhasil disimpan',true);
- }catch(error){show(msg,error&&error.message?error.message:'Gagal mencari nama kota dari link.',true);setStatus('Pencarian nama kota gagal',false);}
+  setStatus('Nama kota dari koordinat berhasil disimpan',true);
+ }catch(error){show(msg,error&&error.message?error.message:'Gagal mencari nama kota dari koordinat.',true);setStatus('Pencarian nama kota gagal',false);}
  finally{btn.disabled=false;}
 });
 $('remoteCity').addEventListener('change',async function(){
