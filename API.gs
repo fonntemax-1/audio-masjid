@@ -863,9 +863,22 @@ function findNearestMuslimKitaCity_(sheet, latitude, longitude) {
       .slice(0, 90);
     if (!candidates.length) return null;
 
+    // Nama dropdown tidak selalu sama dengan slug resmi API (contoh DKI Jakarta -> jakarta).
+    var slugAliases = {
+      'dki jakarta': 'jakarta',
+      'surakarta (solo)': 'surakarta',
+      'tanjung pandan (belitung)': 'tanjung-pandan',
+      'watampone (bone)': 'watampone',
+      'tanjung pinang': 'tanjungpinang',
+      'pematang siantar': 'pematangsiantar',
+      'kota jakarta': 'jakarta',
+      'jakarta': 'jakarta'
+    };
     var requests = candidates.map(function(name) {
-      var slug = name.toLowerCase()
-        .replace(/[()]/g, '')
+      var normalizedName = String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+      var slug = slugAliases[normalizedName] || normalizedName
+        .replace(/\s*\([^)]*\)\s*/g, ' ')
+        .replace(/^(kota|kabupaten|kab\.)\s+/i, '')
         .replace(/[^a-z0-9\s-]/g, '')
         .trim()
         .replace(/\s+/g, '-');
@@ -925,7 +938,10 @@ function findNearestMuslimKitaCity_(sheet, latitude, longitude) {
     }
   }
 
-  if (!cities.length) return null;
+  if (!cities.length) {
+    console.warn('MUSLIMKITA_NEAREST_CITY: tidak ada kandidat kota valid. Periksa validasi dropdown C5, slug kota, dan respons endpoint MuslimKita.');
+    return null;
+  }
 
   function distanceKm_(lat1, lng1, lat2, lng2) {
     var rad = Math.PI / 180;
