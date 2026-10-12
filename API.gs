@@ -564,6 +564,60 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
     }
   }
 
+
+  // FALLBACK JUDUL HALAMAN:
+  // Jika redirect/metadata tidak memberi koordinat, ikuti short link sampai akhir,
+  // baca <title> seperti fungsi EXTRACT_BY_TITLE, lalu geocode nama tempat.
+  // Tetap gunakan koordinat hasil geocoding untuk menentukan wilayah C14;
+  // judul halaman tidak langsung ditulis ke C14 agar formatnya konsisten.
+  if (!coords) {
+    try {
+      var titleResponse = UrlFetchApp.fetch(url, {
+        method: 'get',
+        followRedirects: true,
+        muteHttpExceptions: true,
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TVSholat/1.0)' }
+      });
+      var titleStatus = titleResponse.getResponseCode();
+      if (titleStatus >= 200 && titleStatus < 400) {
+        var titleHtml = titleResponse.getContentText() || '';
+        var titleMatch = titleHtml.match(/<title\\b[^>]*>([\\s\\S]*?)<\\/title>/i);
+        if (titleMatch && titleMatch[1]) {
+          var pageTitle = titleMatch[1]
+            .replace(/&amp;/gi, '&')
+            .replace(/&quot;/gi, '"')
+            .replace(/&#39;|&apos;/gi, "'")
+            .replace(/&lt;/gi, '<')
+            .replace(/&gt;/gi, '>')
+            .replace(/\\s*[-–|]\\s*Google Maps\\s*$/i, '')
+            .replace(/\\s+/g, ' ')
+            .trim();
+          if (pageTitle && !/^(google maps|maps|google)$/i.test(pageTitle)) {
+            if (placeTextCandidates.indexOf(pageTitle) < 0) {
+              placeTextCandidates.unshift(pageTitle);
+            }
+            try {
+              var titleGeocoder = Maps.newGeocoder().setLanguage('id');
+              var titleGeocode = titleGeocoder.geocode(pageTitle);
+              var titleRows = titleGeocode && titleGeocode.results ? titleGeocode.results : [];
+              if (titleRows.length && titleRows[0].geometry && titleRows[0].geometry.location) {
+                var titlePoint = titleRows[0].geometry.location;
+                var titleLat = Number(titlePoint.lat);
+                var titleLng = Number(titlePoint.lng);
+                if (isFinite(titleLat) && titleLat >= -90 && titleLat <= 90 &&
+                    isFinite(titleLng) && titleLng >= -180 && titleLng <= 180) {
+                  coords = { latitude: titleLat, longitude: titleLng };
+                }
+              }
+            } catch (ignoreTitleGeocode) {}
+          }
+        }
+      }
+    } catch (ignoreTitleFetch) {
+      // Kegagalan fallback judul tidak menimpa error utama resolver.
+    }
+  }
+
   if (!coords) throw new Error('Google Maps belum memberikan koordinat atau alamat tempat yang dapat dibaca. Coba salin link melalui Bagikan pada pin tempat di aplikasi Google Maps.');
 
   return resolveCoordinatesCityFromApi_({
