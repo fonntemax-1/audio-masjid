@@ -347,23 +347,35 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
     if (placeTextCandidates.indexOf(value) < 0) placeTextCandidates.push(value);
   }
 
-  // Query parameter tempat (query/q/destination/daddr).
-  var queryString = url.split('?')[1] || '';
-  queryString = queryString.split('#')[0];
-  queryString.split('&').forEach(function(part) {
-    var eq = part.indexOf('=');
-    if (eq < 0) return;
-    var key = part.substring(0, eq).toLowerCase();
-    if (key === 'query' || key === 'q' || key === 'destination' || key === 'daddr') {
-      addPlaceCandidate_(part.substring(eq + 1));
+  // Ekstrak nama tempat dari setiap URL yang ditemukan selama redirect,
+  // bukan hanya dari short link awal.
+  function extractPlaceCandidatesFromUrl_(candidateUrl) {
+    candidateUrl = String(candidateUrl || '');
+    var queryPart = candidateUrl.split('?')[1] || '';
+    queryPart = queryPart.split('#')[0];
+    queryPart.split('&').forEach(function(part) {
+      var eq = part.indexOf('=');
+      if (eq < 0) return;
+      var key = part.substring(0, eq).toLowerCase();
+      if (key === 'query' || key === 'q' || key === 'destination' || key === 'daddr' || key === 'where' || key === 'place') {
+        addPlaceCandidate_(part.substring(eq + 1));
+      }
+    });
+    var pathMatch = candidateUrl.match(/\/maps\/(?:place|search)\/([^?#]+)/i);
+    if (pathMatch && pathMatch[1]) addPlaceCandidate_(pathMatch[1]);
+    // @lat,lng pada URL /maps/place/ menunjuk lokasi tempat; tidak mengambil
+    // koordinat @ dari HTML karena bisa hanya merupakan pusat viewport.
+    if (/\/maps\/place\//i.test(candidateUrl)) {
+      var atMatch = candidateUrl.match(/\/@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/);
+      if (atMatch) {
+        var lat = Number(atMatch[1]), lng = Number(atMatch[2]);
+        if (isFinite(lat) && lat >= -90 && lat <= 90 && isFinite(lng) && lng >= -180 && lng <= 180) {
+          coords = { latitude: lat, longitude: lng };
+        }
+      }
     }
-  });
-
-  // Nama tempat yang disematkan pada path /maps/place/NAMA/.
-  var placePathMatch = url.match(/\/maps\/(?:place|search)\/([^?#]+)/i);
-  if (placePathMatch && placePathMatch[1]) {
-    addPlaceCandidate_(placePathMatch[1].replace(/\+/g, ' '));
   }
+  extractPlaceCandidatesFromUrl_(url);
 
   // URL dan HTML diproses berbeda. HTML Google Maps sering memuat @lat,lng
   // sebagai pusat/viewport peta, bukan lokasi pin yang dibagikan.
@@ -426,6 +438,8 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
     var hostMatch = current.match(/^https?:\/\/([^\/?#]+)/i);
     if (!hostMatch) throw new Error('Format Link Google Maps tidak valid.');
     var host = hostMatch[1].toLowerCase().replace(/:\d+$/, '');
+    extractPlaceCandidatesFromUrl_(current);
+    if (coords) break;
     var allowed = host === 'maps.app.goo.gl' || host === 'goo.gl' ||
       host === 'google.com' || host.endsWith('.google.com') ||
       host === 'google.co.id' || host.endsWith('.google.co.id') ||
