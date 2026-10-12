@@ -18978,11 +18978,26 @@ function setCountdownBlackMode(enabled) {
 
     var selector = String(frame.dataset.panelSelector || '').trim().toUpperCase();
 
-    /* Ukuran judul dan baris isi mengikuti CSS portrait KEUANGAN.
-       Jangan menjalankan fitOneLine() pada fin-sub: di QURBAN elemen ini
-       berisi A2, bukan tanggal. Ukuran tanggal KEUANGAN, PENGURUS, dan
-       tanggal QURBAN (fin-extra) ditangani autoFitPanelDatesShared_()
-       yang dipakai bersama oleh ketiga format. */
+    /* Fit tanggal yang benar-benar tampil pada setiap panel.
+       KEUANGAN: A2 di fin-sub.
+       PENGURUS: A2 di fin-sub.
+       QURBAN: A3 di fin-extra (fin-sub adalah A2 dan bukan tanggal yang diminta). */
+    var dateTargets = [];
+    if (selector === 'QURBAN') {
+      dateTargets = [extraEl];
+    } else if (selector === 'PENGURUS' || selector === 'KEUANGAN') {
+      dateTargets = [subEl];
+    } else {
+      // Saat atribut selector belum terisi, jangan salah mengecilkan A2 QURBAN.
+      if (String(subEl && subEl.textContent || '').indexOf('|') >= 0) dateTargets.push(subEl);
+      if (String(extraEl && extraEl.textContent || '').indexOf('|') >= 0) dateTargets.push(extraEl);
+    }
+    dateTargets.forEach(function(el) {
+      if (!el || !el.isConnected || !(el.textContent || '').trim()) return;
+      // Tunggu layout tersedia; ResizeObserver/MutationObserver akan menjadwalkan ulang.
+      if (el.clientWidth < 2) return;
+      fitOneLine(el, 16);
+    });
   }
 
   function requestFit() {
