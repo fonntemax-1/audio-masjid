@@ -61,7 +61,7 @@ button.danger:active{background:#b91c1c;color:#fff}
 </style>
 </head>
 <body>
-<header><div class="head"><div class="logo">☾</div><div class="head-copy"><h1>CONTROL PANEL TV SIGNAGE</h1><div class="header-meta"><span>📅 <strong id="currentDate">Memuat tanggal…</strong></span><span>🕒 <strong id="currentTime">Memuat jam…</strong></span><span id="lastUpdateWrap" class="hidden">🔄 Last update: <strong id="lastUpdate">Belum dimuat</strong></span></div></div></div><div id="prayerScheduleWrap" class="prayer-schedule hidden" aria-live="polite"><div class="prayer-schedule-heading"><span>🕌 JADWAL SHOLAT</span><span id="prayerCity"></span></div><div class="prayer-date-meta"><div><strong id="remoteGregorianDate">Memuat tanggal…</strong></div><div><strong id="remoteHijriDate">Memuat tanggal…</strong></div></div><div class="prayer-times"><div class="prayer-time"><span>SUBUH</span><strong id="remotePrayerSubuh">--:--</strong></div><div class="prayer-time"><span>DZUHUR</span><strong id="remotePrayerDzuhur">--:--</strong></div><div class="prayer-time"><span>ASHAR</span><strong id="remotePrayerAshar">--:--</strong></div><div class="prayer-time"><span>MAGHRIB</span><strong id="remotePrayerMaghrib">--:--</strong></div><div class="prayer-time"><span>ISYA</span><strong id="remotePrayerIsya">--:--</strong></div></div></div></header>
+<header><div class="head"><div class="logo">☾</div><div class="head-copy"><h1>CONTROL PANEL TV SIGNAGE</h1><div class="header-meta"><span>📅 <strong id="currentDate">Memuat tanggal…</strong></span><span>🕒 <strong id="currentTime">Memuat jam…</strong></span><span id="lastUpdateWrap" class="hidden">🔄 Last update: <strong id="lastUpdate">Belum dimuat</strong></span></div></div></div><div id="prayerScheduleWrap" class="prayer-schedule hidden" aria-live="polite"><div class="prayer-schedule-heading"><span>🕌 JADWAL SHOLAT</span><span id="prayerCity"></span></div><div class="prayer-date-meta"><div><strong id="remoteGregorianDate">Memuat tanggal…</strong></div><div><strong id="remoteHijriDate">Memuat tanggal…</strong></div></div><div class="prayer-times"><div class="prayer-time" id="remoteImsakCard" hidden><span>IMSAK</span><strong id="remotePrayerImsak">--:--</strong></div><div class="prayer-time"><span>SUBUH</span><strong id="remotePrayerSubuh">--:--</strong></div><div class="prayer-time"><span>TERBIT</span><strong id="remotePrayerTerbit">--:--</strong></div><div class="prayer-time"><span>DZUHUR</span><strong id="remotePrayerDzuhur">--:--</strong></div><div class="prayer-time"><span>ASHAR</span><strong id="remotePrayerAshar">--:--</strong></div><div class="prayer-time"><span>MAGHRIB</span><strong id="remotePrayerMaghrib">--:--</strong></div><div class="prayer-time"><span>ISYA</span><strong id="remotePrayerIsya">--:--</strong></div></div></div></header>
 <main>
 <div class="status hidden"><span id="dot" class="dot"></span><span id="status">Menyiapkan remote…</span><span id="clock"></span></div>
 <section class="card" id="connection">
@@ -202,7 +202,8 @@ async function loadRemotePrayerSchedule(){
   const schedule=result&&result.jadwal;
   const keys=['subuh','dzuhur','ashar','maghrib','isya'];
   if(!result||result.success!==true||!schedule||!keys.every(k=>/^([01]?\d|2[0-3]):[0-5]\d$/.test(String(schedule[k]||''))))throw new Error('Jadwal belum tersedia.');
-  $('remotePrayerSubuh').textContent=schedule.subuh;$('remotePrayerDzuhur').textContent=schedule.dzuhur;$('remotePrayerAshar').textContent=schedule.ashar;$('remotePrayerMaghrib').textContent=schedule.maghrib;$('remotePrayerIsya').textContent=schedule.isya;
+  $('remotePrayerSubuh').textContent=schedule.subuh;$('remotePrayerTerbit').textContent=schedule.terbit||'--:--';$('remotePrayerImsak').textContent=schedule.imsak||'--:--';$('remotePrayerDzuhur').textContent=schedule.dzuhur;$('remotePrayerAshar').textContent=schedule.ashar;$('remotePrayerMaghrib').textContent=schedule.maghrib;$('remotePrayerIsya').textContent=schedule.isya;
+  $('remoteImsakCard').hidden=true;
   $('prayerCity').textContent=[result.kota,result.zona].filter(Boolean).join(' · ');
   // Tanggal tampilan dihitung dari waktu SEKARANG di zona waktu masjid,
   // bukan memakai field tanggal dari respons jadwal yang bisa berasal dari cache/API.
@@ -214,7 +215,7 @@ async function loadRemotePrayerSchedule(){
   $('remoteGregorianDate').textContent=new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(dateObj);
   $('remoteHijriDate').textContent='Memuat…';
   wrap.classList.remove('hidden');syncHeaderHeight();
-  try{const hijri=apiData(await jsonp('getHijriDateFromApi',{date:dateString},20000));$('remoteHijriDate').textContent=hijri&&hijri.success&&hijri.hijri?hijri.hijri:'Belum tersedia';}catch(_){$('remoteHijriDate').textContent='Belum tersedia';}
+  try{const hijri=apiData(await jsonp('getHijriDateFromApi',{date:dateString},20000));const hijriText=hijri&&hijri.success&&hijri.hijri?String(hijri.hijri):'';$('remoteHijriDate').textContent=hijriText||'Belum tersedia';$('remoteImsakCard').hidden=!(/ramadan|ramadhan/i.test(hijriText));}catch(_){$('remoteHijriDate').textContent='Belum tersedia';$('remoteImsakCard').hidden=true;}
   syncHeaderHeight();
  }catch(e){$('remoteGregorianDate').textContent='Belum tersedia';$('remoteHijriDate').textContent='Belum tersedia';wrap.classList.remove('hidden');syncHeaderHeight();}
 }
