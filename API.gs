@@ -392,32 +392,8 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
 
   if (!coords) throw new Error('Koordinat tidak ditemukan. Pastikan link Google Maps mengarah ke pin/lokasi tertentu, bukan hanya halaman utama.');
 
-  // Jika URL menyertakan nama tempat, simpan label tersebut persis sebagai
-  // nama lokasi yang terbaca dari Google Maps. Jika tidak ada label /place/,
-  // gunakan reverse geocoding sebagai cadangan.
-  if (placeLabel) {
-    var lock = LockService.getScriptLock();
-    lock.waitLock(10000);
-    try {
-      var sheet = getSpreadsheet().getSheetByName('panels');
-      if (!sheet) throw new Error('Sheet panels tidak ditemukan.');
-      sheet.getRange('C14').setValue(placeLabel);
-      SpreadsheetApp.flush();
-      var actual = sheet.getRange('C14').getDisplayValue();
-      if (String(actual).trim() !== placeLabel) throw new Error('Nama lokasi gagal diverifikasi pada C14.');
-      return {
-        success: true,
-        city: actual,
-        cell: 'C14',
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-        source: 'google-maps-place-label'
-      };
-    } finally {
-      lock.releaseLock();
-    }
-  }
-
+  // Semua link Maps diselesaikan dari koordinat melalui reverse geocoding bahasa Indonesia.
+  // Nama tempat diambil sebagai wilayah + kabupaten/kota; provinsi tidak ditampilkan.
   return resolveCoordinatesCityFromApi_({
     pin: suppliedPin,
     latitude: String(coords.latitude),
@@ -444,23 +420,63 @@ function resolveCoordinatesCityFromApi_(params) {
   var results = response && response.results ? response.results : [];
   if (!results.length) throw new Error('Koordinat tidak menemukan nama kota.');
 
-  var cityName = '';
-  var fallback = '';
+  var areaName = '';
+  var regencyName = '';
+  var fallbackName = '';
+
+  // Utamakan nama wilayah/kecamatan lalu kabupaten/kota.
+  // Reverse geocoder menggunakan bahasa Indonesia; provinsi sengaja tidak dipakai.
   results.some(function(result) {
     var components = result.address_components || [];
     components.forEach(function(component) {
       var types = component.types || [];
       var name = String(component.long_name || '').trim();
       if (!name) return;
-      if (!cityName && (types.indexOf('locality') >= 0 || types.indexOf('administrative_area_level_2') >= 0 || types.indexOf('sublocality') >= 0 || types.indexOf('postal_town') >= 0)) {
-        cityName = name;
+
+      if (!areaName && (
+        types.indexOf('locality') >= 0 ||
+        types.indexOf('sublocality') >= 0 ||
+        types.indexOf('sublocality_level_1') >= 0 ||
+        types.indexOf('administrative_area_level_3') >= 0 ||
+        types.indexOf('neighborhood') >= 0
+      )) {
+        areaName = name;
       }
-      if (!fallback && types.indexOf('administrative_area_level_1') >= 0) fallback = name;
+
+      if (!regencyName && types.indexOf('administrative_area_level_2') >= 0) {
+        regencyName = name;
+      }
+
+      if (!fallbackName && (
+        types.indexOf('administrative_area_level_2') >= 0 ||
+        types.indexOf('locality') >= 0 ||
+        types.indexOf('administrative_area_level_3') >= 0
+      )) {
+        fallbackName = name;
+      }
     });
-    return !!cityName;
+
+    return !!(areaName && regencyName);
   });
-  cityName = cityName || fallback;
-  if (!cityName) throw new Error('Nama kota tidak tersedia untuk koordinat tersebut.');
+
+  var cityName = '';
+  if (areaName && regencyName && areaName.toLowerCase() !== regencyName.toLowerCase()) {
+    cityName = areaName + ', ' + regencyName;
+  } else {
+    cityName = areaName || regencyName || fallbackName;
+  }
+
+  // Normalisasi istilah administratif yang kadang masih dikembalikan dalam bahasa Inggris.
+  cityName = String(cityName || '')
+    .replace(/\\bBandung Regency\\b/gi, 'Kabupaten Bandung')
+    .replace(/\\bWest Java\\b/gi, 'Jawa Barat')
+    .replace(/\\bEast Java\\b/gi, 'Jawa Timur')
+    .replace(/\\bCentral Java\\b/gi, 'Jawa Tengah')
+    .replace(/\\bRegency\\b/gi, 'Kabupaten')
+    .replace(/\\bCity of\\s+/gi, 'Kota ')
+    .trim();
+
+  if (!cityName) throw new Error('Nama wilayah/kabupaten tidak tersedia untuk koordinat tersebut.');
 
   var lock = LockService.getScriptLock();
   lock.waitLock(10000);
