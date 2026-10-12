@@ -204,9 +204,14 @@ async function loadRemotePrayerSchedule(){
   if(!result||result.success!==true||!schedule||!keys.every(k=>/^([01]?\d|2[0-3]):[0-5]\d$/.test(String(schedule[k]||''))))throw new Error('Jadwal belum tersedia.');
   $('remotePrayerSubuh').textContent=schedule.subuh;$('remotePrayerDzuhur').textContent=schedule.dzuhur;$('remotePrayerAshar').textContent=schedule.ashar;$('remotePrayerMaghrib').textContent=schedule.maghrib;$('remotePrayerIsya').textContent=schedule.isya;
   $('prayerCity').textContent=[result.kota,result.zona].filter(Boolean).join(' · ');
-  const dateString=String(result.tanggal||'');
-  const dateParts=dateString.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if(dateParts){const dateObj=new Date(Number(dateParts[1]),Number(dateParts[2])-1,Number(dateParts[3]),12,0,0);$('remoteGregorianDate').textContent=new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:result.timezone||'Asia/Makassar'}).format(dateObj);}else{$('remoteGregorianDate').textContent='Tanggal tidak tersedia';}
+  // Tanggal tampilan dihitung dari waktu SEKARANG di zona waktu masjid,
+  // bukan memakai field tanggal dari respons jadwal yang bisa berasal dari cache/API.
+  const timezone=result.timezone||'Asia/Makassar';
+  const nowParts=new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:timezone}).formatToParts(new Date());
+  const part=(type)=>{const item=nowParts.find(x=>x.type===type);return item?item.value:'';};
+  const dateString=part('year')+'-'+part('month')+'-'+part('day');
+  const dateObj=new Date(dateString+'T12:00:00');
+  $('remoteGregorianDate').textContent=new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(dateObj);
   $('remoteHijriDate').textContent='Memuat…';
   wrap.classList.remove('hidden');syncHeaderHeight();
   try{const hijri=apiData(await jsonp('getHijriDateFromApi',{date:dateString},20000));$('remoteHijriDate').textContent=hijri&&hijri.success&&hijri.hijri?hijri.hijri:'Belum tersedia';}catch(_){$('remoteHijriDate').textContent='Belum tersedia';}
