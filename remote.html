@@ -506,17 +506,25 @@ $('logoutBtn').addEventListener('click',()=>{
 $('activity').addEventListener('change',updateOfficerLabels);
 $('remoteCity').addEventListener('change',async function(){
  const cityName=String(this.value||'').trim();const city=remoteCityRecords[cityName];if(!city)return;
- const cells=[{cell:'C5',value:city.name},{cell:'C6',value:city.province},{cell:'C7',value:city.zona},{cell:'C8',value:city.timezone},{cell:'C9',value:city.gmt},{cell:'C10',value:city.slug}];
- Object.keys(readByCell).forEach(cell=>{const item=cells.find(x=>x.cell===cell);if(item)readByCell[cell].value=item.value;});
- const select=this;select.disabled=true;setStatus('Memperbarui data lokasi…',false);
+ const locationCells=[{cell:'C5',value:city.name},{cell:'C6',value:city.province},{cell:'C7',value:city.zona},{cell:'C8',value:city.timezone},{cell:'C9',value:city.gmt}];
+ const slugCell={cell:'C10',value:city.slug};
+ // Tampilkan nilai kota terpilih langsung dari cache.
+ [...locationCells,slugCell].forEach(item=>{if(readByCell[item.cell])readByCell[item.cell].value=item.value;});
+ const select=this;select.disabled=true;setStatus('Menyimpan kota dan data lokasi…',false);
  try{
-  const result=apiData(await jsonp('setRemoteCells',{pin:$('pin').value,cells:JSON.stringify(cells)},30000));
-  if(!result||result.success!==true||Number(result.count)!==cells.length)throw new Error('Konfirmasi update lokasi tidak lengkap.');
-  setStatus('Data kota dan zona waktu berhasil diperbarui',true);
+  const result=apiData(await jsonp('setRemoteCells',{pin:$('pin').value,cells:JSON.stringify(locationCells)},30000));
+  if(!result||result.success!==true||Number(result.count)!==locationCells.length)throw new Error('Konfirmasi penyimpanan kota tidak lengkap.');
+  try{
+   const slugResult=apiData(await jsonp('setRemoteCells',{pin:$('pin').value,cells:JSON.stringify([slugCell])},30000));
+   if(!slugResult||slugResult.success!==true||Number(slugResult.count)!==1)throw new Error('Slug belum tersimpan.');
+   setStatus('Kota, Provinsi, Zona, Timezone, GMT, dan Slug berhasil diperbarui',true);
+  }catch(slugError){
+   setStatus('Data lokasi tersimpan; Slug perlu deploy API.gs terbaru',false);
+   window.alert('Kota, Provinsi, Zona, dan GMT sudah dikirim untuk disimpan. Slug belum tersimpan karena API.gs aktif mungkin belum diperbarui. Deploy versi API.gs terbaru agar Slug ikut tersimpan.');
+  }
  }catch(error){
-  setStatus('Update lokasi gagal',false);
-  window.alert('Kota belum tersimpan lengkap. Periksa koneksi dan Spreadsheet, lalu coba lagi.');
-  await refreshPanels();
+  setStatus('Penyimpanan lokasi gagal',false);
+  window.alert('Data lokasi sudah diperbarui di tampilan, tetapi belum dapat dipastikan tersimpan di Spreadsheet. Pastikan API.gs terbaru sudah di-deploy, lalu coba lagi.');
  }finally{select.disabled=false;}
 });
 updateOfficerLabels();
