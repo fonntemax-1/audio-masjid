@@ -328,6 +328,43 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
   var placeTextCandidates = [];
   var resolverDiagnostics = [];
 
+  // Ambil nama tempat langsung dari URL sebagai fallback. Sebagian link Maps
+  // berupa /maps/search/?api=1&query=... tanpa koordinat.
+  function addPlaceCandidate_(value) {
+    value = String(value || '').replace(/\+/g, ' ').trim();
+    for (var decodePass = 0; decodePass < 2; decodePass++) {
+      try { value = decodeURIComponent(value); } catch (ignoreDecodeCandidate) { break; }
+    }
+    value = value
+      .replace(/&amp;/gi, '&')
+      .replace(/&#39;|&apos;/gi, "'")
+      .replace(/&quot;/gi, '"')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!value || value.length < 3 || value.length > 300) return;
+    if (/^(google maps|maps|google|directions|search)$/i.test(value)) return;
+    if (placeTextCandidates.indexOf(value) < 0) placeTextCandidates.push(value);
+  }
+
+  // Query parameter tempat (query/q/destination/daddr).
+  var queryString = url.split('?')[1] || '';
+  queryString = queryString.split('#')[0];
+  queryString.split('&').forEach(function(part) {
+    var eq = part.indexOf('=');
+    if (eq < 0) return;
+    var key = part.substring(0, eq).toLowerCase();
+    if (key === 'query' || key === 'q' || key === 'destination' || key === 'daddr') {
+      addPlaceCandidate_(part.substring(eq + 1));
+    }
+  });
+
+  // Nama tempat yang disematkan pada path /maps/place/NAMA/.
+  var placePathMatch = url.match(/\/maps\/(?:place|search)\/([^?#]+)/i);
+  if (placePathMatch && placePathMatch[1]) {
+    addPlaceCandidate_(placePathMatch[1].replace(/\+/g, ' '));
+  }
+
   // URL dan HTML diproses berbeda. HTML Google Maps sering memuat @lat,lng
   // sebagai pusat/viewport peta, bukan lokasi pin yang dibagikan.
   // Karena itu, pola @lat,lng tidak pernah dibaca dari HTML.
