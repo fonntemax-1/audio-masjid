@@ -800,17 +800,11 @@ function resolveCoordinatesCityFromApi_(params) {
     if (String(actual).trim() !== cityName) throw new Error('Nama kota gagal diverifikasi pada C14.');
 
     // Pilih kota terdekat yang benar-benar tersedia di API MuslimKita.
-    // Jika katalog kota tidak dapat dibaca, C14 tetap diperbarui dan C5:C10 tidak diubah.
+    // Hanya C5 yang ditulis; C6:C10 diperbarui oleh mekanisme otomatis spreadsheet.
+    // Jika katalog kota tidak dapat dibaca, C14 tetap diperbarui dan C5 tidak diubah.
     var nearest = findNearestMuslimKitaCity_(sheet, lat, lng);
     if (nearest) {
-      sheet.getRange('C5:C10').setValues([[
-        nearest.kota,
-        nearest.provinsi,
-        nearest.zona,
-        nearest.timezone,
-        nearest.gmt,
-        nearest.slug
-      ]]);
+      sheet.getRange('C5').setValue(nearest.kota);
       SpreadsheetApp.flush();
       var verifiedCity = String(sheet.getRange('C5').getDisplayValue() || '').trim();
       if (verifiedCity !== nearest.kota) throw new Error('C14 tersimpan, tetapi verifikasi kota terdekat pada C5 gagal.');
