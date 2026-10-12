@@ -325,6 +325,7 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
   if (!/^https?:\/\//i.test(url) || url.length > 2000) throw new Error('Link Google Maps tidak valid.');
   var current = url;
   var coords = null;
+  var placeTextCandidates = [];
 
   // URL dan HTML diproses berbeda. HTML Google Maps sering memuat @lat,lng
   // sebagai pusat/viewport peta, bukan lokasi pin yang dibagikan.
@@ -460,6 +461,33 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
     var target = '';
     for (var bv = 0; bv < bodyVariants.length && !target; bv++) {
       var variant = bodyVariants[bv];
+
+      // Simpan metadata alamat/nama tempat sebagai fallback jika short link
+      // tidak menampilkan koordinat di header redirect atau URL tujuan.
+      var metaMatches = [
+        /<meta[^>]+property\s*=\s*["']og:description["'][^>]+content\s*=\s*["']([^"']{4,500})["']/i,
+        /<meta[^>]+name\s*=\s*["']description["'][^>]+content\s*=\s*["']([^"']{4,500})["']/i,
+        /<meta[^>]+property\s*=\s*["']og:title["'][^>]+content\s*=\s*["']([^"']{3,250})["']/i,
+        /<title[^>]*>([^<]{3,250})<\/title>/i
+      ];
+      for (var mt = 0; mt < metaMatches.length; mt++) {
+        var metaMatch = variant.match(metaMatches[mt]);
+        if (metaMatch && metaMatch[1]) {
+          var metaText = metaMatch[1]
+            .replace(/&amp;/gi, '&')
+            .replace(/&#39;|&apos;/gi, "'")
+            .replace(/&quot;/gi, '"')
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          metaText = metaText.replace(/\s*[-|–]\s*Google Maps\s*$/i, '').trim();
+          if (metaText && !/^(google maps|maps|google)$/i.test(metaText) &&
+              placeTextCandidates.indexOf(metaText) < 0) {
+            placeTextCandidates.push(metaText);
+          }
+        }
+      }
+
       // Coba koordinat pin eksplisit setelah encoding dinormalisasi.
       coords = findCoordinates_(variant, false);
       if (coords) break;
@@ -501,7 +529,31 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
     break;
   }
 
-  if (!coords) throw new Error('Koordinat tidak ditemukan. Server Google Maps tidak mengirim koordinat pin pada link ini. Coba salin link melalui Bagikan pada pin tempat di aplikasi Google Maps, atau masukkan Latitude dan Longitude secara langsung.');
+  // Fallback terakhir: geocode metadata tempat/alamat dari halaman Google Maps.
+  // Hanya dipakai jika tidak ada koordinat eksplisit yang ditemukan.
+  if (!coords && placeTextCandidates.length) {
+    var geocoder = Maps.newGeocoder().setLanguage('id');
+    for (var pc = 0; pc < placeTextCandidates.length && !coords; pc++) {
+      var candidateText = placeTextCandidates[pc];
+      // Abaikan deskripsi generik Google Maps yang bukan alamat tempat.
+      if (/^(find local businesses|search google maps|google maps|view maps and get driving directions)/i.test(candidateText)) continue;
+      try {
+        var geocodeResult = geocoder.geocode(candidateText);
+        var geocodeRows = geocodeResult && geocodeResult.results ? geocodeResult.results : [];
+        if (geocodeRows.length && geocodeRows[0].geometry && geocodeRows[0].geometry.location) {
+          var point = geocodeRows[0].geometry.location;
+          var pointLat = Number(point.lat);
+          var pointLng = Number(point.lng);
+          if (isFinite(pointLat) && pointLat >= -90 && pointLat <= 90 &&
+              isFinite(pointLng) && pointLng >= -180 && pointLng <= 180) {
+            coords = { latitude: pointLat, longitude: pointLng };
+          }
+        }
+      } catch (ignoreGeocodeText) {}
+    }
+  }
+
+  if (!coords) throw new Error('Google Maps belum memberikan koordinat atau alamat tempat yang dapat dibaca. Coba salin link melalui Bagikan pada pin tempat di aplikasi Google Maps.');
 
   return resolveCoordinatesCityFromApi_({
     pin: suppliedPin,
