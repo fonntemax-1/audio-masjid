@@ -467,15 +467,33 @@ function resolveCoordinatesCityFromApi_(params) {
     cityName = areaName || regencyName || fallbackName;
   }
 
-  // Normalisasi istilah administratif yang kadang masih dikembalikan dalam bahasa Inggris.
+  // Normalisasi nama wilayah, lalu hilangkan awalan administratif agar C14 ringkas.
   cityName = String(cityName || '')
-    .replace(/\\bBandung Regency\\b/gi, 'Kabupaten Bandung')
-    .replace(/\\bWest Java\\b/gi, 'Jawa Barat')
-    .replace(/\\bEast Java\\b/gi, 'Jawa Timur')
-    .replace(/\\bCentral Java\\b/gi, 'Jawa Tengah')
-    .replace(/\\bRegency\\b/gi, 'Kabupaten')
-    .replace(/\\bCity of\\s+/gi, 'Kota ')
+    .replace(/\bBandung Regency\b/gi, 'Kabupaten Bandung')
+    .replace(/\bWest Java\b/gi, 'Jawa Barat')
+    .replace(/\bEast Java\b/gi, 'Jawa Timur')
+    .replace(/\bCentral Java\b/gi, 'Jawa Tengah')
+    .replace(/\bRegency\b/gi, 'Kabupaten')
+    .replace(/\bCity of\s+/gi, 'Kota ')
     .trim();
+
+  // C14 cukup menampilkan "nama wilayah, nama kabupaten/kota" tanpa label administratif.
+  // Contoh: "Jatinangor, Sumedang" bukan "Jatinangor, Kabupaten Sumedang".
+  if (areaName && regencyName && areaName.toLowerCase() !== regencyName.toLowerCase()) {
+    var shortRegencyName = String(regencyName)
+      .replace(/^Kabupaten\s+/i, '')
+      .replace(/^Kota\s+/i, '')
+      .replace(/^Kabupaten\s+/i, '')
+      .replace(/\s+Regency$/i, '')
+      .trim();
+    if (shortRegencyName) cityName = areaName + ', ' + shortRegencyName;
+  } else {
+    cityName = String(cityName)
+      .replace(/^Kabupaten\s+/i, '')
+      .replace(/^Kota\s+/i, '')
+      .replace(/\s+Regency$/i, '')
+      .trim();
+  }
 
   if (!cityName) throw new Error('Nama wilayah/kabupaten tidak tersedia untuk koordinat tersebut.');
 
