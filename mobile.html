@@ -6593,10 +6593,13 @@ function startRealtimeAudioConfigPolling_() {
           // tertinggal dapat membuat A1 tampak tidak berubah saat A2 sudah berubah.
           // QURBAN portrait: baris 1 dan 2 harus identik formatnya.
           // Panel lain tetap memakai ukuran baris kedua yang sebelumnya.
-          // QURBAN portrait: ukuran font A1 dan A2 tetap, bukan skala vw/frame.
-          // Nilai tetap yang sama diterapkan pada kedua baris.
+          // QURBAN portrait: A2 harus mengikuti ukuran A1 yang sedang
+          // dipakai, bukan nilai tetap atau skala viewport/frame tersendiri.
+          // Karena title diproses lebih dahulu, ukuran computed A1 sudah siap.
           const portraitFontSize = isQurbanPanel
-            ? '0.5rem'
+            ? (el.id === 'fin-title'
+                ? getComputedStyle(title).fontSize
+                : getComputedStyle(title).fontSize)
             : (el.id === 'fin-title'
                 ? 'clamp(0.34rem, 1.45vw, 0.58rem)'
                 : 'clamp(0.32rem, 1.18vw, 0.46rem)');
@@ -9998,7 +10001,6 @@ function startRealtimeAudioConfigPolling_() {
         parts.find(function(part) {
           return part.type === 'weekday';
         });
-
       return weekdayPart        ? weekdayPart.value.toUpperCase()
         : '';
 
