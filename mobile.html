@@ -8612,15 +8612,22 @@ function startRealtimeAudioConfigPolling_() {
         }
 
         if (keuanganSelector === 'QURBAN') {
-          // QURBAN A2 memakai format judul baris kedua KEUANGAN.
-          finSub.style.color = '#ffffff';
-          finSub.style.webkitTextFillColor = '#ffffff';
+          // QURBAN portrait: ukuran baris 2 tidak boleh melebihi baris 1.
+          // Warna, ukuran, dan ketebalan di portrait disamakan dengan A1.
+          // Ukuran landscape/TV tetap mengikuti format panel yang lama.
+          const qurbanPortrait = window.matchMedia(
+            '(max-width: 900px) and (orientation: portrait)'
+          ).matches;
+          finSub.style.color = qurbanPortrait ? 'var(--theme-accent)' : '#ffffff';
+          finSub.style.webkitTextFillColor = qurbanPortrait ? 'var(--theme-accent)' : '#ffffff';
           finSub.style.fontFamily = 'inherit';
-          finSub.style.fontSize = 'clamp(0.86rem, 4.7cqw, 1.55rem)';
-          finSub.style.fontWeight = 'bold';
-          finSub.style.lineHeight = '1.15';
+          finSub.style.fontSize = qurbanPortrait
+            ? 'clamp(0.34rem, 1.45vw, 0.58rem)'
+            : 'clamp(0.86rem, 4.7cqw, 1.55rem)';
+          finSub.style.fontWeight = qurbanPortrait ? '900' : 'bold';
+          finSub.style.lineHeight = qurbanPortrait ? '1.02' : '1.15';
           finSub.style.textAlign = 'center';
-          finSub.style.letterSpacing = '';
+          finSub.style.letterSpacing = qurbanPortrait ? '0' : '';
         } else if (keuanganSelector === 'PENGURUS') {
           // Format heading PENGURUS tetap seperti sebelumnya.
           finSub.style.color = 'var(--theme-accent)';
@@ -9998,7 +10005,6 @@ function startRealtimeAudioConfigPolling_() {
 
 
     function getApiDate() {
-
       const wita =
         getWitaTime();
 
