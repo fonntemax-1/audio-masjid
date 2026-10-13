@@ -6558,10 +6558,12 @@ function startRealtimeAudioConfigPolling_() {
         el.style.setProperty('letter-spacing', '0', 'important');
         el.style.setProperty('line-height', '1.02', 'important');
         el.style.setProperty('text-align', 'center', 'important');
-        el.style.setProperty('color', 'var(--theme-accent)', 'important');
+        const isQurbanPanel = String(panel.dataset.panelSelector || '').trim().toUpperCase() === 'QURBAN';
+        const headingColor = el.id === 'fin-sub' && isQurbanPanel ? '#ffffff' : 'var(--theme-accent)';
+        el.style.setProperty('color', headingColor, 'important');
         el.style.setProperty(
           '-webkit-text-fill-color',
-          'var(--theme-accent)',
+          headingColor,
           'important'
         );
 
@@ -7309,14 +7311,25 @@ function startRealtimeAudioConfigPolling_() {
         } else if (isQurban) {
           currentKeuanganGregorianDate_ = '';
           keuanganDateConversionToken_++;
-          finSub.innerText = ('MASJID ' + date.trim()).trim();
+          // QURBAN A2 mengikuti isi sel A2 apa adanya, tanpa awalan hardcode "MASJID".
+          finSub.innerText = date.trim();
         } else {
           currentKeuanganGregorianDate_ = date.trim();
           renderKeuanganDateHeader_(currentKeuanganGregorianDate_);
         }
 
-        if (isQurbanStyle) {
-          // Font/layout A2 mengikuti format QURBAN untuk QURBAN/PENGURUS.
+        if (isQurban) {
+          // QURBAN A2 memakai format judul baris kedua KEUANGAN.
+          finSub.style.color = '#ffffff';
+          finSub.style.webkitTextFillColor = '#ffffff';
+          finSub.style.fontFamily = 'inherit';
+          finSub.style.fontSize = 'clamp(0.86rem, 4.7cqw, 1.55rem)';
+          finSub.style.fontWeight = 'bold';
+          finSub.style.lineHeight = '1.15';
+          finSub.style.textAlign = 'center';
+          finSub.style.letterSpacing = '';
+        } else if (isPengurus) {
+          // Format PENGURUS tetap seperti sebelumnya.
           finSub.style.color = 'var(--theme-accent)';
           finSub.style.webkitTextFillColor = 'var(--theme-accent)';
         } else {
@@ -8573,11 +8586,18 @@ function startRealtimeAudioConfigPolling_() {
           renderKeuanganDateHeader_(currentKeuanganGregorianDate_);
         }
 
-        if (
-          keuanganSelector === 'QURBAN' ||
-          keuanganSelector === 'PENGURUS'
-        ) {
-          // PENGURUS memakai format heading QUR'BAN.
+        if (keuanganSelector === 'QURBAN') {
+          // QURBAN A2 memakai format judul baris kedua KEUANGAN.
+          finSub.style.color = '#ffffff';
+          finSub.style.webkitTextFillColor = '#ffffff';
+          finSub.style.fontFamily = 'inherit';
+          finSub.style.fontSize = 'clamp(0.86rem, 4.7cqw, 1.55rem)';
+          finSub.style.fontWeight = 'bold';
+          finSub.style.lineHeight = '1.15';
+          finSub.style.textAlign = 'center';
+          finSub.style.letterSpacing = '';
+        } else if (keuanganSelector === 'PENGURUS') {
+          // Format heading PENGURUS tetap seperti sebelumnya.
           finSub.style.color = 'var(--theme-accent)';
           finSub.style.webkitTextFillColor = 'var(--theme-accent)';
         } else {
