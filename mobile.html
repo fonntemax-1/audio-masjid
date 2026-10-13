@@ -6593,8 +6593,10 @@ function startRealtimeAudioConfigPolling_() {
           // tertinggal dapat membuat A1 tampak tidak berubah saat A2 sudah berubah.
           // QURBAN portrait: baris 1 dan 2 harus identik formatnya.
           // Panel lain tetap memakai ukuran baris kedua yang sebelumnya.
+          // QURBAN portrait: ukuran font A1 dan A2 tetap, bukan skala vw/frame.
+          // Nilai tetap yang sama diterapkan pada kedua baris.
           const portraitFontSize = isQurbanPanel
-            ? 'clamp(0.34rem, 1.45vw, 0.58rem)'
+            ? '0.5rem'
             : (el.id === 'fin-title'
                 ? 'clamp(0.34rem, 1.45vw, 0.58rem)'
                 : 'clamp(0.32rem, 1.18vw, 0.46rem)');
@@ -8622,7 +8624,7 @@ function startRealtimeAudioConfigPolling_() {
           finSub.style.webkitTextFillColor = qurbanPortrait ? 'var(--theme-accent)' : '#ffffff';
           finSub.style.fontFamily = 'inherit';
           finSub.style.fontSize = qurbanPortrait
-            ? 'clamp(0.34rem, 1.45vw, 0.58rem)'
+            ? '0.5rem'
             : 'clamp(0.86rem, 4.7cqw, 1.55rem)';
           finSub.style.fontWeight = qurbanPortrait ? '900' : 'bold';
           finSub.style.lineHeight = qurbanPortrait ? '1.02' : '1.15';
@@ -9997,8 +9999,7 @@ function startRealtimeAudioConfigPolling_() {
           return part.type === 'weekday';
         });
 
-      return weekdayPart
-        ? weekdayPart.value.toUpperCase()
+      return weekdayPart        ? weekdayPart.value.toUpperCase()
         : '';
 
     }
