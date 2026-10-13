@@ -9997,8 +9997,7 @@ function startRealtimeAudioConfigPolling_() {
         getSelectedTimezoneWeekday._formatter
           .formatToParts(getSynchronizedNow());
 
-      const weekdayPart =        parts.find(function(part) {
-          return part.type === 'weekday';
+      const weekdayPart =        parts.find(function(part) {          return part.type === 'weekday';
         });
       return weekdayPart        ? weekdayPart.value.toUpperCase()
         : '';
@@ -18987,6 +18986,37 @@ function setCountdownBlackMode(enabled) {
   if (!frame) return;
   var fitPending = false;
 
+  function syncQurbanSecondLineToFirst() {
+    if (!query.matches || !frame.isConnected) return;
+    var selector = String(frame.dataset.panelSelector || '').trim().toUpperCase();
+    if (selector !== 'QURBAN' || !titleEl || !subEl) return;
+    var titleStyle = window.getComputedStyle(titleEl);
+    [
+      ['font-size', titleStyle.fontSize],
+      ['font-family', titleStyle.fontFamily],
+      ['font-weight', titleStyle.fontWeight],
+      ['font-style', titleStyle.fontStyle],
+      ['line-height', titleStyle.lineHeight],
+      ['letter-spacing', titleStyle.letterSpacing],
+      ['text-align', titleStyle.textAlign],
+      ['color', titleStyle.color],
+      ['-webkit-text-fill-color', titleStyle.webkitTextFillColor]
+    ].forEach(function(pair) {
+      if (pair[1]) subEl.style.setProperty(pair[0], pair[1], 'important');
+    });
+    subEl.style.setProperty('display', 'block', 'important');
+    subEl.style.setProperty('width', '100%', 'important');
+    subEl.style.setProperty('max-width', '100%', 'important');
+    subEl.style.setProperty('box-sizing', 'border-box', 'important');
+    subEl.style.setProperty('white-space', 'nowrap', 'important');
+    subEl.style.setProperty('overflow', 'hidden', 'important');
+    subEl.style.setProperty('overflow-wrap', 'normal', 'important');
+    subEl.style.setProperty('word-break', 'keep-all', 'important');
+    subEl.style.setProperty('text-overflow', 'clip', 'important');
+    subEl.style.setProperty('margin', '0 0 0.1vh', 'important');
+    subEl.style.setProperty('padding', '0', 'important');
+  }
+
   function fitOneLine(el, maxFontPx) {
     if (!el || !(el.textContent || '').trim()) return;
     el.style.setProperty('display', 'block', 'important');
@@ -19036,32 +19066,7 @@ function setCountdownBlackMode(enabled) {
     frame.style.setProperty('overflow', 'hidden', 'important');
 
     var selector = String(frame.dataset.panelSelector || '').trim().toUpperCase();
-
-    /* QURBAN portrait: A1 adalah sumber format.
-       Salin ukuran dan format judul A1 ke A2 pada tahap PALING AKHIR,
-       setelah renderer/CSS lama selesai, supaya A2 tidak kembali dinamis. */
-    if (selector === 'QURBAN' && titleEl && subEl) {
-      var titleStyle = window.getComputedStyle(titleEl);
-      ['font-size', 'font-family', 'font-weight', 'font-style',
-       'line-height', 'letter-spacing', 'text-align', 'color',
-       '-webkit-text-fill-color'].forEach(function (property) {
-        var value = property === '-webkit-text-fill-color'
-          ? titleStyle.webkitTextFillColor
-          : titleStyle.getPropertyValue(property);
-        if (value) subEl.style.setProperty(property, value, 'important');
-      });
-      subEl.style.setProperty('display', 'block', 'important');
-      subEl.style.setProperty('width', '100%', 'important');
-      subEl.style.setProperty('max-width', '100%', 'important');
-      subEl.style.setProperty('box-sizing', 'border-box', 'important');
-      subEl.style.setProperty('white-space', 'nowrap', 'important');
-      subEl.style.setProperty('overflow', 'hidden', 'important');
-      subEl.style.setProperty('overflow-wrap', 'normal', 'important');
-      subEl.style.setProperty('word-break', 'keep-all', 'important');
-      subEl.style.setProperty('text-overflow', 'clip', 'important');
-      subEl.style.setProperty('margin', '0 0 0.1vh', 'important');
-      subEl.style.setProperty('padding', '0', 'important');
-    }
+    syncQurbanSecondLineToFirst();
 
     /* Fit tanggal yang benar-benar tampil pada setiap panel.
        KEUANGAN: A2 di fin-sub.
@@ -19107,6 +19112,14 @@ function setCountdownBlackMode(enabled) {
   [titleEl, subEl, extraEl].forEach(function(el) {
     if (el) observer.observe(el, { childList: true, characterData: true, subtree: true });
   });
+  // A1 dapat diubah oleh renderer lama melalui inline style tanpa mengubah teks.
+  // Pantau perubahan style A1 agar A2 selalu disamakan lagi.
+  if (titleEl) {
+    var titleStyleObserver = new MutationObserver(function() {
+      syncQurbanSecondLineToFirst();
+    });
+    titleStyleObserver.observe(titleEl, { attributes: true, attributeFilter: ['style', 'class'] });
+  }
   // Selector panel berubah saat data Spreadsheet masuk; pantau atributnya juga.
   observer.observe(frame, { attributes: true, attributeFilter: ['data-panel-selector', 'class'] });
   if (typeof ResizeObserver === 'function') {
