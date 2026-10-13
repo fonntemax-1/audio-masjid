@@ -6565,7 +6565,8 @@ function startRealtimeAudioConfigPolling_() {
         el.style.setProperty('line-height', '1.02', 'important');
         el.style.setProperty('text-align', 'center', 'important');
         const isQurbanPanel = String(panel.dataset.panelSelector || '').trim().toUpperCase() === 'QURBAN';
-        const headingColor = el.id === 'fin-sub' && isQurbanPanel ? '#ffffff' : 'var(--theme-accent)';
+        // Portrait QURBAN: kedua baris judul memakai warna yang sama.
+        const headingColor = 'var(--theme-accent)';
         el.style.setProperty('color', headingColor, 'important');
         el.style.setProperty(
           '-webkit-text-fill-color',
@@ -6590,11 +6591,19 @@ function startRealtimeAudioConfigPolling_() {
           // Paksa baris pertama QURBAN memakai ukuran judul KEUANGAN pada portrait.
           // Sebelumnya ukuran hanya diserahkan ke CSS; aturan lama/inline yang
           // tertinggal dapat membuat A1 tampak tidak berubah saat A2 sudah berubah.
-          const portraitFontSize = el.id === 'fin-title'
+          // QURBAN portrait: baris 1 dan 2 harus identik formatnya.
+          // Panel lain tetap memakai ukuran baris kedua yang sebelumnya.
+          const portraitFontSize = isQurbanPanel
             ? 'clamp(0.34rem, 1.45vw, 0.58rem)'
-            : 'clamp(0.32rem, 1.18vw, 0.46rem)';
+            : (el.id === 'fin-title'
+                ? 'clamp(0.34rem, 1.45vw, 0.58rem)'
+                : 'clamp(0.32rem, 1.18vw, 0.46rem)');
           el.style.setProperty('font-size', portraitFontSize, 'important');
-          el.style.setProperty('font-weight', el.id === 'fin-title' ? '900' : '700', 'important');
+          el.style.setProperty(
+            'font-weight',
+            isQurbanPanel ? '900' : (el.id === 'fin-title' ? '900' : '700'),
+            'important'
+          );
           el.style.setProperty('font-style', 'normal', 'important');
           el.style.setProperty('margin', '0 0 0.1vh', 'important');
           el.style.setProperty('padding', '0', 'important');
