@@ -9997,8 +9997,7 @@ function startRealtimeAudioConfigPolling_() {
         getSelectedTimezoneWeekday._formatter
           .formatToParts(getSynchronizedNow());
 
-      const weekdayPart =
-        parts.find(function(part) {
+      const weekdayPart =        parts.find(function(part) {
           return part.type === 'weekday';
         });
       return weekdayPart        ? weekdayPart.value.toUpperCase()
@@ -19037,6 +19036,32 @@ function setCountdownBlackMode(enabled) {
     frame.style.setProperty('overflow', 'hidden', 'important');
 
     var selector = String(frame.dataset.panelSelector || '').trim().toUpperCase();
+
+    /* QURBAN portrait: A1 adalah sumber format.
+       Salin ukuran dan format judul A1 ke A2 pada tahap PALING AKHIR,
+       setelah renderer/CSS lama selesai, supaya A2 tidak kembali dinamis. */
+    if (selector === 'QURBAN' && titleEl && subEl) {
+      var titleStyle = window.getComputedStyle(titleEl);
+      ['font-size', 'font-family', 'font-weight', 'font-style',
+       'line-height', 'letter-spacing', 'text-align', 'color',
+       '-webkit-text-fill-color'].forEach(function (property) {
+        var value = property === '-webkit-text-fill-color'
+          ? titleStyle.webkitTextFillColor
+          : titleStyle.getPropertyValue(property);
+        if (value) subEl.style.setProperty(property, value, 'important');
+      });
+      subEl.style.setProperty('display', 'block', 'important');
+      subEl.style.setProperty('width', '100%', 'important');
+      subEl.style.setProperty('max-width', '100%', 'important');
+      subEl.style.setProperty('box-sizing', 'border-box', 'important');
+      subEl.style.setProperty('white-space', 'nowrap', 'important');
+      subEl.style.setProperty('overflow', 'hidden', 'important');
+      subEl.style.setProperty('overflow-wrap', 'normal', 'important');
+      subEl.style.setProperty('word-break', 'keep-all', 'important');
+      subEl.style.setProperty('text-overflow', 'clip', 'important');
+      subEl.style.setProperty('margin', '0 0 0.1vh', 'important');
+      subEl.style.setProperty('padding', '0', 'important');
+    }
 
     /* Fit tanggal yang benar-benar tampil pada setiap panel.
        KEUANGAN: A2 di fin-sub.
