@@ -5832,14 +5832,6 @@ function formatPanelKegiatanSelector_(selector) {
  * pada minggu kalender yang sedang berjalan; jika hari ini Jumat,
  * tanggal hari ini yang digunakan.
  */
-function setTanggalJumatMingguBerjalan_(sheet) {
-  // DINONAKTIFKAN.
-  // Semua tanggal kegiatan sekarang diisi MANUAL,
-  // termasuk SHOLAT JUM'AT.
-  // Fungsi dipertahankan hanya untuk kompatibilitas dengan
-  // kode lama agar tidak ada pemanggilan fungsi yang error.
-  return;
-}
 
 /**
  * Membentuk B29:B32 sesuai C28 dan mengatur C29:C32.
@@ -5878,9 +5870,6 @@ function updatePanelKegiatanFields_(sheet, kegiatan, resetValues) {
  * Kompatibilitas nama fungsi lama.
  * Tidak lagi menggunakan formula Sheets/custom function.
  */
-function setupPanelKegiatanLabelFormulas_(sheet) {
-  updatePanelKegiatanFields_(sheet, sheet.getRange("C28").getDisplayValue(), true);
-}
 
 /**
  * API data kegiatan untuk GitHub Pages.
