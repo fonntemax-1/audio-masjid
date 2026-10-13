@@ -19227,11 +19227,14 @@ function setCountdownBlackMode(enabled) {
     }
     dateTargets.forEach(function(el) {
       if (!el || !el.isConnected || !(el.textContent || '').trim()) return;
-      // Ukuran font tanggal diatur SATU mekanisme saja, yaitu
-      // autoFitPanelDatesShared_() yang juga dipakai tanggal KEUANGAN.
-      // Jangan panggil fitOneLine() di sini karena algoritmenya berbeda dan
-      // saling menimpa ukuran font A3 QURBAN setelah rotasi portrait.
       if (el.clientWidth < 2) return;
+
+      if (selector === 'QURBAN' || selector === 'PENGURUS') {
+        // A3 harus memakai ukuran font tanggal yang sama dengan baris tanggal
+        // KEUANGAN. Fit langsung pada A3 setelah rotasi agar style lama yang
+        // tertinggal dari landscape tidak menang.
+        fitOneLine(el, 16);
+      }
     });
     if (typeof schedulePanelDatesSharedAutoFit_ === 'function') {
       schedulePanelDatesSharedAutoFit_();
