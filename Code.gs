@@ -863,6 +863,23 @@ function getPanelEventCountdownConfig_() {
 
 
 /**
+ * Normalisasi tanggal untuk konfigurasi video hari raya.
+ * Dipakai bersama oleh konfigurasi Idul Fitri dan Idul Adha.
+ */
+function normalizeVideoConfigDate_(value, timeZone) {
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, timeZone, 'yyyy-MM-dd');
+  }
+  const text = String(value == null ? '' : value).trim();
+  if (!text) return '';
+  let m = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
+  m = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (m) return m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
+  return text;
+}
+
+/**
  * Membaca rentang tanggal animasi Idul Fitri dari panels!C68:E68.
  * C68 = tanggal mulai, D68 = tanggal berhenti, E68 = ON/OFF.
  * Tidak mengubah atau membaca ulang konfigurasi audio/scheduler.
@@ -879,21 +896,8 @@ function getEidFitriVideoConfig() {
     // atau bahasa lokal spreadsheet (mis. 10 Okt 2026 vs 10/10/2026).
     const values = sheet.getRange('C68:E68').getValues()[0] || [];
     const timeZone = ss.getSpreadsheetTimeZone() || Session.getScriptTimeZone() || 'Asia/Makassar';
-    function normalizeDate(value) {
-      if (value instanceof Date && !isNaN(value.getTime())) {
-        return Utilities.formatDate(value, timeZone, 'yyyy-MM-dd');
-      }
-      const text = String(value == null ? '' : value).trim();
-      if (!text) return '';
-      let m = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
-      if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
-      m = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
-      if (m) return m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
-      return text;
-    }
-
-    const startDate = normalizeDate(values[0]);
-    const stopDate = normalizeDate(values[1]);
+    const startDate = normalizeVideoConfigDate_(values[0], timeZone);
+    const stopDate = normalizeVideoConfigDate_(values[1], timeZone);
     const rawStatus = String(values[2] == null ? '' : values[2]).trim().toUpperCase();
     const status = rawStatus === 'ON' ? 'ON' : 'OFF';
     return { success: true, startDate: startDate, stopDate: stopDate, status: status };
@@ -916,21 +920,8 @@ function getEidAdhaVideoConfig() {
     // atau bahasa lokal spreadsheet (mis. 10 Okt 2026 vs 10/10/2026).
     const values = sheet.getRange('C69:E69').getValues()[0] || [];
     const timeZone = ss.getSpreadsheetTimeZone() || Session.getScriptTimeZone() || 'Asia/Makassar';
-    function normalizeDate(value) {
-      if (value instanceof Date && !isNaN(value.getTime())) {
-        return Utilities.formatDate(value, timeZone, 'yyyy-MM-dd');
-      }
-      const text = String(value == null ? '' : value).trim();
-      if (!text) return '';
-      let m = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
-      if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
-      m = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
-      if (m) return m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
-      return text;
-    }
-
-    const startDate = normalizeDate(values[0]);
-    const stopDate = normalizeDate(values[1]);
+    const startDate = normalizeVideoConfigDate_(values[0], timeZone);
+    const stopDate = normalizeVideoConfigDate_(values[1], timeZone);
     const rawStatus = String(values[2] == null ? '' : values[2]).trim().toUpperCase();
     const status = rawStatus === 'ON' ? 'ON' : 'OFF';
     return { success: true, startDate: startDate, stopDate: stopDate, status: status };
