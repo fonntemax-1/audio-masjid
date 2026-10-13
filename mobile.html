@@ -8733,17 +8733,11 @@ function startRealtimeAudioConfigPolling_() {
         if ((keuanganSelector === 'PENGURUS' || keuanganSelector === 'QURBAN') && a3) {
           // A3 PENGURUS dan QURBAN memakai renderer tanggal yang sama:
           // Hijriah | Masehi, satu baris, dengan auto-fit untuk layar portrait.
+          if (keuanganSelector === 'QURBAN') {
+            // Bersihkan garis divider tanggal KEUANGAN yang tersisa.
+            finSub.style.setProperty('border-bottom', '0', 'important');
+          }
           renderQurbanDateHeader_(a3);
-        } else if (keuanganSelector === 'QURBAN' && a3) {
-          // Bersihkan garis divider tanggal KEUANGAN yang tersisa
-          // sebelum render A2/A3 QURBAN.
-          finSub.style.setProperty(
-            'border-bottom',
-            '0',
-            'important'
-          );
-
-          renderQurbanDateHeader_(currentQurbanGregorianDate_);
         } else {
           finExtra.innerText = '';
           finExtra.style.display = 'none';
