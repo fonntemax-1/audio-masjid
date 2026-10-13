@@ -7349,13 +7349,22 @@ function startRealtimeAudioConfigPolling_() {
         }
 
         if (isQurban) {
-          // QURBAN A2 memakai format judul baris kedua KEUANGAN.
-          finSub.style.color = '#ffffff';
-          finSub.style.webkitTextFillColor = '#ffffff';
+          // QURBAN A2: pada portrait, selalu gunakan ukuran font aktual A1.
+          // Jangan set ukuran responsif tersendiri untuk A2 karena itu membuat
+          // baris kedua berubah-ubah setelah renderer utama berjalan.
+          finSub.style.color = 'var(--theme-accent)';
+          finSub.style.webkitTextFillColor = 'var(--theme-accent)';
           finSub.style.fontFamily = 'inherit';
-          finSub.style.fontSize = 'clamp(0.86rem, 4.7cqw, 1.55rem)';
-          finSub.style.fontWeight = 'bold';
-          finSub.style.lineHeight = '1.15';
+          if (window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches && finTitle) {
+            const a1FontSize = window.getComputedStyle(finTitle).fontSize;
+            finSub.style.setProperty('font-size', a1FontSize, 'important');
+            finSub.style.setProperty('font-weight', window.getComputedStyle(finTitle).fontWeight, 'important');
+            finSub.style.setProperty('line-height', window.getComputedStyle(finTitle).lineHeight, 'important');
+          } else {
+            finSub.style.fontSize = 'clamp(0.86rem, 4.7cqw, 1.55rem)';
+            finSub.style.fontWeight = 'bold';
+            finSub.style.lineHeight = '1.15';
+          }
           finSub.style.textAlign = 'center';
           finSub.style.letterSpacing = '';
         } else if (isPengurus) {
