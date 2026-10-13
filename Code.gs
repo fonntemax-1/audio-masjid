@@ -4234,32 +4234,6 @@ function isCompletePrayerSchedule_(jadwal) {
 // Wrapper ini sengaja memakai nama fungsi unik dan mengembalikan
 // STRING JSON agar hasil dari server selalu dapat diterima frontend.
 // =========================================================
-function getPrayerScheduleJSON(dateString) {
-
-  try {
-
-    const result =
-      getPrayerSchedule(dateString);
-
-    return JSON.stringify(
-      result || {
-        success: false,
-        error: 'getPrayerSchedule mengembalikan undefined.'
-      }
-    );
-
-  } catch (error) {
-
-    return JSON.stringify({
-      success: false,
-      error:
-        error && error.message
-          ? error.message
-          : String(error)
-    });
-
-  }
-}
 
 
 // =========================================================
@@ -5110,13 +5084,6 @@ function getHijriDateFromApi(
 // Nama fungsi dipertahankan agar perubahan frontend minimal.
 // ============================================================
 
-function getHijriDateFromCalendar(
-  dateString
-) {
-  return getHijriDateFromApi(
-    dateString
-  );
-}
 
 
 // ============================================================
@@ -5127,72 +5094,10 @@ function getHijriDateFromCalendar(
 // bukan timezone kalender Google.
 // ============================================================
 
-function TEST_HIJRI_API() {
-
-  const timezone =
-    HIJRI_TIMEZONE;
-
-  const dateString =
-    Utilities.formatDate(
-      new Date(),
-      timezone,
-      'yyyy-MM-dd'
-    );
-
-
-  Logger.log(
-    '========================================'
-  );
-
-  Logger.log(
-    'TEST API INDONESIA KALENDER HIJRIAH'
-  );
-
-  Logger.log(
-    'Tanggal WITA: ' +
-    dateString
-  );
-
-  Logger.log(
-    'Timezone acuan: ' +
-    timezone
-  );
-
-  Logger.log(
-    'Endpoint: ' +
-    HIJRI_API_BASE_URL + '/konversi'
-  );
-
-  Logger.log(
-    '========================================'
-  );
-
-
-  const result =
-    getHijriDateFromCalendar(
-      dateString
-    );
-
-
-  Logger.log(
-    JSON.stringify(
-      result,
-      null,
-      2
-    )
-  );
-
-
-  return result;
-
-}
 
 
 
 // Kompatibilitas nama fungsi test lama.
-function TEST_HIJRI_CALENDAR() {
-  return TEST_HIJRI_API();
-}
 
 
 // ============================================================
