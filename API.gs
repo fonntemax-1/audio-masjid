@@ -363,17 +363,9 @@ function resolveGoogleMapsLinkCityFromApi_(params) {
     });
     var pathMatch = candidateUrl.match(/\/maps\/(?:place|search)\/([^?#]+)/i);
     if (pathMatch && pathMatch[1]) addPlaceCandidate_(pathMatch[1]);
-    // @lat,lng pada URL /maps/place/ menunjuk lokasi tempat; tidak mengambil
-    // koordinat @ dari HTML karena bisa hanya merupakan pusat viewport.
-    if (/\/maps\/place\//i.test(candidateUrl)) {
-      var atMatch = candidateUrl.match(/\/@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/);
-      if (atMatch) {
-        var lat = Number(atMatch[1]), lng = Number(atMatch[2]);
-        if (isFinite(lat) && lat >= -90 && lat <= 90 && isFinite(lng) && lng >= -180 && lng <= 180) {
-          coords = { latitude: lat, longitude: lng };
-        }
-      }
-    }
+    // Jangan mengambil @lat,lng di sini: pada URL Google Maps nilai itu
+    // dapat berupa pusat viewport, bukan koordinat pin tempat. Koordinat pin
+    // !3dLAT!4dLNG diprioritaskan oleh findCoordinates_ di loop redirect.
   }
   extractPlaceCandidatesFromUrl_(url);
 
