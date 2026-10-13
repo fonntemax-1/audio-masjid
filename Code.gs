@@ -5492,7 +5492,22 @@ function refreshDaftarKotaAPIIndonesia() {
   panels.getRange("C5").setDataValidation(rule);
 
   const currentCity = String(panels.getRange("C5").getDisplayValue() || "").trim();
-  if (currentCity) syncPrayerPanelLocationFromCity_(currentCity, false);
+  if (currentCity) {
+    let selected = rows.filter(function(row) {
+      return normalizePrayerDropdownName_(row[0]) === normalizePrayerDropdownName_(currentCity);
+    });
+    if (!selected.length) {
+      selected = rows.filter(function(row) {
+        return normalizePrayerLocationName_(row[0]) === normalizePrayerLocationName_(currentCity);
+      });
+    }
+    // Migrasi otomatis nilai C5 lama seperti "Balikpapan" ke label dropdown "Kota Balikpapan"
+    // hanya jika hasilnya tunggal; nama ambigu tidak ditebak.
+    if (selected.length === 1) {
+      panels.getRange("C5").setValue(selected[0][0]);
+      syncPrayerPanelLocationFromCity_(selected[0][0], false);
+    }
+  }
 
   PropertiesService.getScriptProperties().setProperty("APIID_CITY_LIST_UPDATED_AT", new Date().toISOString());
   Logger.log("DAFTAR KOTA DIPERBARUI: " + rows.length + " kota/kabupaten pada sheet daftar-kota.");
