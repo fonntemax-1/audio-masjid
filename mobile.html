@@ -19089,19 +19089,8 @@ function setCountdownBlackMode(enabled) {
     var selector = String(frame.dataset.panelSelector || '').trim().toUpperCase();
     if ((selector !== 'QURBAN' && selector !== 'PENGURUS') || !titleEl || !subEl) return;
 
-    /*
-     * A1 adalah satu-satunya sumber gaya QURBAN pada portrait.
-     * Salin SELURUH inline style A1 ke A2, bukan menghitung font A2
-     * secara terpisah. cssText mempertahankan nilai dan prioritas !important.
-     * Pemeriksaan kesamaan mencegah MutationObserver berulang tanpa akhir.
-     */
-    var sourceCss = titleEl.style.cssText || '';
-    if (subEl.style.cssText !== sourceCss) {
-      subEl.style.cssText = sourceCss;
-    }
-
-    // Samakan juga gaya hasil komputasi yang berasal dari aturan CSS,
-    // lalu kunci nilainya pada A2 agar selector #fin-sub tidak menyimpang.
+    // Salin properti tipografi saja dari A1 ke A2. Jangan salin cssText
+    // seluruhnya karena properti layout A1 tidak semestinya mengatur baris kedua.
     var sourceStyle = window.getComputedStyle(titleEl);
     [
       'font-family', 'font-size', 'font-weight', 'font-style', 'font-variant',
@@ -19112,6 +19101,21 @@ function setCountdownBlackMode(enabled) {
       if (value && (subEl.style.getPropertyValue(property) !== value ||
           subEl.style.getPropertyPriority(property) !== 'important')) {
         subEl.style.setProperty(property, value, 'important');
+      }
+    });
+
+    // A2 tetap menjadi baris mandiri, tetapi tipografinya identik dengan A1.
+    [
+      ['display', 'block'], ['width', '100%'], ['min-width', '0'],
+      ['max-width', '100%'], ['box-sizing', 'border-box'],
+      ['white-space', 'nowrap'], ['overflow', 'hidden'],
+      ['text-overflow', 'clip'], ['overflow-wrap', 'normal'],
+      ['word-break', 'keep-all'], ['margin', '0 0 0.1vh'], ['padding', '0']
+    ].forEach(function(pair) {
+      if (pair[1] != null && pair[1] !== '' &&
+          (subEl.style.getPropertyValue(pair[0]) !== pair[1] ||
+           subEl.style.getPropertyPriority(pair[0]) !== 'important')) {
+        subEl.style.setProperty(pair[0], pair[1], 'important');
       }
     });
   }
