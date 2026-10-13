@@ -751,7 +751,7 @@ function resolveCoordinatesCityFromApi_(params) {
     cityName = areaName || regencyName || fallbackName;
   }
 
-  // Normalisasi nama wilayah, lalu hilangkan awalan administratif agar C14 ringkas.
+  // Normalisasi nama wilayah, lalu hilangkan awalan administratif agar C4 ringkas.
   cityName = String(cityName || '')
     .replace(/\bBandung Regency\b/gi, 'Kabupaten Bandung')
     .replace(/\bWest Java\b/gi, 'Jawa Barat')
@@ -761,7 +761,7 @@ function resolveCoordinatesCityFromApi_(params) {
     .replace(/\bCity of\s+/gi, 'Kota ')
     .trim();
 
-  // Hilangkan awalan administratif dari nama area agar C14 ringkas.
+  // Hilangkan awalan administratif dari nama area agar C4 ringkas.
   // Contoh: "Kecamatan Balikpapan Kota" menjadi "Balikpapan Kota".
   areaName = String(areaName || '')
     .replace(/^Kecamatan\s+/i, '')
@@ -769,7 +769,7 @@ function resolveCoordinatesCityFromApi_(params) {
     .replace(/^Desa\s+/i, '')
     .trim();
 
-  // C14 cukup menampilkan "nama wilayah, nama kabupaten/kota" tanpa label administratif.
+  // C4 cukup menampilkan "nama wilayah, nama kabupaten/kota" tanpa label administratif.
   // Contoh: "Jatinangor, Sumedang" bukan "Jatinangor, Kabupaten Sumedang".
   if (areaName && regencyName && areaName.toLowerCase() !== regencyName.toLowerCase()) {
     var shortRegencyName = String(regencyName)
@@ -794,14 +794,14 @@ function resolveCoordinatesCityFromApi_(params) {
   try {
     var sheet = getSpreadsheet().getSheetByName('panels');
     if (!sheet) throw new Error('Sheet panels tidak ditemukan.');
-    sheet.getRange('C14').setValue(cityName);
+    sheet.getRange('C4').setValue(cityName);
     SpreadsheetApp.flush();
-    var actual = sheet.getRange('C14').getDisplayValue();
-    if (String(actual).trim() !== cityName) throw new Error('Nama kota gagal diverifikasi pada C14.');
+    var actual = sheet.getRange('C4').getDisplayValue();
+    if (String(actual).trim() !== cityName) throw new Error('Nama kota gagal diverifikasi pada C4.');
 
     // Utamakan kabupaten/kota administratif hasil reverse geocoding.
     // Jika nama itu tidak ada dalam daftar API Indonesia, gunakan pencarian
-    // kandidat terdekat sebagai fallback. C14 tetap menyimpan wilayah detail.
+    // kandidat terdekat sebagai fallback. C4 tetap menyimpan wilayah detail.
     var nearest = findAPIIndonesiaRegencyMatch_(regencyName);
     if (!nearest) nearest = findNearestMuslimKitaCity_(sheet, lat, lng);
     if (nearest) {
@@ -817,12 +817,12 @@ function resolveCoordinatesCityFromApi_(params) {
         Logger.log('Sinkronisasi C6:C10 setelah Google Maps: ' + String(locationSyncError));
       }
       var verifiedCity = String(sheet.getRange('C5').getDisplayValue() || '').trim();
-      if (verifiedCity !== nearest.kota) throw new Error('C14 tersimpan, tetapi verifikasi kota acuan pada C5 gagal.');
+      if (verifiedCity !== nearest.kota) throw new Error('C4 tersimpan, tetapi verifikasi kota acuan pada C5 gagal.');
     }
     return {
       success: true,
       city: actual,
-      cell: 'C14',
+      cell: 'C4',
       latitude: lat,
       longitude: lng,
       nearestCity: nearest ? nearest.kota : '',
