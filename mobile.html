@@ -6619,42 +6619,58 @@ function startRealtimeAudioConfigPolling_() {
         }
       });
 
-      // Landscape mobile: QURBAN A1 dan A2 memakai ukuran font yang sama,
-      // dihitung dari teks yang paling panjang agar keduanya proporsional
-      // dan tetap berada di dalam lebar frame.
+      // Landscape HP: ukur A1 dan A2 terhadap lebar teks yang benar-benar
+      // tersedia di dalam frame. Gunakan satu ukuran font untuk keduanya,
+      // lalu cari ukuran terbesar yang muat agar tidak melewati batas frame.
       const landscapeQurban =
-        !isPortraitMobile &&
+        window.matchMedia('(max-width: 900px) and (orientation: landscape)').matches &&
         String(panel.dataset.panelSelector || '').trim().toUpperCase() === 'QURBAN';
       if (landscapeQurban) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         if (ctx) {
           const family = window.getComputedStyle(title).fontFamily || 'Arial, sans-serif';
-          const textA1 = String(title.textContent || title.innerText || '').trim();
-          const textA2 = String(sub.textContent || sub.innerText || '').trim();
-          const availableWidth = Math.max(24, panelWidth - 16);
-          let fontPx = responsiveTitleFontPx;
-          ctx.font = '900 ' + fontPx + 'px ' + family;
-          const widest = Math.max(
-            ctx.measureText(textA1).width,
-            ctx.measureText(textA2).width
+          const textA1 = String(title.textContent || title.innerText || '').replace(/\\s+/g, ' ').trim();
+          const textA2 = String(sub.textContent || sub.innerText || '').replace(/\\s+/g, ' ').trim();
+          const titleWidth = title.getBoundingClientRect().width;
+          const subWidth = sub.getBoundingClientRect().width;
+          const availableWidth = Math.max(
+            12,
+            Math.min(panelWidth - 12, titleWidth || panelWidth - 12, subWidth || panelWidth - 12) - 2
           );
-          if (widest > availableWidth && widest > 0) {
-            fontPx = Math.max(10, fontPx * availableWidth / widest);
+
+          // Binary search mencegah font minimum lama (9–10px) tetap meluap
+          // pada HP landscape dengan frame sempit atau teks A1/A2 yang panjang.
+          let low = 5;
+          let high = Math.max(5, responsiveTitleFontPx);
+          let fontPx = low;
+          for (let attempt = 0; attempt < 18; attempt++) {
+            const candidate = (low + high) / 2;
+            ctx.font = '900 ' + candidate + 'px ' + family;
+            const measured = Math.max(
+              ctx.measureText(textA1).width,
+              ctx.measureText(textA2).width
+            );
+            if (measured <= availableWidth * 0.94) {
+              fontPx = candidate;
+              low = candidate;
+            } else {
+              high = candidate;
+            }
           }
-          // Ulangi pengukuran setelah font diperkecil, beri sedikit ruang
-          // ekstra untuk perbedaan rendering antar-browser.
-          ctx.font = '900 ' + fontPx + 'px ' + family;
-          const fittedWidth = Math.max(
-            ctx.measureText(textA1).width,
-            ctx.measureText(textA2).width
-          );
-          if (fittedWidth > availableWidth && fittedWidth > 0) {
-            fontPx = Math.max(9, fontPx * (availableWidth / fittedWidth) * 0.97);
-          }
+
           [title, sub].forEach(function(el) {
             el.style.setProperty('font-size', fontPx.toFixed(2) + 'px', 'important');
+            el.style.setProperty('font-family', family, 'important');
             el.style.setProperty('font-weight', '900', 'important');
+            el.style.setProperty('line-height', '1.02', 'important');
+            el.style.setProperty('letter-spacing', '0', 'important');
+            el.style.setProperty('width', '100%', 'important');
+            el.style.setProperty('max-width', '100%', 'important');
+            el.style.setProperty('box-sizing', 'border-box', 'important');
+            el.style.setProperty('white-space', 'nowrap', 'important');
+            el.style.setProperty('overflow', 'hidden', 'important');
+            el.style.setProperty('text-overflow', 'clip', 'important');
             el.style.setProperty('padding-left', '0', 'important');
             el.style.setProperty('padding-right', '0', 'important');
             el.style.setProperty('min-width', '0', 'important');
