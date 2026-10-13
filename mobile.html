@@ -6619,6 +6619,49 @@ function startRealtimeAudioConfigPolling_() {
         }
       });
 
+      // Landscape mobile: QURBAN A1 dan A2 memakai ukuran font yang sama,
+      // dihitung dari teks yang paling panjang agar keduanya proporsional
+      // dan tetap berada di dalam lebar frame.
+      const landscapeQurban =
+        !isPortraitMobile &&
+        String(panel.dataset.panelSelector || '').trim().toUpperCase() === 'QURBAN';
+      if (landscapeQurban) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          const family = window.getComputedStyle(title).fontFamily || 'Arial, sans-serif';
+          const textA1 = String(title.textContent || title.innerText || '').trim();
+          const textA2 = String(sub.textContent || sub.innerText || '').trim();
+          const availableWidth = Math.max(24, panelWidth - 16);
+          let fontPx = responsiveTitleFontPx;
+          ctx.font = '900 ' + fontPx + 'px ' + family;
+          const widest = Math.max(
+            ctx.measureText(textA1).width,
+            ctx.measureText(textA2).width
+          );
+          if (widest > availableWidth && widest > 0) {
+            fontPx = Math.max(10, fontPx * availableWidth / widest);
+          }
+          // Ulangi pengukuran setelah font diperkecil, beri sedikit ruang
+          // ekstra untuk perbedaan rendering antar-browser.
+          ctx.font = '900 ' + fontPx + 'px ' + family;
+          const fittedWidth = Math.max(
+            ctx.measureText(textA1).width,
+            ctx.measureText(textA2).width
+          );
+          if (fittedWidth > availableWidth && fittedWidth > 0) {
+            fontPx = Math.max(9, fontPx * (availableWidth / fittedWidth) * 0.97);
+          }
+          [title, sub].forEach(function(el) {
+            el.style.setProperty('font-size', fontPx.toFixed(2) + 'px', 'important');
+            el.style.setProperty('font-weight', '900', 'important');
+            el.style.setProperty('padding-left', '0', 'important');
+            el.style.setProperty('padding-right', '0', 'important');
+            el.style.setProperty('min-width', '0', 'important');
+          });
+        }
+      }
+
       // Portrait QURBAN/PENGURUS: A1 dan A2 memakai SATU set nilai tetap.
       // Jangan salin computed style karena callback lain dapat sedang mengubah
       // A1 saat rotasi; nilai berubah itu sebelumnya ikut menular ke A2.
