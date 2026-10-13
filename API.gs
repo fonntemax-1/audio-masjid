@@ -841,7 +841,8 @@ function resolveCoordinatesCityFromApi_(params) {
  * bila Google Maps sudah memberikan kabupaten/kota administratif yang tepat.
  */
 function findAPIIndonesiaRegencyMatch_(regencyName) {
-  var target = normalizeAPIIndonesiaAreaName_(regencyName);
+  var rawTarget = String(regencyName || '').trim();
+  var target = normalizeAPIIndonesiaAreaName_(rawTarget);
   if (!target) return null;
   var ss = getSpreadsheet();
   var listSheet = ss.getSheetByName('daftar-kota');
@@ -850,6 +851,36 @@ function findAPIIndonesiaRegencyMatch_(regencyName) {
   var matches = rows.filter(function(row) {
     return normalizeAPIIndonesiaAreaName_(row[0]) === target;
   });
+  if (!matches.length) return null;
+
+  // Nama kabupaten dan kota dapat sama (contoh Kabupaten Mojokerto vs
+  // Kota Mojokerto). Jangan menggagalkan pencocokan hanya karena nama yang
+  // dinormalisasi sama; utamakan tipe administratif yang dikembalikan geocoder.
+  var wantsKabupaten = /^(kabupaten|kab\.?|kabup)\s+/i.test(rawTarget) || /\s+regency$/i.test(rawTarget);
+  var wantsKota = /^kota\s+/i.test(rawTarget) || /^city of\s+/i.test(rawTarget);
+  if (wantsKabupaten) {
+    var kabupatenMatches = matches.filter(function(row) {
+      return /^(kabupaten|kab\.?|kabup)\s+/i.test(String(row[0] || '').trim()) ||
+        /\s+regency$/i.test(String(row[0] || '').trim());
+    });
+    if (kabupatenMatches.length === 1) matches = kabupatenMatches;
+    else if (kabupatenMatches.length > 1) matches = kabupatenMatches;
+  } else if (wantsKota) {
+    var kotaMatches = matches.filter(function(row) {
+      return /^kota\s+/i.test(String(row[0] || '').trim()) ||
+        /^city of\s+/i.test(String(row[0] || '').trim());
+    });
+    if (kotaMatches.length) matches = kotaMatches;
+  } else if (matches.length > 1) {
+    // Geocoder tanpa label tipe: lebih aman memilih entri kabupaten daripada
+    // Kota dengan nama sama untuk wilayah kecamatan seperti Pacet.
+    var adminRegencyMatches = matches.filter(function(row) {
+      return /^(kabupaten|kab\.?|kabup)\s+/i.test(String(row[0] || '').trim()) ||
+        /\s+regency$/i.test(String(row[0] || '').trim());
+    });
+    if (adminRegencyMatches.length) matches = adminRegencyMatches;
+  }
+
   if (matches.length !== 1) return null;
   return { kota: String(matches[0][0] || '').trim(), slug: String(matches[0][6] || '').trim() };
 }
