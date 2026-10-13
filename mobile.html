@@ -19165,6 +19165,15 @@ function setCountdownBlackMode(enabled) {
     frame.style.setProperty('overflow', 'hidden', 'important');
 
     var selector = String(frame.dataset.panelSelector || '').trim().toUpperCase();
+
+    // Setelah rotasi landscape -> portrait, renderer lama dapat menulis
+    // ulang font pada frame berikutnya. Terapkan ulang ukuran portrait
+    // sebagai langkah terakhir sebelum menyamakan A2 dengan A1.
+    if ((selector === 'QURBAN' || selector === 'PENGURUS') &&
+        frame.classList.contains('qurban-display') &&
+        typeof window.fitQurbanHeaderText_ === 'function') {
+      window.fitQurbanHeaderText_();
+    }
     syncQurbanSecondLineToFirst();
 
     /* Fit tanggal yang benar-benar tampil pada setiap panel.
@@ -19201,7 +19210,9 @@ function setCountdownBlackMode(enabled) {
       fitRetryTimers = [
         window.setTimeout(fitPortraitHeaders, 80),
         window.setTimeout(fitPortraitHeaders, 220),
-        window.setTimeout(fitPortraitHeaders, 500)
+        window.setTimeout(fitPortraitHeaders, 500),
+        window.setTimeout(fitPortraitHeaders, 900),
+        window.setTimeout(fitPortraitHeaders, 1400)
       ];
     });
   }
