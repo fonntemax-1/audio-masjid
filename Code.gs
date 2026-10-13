@@ -5437,15 +5437,153 @@ function setupPanelKegiatan() {
  * Trigger saat panels!C28 diubah.
  * onEdit memang dipanggil ketika pengguna mengubah nilai sel di Sheets.
  */
+/**
+ * Memperbarui sheet "daftar-kota" dari API Indonesia dan memasang dropdown panels!C5.
+ * Kolom: Kota/Kabupaten | Provinsi | ID API | Zona | Timezone | GMT | Slug MuslimKita
+ * Jalankan refreshDaftarKotaAPIIndonesia() secara manual saat pertama kali.
+ */
+function refreshDaftarKotaAPIIndonesia() {
+  const apiKey = String(PropertiesService.getScriptProperties().getProperty("API_INDONESIA_KEY") || "").trim();
+  if (!apiKey) throw new Error("Script Property API_INDONESIA_KEY belum diisi.");
+
+  const response = UrlFetchApp.fetch("https://use.apiindonesia.id/api/v1/sholat/list-kota", {
+    method: "get",
+    muteHttpExceptions: true,
+    headers: { "x-api-key": apiKey, "Accept": "application/json" }
+  });
+  if (response.getResponseCode() < 200 || response.getResponseCode() >= 300) {
+    throw new Error("Gagal mengambil daftar kota dari API Indonesia. HTTP " + response.getResponseCode());
+  }
+  const payload = JSON.parse(response.getContentText() || "{}");
+  const cities = payload && Array.isArray(payload.data) ? payload.data : [];
+  if (!cities.length) throw new Error("API Indonesia tidak mengembalikan daftar kota.");
+
+  const ss = getSpreadsheet();
+  let listSheet = ss.getSheetByName("daftar-kota");
+  if (!listSheet) listSheet = ss.insertSheet("daftar-kota");
+
+  const headers = ["Kota/Kabupaten", "Provinsi", "ID API", "Zona", "Timezone", "GMT", "Slug MuslimKita"];
+  const rows = cities.map(function(city) {
+    const cityName = titleCaseLocation_(city.regency_name || city.name || "");
+    const provinceName = titleCaseLocation_(city.province_name || "");
+    const regencyId = String(city.regency_id || city.id || "").trim();
+    const zoneInfo = getIndonesianTimezoneByProvince_(provinceName);
+    const slug = normalizePrayerCitySlug_(cityName);
+    return [cityName, provinceName, regencyId, zoneInfo.zona, zoneInfo.timezone, zoneInfo.gmt, slug];
+  }).filter(function(row) { return row[0] && row[1] && row[2]; });
+
+  if (!rows.length) throw new Error("Daftar kota API Indonesia tidak memiliki data yang valid.");
+  rows.sort(function(a, b) { return a[0].localeCompare(b[0], "id"); });
+
+  listSheet.clearContents();
+  listSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  listSheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  listSheet.setFrozenRows(1);
+  listSheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
+  listSheet.autoResizeColumns(1, headers.length);
+
+  const panels = ss.getSheetByName("panels");
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+  const validationRange = listSheet.getRange(2, 1, rows.length, 1);
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInRange(validationRange, true)
+    .setAllowInvalid(false)
+    .build();
+  panels.getRange("C5").setDataValidation(rule);
+
+  const currentCity = String(panels.getRange("C5").getDisplayValue() || "").trim();
+  if (currentCity) syncPrayerPanelLocationFromCity_(currentCity, false);
+
+  PropertiesService.getScriptProperties().setProperty("APIID_CITY_LIST_UPDATED_AT", new Date().toISOString());
+  Logger.log("DAFTAR KOTA DIPERBARUI: " + rows.length + " kota/kabupaten pada sheet daftar-kota.");
+  return { success: true, count: rows.length, sheet: "daftar-kota" };
+}
+
+/** Alias untuk menjalankan refresh melalui Apps Script dengan nama yang ringkas. */
+function setupDropdownKotaAPIIndonesia() {
+  return refreshDaftarKotaAPIIndonesia();
+}
+
+function titleCaseLocation_(value) {
+  return String(value || "").toLowerCase().replace(/\b([a-zà-ÿ])/g, function(letter) {
+    return letter.toUpperCase();
+  }).trim();
+}
+
+function normalizePrayerLocationName_(value) {
+  return String(value || "").toUpperCase()
+    .replace(/^(KOTA\s+ADM\.?\s*|KOTA\s+|KABUPATEN\s+|KABUP\.?\s+|KAB\.?\s+)/, "")
+    .replace(/[^A-Z0-9]+/g, " ").trim().replace(/\s+/g, " ");
+}
+
+function normalizePrayerCitySlug_(value) {
+  return normalizePrayerLocationName_(value).toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+/** Zona waktu ditentukan dari provinsi administratif, bukan tebakan koordinat. */
+function getIndonesianTimezoneByProvince_(province) {
+  const p = normalizePrayerLocationName_(province);
+  const wit = [
+    "MALUKU", "MALUKU UTARA", "PAPUA", "PAPUA BARAT", "PAPUA BARAT DAYA",
+    "PAPUA TENGAH", "PAPUA PEGUNUNGAN", "PAPUA SELATAN"
+  ];
+  const wita = [
+    "BALI", "NUSA TENGGARA BARAT", "NUSA TENGGARA TIMUR",
+    "KALIMANTAN SELATAN", "KALIMANTAN TIMUR", "KALIMANTAN UTARA",
+    "SULAWESI UTARA", "SULAWESI TENGAH", "SULAWESI SELATAN",
+    "SULAWESI TENGGARA", "SULAWESI BARAT", "GORONTALO"
+  ];
+  if (wit.indexOf(p) >= 0) return { zona: "WIT", timezone: "Asia/Jayapura", gmt: "GMT+9" };
+  if (wita.indexOf(p) >= 0) return { zona: "WITA", timezone: "Asia/Makassar", gmt: "GMT+8" };
+  return { zona: "WIB", timezone: "Asia/Jakarta", gmt: "GMT+7" };
+}
+
+/** Mengisi panels!C6:C10 sesuai pilihan di panels!C5. */
+function syncPrayerPanelLocationFromCity_(cityValue, showToast) {
+  const ss = getSpreadsheet();
+  const panels = ss.getSheetByName("panels");
+  const listSheet = ss.getSheetByName("daftar-kota");
+  if (!panels || !listSheet) throw new Error('Pastikan sheet "panels" dan "daftar-kota" tersedia.');
+
+  const city = String(cityValue || "").trim();
+  if (!city) return false;
+  const lastRow = listSheet.getLastRow();
+  if (lastRow < 2) throw new Error('Sheet "daftar-kota" belum berisi data. Jalankan refreshDaftarKotaAPIIndonesia().');
+
+  const rows = listSheet.getRange(2, 1, lastRow - 1, 7).getDisplayValues();
+  const wanted = normalizePrayerLocationName_(city);
+  const matches = rows.filter(function(row) {
+    return normalizePrayerLocationName_(row[0]) === wanted;
+  });
+  if (!matches.length) throw new Error('Kota "' + city + '" tidak ditemukan pada sheet daftar-kota.');
+  if (matches.length > 1) throw new Error('Nama kota "' + city + '" tidak unik pada daftar-kota; pastikan label dropdown mencakup jenis wilayah.');
+
+  const row = matches[0];
+  // C6 Provinsi, C7 Zona, C8 Timezone, C9 GMT, C10 slug untuk kompatibilitas MuslimKita.
+  panels.getRange("C6:C10").setValues([[row[1]], [row[3]], [row[4]], [row[5]], [row[6]]]);
+  if (showToast) ss.toast("Lokasi diperbarui: " + row[0] + " · " + row[1], "Daftar Kota", 3);
+  return true;
+}
+
 function onEdit(e) {
   if (!e || !e.range) return;
 
   const range = e.range;
   const sheet = range.getSheet();
-
   if (sheet.getName() !== "panels") return;
-  if (range.getA1Notation() !== "C28") return;
 
+  if (range.getA1Notation() === "C5") {
+    try {
+      syncPrayerPanelLocationFromCity_(range.getDisplayValue(), true);
+    } catch (error) {
+      Logger.log("UPDATE LOKASI DARI C5 GAGAL: " + (error && error.message ? error.message : error));
+      try { getSpreadsheet().toast("Lokasi belum diperbarui. Periksa sheet daftar-kota.", "Daftar Kota", 5); } catch (ignoreToast) {}
+    }
+    return;
+  }
+
+  if (range.getA1Notation() !== "C28") return;
   formatPanelKegiatanSelector_(range);
   updatePanelKegiatanFields_(sheet, range.getDisplayValue(), false);
 }
