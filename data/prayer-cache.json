@@ -1,7 +1,7 @@
 {
   "success": true,
-  "generatedAt": "2026-10-13T21:16:02.467647+00:00",
-  "updatedAt": "2026-10-13T21:16:02.467669+00:00",
+  "generatedAt": "2026-10-13T23:28:47.925Z",
+  "updatedAt": "2026-10-13T23:28:47.925Z",
   "cityCount": 181,
   "cities": {
     "balikpapan": {
@@ -967,22 +967,22 @@
     "sumedang": {
       "success": true,
       "tanggal": "2026-10-14",
-      "kota": "Sumedang",
+      "kota": "Kabupaten Sumedang",
       "provinsi": "Jawa Barat",
       "slug": "sumedang",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
-      "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
+      "gmt": "GMT+7",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "04:12",
-        "terbit": "05:24",
-        "dzuhur": "11:39",
-        "ashar": "14:41",
-        "maghrib": "17:45",
-        "isya": "18:55"
+        "subuh": "04:09",
+        "terbit": "05:27",
+        "dzuhur": "11:34",
+        "ashar": "14:40",
+        "maghrib": "17:42",
+        "isya": "18:52"
       },
-      "generatedAt": "2026-10-13T21:15:37.112691+00:00"
+      "generatedAt": "2026-10-13T23:28:47.925Z"
     },
     "banjar": {
       "success": true,
