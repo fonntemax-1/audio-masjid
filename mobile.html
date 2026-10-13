@@ -6587,7 +6587,17 @@ function startRealtimeAudioConfigPolling_() {
             'important'
           );
         } else {
-          el.style.removeProperty('font-size');
+          // Paksa baris pertama QURBAN memakai ukuran judul KEUANGAN pada portrait.
+          // Sebelumnya ukuran hanya diserahkan ke CSS; aturan lama/inline yang
+          // tertinggal dapat membuat A1 tampak tidak berubah saat A2 sudah berubah.
+          const portraitFontSize = el.id === 'fin-title'
+            ? 'clamp(0.34rem, 1.45vw, 0.58rem)'
+            : 'clamp(0.32rem, 1.18vw, 0.46rem)';
+          el.style.setProperty('font-size', portraitFontSize, 'important');
+          el.style.setProperty('font-weight', el.id === 'fin-title' ? '900' : '700', 'important');
+          el.style.setProperty('font-style', 'normal', 'important');
+          el.style.setProperty('margin', '0 0 0.1vh', 'important');
+          el.style.setProperty('padding', '0', 'important');
         }
       });
 
