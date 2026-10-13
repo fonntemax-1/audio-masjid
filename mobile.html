@@ -7372,13 +7372,49 @@ function startRealtimeAudioConfigPolling_() {
         }
 
         if (isQurban) {
-          // Renderer hanya mengatur isi dan warna A2. Seluruh tipografi
-          // A2 disalin dari A1 oleh fitQurbanHeaderText_ dan sinkronisasi
-          // portrait; jangan menghitung font-size/font-family A2 tersendiri.
+          // A2 QURBAN tidak memiliki aturan tipografi sendiri pada portrait.
+          // Setelah teks A2 diperbarui, salin seluruh gaya tipografi dari A1.
           finSub.style.color = 'var(--theme-accent)';
           finSub.style.webkitTextFillColor = 'var(--theme-accent)';
           finSub.style.textAlign = 'center';
-          if (!window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches) {
+          const qurbanPortraitNow = window.matchMedia(
+            '(max-width: 900px) and (orientation: portrait)'
+          ).matches;
+          if (qurbanPortraitNow) {
+            const syncA1ToA2 = function() {
+              const finTitleNow = document.getElementById('fin-title');
+              const finSubNow = document.getElementById('fin-sub');
+              const panelNow = document.getElementById('fin-panel-box');
+              if (!finTitleNow || !finSubNow || !panelNow ||
+                  !panelNow.classList.contains('qurban-display') ||
+                  !window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches) return;
+              const sourceStyle = window.getComputedStyle(finTitleNow);
+              const copiedProperties = [
+                'font-family', 'font-size', 'font-weight', 'font-style',
+                'font-variant', 'line-height', 'letter-spacing', 'word-spacing',
+                'text-transform', 'text-align', 'color', '-webkit-text-fill-color'
+              ];
+              copiedProperties.forEach(function(property) {
+                const value = sourceStyle.getPropertyValue(property);
+                if (value) finSubNow.style.setProperty(property, value, 'important');
+              });
+              [
+                ['display', 'block'], ['width', '100%'], ['min-width', '0'],
+                ['max-width', '100%'], ['box-sizing', 'border-box'],
+                ['white-space', 'nowrap'], ['overflow', 'hidden'],
+                ['text-overflow', 'clip'], ['overflow-wrap', 'normal'],
+                ['word-break', 'keep-all'], ['margin', '0 0 0.1vh'],
+                ['padding', '0']
+              ].forEach(function(pair) {
+                finSubNow.style.setProperty(pair[0], pair[1], 'important');
+              });
+            };
+            // Jalankan sesudah renderer dan CSS lama selesai menulis style.
+            requestAnimationFrame(function() {
+              if (typeof fitQurbanHeaderText_ === 'function') fitQurbanHeaderText_();
+              requestAnimationFrame(syncA1ToA2);
+            });
+          } else {
             // Pertahankan tampilan QURBAN yang lama pada landscape/TV.
             finSub.style.fontFamily = 'inherit';
             finSub.style.fontSize = 'clamp(0.86rem, 4.7cqw, 1.55rem)';
@@ -19020,19 +19056,14 @@ function setCountdownBlackMode(enabled) {
     if (selector !== 'QURBAN' || !titleEl || !subEl) return;
     var titleStyle = window.getComputedStyle(titleEl);
     [
-      ['font-size', titleStyle.fontSize],
-      ['font-family', titleStyle.fontFamily],
-      ['font-weight', titleStyle.fontWeight],
-      ['font-style', titleStyle.fontStyle],
-      ['line-height', titleStyle.lineHeight],
-      ['letter-spacing', titleStyle.letterSpacing],
-      ['text-align', titleStyle.textAlign],
-      ['color', titleStyle.color],
-      ['-webkit-text-fill-color', titleStyle.webkitTextFillColor]
-    ].forEach(function(pair) {
-      if (pair[1] && (subEl.style.getPropertyValue(pair[0]) !== pair[1] ||
-          subEl.style.getPropertyPriority(pair[0]) !== 'important')) {
-        subEl.style.setProperty(pair[0], pair[1], 'important');
+      'font-family', 'font-size', 'font-weight', 'font-style', 'font-variant',
+      'line-height', 'letter-spacing', 'word-spacing', 'text-transform',
+      'text-align', 'color', '-webkit-text-fill-color'
+    ].forEach(function(property) {
+      var value = titleStyle.getPropertyValue(property);
+      if (value && (subEl.style.getPropertyValue(property) !== value ||
+          subEl.style.getPropertyPriority(property) !== 'important')) {
+        subEl.style.setProperty(property, value, 'important');
       }
     });
     [
