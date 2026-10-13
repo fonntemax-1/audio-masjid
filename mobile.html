@@ -8673,19 +8673,12 @@ function startRealtimeAudioConfigPolling_() {
       }
 
       if (finSub) {
-        if (keuanganSelector === 'PENGURUS') {
-          // PENGURUS: baris kedua adalah tanggal; gunakan renderer yang
-          // sama dengan KEUANGAN agar tampil Hijriah | Masehi satu baris.
-          currentKeuanganGregorianDate_ =
-            String(data.KeuanganTanggal || '').trim();
-          renderKeuanganDateHeader_(currentKeuanganGregorianDate_);
-        } else if (keuanganSelector === 'QURBAN') {
+        if (keuanganSelector === 'PENGURUS' || keuanganSelector === 'QURBAN') {
+          // PENGURUS dan QURBAN: A2 adalah teks baris kedua, BUKAN tanggal.
+          // Pertahankan isi sel A2 apa adanya; tanggal ditampilkan pada A3.
           currentKeuanganGregorianDate_ = '';
           keuanganDateConversionToken_++;
-          // QURBAN: baris kedua tetap menampilkan A2 apa adanya.
-          // Tanggal Hijriah | Masehi berada di baris ketiga (A3).
-          finSub.innerText =
-            String(data.KeuanganTanggal || '').trim();
+          finSub.innerText = String(data.KeuanganTanggal || '').trim();
         } else {
           currentKeuanganGregorianDate_ =
             String(data.KeuanganTanggal || '').trim();
@@ -8733,16 +8726,14 @@ function startRealtimeAudioConfigPolling_() {
         const a3 = String(data.KeuanganA3 || '').trim();
 
         currentQurbanGregorianDate_ =
-          keuanganSelector === 'QURBAN'
+          (keuanganSelector === 'QURBAN' || keuanganSelector === 'PENGURUS')
             ? a3
             : '';
 
-        if (keuanganSelector === 'PENGURUS') {
-          finExtra.innerText = a3;
-          finExtra.style.display = a3 ? 'block' : 'none';
-          finExtra.style.setProperty('color', 'var(--theme-accent)', 'important');
-          finExtra.style.setProperty('-webkit-text-fill-color', 'var(--theme-accent)', 'important');
-          applyQurbanDatePattern_();
+        if ((keuanganSelector === 'PENGURUS' || keuanganSelector === 'QURBAN') && a3) {
+          // A3 PENGURUS dan QURBAN memakai renderer tanggal yang sama:
+          // Hijriah | Masehi, satu baris, dengan auto-fit untuk layar portrait.
+          renderQurbanDateHeader_(a3);
         } else if (keuanganSelector === 'QURBAN' && a3) {
           // Bersihkan garis divider tanggal KEUANGAN yang tersisa
           // sebelum render A2/A3 QURBAN.
