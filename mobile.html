@@ -6985,10 +6985,25 @@ function startRealtimeAudioConfigPolling_() {
         el.style.setProperty('box-sizing', 'border-box', 'important');
       });
 
-      // Cari ukuran terbesar yang masih membuat SEMUA tanggal muat
-      // di frame masing-masing. Tanggal paling panjang menjadi penentu.
-      // Fit setiap tanggal secara TERPISAH. Jangan memakai satu ukuran
-      // bersama, karena lebar panel QURBAN/PENGURUS/KEUANGAN berbeda.
+      const portraitMobile = window.matchMedia &&
+        window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches;
+
+      if (portraitMobile) {
+        // Standarkan tanggal KEUANGAN A2 dan QURBAN/PENGURUS A3 dengan
+        // SATU ukuran font yang sama. Auto-fit per elemen sebelumnya membuat
+        // masing-masing tanggal memperoleh ukuran berbeda, sehingga A3 tampak
+        // tidak berubah/berbeda setelah rotasi.
+        elements.forEach(function(el) {
+          el.style.setProperty('font-size', 'clamp(0.38rem, 1.25vw, 0.5rem)', 'important');
+          el.style.setProperty('line-height', '1.05', 'important');
+          el.style.setProperty('font-family', 'Arial, sans-serif', 'important');
+          el.style.setProperty('font-weight', '700', 'important');
+          el.style.setProperty('letter-spacing', '0', 'important');
+        });
+        return;
+      }
+
+      // Landscape/desktop: pertahankan auto-fit yang sudah ada.
       elements.forEach(function(el) {
         const minPx = 7;
         const basePx = Math.max(
@@ -19229,12 +19244,9 @@ function setCountdownBlackMode(enabled) {
       if (!el || !el.isConnected || !(el.textContent || '').trim()) return;
       if (el.clientWidth < 2) return;
 
-      if (selector === 'QURBAN' || selector === 'PENGURUS') {
-        // A3 harus memakai ukuran font tanggal yang sama dengan baris tanggal
-        // KEUANGAN. Fit langsung pada A3 setelah rotasi agar style lama yang
-        // tertinggal dari landscape tidak menang.
-        fitOneLine(el, 16);
-      }
+      // Font tanggal portrait disamakan oleh autoFitPanelDatesShared_().
+      // Jangan jalankan fitOneLine() di sini karena itu membuat A3 kembali
+      // memiliki ukuran berbeda dari tanggal KEUANGAN A2.
     });
     if (typeof schedulePanelDatesSharedAutoFit_ === 'function') {
       schedulePanelDatesSharedAutoFit_();
