@@ -5516,6 +5516,11 @@ function normalizePrayerLocationName_(value) {
     .replace(/[^A-Z0-9]+/g, " ").trim().replace(/\s+/g, " ");
 }
 
+function normalizePrayerDropdownName_(value) {
+  return String(value || "").toUpperCase()
+    .replace(/[^A-Z0-9]+/g, " ").trim().replace(/\s+/g, " ");
+}
+
 function normalizePrayerCitySlug_(value) {
   return normalizePrayerLocationName_(value).toLowerCase()
     .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -5552,9 +5557,9 @@ function syncPrayerPanelLocationFromCity_(cityValue, showToast) {
   if (lastRow < 2) throw new Error('Sheet "daftar-kota" belum berisi data. Jalankan refreshDaftarKotaAPIIndonesia().');
 
   const rows = listSheet.getRange(2, 1, lastRow - 1, 7).getDisplayValues();
-  const wanted = normalizePrayerLocationName_(city);
+  const wanted = normalizePrayerDropdownName_(city);
   const matches = rows.filter(function(row) {
-    return normalizePrayerLocationName_(row[0]) === wanted;
+    return normalizePrayerDropdownName_(row[0]) === wanted;
   });
   if (!matches.length) throw new Error('Kota "' + city + '" tidak ditemukan pada sheet daftar-kota.');
   if (matches.length > 1) throw new Error('Nama kota "' + city + '" tidak unik pada daftar-kota; pastikan label dropdown mencakup jenis wilayah.');
