@@ -864,10 +864,10 @@ function findAPIIndonesiaRegencyMatch_(regencyName) {
 
 function normalizeAPIIndonesiaAreaName_(value) {
   return String(value || '').toUpperCase()
-    .replace(/\\b(REGENCY OF|KABUPATEN|KABUP|KAB\\.?|KOTA ADMINISTRASI|KOTA ADM\\.?|KOTA)\\s+/g, '')
-    .replace(/\\s+REGENCY$/g, '')
+    .replace(/\b(REGENCY OF|KABUPATEN|KABUP|KAB\.?|KOTA ADMINISTRASI|KOTA ADM\.?|KOTA)\s+/g, '')
+    .replace(/\s+REGENCY$/g, '')
     .replace(/[^A-Z0-9]+/g, ' ')
-    .trim().replace(/\\s+/g, ' ');
+    .trim().replace(/\s+/g, ' ');
 }
 
 function findNearestMuslimKitaCity_(sheet, latitude, longitude) {
