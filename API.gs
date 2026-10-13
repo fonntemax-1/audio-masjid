@@ -799,15 +799,25 @@ function resolveCoordinatesCityFromApi_(params) {
     var actual = sheet.getRange('C14').getDisplayValue();
     if (String(actual).trim() !== cityName) throw new Error('Nama kota gagal diverifikasi pada C14.');
 
-    // Pilih kota terdekat yang benar-benar tersedia di API MuslimKita.
-    // Hanya C5 yang ditulis; C6:C10 diperbarui oleh mekanisme otomatis spreadsheet.
-    // Jika katalog kota tidak dapat dibaca, C14 tetap diperbarui dan C5 tidak diubah.
-    var nearest = findNearestMuslimKitaCity_(sheet, lat, lng);
+    // Utamakan kabupaten/kota administratif hasil reverse geocoding.
+    // Jika nama itu tidak ada dalam daftar API Indonesia, gunakan pencarian
+    // kandidat terdekat sebagai fallback. C14 tetap menyimpan wilayah detail.
+    var nearest = findAPIIndonesiaRegencyMatch_(regencyName);
+    if (!nearest) nearest = findNearestMuslimKitaCity_(sheet, lat, lng);
     if (nearest) {
       sheet.getRange('C5').setValue(nearest.kota);
       SpreadsheetApp.flush();
+      // onEdit tidak berjalan untuk setValue dari script, maka sinkronkan
+      // provinsi/zona/timezone/GMT/slug secara eksplisit.
+      try {
+        if (typeof syncPrayerPanelLocationFromCity_ === 'function') {
+          syncPrayerPanelLocationFromCity_(nearest.kota, false);
+        }
+      } catch (locationSyncError) {
+        Logger.log('Sinkronisasi C6:C10 setelah Google Maps: ' + String(locationSyncError));
+      }
       var verifiedCity = String(sheet.getRange('C5').getDisplayValue() || '').trim();
-      if (verifiedCity !== nearest.kota) throw new Error('C14 tersimpan, tetapi verifikasi kota terdekat pada C5 gagal.');
+      if (verifiedCity !== nearest.kota) throw new Error('C14 tersimpan, tetapi verifikasi kota acuan pada C5 gagal.');
     }
     return {
       success: true,
@@ -816,9 +826,9 @@ function resolveCoordinatesCityFromApi_(params) {
       latitude: lat,
       longitude: lng,
       nearestCity: nearest ? nearest.kota : '',
-      nearestSlug: nearest ? nearest.slug : '',
+      nearestSlug: nearest ? (nearest.slug || '') : '',
       cityAutoUpdated: !!nearest,
-      message: nearest ? ('C14 diperbarui; kota jadwal otomatis menjadi ' + nearest.kota + '.') : 'C14 diperbarui, tetapi katalog kota MuslimKita tidak tersedia; C5 tetap seperti sebelumnya.'
+      message: nearest ? ('Wilayah detail disimpan; kota acuan jadwal otomatis menjadi ' + nearest.kota + '.') : 'Wilayah detail disimpan, tetapi kota acuan tidak ditemukan; C5 tidak diubah.'
     };
   } finally {
     lock.releaseLock();
@@ -832,6 +842,34 @@ function resolveCoordinatesCityFromApi_(params) {
  * kota yang digunakan oleh spreadsheet. Metadata dan koordinat diverifikasi
  * langsung ke endpoint MuslimKita, lalu disimpan di cache.
  */
+/**
+ * Cocokkan kabupaten/kota dari Google Maps dengan katalog jadwal API Indonesia.
+ * Contoh: "Kabupaten Sumedang" dicocokkan dengan label "Sumedang" atau
+ * "Kabupaten Sumedang" pada sheet daftar-kota. Tidak mengandalkan jarak lurus
+ * bila Google Maps sudah memberikan kabupaten/kota administratif yang tepat.
+ */
+function findAPIIndonesiaRegencyMatch_(regencyName) {
+  var target = normalizeAPIIndonesiaAreaName_(regencyName);
+  if (!target) return null;
+  var ss = getSpreadsheet();
+  var listSheet = ss.getSheetByName('daftar-kota');
+  if (!listSheet || listSheet.getLastRow() < 2) return null;
+  var rows = listSheet.getRange(2, 1, listSheet.getLastRow() - 1, 7).getDisplayValues();
+  var matches = rows.filter(function(row) {
+    return normalizeAPIIndonesiaAreaName_(row[0]) === target;
+  });
+  if (matches.length !== 1) return null;
+  return { kota: String(matches[0][0] || '').trim(), slug: String(matches[0][6] || '').trim() };
+}
+
+function normalizeAPIIndonesiaAreaName_(value) {
+  return String(value || '').toUpperCase()
+    .replace(/\\b(REGENCY OF|KABUPATEN|KABUP|KAB\\.?|KOTA ADMINISTRASI|KOTA ADM\\.?|KOTA)\\s+/g, '')
+    .replace(/\\s+REGENCY$/g, '')
+    .replace(/[^A-Z0-9]+/g, ' ')
+    .trim().replace(/\\s+/g, ' ');
+}
+
 function findNearestMuslimKitaCity_(sheet, latitude, longitude) {
   var cache = CacheService.getScriptCache();
   var cacheKey = 'MUSLIMKITA_CITY_CATALOG_V2';
