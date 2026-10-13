@@ -19011,19 +19011,23 @@ function setCountdownBlackMode(enabled) {
       ['color', titleStyle.color],
       ['-webkit-text-fill-color', titleStyle.webkitTextFillColor]
     ].forEach(function(pair) {
-      if (pair[1]) subEl.style.setProperty(pair[0], pair[1], 'important');
+      if (pair[1] && (subEl.style.getPropertyValue(pair[0]) !== pair[1] ||
+          subEl.style.getPropertyPriority(pair[0]) !== 'important')) {
+        subEl.style.setProperty(pair[0], pair[1], 'important');
+      }
     });
-    subEl.style.setProperty('display', 'block', 'important');
-    subEl.style.setProperty('width', '100%', 'important');
-    subEl.style.setProperty('max-width', '100%', 'important');
-    subEl.style.setProperty('box-sizing', 'border-box', 'important');
-    subEl.style.setProperty('white-space', 'nowrap', 'important');
-    subEl.style.setProperty('overflow', 'hidden', 'important');
-    subEl.style.setProperty('overflow-wrap', 'normal', 'important');
-    subEl.style.setProperty('word-break', 'keep-all', 'important');
-    subEl.style.setProperty('text-overflow', 'clip', 'important');
-    subEl.style.setProperty('margin', '0 0 0.1vh', 'important');
-    subEl.style.setProperty('padding', '0', 'important');
+    [
+      ['display', 'block'], ['width', '100%'], ['max-width', '100%'],
+      ['box-sizing', 'border-box'], ['white-space', 'nowrap'],
+      ['overflow', 'hidden'], ['overflow-wrap', 'normal'],
+      ['word-break', 'keep-all'], ['text-overflow', 'clip'],
+      ['margin', '0 0 0.1vh'], ['padding', '0']
+    ].forEach(function(pair) {
+      if (subEl.style.getPropertyValue(pair[0]) !== pair[1] ||
+          subEl.style.getPropertyPriority(pair[0]) !== 'important') {
+        subEl.style.setProperty(pair[0], pair[1], 'important');
+      }
+    });
   }
 
   function fitOneLine(el, maxFontPx) {
@@ -19123,11 +19127,15 @@ function setCountdownBlackMode(enabled) {
   });
   // A1 dapat diubah oleh renderer lama melalui inline style tanpa mengubah teks.
   // Pantau perubahan style A1 agar A2 selalu disamakan lagi.
-  if (titleEl) {
-    var titleStyleObserver = new MutationObserver(function() {
-      syncQurbanSecondLineToFirst();
+  if (titleEl || subEl) {
+    // Renderer lama masih dapat menulis ulang style A2 setelah orientasi berubah.
+    // Pantau perubahan A1 maupun A2; sinkronisasi hanya menulis bila nilainya
+    // berbeda, sehingga observer tidak membuat putaran MutationObserver tanpa akhir.
+    var qurbanStyleObserver = new MutationObserver(function() {
+      if (query.matches) syncQurbanSecondLineToFirst();
     });
-    titleStyleObserver.observe(titleEl, { attributes: true, attributeFilter: ['style', 'class'] });
+    if (titleEl) qurbanStyleObserver.observe(titleEl, { attributes: true, attributeFilter: ['style', 'class'] });
+    if (subEl) qurbanStyleObserver.observe(subEl, { attributes: true, attributeFilter: ['style', 'class'] });
   }
   // Selector panel berubah saat data Spreadsheet masuk; pantau atributnya juga.
   observer.observe(frame, { attributes: true, attributeFilter: ['data-panel-selector', 'class'] });
