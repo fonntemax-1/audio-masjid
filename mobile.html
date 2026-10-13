@@ -6615,6 +6615,25 @@ function startRealtimeAudioConfigPolling_() {
         }
       });
 
+      // KUNCI FORMAT QURBAN PORTRAIT:
+      // Setelah seluruh style A1/A2 diterapkan, salin properti tipografi
+      // aktual A1 ke A2 sebagai langkah terakhir. Ini mencegah perbedaan
+      // ukuran maupun jenis font akibat aturan lama yang berjalan belakangan.
+      if (isPortraitMobile &&
+          String(panel.dataset.panelSelector || '').trim().toUpperCase() === 'QURBAN') {
+        const finalTitleStyle = window.getComputedStyle(title);
+        [
+          ['font-size', finalTitleStyle.fontSize],
+          ['font-family', finalTitleStyle.fontFamily],
+          ['font-weight', finalTitleStyle.fontWeight],
+          ['font-style', finalTitleStyle.fontStyle],
+          ['line-height', finalTitleStyle.lineHeight],
+          ['letter-spacing', finalTitleStyle.letterSpacing]
+        ].forEach(function(pair) {
+          sub.style.setProperty(pair[0], pair[1], 'important');
+        });
+      }
+
       // Tanggal tambahan PENGURUS juga mengikuti ukuran tanggal KEUANGAN.
       if (isPortraitMobile) {
         const extra = document.getElementById('fin-extra');
