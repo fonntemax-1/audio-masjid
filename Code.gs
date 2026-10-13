@@ -5525,7 +5525,11 @@ function setupDropdownKotaAPIIndonesia() {
       ScriptApp.deleteTrigger(trigger);
     }
   });
-  ScriptApp.newTrigger("refreshDaftarKotaAPIIndonesia").timeBased().everyWeeks(1).create();
+  ScriptApp.newTrigger("refreshDaftarKotaAPIIndonesia")
+    .timeBased()
+    .onWeekDay(ScriptApp.WeekDay.SUNDAY)
+    .atHour(3)
+    .create();
   Logger.log("Refresh otomatis daftar-kota dijadwalkan setiap minggu.");
   return result;
 }
