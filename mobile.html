@@ -19054,28 +19054,30 @@ function setCountdownBlackMode(enabled) {
     if (!query.matches || !frame.isConnected) return;
     var selector = String(frame.dataset.panelSelector || '').trim().toUpperCase();
     if (selector !== 'QURBAN' || !titleEl || !subEl) return;
-    var titleStyle = window.getComputedStyle(titleEl);
+
+    /*
+     * A1 adalah satu-satunya sumber gaya QURBAN pada portrait.
+     * Salin SELURUH inline style A1 ke A2, bukan menghitung font A2
+     * secara terpisah. cssText mempertahankan nilai dan prioritas !important.
+     * Pemeriksaan kesamaan mencegah MutationObserver berulang tanpa akhir.
+     */
+    var sourceCss = titleEl.style.cssText || '';
+    if (subEl.style.cssText !== sourceCss) {
+      subEl.style.cssText = sourceCss;
+    }
+
+    // Samakan juga gaya hasil komputasi yang berasal dari aturan CSS,
+    // lalu kunci nilainya pada A2 agar selector #fin-sub tidak menyimpang.
+    var sourceStyle = window.getComputedStyle(titleEl);
     [
       'font-family', 'font-size', 'font-weight', 'font-style', 'font-variant',
       'line-height', 'letter-spacing', 'word-spacing', 'text-transform',
       'text-align', 'color', '-webkit-text-fill-color'
     ].forEach(function(property) {
-      var value = titleStyle.getPropertyValue(property);
+      var value = sourceStyle.getPropertyValue(property);
       if (value && (subEl.style.getPropertyValue(property) !== value ||
           subEl.style.getPropertyPriority(property) !== 'important')) {
         subEl.style.setProperty(property, value, 'important');
-      }
-    });
-    [
-      ['display', 'block'], ['width', '100%'], ['max-width', '100%'],
-      ['box-sizing', 'border-box'], ['white-space', 'nowrap'],
-      ['overflow', 'hidden'], ['overflow-wrap', 'normal'],
-      ['word-break', 'keep-all'], ['text-overflow', 'clip'],
-      ['margin', '0 0 0.1vh'], ['padding', '0']
-    ].forEach(function(pair) {
-      if (subEl.style.getPropertyValue(pair[0]) !== pair[1] ||
-          subEl.style.getPropertyPriority(pair[0]) !== 'important') {
-        subEl.style.setProperty(pair[0], pair[1], 'important');
       }
     });
   }
