@@ -6617,20 +6617,22 @@ function startRealtimeAudioConfigPolling_() {
         }
       });
 
-      // KUNCI FORMAT QURBAN PORTRAIT:
-      // Setelah seluruh style A1/A2 diterapkan, salin properti tipografi
-      // aktual A1 ke A2 sebagai langkah terakhir. Ini mencegah perbedaan
-      // ukuran maupun jenis font akibat aturan lama yang berjalan belakangan.
+      // QURBAN portrait: A2 tidak di-fit secara terpisah.
+      // Salin properti tipografi dari A1 sebagai satu-satunya sumber.
       if (isPortraitMobile &&
           String(panel.dataset.panelSelector || '').trim().toUpperCase() === 'QURBAN') {
-        const finalTitleStyle = window.getComputedStyle(title);
+        const source = window.getComputedStyle(title);
         [
-          ['font-size', finalTitleStyle.fontSize],
-          ['font-family', finalTitleStyle.fontFamily],
-          ['font-weight', finalTitleStyle.fontWeight],
-          ['font-style', finalTitleStyle.fontStyle],
-          ['line-height', finalTitleStyle.lineHeight],
-          ['letter-spacing', finalTitleStyle.letterSpacing]
+          ['font-size', source.fontSize],
+          ['font-family', source.fontFamily],
+          ['font-weight', source.fontWeight],
+          ['font-style', source.fontStyle],
+          ['font-variant', source.fontVariant],
+          ['line-height', source.lineHeight],
+          ['letter-spacing', source.letterSpacing],
+          ['word-spacing', source.wordSpacing],
+          ['text-transform', source.textTransform],
+          ['text-align', source.textAlign]
         ].forEach(function(pair) {
           sub.style.setProperty(pair[0], pair[1], 'important');
         });
@@ -7370,28 +7372,12 @@ function startRealtimeAudioConfigPolling_() {
         }
 
         if (isQurban) {
-          // QURBAN A2: pada portrait, selalu gunakan ukuran font aktual A1.
-          // Jangan set ukuran responsif tersendiri untuk A2 karena itu membuat
-          // baris kedua berubah-ubah setelah renderer utama berjalan.
+          // Renderer hanya mengatur isi dan warna A2. Seluruh tipografi
+          // A2 disalin dari A1 oleh fitQurbanHeaderText_ dan sinkronisasi
+          // portrait; jangan menghitung font-size/font-family A2 tersendiri.
           finSub.style.color = 'var(--theme-accent)';
           finSub.style.webkitTextFillColor = 'var(--theme-accent)';
-          finSub.style.fontFamily = 'inherit';
-          if (window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches && finTitle) {
-            // Nilai portrait A1 dan A2 diatur oleh fitQurbanHeaderText_()
-            // dengan skala viewport yang sama; hindari menyalin ukuran sementara
-            // dari layout yang sedang berubah saat orientasi diputar.
-            const qurbanPortraitFont = 'clamp(0.44rem, 1.8vw, 0.62rem)';
-            finTitle.style.setProperty('font-size', qurbanPortraitFont, 'important');
-            finSub.style.setProperty('font-size', qurbanPortraitFont, 'important');
-            finSub.style.setProperty('font-weight', '900', 'important');
-            finSub.style.setProperty('line-height', '1.02', 'important');
-          } else {
-            finSub.style.fontSize = 'clamp(0.86rem, 4.7cqw, 1.55rem)';
-            finSub.style.fontWeight = 'bold';
-            finSub.style.lineHeight = '1.15';
-          }
           finSub.style.textAlign = 'center';
-          finSub.style.letterSpacing = '';
         } else if (isPengurus) {
           // Format PENGURUS tetap seperti sebelumnya.
           finSub.style.color = 'var(--theme-accent)';
