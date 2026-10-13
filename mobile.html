@@ -6619,24 +6619,29 @@ function startRealtimeAudioConfigPolling_() {
         }
       });
 
-      // QURBAN portrait: A2 tidak di-fit secara terpisah.
-      // Salin properti tipografi dari A1 sebagai satu-satunya sumber.
-      if (isPortraitMobile &&
-          ['QURBAN', 'PENGURUS'].includes(String(panel.dataset.panelSelector || '').trim().toUpperCase())) {
-        const source = window.getComputedStyle(title);
-        [
-          ['font-size', source.fontSize],
-          ['font-family', source.fontFamily],
-          ['font-weight', source.fontWeight],
-          ['font-style', source.fontStyle],
-          ['font-variant', source.fontVariant],
-          ['line-height', source.lineHeight],
-          ['letter-spacing', source.letterSpacing],
-          ['word-spacing', source.wordSpacing],
-          ['text-transform', source.textTransform],
-          ['text-align', source.textAlign]
-        ].forEach(function(pair) {
-          sub.style.setProperty(pair[0], pair[1], 'important');
+      // Portrait QURBAN/PENGURUS: A1 dan A2 memakai SATU set nilai tetap.
+      // Jangan salin computed style karena callback lain dapat sedang mengubah
+      // A1 saat rotasi; nilai berubah itu sebelumnya ikut menular ke A2.
+      const headerSelector = String(panel.dataset.panelSelector || '').trim().toUpperCase();
+      if (isPortraitMobile && ['QURBAN', 'PENGURUS'].includes(headerSelector)) {
+        const shared = [
+          ['font-family', 'Arial, sans-serif'],
+          ['font-size', 'clamp(0.44rem, 1.8vw, 0.62rem)'],
+          ['font-weight', '900'],
+          ['font-style', 'normal'],
+          ['font-variant', 'normal'],
+          ['line-height', '1.05'],
+          ['letter-spacing', '0'],
+          ['word-spacing', '0'],
+          ['text-transform', 'none'],
+          ['text-align', 'center'],
+          ['color', 'var(--theme-accent)'],
+          ['-webkit-text-fill-color', 'var(--theme-accent)']
+        ];
+        [title, sub].forEach(function(el) {
+          shared.forEach(function(pair) {
+            el.style.setProperty(pair[0], pair[1], 'important');
+          });
         });
       }
 
@@ -7529,6 +7534,12 @@ function startRealtimeAudioConfigPolling_() {
       }
 
       updateKeuangan(rows, date, selector);
+      if (typeof window.enforcePengurusPortraitHeader_ === 'function') {
+        requestAnimationFrame(function() {
+          window.enforcePengurusPortraitHeader_();
+          requestAnimationFrame(window.enforcePengurusPortraitHeader_);
+        });
+      }
       if (isQurbanStyle) {
         requestAnimationFrame(function() { fitQurbanHeaderText_(); });
       }
@@ -7537,6 +7548,13 @@ function startRealtimeAudioConfigPolling_() {
       if (selector === 'QURBAN') {
         window.requestAnimationFrame(function() {
 });
+      }
+
+      if (typeof window.enforcePengurusPortraitHeader_ === 'function') {
+        requestAnimationFrame(function() {
+          window.enforcePengurusPortraitHeader_();
+          requestAnimationFrame(window.enforcePengurusPortraitHeader_);
+        });
       }
 
       if (typeof previousKeuanganJson !== 'undefined') {
@@ -19130,6 +19148,9 @@ function setCountdownBlackMode(enabled) {
       });
     });
   }
+
+  // Bisa dipanggil langsung setelah renderer Spreadsheet selesai memperbarui A1/A2.
+  window.enforcePengurusPortraitHeader_ = syncQurbanSecondLineToFirst;
 
   function fitOneLine(el, maxFontPx) {
     if (!el || !(el.textContent || '').trim()) return;
