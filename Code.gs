@@ -5510,28 +5510,245 @@ function refreshDaftarKotaAPIIndonesia() {
   }
 
   PropertiesService.getScriptProperties().setProperty("APIID_CITY_LIST_UPDATED_AT", new Date().toISOString());
+  try {
+    publishCityListToGithub_(rows);
+  } catch (githubError) {
+    Logger.log("PUBLIKASI DAFTAR KOTA KE GITHUB GAGAL (sheet tetap diperbarui): " +
+      (githubError && githubError.message ? githubError.message : githubError));
+  }
   Logger.log("DAFTAR KOTA DIPERBARUI: " + rows.length + " kota/kabupaten pada sheet daftar-kota.");
   return { success: true, count: rows.length, sheet: "daftar-kota" };
 }
 
 /**
- * Setup pertama kali: refresh daftar, pasang dropdown C5, lalu jadwalkan refresh mingguan.
- * Jalankan fungsi ini sekali dari Apps Script Editor dan izinkan akses yang diminta.
+ * Setup awal otomatisasi data lokasi dan jadwal sholat.
+ * Zona waktu proyek sebaiknya Asia/Makassar.
+ * Pemicu:
+ * - daftar kota: harian sekitar pukul 03.00 WITA
+ * - cache jadwal kota aktif: harian sekitar 00.05 WITA dan pemeriksaan tiap 30 menit
+ * Jalankan sekali dari Apps Script Editor dan selesaikan otorisasi.
  */
 function setupDropdownKotaAPIIndonesia() {
   const result = refreshDaftarKotaAPIIndonesia();
+  const handlers = [
+    "refreshDaftarKotaAPIIndonesia",
+    "refreshPrayerCacheForCurrentCity"
+  ];
   ScriptApp.getProjectTriggers().forEach(function(trigger) {
-    if (trigger.getHandlerFunction() === "refreshDaftarKotaAPIIndonesia") {
+    if (handlers.indexOf(trigger.getHandlerFunction()) >= 0) {
       ScriptApp.deleteTrigger(trigger);
     }
   });
+
   ScriptApp.newTrigger("refreshDaftarKotaAPIIndonesia")
     .timeBased()
-    .onWeekDay(ScriptApp.WeekDay.SUNDAY)
     .atHour(3)
+    .everyDays(1)
+    .inTimezone("Asia/Makassar")
     .create();
-  Logger.log("Refresh otomatis daftar-kota dijadwalkan setiap minggu.");
+
+  ScriptApp.newTrigger("refreshPrayerCacheForCurrentCity")
+    .timeBased()
+    .atHour(0)
+    .nearMinute(5)
+    .everyDays(1)
+    .inTimezone("Asia/Makassar")
+    .create();
+
+  ScriptApp.newTrigger("refreshPrayerCacheForCurrentCity")
+    .timeBased()
+    .everyMinutes(30)
+    .create();
+
+  Logger.log("Auto-update disiapkan: daftar kota harian 03.00 WITA; cache jadwal 00.05 WITA dan pemeriksaan tiap 30 menit.");
   return result;
+}
+
+/**
+ * Publikasikan daftar kota yang sudah divalidasi ke data/daftar-kota.json di branch main.
+ * Gagal menulis GitHub tidak membatalkan pembaruan sheet daftar-kota.
+ */
+function publishCityListToGithub_(rows) {
+  const cities = (rows || []).map(function(row) {
+    return {
+      name: String(row[0] || ""),
+      province: String(row[1] || ""),
+      regency_id: String(row[2] || ""),
+      zone: String(row[3] || ""),
+      timezone: String(row[4] || ""),
+      gmt: String(row[5] || ""),
+      slug: String(row[6] || "")
+    };
+  });
+  const existing = readGithubJsonFile_("data/daftar-kota.json");
+  if (existing && Array.isArray(existing.cities) &&
+      JSON.stringify(existing.cities) === JSON.stringify(cities)) {
+    Logger.log("GitHub daftar-kota.json tidak berubah; commit dilewati.");
+    return { success: true, changed: false, count: cities.length };
+  }
+  const now = new Date().toISOString();
+  const document = {
+    success: true,
+    version: 1,
+    generatedAt: now,
+    source: "API Indonesia /api/v1/sholat/list-kota",
+    cityCount: cities.length,
+    cities: cities
+  };
+  writeGithubJsonFile_("data/daftar-kota.json", document, "Auto-update daftar kota dari API Indonesia");
+  PropertiesService.getScriptProperties().setProperty("GITHUB_CITY_LIST_UPDATED_AT", now);
+  Logger.log("GitHub data/daftar-kota.json diperbarui: " + cities.length + " wilayah.");
+  return { success: true, changed: true, count: cities.length };
+}
+
+/**
+ * Memperbarui cache GitHub untuk kota yang sedang dipilih pada panels!C5.
+ * Hanya menyimpan respons sukses, lengkap, untuk kota dan tanggal yang tepat.
+ * Tidak pernah mengganti jadwal dengan data kota lain.
+ */
+function refreshPrayerCacheForCurrentCity() {
+  const ss = getSpreadsheet();
+  const panels = ss.getSheetByName("panels");
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+
+  const loc = panels.getRange("C5:C10").getDisplayValues().map(function(row) {
+    return String(row[0] || "").trim();
+  });
+  const city = loc[0];
+  const province = loc[1];
+  const timezone = loc[3] || "Asia/Makassar";
+  const slug = loc[5] || normalizePrayerCitySlug_(city);
+  if (!city || !slug) throw new Error("Kota atau slug pada panels!C5/C10 kosong.");
+
+  const date = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd");
+  const schedule = getPrayerSchedule(date);
+  if (!schedule || schedule.success !== true ||
+      String(schedule.tanggal || "") !== date ||
+      !schedule.jadwal || !isCompletePrayerScheduleSafe_(schedule.jadwal)) {
+    const reason = schedule && (schedule.error || schedule.apiIndonesiaError || schedule.fallbackReason);
+    Logger.log("CACHE JADWAL TIDAK DIPUBLIKASIKAN; respons belum valid untuk " + city + " " + date +
+      (reason ? ": " + reason : ""));
+    return { success: false, skipped: true, kota: city, tanggal: date, error: reason || "Jadwal belum lengkap." };
+  }
+
+  const existing = readGithubJsonFile_("data/prayer-cache.json") || {
+    success: true, cityCount: 0, cities: {}
+  };
+  if (!existing.cities || typeof existing.cities !== "object" || Array.isArray(existing.cities)) {
+    existing.cities = {};
+  }
+
+  const entry = {
+    success: true,
+    tanggal: date,
+    kota: city,
+    provinsi: province,
+    slug: slug,
+    zona: schedule.zona || loc[2] || "",
+    timezone: schedule.timezone || timezone,
+    gmt: schedule.gmt || loc[4] || "",
+    source: schedule.source || "API Indonesia / Kemenag",
+    jadwal: {
+      subuh: String(schedule.jadwal.subuh || ""),
+      terbit: String(schedule.jadwal.terbit || ""),
+      dzuhur: String(schedule.jadwal.dzuhur || ""),
+      ashar: String(schedule.jadwal.ashar || ""),
+      maghrib: String(schedule.jadwal.maghrib || ""),
+      isya: String(schedule.jadwal.isya || "")
+    },
+    generatedAt: new Date().toISOString()
+  };
+
+  const prior = existing.cities[slug];
+  const sameSchedule = prior && prior.success === true &&
+    prior.tanggal === entry.tanggal &&
+    prior.kota === entry.kota &&
+    prior.provinsi === entry.provinsi &&
+    JSON.stringify(prior.jadwal) === JSON.stringify(entry.jadwal) &&
+    prior.timezone === entry.timezone;
+  if (sameSchedule) {
+    Logger.log("CACHE JADWAL GITHUB SUDAH TERBARU: " + city + " " + date + "; commit dilewati.");
+    return { success: true, changed: false, kota: city, tanggal: date, slug: slug };
+  }
+
+  existing.cities[slug] = entry;
+  existing.success = true;
+  existing.generatedAt = new Date().toISOString();
+  existing.updatedAt = existing.generatedAt;
+  existing.cityCount = Object.keys(existing.cities).length;
+  writeGithubJsonFile_("data/prayer-cache.json", existing,
+    "Auto-update cache jadwal sholat " + city + " " + date);
+  PropertiesService.getScriptProperties().setProperty("GITHUB_PRAYER_CACHE_UPDATED_AT", existing.updatedAt);
+  Logger.log("CACHE JADWAL GITHUB DIPERBARUI: " + city + " " + date + " (" + slug + ").");
+  return { success: true, changed: true, kota: city, tanggal: date, slug: slug };
+}
+
+/** Membaca JSON dari GitHub main; null hanya jika file memang belum ada (HTTP 404). */
+function readGithubJsonFile_(path) {
+  const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
+  if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
+  const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
+    path.split("/").map(encodeURIComponent).join("/") + "?ref=main";
+  const response = UrlFetchApp.fetch(url, {
+    method: "get",
+    muteHttpExceptions: true,
+    headers: {
+      Authorization: "Bearer " + token,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28"
+    }
+  });
+  if (response.getResponseCode() === 404) return null;
+  if (response.getResponseCode() !== 200) {
+    throw new Error("Gagal membaca GitHub " + path + " (HTTP " + response.getResponseCode() + ").");
+  }
+  const file = JSON.parse(response.getContentText() || "{}");
+  const raw = Utilities.base64Decode(String(file.content || "").replace(/\s/g, ""));
+  return JSON.parse(Utilities.newBlob(raw).getDataAsString("UTF-8"));
+}
+
+/** Membuat atau memperbarui JSON di branch main dengan token yang tersimpan di Script Properties. */
+function writeGithubJsonFile_(path, document, message) {
+  const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
+  if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
+  const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
+    path.split("/").map(encodeURIComponent).join("/");
+  const headers = {
+    Authorization: "Bearer " + token,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+  const getResponse = UrlFetchApp.fetch(url + "?ref=main", {
+    method: "get", muteHttpExceptions: true, headers: headers
+  });
+  let sha = "";
+  if (getResponse.getResponseCode() === 200) {
+    sha = String(JSON.parse(getResponse.getContentText() || "{}").sha || "");
+  } else if (getResponse.getResponseCode() !== 404) {
+    throw new Error("Gagal memeriksa GitHub " + path + " (HTTP " + getResponse.getResponseCode() + ").");
+  }
+  const content = JSON.stringify(document, null, 2) + "\n";
+  const payload = {
+    message: message,
+    content: Utilities.base64Encode(Utilities.newBlob(content, "application/json").getBytes()),
+    branch: "main"
+  };
+  if (sha) payload.sha = sha;
+  const putResponse = UrlFetchApp.fetch(url, {
+    method: "put",
+    contentType: "application/json",
+    headers: headers,
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+  const code = putResponse.getResponseCode();
+  if (code < 200 || code >= 300) {
+    let detail = "";
+    try { detail = JSON.parse(putResponse.getContentText()).message || ""; } catch (ignore) {}
+    throw new Error("GitHub gagal menyimpan " + path + " (HTTP " + code + ")" +
+      (detail ? ": " + detail : "") + ".");
+  }
+  return { success: true, path: path };
 }
 
 function titleCaseLocation_(value) {
