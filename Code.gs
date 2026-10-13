@@ -5499,9 +5499,20 @@ function refreshDaftarKotaAPIIndonesia() {
   return { success: true, count: rows.length, sheet: "daftar-kota" };
 }
 
-/** Alias untuk menjalankan refresh melalui Apps Script dengan nama yang ringkas. */
+/**
+ * Setup pertama kali: refresh daftar, pasang dropdown C5, lalu jadwalkan refresh mingguan.
+ * Jalankan fungsi ini sekali dari Apps Script Editor dan izinkan akses yang diminta.
+ */
 function setupDropdownKotaAPIIndonesia() {
-  return refreshDaftarKotaAPIIndonesia();
+  const result = refreshDaftarKotaAPIIndonesia();
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    if (trigger.getHandlerFunction() === "refreshDaftarKotaAPIIndonesia") {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+  ScriptApp.newTrigger("refreshDaftarKotaAPIIndonesia").timeBased().everyWeeks(1).create();
+  Logger.log("Refresh otomatis daftar-kota dijadwalkan setiap minggu.");
+  return result;
 }
 
 function titleCaseLocation_(value) {
