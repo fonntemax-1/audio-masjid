@@ -5608,6 +5608,35 @@ function onEdit(e) {
   const sheet = range.getSheet();
   if (sheet.getName() !== "panels") return;
 
+  if (range.getA1Notation() === "C3") {
+    const mapsUrl = String(range.getDisplayValue() || "").trim();
+    const panels = sheet;
+    if (!mapsUrl) {
+      panels.getRange("C4").clearContent();
+      return;
+    }
+    try {
+      const remotePin = String(PropertiesService.getScriptProperties().getProperty("REMOTE_CONTROL_PIN") || "").trim();
+      if (!remotePin) throw new Error("Script Property REMOTE_CONTROL_PIN belum diisi.");
+      const result = resolveGoogleMapsLinkCityFromApi_({ mapsUrl: mapsUrl, pin: remotePin });
+      if (!result || result.success === false) throw new Error(result && result.error ? result.error : "Lokasi Google Maps gagal dikenali.");
+      try {
+        getSpreadsheet().toast(
+          "Lokasi dikenali: " + String(result.city || panels.getRange("C4").getDisplayValue()) +
+          (result.nearestCity ? " · Acuan jadwal: " + result.nearestCity : " · Kota acuan belum cocok"),
+          "Google Maps",
+          6
+        );
+      } catch (ignoreToast) {}
+    } catch (error) {
+      Logger.log("RESOLVE GOOGLE MAPS DARI C3 GAGAL: " + (error && error.stack ? error.stack : error));
+      try {
+        getSpreadsheet().toast("Link Google Maps gagal diproses: " + (error && error.message ? error.message : error), "Google Maps", 8);
+      } catch (ignoreToast) {}
+    }
+    return;
+  }
+
   if (range.getA1Notation() === "C5") {
     try {
       syncPrayerPanelLocationFromCity_(range.getDisplayValue(), true);
