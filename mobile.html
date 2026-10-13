@@ -6564,7 +6564,9 @@ function startRealtimeAudioConfigPolling_() {
         el.style.setProperty('letter-spacing', '0', 'important');
         el.style.setProperty('line-height', '1.02', 'important');
         el.style.setProperty('text-align', 'center', 'important');
-        const isQurbanPanel = String(panel.dataset.panelSelector || '').trim().toUpperCase() === 'QURBAN';
+        const activeHeaderSelector = String(panel.dataset.panelSelector || '').trim().toUpperCase();
+        const isQurbanPanel = activeHeaderSelector === 'QURBAN';
+        const isQurbanOrPengurusPanel = isQurbanPanel || activeHeaderSelector === 'PENGURUS';
         // Portrait QURBAN: kedua baris judul memakai warna yang sama.
         const headingColor = 'var(--theme-accent)';
         el.style.setProperty('color', headingColor, 'important');
@@ -6600,7 +6602,7 @@ function startRealtimeAudioConfigPolling_() {
           // Jangan membaca computed font-size A1 untuk menentukan ukuran A1
           // sendiri; hal itu bisa membuat ukuran berubah mengikuti layout lama.
           // A1 dan A2 mendapat nilai identik setiap kali fungsi ini berjalan.
-          const portraitFontSize = isQurbanPanel
+          const portraitFontSize = isQurbanOrPengurusPanel
             ? 'clamp(0.44rem, 1.8vw, 0.62rem)'
             : (el.id === 'fin-title'
                 ? 'clamp(0.34rem, 1.45vw, 0.58rem)'
@@ -6608,7 +6610,7 @@ function startRealtimeAudioConfigPolling_() {
           el.style.setProperty('font-size', portraitFontSize, 'important');
           el.style.setProperty(
             'font-weight',
-            isQurbanPanel ? '900' : (el.id === 'fin-title' ? '900' : '700'),
+            isQurbanOrPengurusPanel ? '900' : (el.id === 'fin-title' ? '900' : '700'),
             'important'
           );
           el.style.setProperty('font-style', 'normal', 'important');
@@ -6620,7 +6622,7 @@ function startRealtimeAudioConfigPolling_() {
       // QURBAN portrait: A2 tidak di-fit secara terpisah.
       // Salin properti tipografi dari A1 sebagai satu-satunya sumber.
       if (isPortraitMobile &&
-          String(panel.dataset.panelSelector || '').trim().toUpperCase() === 'QURBAN') {
+          ['QURBAN', 'PENGURUS'].includes(String(panel.dataset.panelSelector || '').trim().toUpperCase())) {
         const source = window.getComputedStyle(title);
         [
           ['font-size', source.fontSize],
@@ -6957,12 +6959,11 @@ function startRealtimeAudioConfigPolling_() {
       const elements = ids.map(function(id) {
         return document.getElementById(id);
       }).filter(function(el) {
-        // Hanya QURBAN yang memakai fin-sub untuk isi A2, bukan tanggal.
-        // PENGURUS memakai fin-sub sebagai tanggal seperti KEUANGAN,
-        // jadi tanggal PENGURUS harus ikut auto-fit yang sama.
+        // QURBAN dan PENGURUS memakai fin-sub sebagai baris A2, bukan tanggal.
+        // Tanggal baris ketiga kedua panel berada di fin-extra.
         const panel = document.getElementById('fin-panel-box');
         const selector = String(panel && panel.dataset.panelSelector || '').trim().toUpperCase();
-        if (el && el.id === 'fin-sub' && selector === 'QURBAN') {
+        if (el && el.id === 'fin-sub' && (selector === 'QURBAN' || selector === 'PENGURUS')) {
           return false;
         }
         return el && el.isConnected && el.innerText.trim() && el.offsetParent !== null;
@@ -7357,10 +7358,11 @@ function startRealtimeAudioConfigPolling_() {
       const finSub = document.getElementById('fin-sub');
       if (finSub) {
         if (isPengurus) {
-          // PENGURUS: tanggal berada di baris kedua (A2).
-          // Pakai renderer Hijriah + Masehi yang sama dengan KEUANGAN.
-          currentKeuanganGregorianDate_ = date.trim();
-          renderKeuanganDateHeader_(currentKeuanganGregorianDate_);
+          // PENGURUS: baris kedua adalah isi A2, bukan tanggal.
+          // Baris kedua mengikuti teks sel A2 apa adanya; tanggal berada di A3.
+          currentKeuanganGregorianDate_ = '';
+          keuanganDateConversionToken_++;
+          finSub.innerText = date.trim();
         } else if (isQurban) {
           currentKeuanganGregorianDate_ = '';
           keuanganDateConversionToken_++;
@@ -7423,9 +7425,17 @@ function startRealtimeAudioConfigPolling_() {
             finSub.style.letterSpacing = '';
           }
         } else if (isPengurus) {
-          // Format PENGURUS tetap seperti sebelumnya.
+          // Pada portrait, format baris kedua PENGURUS disamakan dengan A1 QURBAN.
           finSub.style.color = 'var(--theme-accent)';
           finSub.style.webkitTextFillColor = 'var(--theme-accent)';
+          finSub.style.textAlign = 'center';
+          if (!window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches) {
+            finSub.style.fontFamily = 'inherit';
+            finSub.style.fontSize = 'clamp(0.86rem, 4.7cqw, 1.55rem)';
+            finSub.style.fontWeight = 'bold';
+            finSub.style.lineHeight = '1.15';
+            finSub.style.letterSpacing = '';
+          }
         } else {
           finSub.style.color = '#ffffff';
           finSub.style.webkitTextFillColor = '#ffffff';
@@ -7445,8 +7455,10 @@ function startRealtimeAudioConfigPolling_() {
           isQurban ? a3.trim() : '';
 
         if (isPengurus) {
-          finExtra.innerText = a3.trim();
-          finExtra.style.display = a3.trim() ? 'block' : 'none';
+          // Baris ketiga PENGURUS memakai renderer tanggal QURBAN:
+          // format Hijriah | Masehi, termasuk penyesuaian font portrait.
+          currentQurbanGregorianDate_ = a3.trim();
+          renderQurbanDateHeader_(currentQurbanGregorianDate_);
           finExtra.style.setProperty('color', 'var(--theme-accent)', 'important');
           finExtra.style.setProperty('-webkit-text-fill-color', 'var(--theme-accent)', 'important');
         } else if (isQurban) {
@@ -19053,7 +19065,7 @@ function setCountdownBlackMode(enabled) {
   function syncQurbanSecondLineToFirst() {
     if (!query.matches || !frame.isConnected) return;
     var selector = String(frame.dataset.panelSelector || '').trim().toUpperCase();
-    if (selector !== 'QURBAN' || !titleEl || !subEl) return;
+    if ((selector !== 'QURBAN' && selector !== 'PENGURUS') || !titleEl || !subEl) return;
 
     /*
      * A1 adalah satu-satunya sumber gaya QURBAN pada portrait.
@@ -19135,12 +19147,11 @@ function setCountdownBlackMode(enabled) {
 
     /* Fit tanggal yang benar-benar tampil pada setiap panel.
        KEUANGAN: A2 di fin-sub.
-       PENGURUS: A2 di fin-sub.
-       QURBAN: A3 di fin-extra (fin-sub adalah A2 dan bukan tanggal yang diminta). */
+       QURBAN dan PENGURUS: A3 di fin-extra; fin-sub menampilkan isi A2. */
     var dateTargets = [];
-    if (selector === 'QURBAN') {
+    if (selector === 'QURBAN' || selector === 'PENGURUS') {
       dateTargets = [extraEl];
-    } else if (selector === 'PENGURUS' || selector === 'KEUANGAN') {
+    } else if (selector === 'KEUANGAN') {
       dateTargets = [subEl];
     } else {
       // Saat atribut selector belum terisi, jangan salah mengecilkan A2 QURBAN.
