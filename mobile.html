@@ -6596,10 +6596,12 @@ function startRealtimeAudioConfigPolling_() {
           // QURBAN portrait: A2 harus mengikuti ukuran A1 yang sedang
           // dipakai, bukan nilai tetap atau skala viewport/frame tersendiri.
           // Karena title diproses lebih dahulu, ukuran computed A1 sudah siap.
+          // QURBAN portrait memakai satu skala berbasis viewport yang tetap.
+          // Jangan membaca computed font-size A1 untuk menentukan ukuran A1
+          // sendiri; hal itu bisa membuat ukuran berubah mengikuti layout lama.
+          // A1 dan A2 mendapat nilai identik setiap kali fungsi ini berjalan.
           const portraitFontSize = isQurbanPanel
-            ? (el.id === 'fin-title'
-                ? getComputedStyle(title).fontSize
-                : getComputedStyle(title).fontSize)
+            ? 'clamp(0.44rem, 1.8vw, 0.62rem)'
             : (el.id === 'fin-title'
                 ? 'clamp(0.34rem, 1.45vw, 0.58rem)'
                 : 'clamp(0.32rem, 1.18vw, 0.46rem)');
@@ -7375,10 +7377,14 @@ function startRealtimeAudioConfigPolling_() {
           finSub.style.webkitTextFillColor = 'var(--theme-accent)';
           finSub.style.fontFamily = 'inherit';
           if (window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches && finTitle) {
-            const a1FontSize = window.getComputedStyle(finTitle).fontSize;
-            finSub.style.setProperty('font-size', a1FontSize, 'important');
-            finSub.style.setProperty('font-weight', window.getComputedStyle(finTitle).fontWeight, 'important');
-            finSub.style.setProperty('line-height', window.getComputedStyle(finTitle).lineHeight, 'important');
+            // Nilai portrait A1 dan A2 diatur oleh fitQurbanHeaderText_()
+            // dengan skala viewport yang sama; hindari menyalin ukuran sementara
+            // dari layout yang sedang berubah saat orientasi diputar.
+            const qurbanPortraitFont = 'clamp(0.44rem, 1.8vw, 0.62rem)';
+            finTitle.style.setProperty('font-size', qurbanPortraitFont, 'important');
+            finSub.style.setProperty('font-size', qurbanPortraitFont, 'important');
+            finSub.style.setProperty('font-weight', '900', 'important');
+            finSub.style.setProperty('line-height', '1.02', 'important');
           } else {
             finSub.style.fontSize = 'clamp(0.86rem, 4.7cqw, 1.55rem)';
             finSub.style.fontWeight = 'bold';
