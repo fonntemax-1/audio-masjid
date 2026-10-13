@@ -7378,6 +7378,14 @@ function startRealtimeAudioConfigPolling_() {
           finSub.style.color = 'var(--theme-accent)';
           finSub.style.webkitTextFillColor = 'var(--theme-accent)';
           finSub.style.textAlign = 'center';
+          if (!window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches) {
+            // Pertahankan tampilan QURBAN yang lama pada landscape/TV.
+            finSub.style.fontFamily = 'inherit';
+            finSub.style.fontSize = 'clamp(0.86rem, 4.7cqw, 1.55rem)';
+            finSub.style.fontWeight = 'bold';
+            finSub.style.lineHeight = '1.15';
+            finSub.style.letterSpacing = '';
+          }
         } else if (isPengurus) {
           // Format PENGURUS tetap seperti sebelumnya.
           finSub.style.color = 'var(--theme-accent)';
