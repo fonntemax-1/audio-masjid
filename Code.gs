@@ -5346,6 +5346,50 @@ function publishCityListToGithub_(rows) {
 }
 
 /**
+ * Uji baca jadwal sholat untuk tanggal dan kota aktif.
+ * Aman: hanya membaca Spreadsheet/API dan menulis hasil ke log; tidak mengubah cache,
+ * tidak membuat trigger, dan tidak mengubah scheduler audio.
+ */
+function TEST_JADWAL_AMAN() {
+  const ss = getSpreadsheet();
+  const panels = ss.getSheetByName("panels");
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+
+  const loc = panels.getRange("C5:C10").getDisplayValues().map(function(row) {
+    return String(row[0] || "").trim();
+  });
+  const city = loc[0];
+  const province = loc[1];
+  const timezone = loc[3] || "Asia/Makassar";
+  if (!city) throw new Error("Kota pada panels!C5 kosong.");
+
+  const date = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd");
+  const result = getPrayerSchedule(date);
+  const report = {
+    tanggalUji: date,
+    kotaSheet: city,
+    provinsiSheet: province,
+    timezoneSheet: timezone,
+    hasilJadwal: result
+  };
+
+  Logger.log("TEST_JADWAL_AMAN: " + JSON.stringify(report));
+  if (!result || result.success !== true) {
+    throw new Error("Uji jadwal gagal: " +
+      String(result && (result.error || result.apiIndonesiaError || result.fallbackReason) || "respons tidak sukses"));
+  }
+  if (String(result.tanggal || "") !== date) {
+    throw new Error("Tanggal respons tidak cocok. Diminta " + date +
+      ", diterima " + String(result.tanggal || "(kosong)") + ".");
+  }
+  if (!result.jadwal || !isCompletePrayerScheduleSafe_(result.jadwal)) {
+    throw new Error("Jadwal tidak lengkap untuk " + city + " tanggal " + date + ".");
+  }
+  Logger.log("TEST_JADWAL_AMAN LULUS: " + city + " " + date);
+  return report;
+}
+
+/**
  * Memperbarui cache GitHub untuk kota yang sedang dipilih pada panels!C5.
  * Hanya menyimpan respons sukses, lengkap, untuk kota dan tanggal yang tepat.
  * Tidak pernah mengganti jadwal dengan data kota lain.
@@ -5427,7 +5471,7 @@ function refreshPrayerCacheForCurrentCity() {
   return { success: true, changed: true, kota: city, tanggal: date, slug: slug };
 }
 
-/** Membaca JSON dari GitHub main; null hanya jika file memang belum ada (HTTP 404). */
+/** Membaca JSON dari branch migration; null hanya jika file memang belum ada (HTTP 404). */
 function readGithubJsonFile_(path) {
   const targetBranch = "migration-api-indonesia-20261014";
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
@@ -5452,7 +5496,7 @@ function readGithubJsonFile_(path) {
   return JSON.parse(Utilities.newBlob(raw).getDataAsString("UTF-8"));
 }
 
-/** Membuat atau memperbarui JSON di branch main dengan token yang tersimpan di Script Properties. */
+/** Membuat atau memperbarui JSON di branch migration dengan token di Script Properties. */
 function writeGithubJsonFile_(path, document, message) {
   const targetBranch = "migration-api-indonesia-20261014";
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
