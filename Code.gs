@@ -4662,10 +4662,13 @@ function refreshHijriCalendarCacheFromAlAdhan() {
   var nextDoc = oldDoc && typeof oldDoc === 'object' ? oldDoc : {};
   nextDoc.source = 'AlAdhan / Kalender Hijriah';
   nextDoc.generatedAt = generatedAt;
+  nextDoc.updatedAt = generatedAt;
   nextDoc.years = nextDoc.years && typeof nextDoc.years === 'object' ? nextDoc.years : {};
   yearsToRefresh.forEach(function(year) {
     nextDoc.years[String(year)] = annualResults[String(year)];
   });
+  // Metadata mencerminkan jumlah tahun yang benar-benar tersimpan.
+  nextDoc.yearCount = Object.keys(nextDoc.years).length;
 
   writeGithubJsonFile_(
     'data/hijri-calendar-cache.json',
@@ -4694,7 +4697,7 @@ function refreshHijriCalendarCacheFromAlAdhan() {
       return { year: year, dayCount: annualResults[String(year)].dayCount };
     }),
     path: 'data/hijri-calendar-cache.json',
-    branch: 'migration-api-indonesia-20261014'
+    branch: String(PropertiesService.getScriptProperties().getProperty('GITHUB_CACHE_BRANCH') || 'main').trim()
   };
   Logger.log('REFRESH KALENDER HIJRIAH ALADHAN SELESAI: ' + JSON.stringify(report));
   return report;
