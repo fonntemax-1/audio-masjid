@@ -1,7 +1,7 @@
 {
   "success": true,
-  "generatedAt": "2026-10-14T06:21:59.148Z",
-  "updatedAt": "2026-10-14T06:21:59.148Z",
+  "generatedAt": "2026-10-14T06:22:25.018Z",
+  "updatedAt": "2026-10-14T06:22:25.018Z",
   "cityCount": 185,
   "cities": {
     "balikpapan": {
@@ -45,44 +45,28 @@
       "generatedAt": "2026-10-14T05:11:26.610Z"
     },
     "singaraja": {
-      "success": true,
-      "tanggal": "2026-10-14",
+      "success": false,
       "kota": "Singaraja",
       "provinsi": "Bali",
       "slug": "singaraja",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "UTC+8",
-      "source": "MuslimKita / Kemenag",
-      "jadwal": {
-        "subuh": "04:43",
-        "terbit": "05:55",
-        "dzuhur": "12:10",
-        "ashar": "15:12",
-        "maghrib": "18:17",
-        "isya": "19:27"
-      },
-      "generatedAt": "2026-10-13T16:14:09.493795+00:00"
+      "source": "API Indonesia",
+      "error": "Kota tidak ditemukan pada daftar API Indonesia: Singaraja",
+      "attemptedAt": "2026-10-14T06:22:21.497Z"
     },
     "sigli": {
-      "success": true,
-      "tanggal": "2026-10-14",
+      "success": false,
       "kota": "Sigli",
       "provinsi": "Aceh",
       "slug": "sigli",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
-      "jadwal": {
-        "subuh": "05:08",
-        "terbit": "06:18",
-        "dzuhur": "12:27",
-        "ashar": "15:43",
-        "maghrib": "18:27",
-        "isya": "19:36"
-      },
-      "generatedAt": "2026-10-13T21:15:29.184451+00:00"
+      "source": "API Indonesia",
+      "error": "Kota tidak ditemukan pada daftar API Indonesia: Sigli",
+      "attemptedAt": "2026-10-14T06:22:21.494Z"
     },
     "sabang": {
       "success": true,
@@ -93,16 +77,16 @@
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "05:11",
-        "terbit": "06:21",
-        "dzuhur": "12:30",
-        "ashar": "15:45",
-        "maghrib": "18:29",
-        "isya": "19:38"
+        "subuh": "05:07",
+        "terbit": "06:25",
+        "dzuhur": "12:25",
+        "ashar": "15:44",
+        "maghrib": "18:25",
+        "isya": "19:34"
       },
-      "generatedAt": "2026-10-13T21:15:29.159209+00:00"
+      "generatedAt": "2026-10-14T06:22:10.836Z"
     },
     "subulussalam": {
       "success": true,
@@ -253,16 +237,16 @@
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "04:21",
-        "terbit": "05:32",
-        "dzuhur": "11:46",
+        "subuh": "04:17",
+        "terbit": "05:35",
+        "dzuhur": "11:41",
         "ashar": "14:48",
-        "maghrib": "17:52",
-        "isya": "19:01"
+        "maghrib": "17:48",
+        "isya": "18:58"
       },
-      "generatedAt": "2026-10-13T21:15:30.378149+00:00"
+      "generatedAt": "2026-10-14T06:22:19.634Z"
     },
     "klungkung": {
       "success": true,
@@ -1105,16 +1089,16 @@
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "04:03",
-        "terbit": "05:14",
-        "dzuhur": "11:29",
-        "ashar": "14:30",
-        "maghrib": "17:35",
-        "isya": "18:45"
+        "subuh": "03:58",
+        "terbit": "05:17",
+        "dzuhur": "11:24",
+        "ashar": "14:29",
+        "maghrib": "17:32",
+        "isya": "18:42"
       },
-      "generatedAt": "2026-10-13T21:15:38.729754+00:00"
+      "generatedAt": "2026-10-14T06:22:12.357Z"
     },
     "banjarnegara": {
       "success": true,
@@ -1145,16 +1129,16 @@
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "04:03",
-        "terbit": "05:14",
-        "dzuhur": "11:29",
-        "ashar": "14:30",
-        "maghrib": "17:35",
-        "isya": "18:45"
+        "subuh": "03:59",
+        "terbit": "05:17",
+        "dzuhur": "11:24",
+        "ashar": "14:29",
+        "maghrib": "17:32",
+        "isya": "18:42"
       },
-      "generatedAt": "2026-10-13T21:15:38.029287+00:00"
+      "generatedAt": "2026-10-14T06:22:17.830Z"
     },
     "banyumas": {
       "success": true,
@@ -1177,24 +1161,16 @@
       "generatedAt": "2026-10-14T05:11:41.990Z"
     },
     "purwokerto": {
-      "success": true,
-      "tanggal": "2026-10-14",
+      "success": false,
       "kota": "Purwokerto",
       "provinsi": "Jawa Tengah",
       "slug": "purwokerto",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
-      "jadwal": {
-        "subuh": "04:08",
-        "terbit": "05:19",
-        "dzuhur": "11:34",
-        "ashar": "14:35",
-        "maghrib": "17:40",
-        "isya": "18:50"
-      },
-      "generatedAt": "2026-10-13T21:15:39.512274+00:00"
+      "source": "API Indonesia",
+      "error": "Kota tidak ditemukan pada daftar API Indonesia: Purwokerto",
+      "attemptedAt": "2026-10-14T06:22:04.735Z"
     },
     "batang": {
       "success": true,
@@ -1505,16 +1481,16 @@
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "04:04",
-        "terbit": "05:16",
-        "dzuhur": "11:31",
-        "ashar": "14:33",
-        "maghrib": "17:37",
-        "isya": "18:47"
+        "subuh": "04:00",
+        "terbit": "05:18",
+        "dzuhur": "11:26",
+        "ashar": "14:30",
+        "maghrib": "17:34",
+        "isya": "18:44"
       },
-      "generatedAt": "2026-10-13T21:15:42.361948+00:00"
+      "generatedAt": "2026-10-14T06:22:06.442Z"
     },
     "rembang": {
       "success": true,
@@ -1525,16 +1501,16 @@
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "04:00",
-        "terbit": "05:11",
-        "dzuhur": "11:25",
+        "subuh": "03:55",
+        "terbit": "05:14",
+        "dzuhur": "11:21",
         "ashar": "14:26",
-        "maghrib": "17:31",
-        "isya": "18:41"
+        "maghrib": "17:28",
+        "isya": "18:38"
       },
-      "generatedAt": "2026-10-13T21:15:42.645483+00:00"
+      "generatedAt": "2026-10-14T06:22:08.824Z"
     },
     "sragen": {
       "success": true,
@@ -2085,16 +2061,16 @@
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "03:52",
-        "terbit": "05:03",
-        "dzuhur": "11:18",
-        "ashar": "14:19",
-        "maghrib": "17:24",
-        "isya": "18:34"
+        "subuh": "03:47",
+        "terbit": "05:06",
+        "dzuhur": "11:13",
+        "ashar": "14:18",
+        "maghrib": "17:21",
+        "isya": "18:31"
       },
-      "generatedAt": "2026-10-13T21:15:47.660956+00:00"
+      "generatedAt": "2026-10-14T06:22:15.661Z"
     },
     "situbondo": {
       "success": true,
@@ -2105,16 +2081,16 @@
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "03:48",
-        "terbit": "05:00",
-        "dzuhur": "11:15",
-        "ashar": "14:17",
-        "maghrib": "17:21",
-        "isya": "18:31"
+        "subuh": "03:44",
+        "terbit": "05:02",
+        "dzuhur": "11:10",
+        "ashar": "14:14",
+        "maghrib": "17:18",
+        "isya": "18:28"
       },
-      "generatedAt": "2026-10-13T21:15:48.011449+00:00"
+      "generatedAt": "2026-10-14T06:22:25.018Z"
     },
     "sidoarjo": {
       "success": true,
@@ -2125,16 +2101,16 @@
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "03:54",
-        "terbit": "05:05",
-        "dzuhur": "11:20",
-        "ashar": "14:21",
-        "maghrib": "17:26",
-        "isya": "18:36"
+        "subuh": "03:49",
+        "terbit": "05:08",
+        "dzuhur": "11:15",
+        "ashar": "14:20",
+        "maghrib": "17:23",
+        "isya": "18:33"
       },
-      "generatedAt": "2026-10-13T21:15:47.796732+00:00"
+      "generatedAt": "2026-10-14T06:22:21.492Z"
     },
     "sumenep": {
       "success": true,
@@ -2265,16 +2241,16 @@
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "UTC+8",
-      "source": "MuslimKita / Kemenag",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "04:13",
-        "terbit": "05:24",
-        "dzuhur": "11:35",
-        "ashar": "14:47",
-        "maghrib": "17:36",
-        "isya": "18:46"
+        "subuh": "04:10",
+        "terbit": "05:27",
+        "dzuhur": "11:30",
+        "ashar": "14:45",
+        "maghrib": "17:33",
+        "isya": "18:42"
       },
-      "generatedAt": "2026-10-13T16:14:09.931629+00:00"
+      "generatedAt": "2026-10-14T06:22:23.245Z"
     },
     "banjarmasin": {
       "success": true,
@@ -2357,24 +2333,16 @@
       "generatedAt": "2026-10-13T16:14:12.811652+00:00"
     },
     "sampit": {
-      "success": true,
-      "tanggal": "2026-10-14",
+      "success": false,
       "kota": "Sampit",
       "provinsi": "Kalimantan Tengah",
       "slug": "sampit",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "UTC+8",
-      "source": "MuslimKita / Kemenag",
-      "jadwal": {
-        "subuh": "03:56",
-        "terbit": "05:06",
-        "dzuhur": "11:19",
-        "ashar": "14:27",
-        "maghrib": "17:22",
-        "isya": "18:32"
-      },
-      "generatedAt": "2026-10-13T16:14:13.479292+00:00"
+      "source": "API Indonesia",
+      "error": "Kota tidak ditemukan pada daftar API Indonesia: Sampit",
+      "attemptedAt": "2026-10-14T06:22:15.663Z"
     },
     "palangka-raya": {
       "success": false,
@@ -2397,16 +2365,16 @@
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "UTC+8",
-      "source": "MuslimKita / Kemenag",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "04:40",
-        "terbit": "05:50",
-        "dzuhur": "12:02",
-        "ashar": "15:12",
-        "maghrib": "18:05",
-        "isya": "19:14"
+        "subuh": "04:36",
+        "terbit": "05:54",
+        "dzuhur": "11:57",
+        "ashar": "15:11",
+        "maghrib": "18:01",
+        "isya": "19:11"
       },
-      "generatedAt": "2026-10-13T16:14:13.116581+00:00"
+      "generatedAt": "2026-10-14T06:22:14.134Z"
     },
     "bontang": {
       "success": true,
