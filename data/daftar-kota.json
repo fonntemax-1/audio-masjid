@@ -1,0 +1,1694 @@
+{
+  "success": true,
+  "version": 2,
+  "generatedAt": "2026-10-14T11:44:45.824Z",
+  "source": "Migrasi dari data/lokasi-muslimkita.json yang sudah ada di repository",
+  "prayerTimesSource": "AlAdhan API calendarByCity, method=20",
+  "sourceNote": "AlAdhan menyediakan jadwal berdasarkan nama kota, tetapi tidak menyediakan endpoint katalog lengkap kota/kabupaten Indonesia. Daftar ini adalah daftar lokasi yang sudah tersedia di repository, bukan katalog lengkap 514 kabupaten/kota.",
+  "cityCount": 187,
+  "cities": [
+    {
+      "name": "Ambon",
+      "province": "Maluku",
+      "regency_id": "",
+      "zone": "WIT",
+      "timezone": "Asia/Jayapura",
+      "gmt": "UTC+9",
+      "slug": "ambon"
+    },
+    {
+      "name": "Balikpapan",
+      "province": "Kalimantan Timur",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "balikpapan"
+    },
+    {
+      "name": "Banda Aceh",
+      "province": "Aceh",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "banda-aceh"
+    },
+    {
+      "name": "Bandar Lampung",
+      "province": "Lampung",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "bandar-lampung"
+    },
+    {
+      "name": "Bandung",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "bandung"
+    },
+    {
+      "name": "Bangkalan",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "bangkalan"
+    },
+    {
+      "name": "Banjar",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "banjar"
+    },
+    {
+      "name": "Banjarbaru",
+      "province": "Kalimantan Selatan",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "banjarbaru"
+    },
+    {
+      "name": "Banjarmasin",
+      "province": "Kalimantan Selatan",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "banjarmasin"
+    },
+    {
+      "name": "Banjarnegara",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "banjarnegara"
+    },
+    {
+      "name": "Bantul",
+      "province": "DI Yogyakarta",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "bantul"
+    },
+    {
+      "name": "Banyumas",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "banyumas"
+    },
+    {
+      "name": "Banyuwangi",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "banyuwangi"
+    },
+    {
+      "name": "Batam",
+      "province": "Kepulauan Riau",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "batam"
+    },
+    {
+      "name": "Batang",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "batang"
+    },
+    {
+      "name": "Batu",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "batu"
+    },
+    {
+      "name": "Bau-Bau",
+      "province": "Sulawesi Tenggara",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "bau-bau"
+    },
+    {
+      "name": "Bekasi",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "bekasi"
+    },
+    {
+      "name": "Bengkulu",
+      "province": "Bengkulu",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "bengkulu"
+    },
+    {
+      "name": "Biak",
+      "province": "Papua",
+      "regency_id": "",
+      "zone": "WIT",
+      "timezone": "Asia/Jayapura",
+      "gmt": "UTC+9",
+      "slug": "biak"
+    },
+    {
+      "name": "Bima",
+      "province": "Nusa Tenggara Barat",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "bima"
+    },
+    {
+      "name": "Binjai",
+      "province": "Sumatera Utara",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "binjai"
+    },
+    {
+      "name": "Bitung",
+      "province": "Sulawesi Utara",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "bitung"
+    },
+    {
+      "name": "Blitar",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "blitar"
+    },
+    {
+      "name": "Blora",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "blora"
+    },
+    {
+      "name": "Bogor",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "bogor"
+    },
+    {
+      "name": "Bojonegoro",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "bojonegoro"
+    },
+    {
+      "name": "Bondowoso",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "bondowoso"
+    },
+    {
+      "name": "Bontang",
+      "province": "Kalimantan Timur",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "bontang"
+    },
+    {
+      "name": "Boyolali",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "boyolali"
+    },
+    {
+      "name": "Brebes",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "brebes"
+    },
+    {
+      "name": "Bukittinggi",
+      "province": "Sumatera Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "bukittinggi"
+    },
+    {
+      "name": "Ciamis",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "ciamis"
+    },
+    {
+      "name": "Cianjur",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "cianjur"
+    },
+    {
+      "name": "Cilacap",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "cilacap"
+    },
+    {
+      "name": "Cilegon",
+      "province": "Banten",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "cilegon"
+    },
+    {
+      "name": "Cimahi",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "cimahi"
+    },
+    {
+      "name": "Cirebon",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "cirebon"
+    },
+    {
+      "name": "Deli Serdang",
+      "province": "Sumatera Utara",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "deli-serdang"
+    },
+    {
+      "name": "Demak",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "demak"
+    },
+    {
+      "name": "Denpasar",
+      "province": "Bali",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "denpasar"
+    },
+    {
+      "name": "Depok",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "depok"
+    },
+    {
+      "name": "DKI Jakarta",
+      "province": "DKI Jakarta",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "dki-jakarta"
+    },
+    {
+      "name": "Dumai",
+      "province": "Riau",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "dumai"
+    },
+    {
+      "name": "Ende",
+      "province": "Nusa Tenggara Timur",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "ende"
+    },
+    {
+      "name": "Fak-Fak",
+      "province": "Papua Barat",
+      "regency_id": "",
+      "zone": "WIT",
+      "timezone": "Asia/Jayapura",
+      "gmt": "UTC+9",
+      "slug": "fak-fak"
+    },
+    {
+      "name": "Garut",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "garut"
+    },
+    {
+      "name": "Gianyar",
+      "province": "Bali",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "gianyar"
+    },
+    {
+      "name": "Gorontalo",
+      "province": "Gorontalo",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "gorontalo"
+    },
+    {
+      "name": "Gresik",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "gresik"
+    },
+    {
+      "name": "Grobogan",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "grobogan"
+    },
+    {
+      "name": "Gunungkidul",
+      "province": "DI Yogyakarta",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "gunungkidul"
+    },
+    {
+      "name": "Indramayu",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "indramayu"
+    },
+    {
+      "name": "Jakarta Barat",
+      "province": "DKI Jakarta",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "jakarta-barat"
+    },
+    {
+      "name": "Jakarta Pusat",
+      "province": "DKI Jakarta",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "jakarta-pusat"
+    },
+    {
+      "name": "Jakarta Selatan",
+      "province": "DKI Jakarta",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "jakarta-selatan"
+    },
+    {
+      "name": "Jakarta Timur",
+      "province": "DKI Jakarta",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "jakarta-timur"
+    },
+    {
+      "name": "Jakarta Utara",
+      "province": "DKI Jakarta",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "jakarta-utara"
+    },
+    {
+      "name": "Jambi",
+      "province": "Jambi",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "jambi"
+    },
+    {
+      "name": "Jayapura",
+      "province": "Papua",
+      "regency_id": "",
+      "zone": "WIT",
+      "timezone": "Asia/Jayapura",
+      "gmt": "UTC+9",
+      "slug": "jayapura"
+    },
+    {
+      "name": "Jember",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "jember"
+    },
+    {
+      "name": "Jepara",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "jepara"
+    },
+    {
+      "name": "Jombang",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "jombang"
+    },
+    {
+      "name": "Kampar",
+      "province": "Riau",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "kampar"
+    },
+    {
+      "name": "Karanganyar",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "karanganyar"
+    },
+    {
+      "name": "Karawang",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "karawang"
+    },
+    {
+      "name": "Karimun",
+      "province": "Kepulauan Riau",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "karimun"
+    },
+    {
+      "name": "Kebumen",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "kebumen"
+    },
+    {
+      "name": "Kediri",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "kediri"
+    },
+    {
+      "name": "Kendal",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "kendal"
+    },
+    {
+      "name": "Kendari",
+      "province": "Sulawesi Tenggara",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "kendari"
+    },
+    {
+      "name": "Ketapang",
+      "province": "Kalimantan Barat",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "ketapang"
+    },
+    {
+      "name": "Klaten",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "klaten"
+    },
+    {
+      "name": "Klungkung",
+      "province": "Bali",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "klungkung"
+    },
+    {
+      "name": "Kotamobagu",
+      "province": "Sulawesi Utara",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "kotamobagu"
+    },
+    {
+      "name": "Kudus",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "kudus"
+    },
+    {
+      "name": "Kulon Progo",
+      "province": "DI Yogyakarta",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "kulon-progo"
+    },
+    {
+      "name": "Kuningan",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "kuningan"
+    },
+    {
+      "name": "Kupang",
+      "province": "Nusa Tenggara Timur",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "kupang"
+    },
+    {
+      "name": "Labuan Bajo",
+      "province": "Nusa Tenggara Timur",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "labuan-bajo"
+    },
+    {
+      "name": "Lamongan",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "lamongan"
+    },
+    {
+      "name": "Langsa",
+      "province": "Aceh",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "langsa"
+    },
+    {
+      "name": "Lebak",
+      "province": "Banten",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "lebak"
+    },
+    {
+      "name": "Lhokseumawe",
+      "province": "Aceh",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "lhokseumawe"
+    },
+    {
+      "name": "Limboto",
+      "province": "Gorontalo",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "limboto"
+    },
+    {
+      "name": "Lubuklinggau",
+      "province": "Sumatera Selatan",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "lubuklinggau"
+    },
+    {
+      "name": "Lumajang",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "lumajang"
+    },
+    {
+      "name": "Luwuk",
+      "province": "Sulawesi Tengah",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "luwuk"
+    },
+    {
+      "name": "Madiun",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "madiun"
+    },
+    {
+      "name": "Magelang",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "magelang"
+    },
+    {
+      "name": "Magetan",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "magetan"
+    },
+    {
+      "name": "Majalengka",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "majalengka"
+    },
+    {
+      "name": "Makassar",
+      "province": "Sulawesi Selatan",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "makassar"
+    },
+    {
+      "name": "Malang",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "malang"
+    },
+    {
+      "name": "Manado",
+      "province": "Sulawesi Utara",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "manado"
+    },
+    {
+      "name": "Manokwari",
+      "province": "Papua Barat",
+      "regency_id": "",
+      "zone": "WIT",
+      "timezone": "Asia/Jayapura",
+      "gmt": "UTC+9",
+      "slug": "manokwari"
+    },
+    {
+      "name": "Martapura",
+      "province": "Kalimantan Selatan",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "martapura"
+    },
+    {
+      "name": "Mataram",
+      "province": "Nusa Tenggara Barat",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "mataram"
+    },
+    {
+      "name": "Maumere",
+      "province": "Nusa Tenggara Timur",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "maumere"
+    },
+    {
+      "name": "Medan",
+      "province": "Sumatera Utara",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "medan"
+    },
+    {
+      "name": "Merauke",
+      "province": "Papua Selatan",
+      "regency_id": "",
+      "zone": "WIT",
+      "timezone": "Asia/Jayapura",
+      "gmt": "UTC+9",
+      "slug": "merauke"
+    },
+    {
+      "name": "Metro",
+      "province": "Lampung",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "metro"
+    },
+    {
+      "name": "Mojokerto",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "mojokerto"
+    },
+    {
+      "name": "Nabire",
+      "province": "Papua Tengah",
+      "regency_id": "",
+      "zone": "WIT",
+      "timezone": "Asia/Jayapura",
+      "gmt": "UTC+9",
+      "slug": "nabire"
+    },
+    {
+      "name": "Nganjuk",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "nganjuk"
+    },
+    {
+      "name": "Ngawi",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "ngawi"
+    },
+    {
+      "name": "Pacitan",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pacitan"
+    },
+    {
+      "name": "Padang",
+      "province": "Sumatera Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "padang"
+    },
+    {
+      "name": "Padangsidempuan",
+      "province": "Sumatera Utara",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "padangsidempuan"
+    },
+    {
+      "name": "Pagar Alam",
+      "province": "Sumatera Selatan",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pagar-alam"
+    },
+    {
+      "name": "Palangka Raya",
+      "province": "Kalimantan Tengah",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "palangka-raya"
+    },
+    {
+      "name": "Palembang",
+      "province": "Sumatera Selatan",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "palembang"
+    },
+    {
+      "name": "Palopo",
+      "province": "Sulawesi Selatan",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "palopo"
+    },
+    {
+      "name": "Palu",
+      "province": "Sulawesi Tengah",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "palu"
+    },
+    {
+      "name": "Pamekasan",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pamekasan"
+    },
+    {
+      "name": "Pandeglang",
+      "province": "Banten",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pandeglang"
+    },
+    {
+      "name": "Pangandaran",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pangandaran"
+    },
+    {
+      "name": "Parepare",
+      "province": "Sulawesi Selatan",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "parepare"
+    },
+    {
+      "name": "Pariaman",
+      "province": "Sumatera Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pariaman"
+    },
+    {
+      "name": "Pasuruan",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pasuruan"
+    },
+    {
+      "name": "Pati",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pati"
+    },
+    {
+      "name": "Payakumbuh",
+      "province": "Sumatera Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "payakumbuh"
+    },
+    {
+      "name": "Pekalongan",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pekalongan"
+    },
+    {
+      "name": "Pekanbaru",
+      "province": "Riau",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pekanbaru"
+    },
+    {
+      "name": "Pelalawan",
+      "province": "Riau",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pelalawan"
+    },
+    {
+      "name": "Pemalang",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pemalang"
+    },
+    {
+      "name": "Pematang Siantar",
+      "province": "Sumatera Utara",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pematang-siantar"
+    },
+    {
+      "name": "Pematangsiantar",
+      "province": "Sumatera Utara",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "pematangsiantar"
+    },
+    {
+      "name": "Ponorogo",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "ponorogo"
+    },
+    {
+      "name": "Pontianak",
+      "province": "Kalimantan Barat",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "pontianak"
+    },
+    {
+      "name": "Poso",
+      "province": "Sulawesi Tengah",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "poso"
+    },
+    {
+      "name": "Prabumulih",
+      "province": "Sumatera Selatan",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "prabumulih"
+    },
+    {
+      "name": "Probolinggo",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "probolinggo"
+    },
+    {
+      "name": "Purbalingga",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "purbalingga"
+    },
+    {
+      "name": "Purwakarta",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "purwakarta"
+    },
+    {
+      "name": "Purwokerto",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "purwokerto"
+    },
+    {
+      "name": "Purworejo",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "purworejo"
+    },
+    {
+      "name": "Rembang",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "rembang"
+    },
+    {
+      "name": "Sabang",
+      "province": "Aceh",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "sabang"
+    },
+    {
+      "name": "Salatiga",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "salatiga"
+    },
+    {
+      "name": "Samarinda",
+      "province": "Kalimantan Timur",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "samarinda"
+    },
+    {
+      "name": "Sampang",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "sampang"
+    },
+    {
+      "name": "Sampit",
+      "province": "Kalimantan Tengah",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "sampit"
+    },
+    {
+      "name": "Semarang",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "semarang"
+    },
+    {
+      "name": "Serang",
+      "province": "Banten",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "serang"
+    },
+    {
+      "name": "Sidoarjo",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "sidoarjo"
+    },
+    {
+      "name": "Sigli",
+      "province": "Aceh",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "sigli"
+    },
+    {
+      "name": "Singaraja",
+      "province": "Bali",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "singaraja"
+    },
+    {
+      "name": "Singkawang",
+      "province": "Kalimantan Barat",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "singkawang"
+    },
+    {
+      "name": "Situbondo",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "situbondo"
+    },
+    {
+      "name": "Sleman",
+      "province": "DI Yogyakarta",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "sleman"
+    },
+    {
+      "name": "Solok",
+      "province": "Sumatera Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "solok"
+    },
+    {
+      "name": "Sorong",
+      "province": "Papua Barat Daya",
+      "regency_id": "",
+      "zone": "WIT",
+      "timezone": "Asia/Jayapura",
+      "gmt": "UTC+9",
+      "slug": "sorong"
+    },
+    {
+      "name": "Sragen",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "sragen"
+    },
+    {
+      "name": "Subang",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "subang"
+    },
+    {
+      "name": "Subulussalam",
+      "province": "Aceh",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "subulussalam"
+    },
+    {
+      "name": "Sukabumi",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "sukabumi"
+    },
+    {
+      "name": "Sukoharjo",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "sukoharjo"
+    },
+    {
+      "name": "Sumbawa Besar",
+      "province": "Nusa Tenggara Barat",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "sumbawa-besar"
+    },
+    {
+      "name": "Sumedang",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "sumedang"
+    },
+    {
+      "name": "Sumenep",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "sumenep"
+    },
+    {
+      "name": "Sungai Penuh",
+      "province": "Jambi",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "sungai-penuh"
+    },
+    {
+      "name": "Surabaya",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "surabaya"
+    },
+    {
+      "name": "Surakarta (Solo)",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "surakarta-solo"
+    },
+    {
+      "name": "Tabanan",
+      "province": "Bali",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "tabanan"
+    },
+    {
+      "name": "Tangerang",
+      "province": "Banten",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "tangerang"
+    },
+    {
+      "name": "Tangerang Selatan",
+      "province": "Banten",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "tangerang-selatan"
+    },
+    {
+      "name": "Tanjung Pandan (Belitung)",
+      "province": "Bangka Belitung",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "tanjung-pandan-belitung"
+    },
+    {
+      "name": "Tanjung Pinang",
+      "province": "Kepulauan Riau",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "tanjung-pinang"
+    },
+    {
+      "name": "Tanjungpinang",
+      "province": "Kepulauan Riau",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "tanjungpinang"
+    },
+    {
+      "name": "Tarakan",
+      "province": "Kalimantan Utara",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "tarakan"
+    },
+    {
+      "name": "Tasikmalaya",
+      "province": "Jawa Barat",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "tasikmalaya"
+    },
+    {
+      "name": "Tebing Tinggi",
+      "province": "Sumatera Utara",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "tebing-tinggi"
+    },
+    {
+      "name": "Tegal",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "tegal"
+    },
+    {
+      "name": "Temanggung",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "temanggung"
+    },
+    {
+      "name": "Tidore",
+      "province": "Maluku Utara",
+      "regency_id": "",
+      "zone": "WIT",
+      "timezone": "Asia/Jayapura",
+      "gmt": "UTC+9",
+      "slug": "tidore"
+    },
+    {
+      "name": "Timika",
+      "province": "Papua Tengah",
+      "regency_id": "",
+      "zone": "WIT",
+      "timezone": "Asia/Jayapura",
+      "gmt": "UTC+9",
+      "slug": "timika"
+    },
+    {
+      "name": "Tomohon",
+      "province": "Sulawesi Utara",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "tomohon"
+    },
+    {
+      "name": "Trenggalek",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "trenggalek"
+    },
+    {
+      "name": "Tual",
+      "province": "Maluku",
+      "regency_id": "",
+      "zone": "WIT",
+      "timezone": "Asia/Jayapura",
+      "gmt": "UTC+9",
+      "slug": "tual"
+    },
+    {
+      "name": "Tuban",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "tuban"
+    },
+    {
+      "name": "Tulungagung",
+      "province": "Jawa Timur",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "tulungagung"
+    },
+    {
+      "name": "Wamena",
+      "province": "Papua Pegunungan",
+      "regency_id": "",
+      "zone": "WIT",
+      "timezone": "Asia/Jayapura",
+      "gmt": "UTC+9",
+      "slug": "wamena"
+    },
+    {
+      "name": "Watampone (Bone)",
+      "province": "Sulawesi Selatan",
+      "regency_id": "",
+      "zone": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "slug": "watampone-bone"
+    },
+    {
+      "name": "Wonogiri",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "wonogiri"
+    },
+    {
+      "name": "Wonosobo",
+      "province": "Jawa Tengah",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "wonosobo"
+    },
+    {
+      "name": "Yogyakarta",
+      "province": "DI Yogyakarta",
+      "regency_id": "",
+      "zone": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "UTC+7",
+      "slug": "yogyakarta"
+    }
+  ]
+}
