@@ -5523,12 +5523,9 @@ function refreshPrayerCacheForCurrentCity(forceRefresh) {
     return { success: false, skipped: true, kota: city, tanggal: date, error: reason || "Jadwal belum lengkap." };
   }
 
-  const existing = readGithubJsonFile_("data/prayer-cache.json") || {
-    success: true, cityCount: 0, cities: {}
-  };
-  if (!existing.cities || typeof existing.cities !== "object" || Array.isArray(existing.cities)) {
-    existing.cities = {};
-  }
+  // Satu file harian per kota; isi file langsung berupa jadwal tanggal aktif.
+  const dailyCachePath = "data/prayer-cache-" + slug + ".json";
+  const prior = readGithubJsonFile_(dailyCachePath);
 
   const entry = {
     success: true,
@@ -5552,7 +5549,6 @@ function refreshPrayerCacheForCurrentCity(forceRefresh) {
     generatedAt: new Date().toISOString()
   };
 
-  const prior = existing.cities[slug];
   const sameSchedule = prior && prior.success === true &&
     prior.tanggal === entry.tanggal &&
     prior.kota === entry.kota &&
@@ -5561,20 +5557,16 @@ function refreshPrayerCacheForCurrentCity(forceRefresh) {
     prior.timezone === entry.timezone &&
     prior.source === entry.source;
   if (sameSchedule) {
-    Logger.log("CACHE JADWAL GITHUB SUDAH TERBARU: " + city + " " + date + "; commit dilewati.");
-    return { success: true, changed: false, kota: city, tanggal: date, slug: slug };
+    Logger.log("CACHE HARIAN GITHUB SUDAH TERBARU: " + city + " " + date + "; commit dilewati.");
+    return { success: true, changed: false, kota: city, tanggal: date, slug: slug, path: dailyCachePath };
   }
 
-  existing.cities[slug] = entry;
-  existing.success = true;
-  existing.generatedAt = new Date().toISOString();
-  existing.updatedAt = existing.generatedAt;
-  existing.cityCount = Object.keys(existing.cities).length;
-  writeGithubJsonFile_("data/prayer-cache.json", existing,
-    "Auto-update cache jadwal sholat " + city + " " + date);
-  PropertiesService.getScriptProperties().setProperty("GITHUB_PRAYER_CACHE_UPDATED_AT", existing.updatedAt);
-  Logger.log("CACHE JADWAL GITHUB DIPERBARUI: " + city + " " + date + " (" + slug + ").");
-  return { success: true, changed: true, kota: city, tanggal: date, slug: slug };
+  // Replace file only after the schedule has passed validation above.
+  writeGithubJsonFile_(dailyCachePath, entry,
+    "Replace cache harian jadwal sholat " + city + " " + date);
+  PropertiesService.getScriptProperties().setProperty("GITHUB_PRAYER_CACHE_UPDATED_AT", entry.generatedAt);
+  Logger.log("CACHE HARIAN GITHUB DIPERBARUI: " + city + " " + date + " (" + slug + ").");
+  return { success: true, changed: true, kota: city, tanggal: date, slug: slug, path: dailyCachePath };
 }
 
 
