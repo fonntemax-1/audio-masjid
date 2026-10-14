@@ -1,8 +1,8 @@
 {
   "success": true,
   "source": "API Indonesia",
-  "generatedAt": "2026-10-14T11:58:51.338Z",
-  "updatedAt": "2026-10-14T11:58:51.338Z",
+  "generatedAt": "2026-10-14T11:59:32.248Z",
+  "updatedAt": "2026-10-14T11:59:32.248Z",
   "cityCount": 514,
   "cities": {
     "aceh-barat": {
@@ -1698,16 +1698,25 @@
       "pending": true
     },
     "subang": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Subang",
       "provinsi": "Jawa Barat",
+      "regency_id": "",
       "slug": "subang",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
-      "gmt": "GMT+7",
-      "regency_id": "3213",
-      "source": "API Indonesia",
-      "pending": true
+      "gmt": "UTC+7",
+      "source": "AlAdhan API / method 20 (Kemenag Indonesia)",
+      "jadwal": {
+        "subuh": "04:10",
+        "terbit": "05:28",
+        "dzuhur": "11:35",
+        "ashar": "14:41",
+        "maghrib": "17:42",
+        "isya": "18:52"
+      },
+      "generatedAt": "2026-10-14T11:59:32.248Z"
     },
     "sukabumi": {
       "success": false,
