@@ -786,33 +786,32 @@ function resolveCoordinatesCityFromApi_(params) {
     if (nearest) {
       sheet.getRange('C5').setValue(nearest.kota);
       SpreadsheetApp.flush();
-      // onEdit tidak berjalan untuk setValue dari script, maka sinkronkan
-      // provinsi/zona/timezone/GMT/slug secara eksplisit.
-      // C5 ditulis oleh script, jadi onEdit tidak berjalan otomatis.
-      // Sinkronkan C6:C10 secara wajib; jangan menelan error agar masalah terlihat.
-      if (typeof syncPrayerPanelLocationFromCity_ !== 'function') {
-        throw new Error('C5 berhasil ditentukan (' + nearest.kota +
-          '), tetapi fungsi sinkronisasi C6:C10 tidak tersedia. Perbarui Code.gs pada deployment Apps Script.');
+      // Script yang menulis C5 tidak memicu onEdit. Tulis seluruh metadata
+      // langsung dari hasil katalog yang sama agar tidak bergantung pada Code.gs
+      // deployment lama atau pembacaan JSON kedua.
+      var locationValues = [
+        String(nearest.provinsi || '').trim(),
+        String(nearest.zona || '').trim(),
+        String(nearest.timezone || '').trim(),
+        String(nearest.gmt || '').trim(),
+        String(nearest.slug || '').trim()
+      ];
+      if (locationValues.some(function(value) { return !value; })) {
+        throw new Error('Katalog API Indonesia tidak memiliki metadata lengkap untuk ' + nearest.kota + '.');
       }
-      var locationSynced = syncPrayerPanelLocationFromCity_(nearest.kota, false);
-      if (locationSynced !== true) {
-        throw new Error('C5 berhasil ditentukan (' + nearest.kota +
-          '), tetapi sinkronisasi C6:C10 tidak selesai.');
-      }
+      sheet.getRange('C6:C10').setValues(locationValues.map(function(value) { return [value]; }));
       SpreadsheetApp.flush();
+
       var verifiedCity = String(sheet.getRange('C5').getDisplayValue() || '').trim();
-      if (verifiedCity !== nearest.kota) throw new Error('C4 tersimpan, tetapi verifikasi kota acuan pada C5 gagal.');
+      if (verifiedCity !== nearest.kota) {
+        throw new Error('C5 gagal diverifikasi. Seharusnya: ' + nearest.kota + ', terbaca: ' + verifiedCity + '.');
+      }
       var verifiedLocation = sheet.getRange('C6:C10').getDisplayValues().map(function(row) {
         return String(row[0] || '').trim();
       });
-      if (verifiedLocation.some(function(value) { return !value; })) {
-        throw new Error('C5 berubah menjadi ' + nearest.kota +
-          ', tetapi ada sel C6:C10 yang masih kosong. Jalankan ulang sinkronisasi lokasi.');
-      }
-      if (verifiedLocation[4] !== String(nearest.slug || '').trim()) {
-        throw new Error('C5 berubah menjadi ' + nearest.kota +
-          ', tetapi slug C10 tidak sesuai katalog API Indonesia. Seharusnya: ' +
-          String(nearest.slug || '(kosong)') + ', terbaca: ' + verifiedLocation[4] + '.');
+      if (verifiedLocation.some(function(value, index) { return value !== locationValues[index]; })) {
+        throw new Error('C6:C10 gagal diverifikasi. Slug C10 seharusnya: ' + locationValues[4] +
+          ', terbaca: ' + verifiedLocation[4] + '.');
       }
     }
     return {
@@ -897,7 +896,10 @@ function findAPIIndonesiaRegencyMatch_(regencyName) {
     kota: String(matches[0].display_name || "").trim(),
     slug: String(matches[0].slug || "").trim(),
     regency_id: String(matches[0].regency_id || "").trim(),
-    provinsi: String(matches[0].province || "").trim()
+    provinsi: String(matches[0].province || "").trim(),
+    zona: String(matches[0].zone || "").trim(),
+    timezone: String(matches[0].timezone || "").trim(),
+    gmt: String(matches[0].gmt || "").trim()
   };
 }
 
