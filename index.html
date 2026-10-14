@@ -12173,8 +12173,19 @@ function startRealtimeAudioConfigPolling_() {
         const j = cached && cached.jadwal;
 
         // Cache lokal lama tanpa sumber eksplisit tidak boleh dipercaya.
-        if (!/^AlAdhan\b/i.test(String(cached && cached.source || '').trim())) {
-          console.warn('JADWAL KARTU CACHE DIABAIKAN: sumber lama/tidak dikenal; tunggu cache AlAdhan.');
+        const cachedSource = String(cached && cached.source || '').trim();
+        const cachedDate = String(cached && cached.tanggal || '').trim();
+        const cachedCity = String(cached && cached.kota || '').trim();
+        const cachedTimezone = String(cached && cached.timezone || '').trim();
+        if (
+          !/^AlAdhan\b/i.test(cachedSource) ||
+          cachedDate !== getApiDate() ||
+          cachedCity !== String(WEB_APP_STATE.location.kota || '').trim() ||
+          cachedTimezone !== String(getSelectedTimezone() || '').trim()
+        ) {
+          console.warn('JADWAL KARTU CACHE DIABAIKAN: sumber/tanggal/kota/zona tidak cocok; tunggu cache AlAdhan.', {
+            source: cachedSource, tanggal: cachedDate, kota: cachedCity, timezone: cachedTimezone
+          });
           return false;
         }
 
