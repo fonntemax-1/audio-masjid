@@ -5582,7 +5582,9 @@ function handlePrayerCacheCityEdit_(e) {
 
   try {
     syncPrayerPanelLocationFromCity_(range.getDisplayValue(), false);
-    runPrayerCacheAutoRefresh_("pergantian kota");
+    // Saat kota berubah, ambil ulang kalender bulanan langsung dari AlAdhan
+    // agar cache kota baru benar-benar tersedia; tidak menyentuh scheduler/audio.
+    runPrayerCacheAutoRefresh_("pergantian kota", true);
   } catch (error) {
     Logger.log("AUTO CACHE JADWAL SAAT KOTA BERUBAH GAGAL: " +
       (error && error.stack ? error.stack : error));
@@ -5599,15 +5601,15 @@ function autoRefreshPrayerCachePeriodic_() {
 }
 
 /** Menjalankan pembaruan dengan lock agar edit kota dan pemicu berkala tidak bertabrakan. */
-function runPrayerCacheAutoRefresh_(reason) {
+function runPrayerCacheAutoRefresh_(reason, forceRefresh) {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(30000)) {
     Logger.log("AUTO CACHE JADWAL DILEWATI: proses lain masih berjalan (" + reason + ").");
     return { success: false, skipped: true, reason: "lock_busy" };
   }
   try {
-    const result = refreshPrayerCacheForCurrentCity();
-    Logger.log("AUTO CACHE JADWAL (" + reason + "): " + JSON.stringify(result));
+    const result = refreshPrayerCacheForCurrentCity(forceRefresh === true);
+    Logger.log("AUTO CACHE JADWAL (" + reason + ", forceRefresh=" + (forceRefresh === true) + "): " + JSON.stringify(result));
     return result;
   } finally {
     lock.releaseLock();
