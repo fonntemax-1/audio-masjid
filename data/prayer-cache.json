@@ -1,7 +1,7 @@
 {
   "success": true,
-  "generatedAt": "2026-10-14T02:30:46.491Z",
-  "updatedAt": "2026-10-14T02:30:46.491Z",
+  "generatedAt": "2026-10-14T04:35:12.760Z",
+  "updatedAt": "2026-10-14T04:35:12.760Z",
   "cityCount": 184,
   "cities": {
     "balikpapan": {
@@ -2207,22 +2207,22 @@
     "bangkalan": {
       "success": true,
       "tanggal": "2026-10-14",
-      "kota": "Bangkalan",
+      "kota": "Kabupaten Bangkalan",
       "provinsi": "Jawa Timur",
       "slug": "bangkalan",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
-      "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
+      "gmt": "GMT+7",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "03:54",
-        "terbit": "05:05",
-        "dzuhur": "11:20",
+        "subuh": "03:49",
+        "terbit": "05:08",
+        "dzuhur": "11:15",
         "ashar": "14:20",
-        "maghrib": "17:26",
-        "isya": "18:36"
+        "maghrib": "17:23",
+        "isya": "18:33"
       },
-      "generatedAt": "2026-10-13T21:15:48.838930+00:00"
+      "generatedAt": "2026-10-14T04:35:12.760Z"
     },
     "tulungagung": {
       "success": true,
