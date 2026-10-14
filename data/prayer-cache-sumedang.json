@@ -8,7 +8,7 @@
   "zona": "WIB",
   "timezone": "Asia/Jakarta",
   "gmt": "GMT+7",
-  "source": "AlAdhan API / method 20 (Kemenag Indonesia)",
+  "source": "AlAdhan API / method 20 (Indonesia)",
   "jadwal": {
     "subuh": "04:08",
     "terbit": "05:26",
@@ -17,5 +17,5 @@
     "maghrib": "17:41",
     "isya": "18:51"
   },
-  "generatedAt": "2026-10-14T21:43:20.576Z"
+  "generatedAt": "2026-10-14T21:46:47.128Z"
 }
