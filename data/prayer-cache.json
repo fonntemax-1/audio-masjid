@@ -1,8 +1,8 @@
 {
   "success": true,
   "source": "API Indonesia",
-  "generatedAt": "2026-10-14T06:37:36.529Z",
-  "updatedAt": "2026-10-14T06:37:36.529Z",
+  "generatedAt": "2026-10-14T06:39:31.297Z",
+  "updatedAt": "2026-10-14T06:39:31.297Z",
   "cityCount": 514,
   "cities": {
     "aceh-barat": {
@@ -527,16 +527,25 @@
       "generatedAt": "2026-10-14T06:37:01.384Z"
     },
     "klungkung": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Klungkung",
       "provinsi": "Bali",
+      "regency_id": "5105",
       "slug": "klungkung",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "5105",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:38",
+        "terbit": "05:56",
+        "dzuhur": "12:04",
+        "ashar": "15:07",
+        "maghrib": "18:13",
+        "isya": "19:23"
+      },
+      "generatedAt": "2026-10-14T06:39:20.107Z"
     },
     "tabanan": {
       "success": false,
@@ -1214,16 +1223,25 @@
       "generatedAt": "2026-10-14T06:33:28.402Z"
     },
     "kerinci": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kerinci",
       "provinsi": "Jambi",
+      "regency_id": "1501",
       "slug": "kerinci",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1501",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:38",
+        "terbit": "05:56",
+        "dzuhur": "12:01",
+        "ashar": "15:13",
+        "maghrib": "18:05",
+        "isya": "19:15"
+      },
+      "generatedAt": "2026-10-14T06:39:18.074Z"
     },
     "merangin": {
       "success": false,
@@ -2076,13 +2094,14 @@
       "success": false,
       "kota": "Kabupaten Klaten",
       "provinsi": "Jawa Tengah",
+      "regency_id": "3310",
       "slug": "klaten",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3310",
       "source": "API Indonesia",
-      "pending": true
+      "error": "API Indonesia jadwal HTTP 404 untuk Kabupaten Klaten",
+      "attemptedAt": "2026-10-14T06:39:20.078Z"
     },
     "kudus": {
       "success": false,
@@ -2956,16 +2975,25 @@
       "generatedAt": "2026-10-14T06:37:08.857Z"
     },
     "ketapang": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Ketapang",
       "provinsi": "Kalimantan Barat",
+      "regency_id": "6104",
       "slug": "ketapang",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "6104",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "03:54",
+        "terbit": "05:12",
+        "dzuhur": "11:14",
+        "ashar": "14:30",
+        "maghrib": "17:17",
+        "isya": "18:27"
+      },
+      "generatedAt": "2026-10-14T06:39:18.099Z"
     },
     "kubu-raya": {
       "success": false,
@@ -3214,16 +3242,25 @@
       "generatedAt": "2026-10-14T06:36:31.347Z"
     },
     "kotabaru": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kotabaru",
       "provinsi": "Kalimantan Selatan",
+      "regency_id": "6302",
       "slug": "kotabaru",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "6302",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:41",
+        "terbit": "05:53",
+        "dzuhur": "12:05",
+        "ashar": "15:13",
+        "maghrib": "18:10",
+        "isya": "19:18"
+      },
+      "generatedAt": "2026-10-14T06:39:31.297Z"
     },
     "tabalong": {
       "success": false,
@@ -4256,16 +4293,25 @@
       "generatedAt": "2026-10-14T06:37:27.950Z"
     },
     "kepulauan-tanimbar": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kepulauan Tanimbar",
       "provinsi": "Maluku",
+      "regency_id": "8103",
       "slug": "kepulauan-tanimbar",
       "zona": "WIT",
       "timezone": "Asia/Jayapura",
       "gmt": "GMT+9",
-      "regency_id": "8103",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:37",
+        "terbit": "05:50",
+        "dzuhur": "12:04",
+        "ashar": "15:05",
+        "maghrib": "18:12",
+        "isya": "19:22"
+      },
+      "generatedAt": "2026-10-14T06:39:15.366Z"
     },
     "maluku-barat-daya": {
       "success": false,
@@ -5037,16 +5083,25 @@
       "generatedAt": "2026-10-14T06:37:20.465Z"
     },
     "kepulauan-yapen": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kepulauan Yapen",
       "provinsi": "Papua",
+      "regency_id": "9105",
       "slug": "kepulauan-yapen",
       "zona": "WIT",
       "timezone": "Asia/Jayapura",
       "gmt": "GMT+9",
-      "regency_id": "9105",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:17",
+        "terbit": "05:35",
+        "dzuhur": "11:41",
+        "ashar": "14:50",
+        "maghrib": "17:47",
+        "isya": "18:56"
+      },
+      "generatedAt": "2026-10-14T06:39:16.679Z"
     },
     "mamberamo-raya": {
       "success": false,
@@ -6514,88 +6569,151 @@
       "generatedAt": "2026-10-14T06:33:58.360Z"
     },
     "kolaka": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kolaka",
       "provinsi": "Sulawesi Tenggara",
+      "regency_id": "7401",
       "slug": "kolaka",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7401",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:10",
+        "terbit": "05:28",
+        "dzuhur": "11:35",
+        "ashar": "14:42",
+        "maghrib": "17:41",
+        "isya": "18:51"
+      },
+      "generatedAt": "2026-10-14T06:39:21.779Z"
     },
     "kolaka-timur": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kolaka Timur",
       "provinsi": "Sulawesi Tenggara",
+      "regency_id": "7411",
       "slug": "kolaka-timur",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7411",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:15",
+        "terbit": "05:33",
+        "dzuhur": "11:39",
+        "ashar": "14:48",
+        "maghrib": "17:44",
+        "isya": "18:54"
+      },
+      "generatedAt": "2026-10-14T06:39:23.092Z"
     },
     "kolaka-utara": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kolaka Utara",
       "provinsi": "Sulawesi Tenggara",
+      "regency_id": "7408",
       "slug": "kolaka-utara",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7408",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:20",
+        "terbit": "05:37",
+        "dzuhur": "11:43",
+        "ashar": "14:53",
+        "maghrib": "17:48",
+        "isya": "18:58"
+      },
+      "generatedAt": "2026-10-14T06:39:24.426Z"
     },
     "konawe": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Konawe",
       "provinsi": "Sulawesi Tenggara",
+      "regency_id": "7402",
       "slug": "konawe",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7402",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:11",
+        "terbit": "05:29",
+        "dzuhur": "11:35",
+        "ashar": "14:44",
+        "maghrib": "17:41",
+        "isya": "18:51"
+      },
+      "generatedAt": "2026-10-14T06:39:25.730Z"
     },
     "konawe-kepulauan": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Konawe Kepulauan",
       "provinsi": "Sulawesi Tenggara",
+      "regency_id": "7412",
       "slug": "konawe-kepulauan",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7412",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:11",
+        "terbit": "05:29",
+        "dzuhur": "11:34",
+        "ashar": "14:44",
+        "maghrib": "17:40",
+        "isya": "18:49"
+      },
+      "generatedAt": "2026-10-14T06:39:27.316Z"
     },
     "konawe-selatan": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Konawe Selatan",
       "provinsi": "Sulawesi Tenggara",
+      "regency_id": "7405",
       "slug": "konawe-selatan",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7405",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:13",
+        "terbit": "05:31",
+        "dzuhur": "11:37",
+        "ashar": "14:46",
+        "maghrib": "17:43",
+        "isya": "18:53"
+      },
+      "generatedAt": "2026-10-14T06:39:28.660Z"
     },
     "konawe-utara": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Konawe Utara",
       "provinsi": "Sulawesi Tenggara",
+      "regency_id": "7409",
       "slug": "konawe-utara",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7409",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:10",
+        "terbit": "05:28",
+        "dzuhur": "11:34",
+        "ashar": "14:43",
+        "maghrib": "17:40",
+        "isya": "18:50"
+      },
+      "generatedAt": "2026-10-14T06:39:29.968Z"
     },
     "muna": {
       "success": false,
@@ -6802,16 +6920,25 @@
       "generatedAt": "2026-10-14T06:37:32.089Z"
     },
     "kepulauan-talaud": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kepulauan Talaud",
       "provinsi": "Sulawesi Utara",
+      "regency_id": "7104",
       "slug": "kepulauan-talaud",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7104",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:01",
+        "terbit": "05:18",
+        "dzuhur": "11:19",
+        "ashar": "14:37",
+        "maghrib": "17:20",
+        "isya": "18:30"
+      },
+      "generatedAt": "2026-10-14T06:39:14.007Z"
     },
     "minahasa": {
       "success": false,
