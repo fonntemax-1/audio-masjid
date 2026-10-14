@@ -788,15 +788,27 @@ function resolveCoordinatesCityFromApi_(params) {
       SpreadsheetApp.flush();
       // onEdit tidak berjalan untuk setValue dari script, maka sinkronkan
       // provinsi/zona/timezone/GMT/slug secara eksplisit.
-      try {
-        if (typeof syncPrayerPanelLocationFromCity_ === 'function') {
-          syncPrayerPanelLocationFromCity_(nearest.kota, false);
-        }
-      } catch (locationSyncError) {
-        Logger.log('Sinkronisasi C6:C10 setelah Google Maps: ' + String(locationSyncError));
+      // C5 ditulis oleh script, jadi onEdit tidak berjalan otomatis.
+      // Sinkronkan C6:C10 secara wajib; jangan menelan error agar masalah terlihat.
+      if (typeof syncPrayerPanelLocationFromCity_ !== 'function') {
+        throw new Error('C5 berhasil ditentukan (' + nearest.kota +
+          '), tetapi fungsi sinkronisasi C6:C10 tidak tersedia. Perbarui Code.gs pada deployment Apps Script.');
       }
+      var locationSynced = syncPrayerPanelLocationFromCity_(nearest.kota, false);
+      if (locationSynced !== true) {
+        throw new Error('C5 berhasil ditentukan (' + nearest.kota +
+          '), tetapi sinkronisasi C6:C10 tidak selesai.');
+      }
+      SpreadsheetApp.flush();
       var verifiedCity = String(sheet.getRange('C5').getDisplayValue() || '').trim();
       if (verifiedCity !== nearest.kota) throw new Error('C4 tersimpan, tetapi verifikasi kota acuan pada C5 gagal.');
+      var verifiedLocation = sheet.getRange('C6:C10').getDisplayValues().map(function(row) {
+        return String(row[0] || '').trim();
+      });
+      if (verifiedLocation.some(function(value) { return !value; })) {
+        throw new Error('C5 berubah menjadi ' + nearest.kota +
+          ', tetapi ada sel C6:C10 yang masih kosong. Jalankan ulang sinkronisasi lokasi.');
+      }
     }
     return {
       success: true,
