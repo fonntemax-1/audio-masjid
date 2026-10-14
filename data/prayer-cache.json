@@ -1,8 +1,8 @@
 {
   "success": true,
   "source": "API Indonesia",
-  "generatedAt": "2026-10-14T06:32:53.200Z",
-  "updatedAt": "2026-10-14T06:32:53.200Z",
+  "generatedAt": "2026-10-14T06:33:29.817Z",
+  "updatedAt": "2026-10-14T06:33:29.817Z",
   "cityCount": 514,
   "cities": {
     "aceh-barat": {
@@ -442,16 +442,25 @@
       "generatedAt": "2026-10-14T06:30:29.364Z"
     },
     "buleleng": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Buleleng",
       "provinsi": "Bali",
+      "regency_id": "5108",
       "slug": "buleleng",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "5108",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:39",
+        "terbit": "05:58",
+        "dzuhur": "12:06",
+        "ashar": "15:09",
+        "maghrib": "18:14",
+        "isya": "19:24"
+      },
+      "generatedAt": "2026-10-14T06:33:23.924Z"
     },
     "gianyar": {
       "success": false,
@@ -994,16 +1003,25 @@
       "generatedAt": "2026-10-14T06:32:46.671Z"
     },
     "bone-bolango": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bone Bolango",
       "provinsi": "Gorontalo",
+      "regency_id": "7503",
       "slug": "bone-bolango",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7503",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:19",
+        "terbit": "05:36",
+        "dzuhur": "11:39",
+        "ashar": "14:54",
+        "maghrib": "17:42",
+        "isya": "18:51"
+      },
+      "generatedAt": "2026-10-14T06:33:18.530Z"
     },
     "gorontalo": {
       "success": false,
@@ -1075,16 +1093,25 @@
       "generatedAt": "2026-10-14T06:31:32.153Z"
     },
     "bungo": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bungo",
       "provinsi": "Jambi",
+      "regency_id": "1508",
       "slug": "bungo",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1508",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:35",
+        "terbit": "05:52",
+        "dzuhur": "11:57",
+        "ashar": "15:09",
+        "maghrib": "18:01",
+        "isya": "19:10"
+      },
+      "generatedAt": "2026-10-14T06:33:28.402Z"
     },
     "kerinci": {
       "success": false,
@@ -1678,25 +1705,35 @@
       "success": false,
       "kota": "Kabupaten Boyolali",
       "provinsi": "Jawa Tengah",
+      "regency_id": "3309",
       "slug": "boyolali",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3309",
       "source": "API Indonesia",
-      "pending": true
+      "error": "API Indonesia jadwal HTTP 404 untuk Kabupaten Boyolali",
+      "attemptedAt": "2026-10-14T06:33:22.309Z"
     },
     "brebes": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Brebes",
       "provinsi": "Jawa Tengah",
+      "regency_id": "3329",
       "slug": "brebes",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3329",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:04",
+        "terbit": "05:23",
+        "dzuhur": "11:30",
+        "ashar": "14:35",
+        "maghrib": "17:37",
+        "isya": "18:47"
+      },
+      "generatedAt": "2026-10-14T06:33:22.328Z"
     },
     "cilacap": {
       "success": false,
@@ -2131,16 +2168,25 @@
       "generatedAt": "2026-10-14T06:32:48.272Z"
     },
     "bondowoso": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bondowoso",
       "provinsi": "Jawa Timur",
+      "regency_id": "3511",
       "slug": "bondowoso",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3511",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "03:44",
+        "terbit": "05:03",
+        "dzuhur": "11:11",
+        "ashar": "14:14",
+        "maghrib": "17:19",
+        "isya": "18:29"
+      },
+      "generatedAt": "2026-10-14T06:33:15.642Z"
     },
     "gresik": {
       "success": false,
@@ -3244,16 +3290,25 @@
       "generatedAt": "2026-10-14T06:28:54.753Z"
     },
     "bontang": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kota Bontang",
       "provinsi": "Kalimantan Timur",
+      "regency_id": "6474",
       "slug": "bontang",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "6474",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:36",
+        "terbit": "05:53",
+        "dzuhur": "11:56",
+        "ashar": "15:11",
+        "maghrib": "18:00",
+        "isya": "19:09"
+      },
+      "generatedAt": "2026-10-14T06:33:18.559Z"
     },
     "samarinda": {
       "success": false,
@@ -3268,16 +3323,25 @@
       "pending": true
     },
     "bulungan": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bulungan",
       "provinsi": "Kalimantan Utara",
+      "regency_id": "6501",
       "slug": "bulungan",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "6501",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:41",
+        "terbit": "05:58",
+        "dzuhur": "12:00",
+        "ashar": "15:17",
+        "maghrib": "18:01",
+        "isya": "19:10"
+      },
+      "generatedAt": "2026-10-14T06:33:26.859Z"
     },
     "malinau": {
       "success": false,
@@ -4820,16 +4884,25 @@
       "generatedAt": "2026-10-14T06:28:51.034Z"
     },
     "boven-digoel": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Boven Digoel",
       "provinsi": "Papua Selatan",
+      "regency_id": "9302",
       "slug": "boven-digoel",
       "zona": "WIT",
       "timezone": "Asia/Jayapura",
       "gmt": "GMT+9",
-      "regency_id": "9302",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:00",
+        "terbit": "05:18",
+        "dzuhur": "11:25",
+        "ashar": "14:32",
+        "maghrib": "17:31",
+        "isya": "18:41"
+      },
+      "generatedAt": "2026-10-14T06:33:20.008Z"
     },
     "mappi": {
       "success": false,
@@ -5219,28 +5292,46 @@
       "generatedAt": "2026-10-14T06:31:30.342Z"
     },
     "bone": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bone",
       "provinsi": "Sulawesi Selatan",
+      "regency_id": "7308",
       "slug": "bone",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7308",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:24",
+        "terbit": "05:42",
+        "dzuhur": "11:48",
+        "ashar": "14:57",
+        "maghrib": "17:53",
+        "isya": "19:03"
+      },
+      "generatedAt": "2026-10-14T06:33:17.131Z"
     },
     "bulukumba": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bulukumba",
       "provinsi": "Sulawesi Selatan",
+      "regency_id": "7302",
       "slug": "bulukumba",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7302",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:21",
+        "terbit": "05:39",
+        "dzuhur": "11:45",
+        "ashar": "14:53",
+        "maghrib": "17:52",
+        "isya": "19:02"
+      },
+      "generatedAt": "2026-10-14T06:33:25.341Z"
     },
     "enrekang": {
       "success": false,
@@ -5546,16 +5637,25 @@
       "generatedAt": "2026-10-14T06:30:22.967Z"
     },
     "buol": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Buol",
       "provinsi": "Sulawesi Tengah",
+      "regency_id": "7205",
       "slug": "buol",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7205",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:11",
+        "terbit": "05:29",
+        "dzuhur": "11:33",
+        "ashar": "14:46",
+        "maghrib": "17:37",
+        "isya": "18:46"
+      },
+      "generatedAt": "2026-10-14T06:33:29.817Z"
     },
     "donggala": {
       "success": false,
@@ -5666,16 +5766,25 @@
       "pending": true
     },
     "bombana": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bombana",
       "provinsi": "Sulawesi Tenggara",
+      "regency_id": "7406",
       "slug": "bombana",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7406",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:14",
+        "terbit": "05:32",
+        "dzuhur": "11:38",
+        "ashar": "14:47",
+        "maghrib": "17:44",
+        "isya": "18:54"
+      },
+      "generatedAt": "2026-10-14T06:33:15.604Z"
     },
     "buton": {
       "success": false,
@@ -5942,16 +6051,25 @@
       "generatedAt": "2026-10-14T06:32:53.200Z"
     },
     "bolaang-mongondow-utara": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bolaang Mongondow Utara",
       "provinsi": "Sulawesi Utara",
+      "regency_id": "7108",
       "slug": "bolaang-mongondow-utara",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7108",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:07",
+        "terbit": "05:24",
+        "dzuhur": "11:27",
+        "ashar": "14:42",
+        "maghrib": "17:30",
+        "isya": "18:39"
+      },
+      "generatedAt": "2026-10-14T06:33:14.148Z"
     },
     "kep-siau-tagulandang-biaro": {
       "success": false,
@@ -6248,16 +6366,25 @@
       "pending": true
     },
     "bukittinggi": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kota Bukittinggi",
       "provinsi": "Sumatera Barat",
+      "regency_id": "1375",
       "slug": "bukittinggi",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1375",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:44",
+        "terbit": "06:01",
+        "dzuhur": "12:05",
+        "ashar": "15:19",
+        "maghrib": "18:08",
+        "isya": "19:17"
+      },
+      "generatedAt": "2026-10-14T06:33:22.350Z"
     },
     "padang": {
       "success": false,
