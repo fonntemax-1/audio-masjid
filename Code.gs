@@ -4673,14 +4673,19 @@ function refreshHijriCalendarCacheFromAlAdhan() {
     'Refresh kalender Hijriah AlAdhan 2026-2027'
   );
 
-  // Bersihkan cache runtime agar permintaan berikutnya membaca file terbaru.
-  try { CacheService.getScriptCache().removeAll(
-    Object.keys(annualResults).reduce(function(keys, year) {
-      var days = annualResults[year].days;
-      Object.keys(days).forEach(function(date) { keys.push('HIJRI_ALADHAN_V1_' + date.replace(/-/g, '')); });
-      return keys;
-    }, [])
-  ); } catch (ignoreCacheClear) {}
+  // Bersihkan cache runtime per batch agar permintaan berikutnya membaca file terbaru.
+  try {
+    var cacheKeys = [];
+    Object.keys(annualResults).forEach(function(year) {
+      Object.keys(annualResults[year].days).forEach(function(date) {
+        cacheKeys.push('HIJRI_ALADHAN_V1_' + date.replace(/-/g, ''));
+      });
+    });
+    var scriptCache = CacheService.getScriptCache();
+    for (var keyOffset = 0; keyOffset < cacheKeys.length; keyOffset += 100) {
+      scriptCache.removeAll(cacheKeys.slice(keyOffset, keyOffset + 100));
+    }
+  } catch (ignoreCacheClear) {}
 
   var report = {
     success: true,
