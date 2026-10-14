@@ -6381,3 +6381,73 @@ function TEST_ALADHAN_SHOLAT_LANGSUNG() {
  * Hanya membaca Spreadsheet/API dan menulis log; tidak mengubah sheet,
  * cache GitHub, trigger, tampilan, atau scheduler audio.
  */
+
+
+/**
+ * Uji integrasi jadwal sholat dan kalender Hijriah AlAdhan.
+ * Hanya membaca hasil dan menulis log; tidak mengubah sheet, cache,
+ * trigger, tampilan, atau scheduler audio.
+ */
+function TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION() {
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) throw new Error('Sheet panels tidak ditemukan.');
+
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var city = loc[0];
+  var province = loc[1];
+  var timezone = loc[3] || 'Asia/Makassar';
+  if (!city) throw new Error('panels!C5 (kota) kosong.');
+
+  var date = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
+  var prayer = getPrayerSchedule(date);
+  if (!prayer || prayer.success !== true) {
+    throw new Error('Uji jadwal sholat gagal: ' +
+      String(prayer && (prayer.alAdhanError || prayer.error) || 'respons tidak sukses'));
+  }
+  if (String(prayer.tanggal || '') !== date ||
+      !isCompletePrayerScheduleSafe_(prayer.jadwal)) {
+    throw new Error('Jadwal sholat tidak lengkap atau tanggal respons tidak cocok.');
+  }
+  if (String(prayer.source || '').indexOf('AlAdhan') < 0) {
+    throw new Error('Sumber jadwal sholat bukan AlAdhan: ' + String(prayer.source || '(kosong)'));
+  }
+
+  var hijri = getHijriDateFromApi(date);
+  if (!hijri || hijri.success !== true || hijri.found !== true || !String(hijri.hijri || '').trim()) {
+    throw new Error('Uji kalender Hijriah gagal: ' +
+      String(hijri && hijri.error || 'tanggal Hijriah tidak ditemukan'));
+  }
+  if (String(hijri.date || '') !== date) {
+    throw new Error('Tanggal respons kalender Hijriah tidak cocok.');
+  }
+
+  var prayerHijri = String(prayer.hijri || '').trim().replace(/\\s+/g, ' ');
+  var cacheHijri = String(hijri.hijri || '').trim().replace(/\\s+/g, ' ');
+  if (prayerHijri && cacheHijri && prayerHijri !== cacheHijri) {
+    throw new Error('Tanggal Hijriah berbeda antara cache jadwal bulanan dan cache tahunan: ' +
+      JSON.stringify({ jadwal: prayerHijri, kalenderTahunan: cacheHijri }));
+  }
+
+  var report = {
+    success: true,
+    pengujian: 'Integrasi jadwal sholat + kalender Hijriah AlAdhan',
+    kota: city,
+    provinsi: province,
+    tanggal: date,
+    timezone: timezone,
+    jadwalSource: prayer.source,
+    jadwalCacheSource: prayer.cacheSource || '',
+    jadwalLengkap: true,
+    kalenderHijriahSource: hijri.source,
+    kalenderHijriahCache: hijri.cached === true,
+    hijriJadwalBulanan: prayerHijri,
+    hijriCacheTahunan: cacheHijri,
+    jadwal: prayer.jadwal
+  };
+  Logger.log('TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION: ' + JSON.stringify(report, null, 2));
+  Logger.log('TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION LULUS');
+  return report;
+}
