@@ -138,101 +138,7 @@ function fetchPrayerCacheAllCitiesEntry_(prior, apiCities, apiKey) {
  * oleh runPrayerCacheAllCitiesBatchNow(); tidak menyentuh scheduler audio.
  */
 function startPrayerCacheRebuildFromApiIndonesia() {
-  const apiKey = String(PropertiesService.getScriptProperties().getProperty("API_INDONESIA_KEY") || "").trim();
-  if (!apiKey) throw new Error("Script Property API_INDONESIA_KEY belum diisi.");
-
-  // Tarik daftar langsung dari API (bukan CacheService) agar daftar baru benar-benar segar.
-  const response = UrlFetchApp.fetch("https://use.apiindonesia.id/api/v1/sholat/list-kota", {
-    method: "get",
-    muteHttpExceptions: true,
-    headers: { "x-api-key": apiKey, "Accept": "application/json" }
-  });
-  if (response.getResponseCode() < 200 || response.getResponseCode() >= 300) {
-    throw new Error("API Indonesia daftar kota HTTP " + response.getResponseCode() + ".");
-  }
-  const payload = JSON.parse(response.getContentText() || "{}");
-  const list = payload && Array.isArray(payload.data) ? payload.data : [];
-  if (!list.length) throw new Error("Daftar wilayah API kosong; cache lama tidak diubah.");
-
-  const oldDocument = readGithubJsonFile_("data/prayer-cache.json") || {};
-  const oldCities = oldDocument.cities && typeof oldDocument.cities === "object" ? oldDocument.cities : {};
-  const oldByName = {};
-  Object.keys(oldCities).forEach(function(key) {
-    const item = oldCities[key] || {};
-    const nameKey = normalizePrayerCacheCityName_(item.kota) + "|" + normalizePrayerCacheCityName_(item.provinsi);
-    if (nameKey !== "|") oldByName[nameKey] = { key: key, item: item };
-  });
-
-  function slugify(value) {
-    return String(value || "").toLowerCase()
-      .replace(/^(kota|kabupaten|kab\.?|kabup\.?|kota adm\.?)\s+/i, "")
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "wilayah";
-  }
-  function timezoneFromProvince(province) {
-    const p = normalizePrayerCacheCityName_(province);
-    const wit = ["MALUKU", "MALUKU UTARA", "PAPUA", "PAPUA BARAT", "PAPUA BARAT DAYA",
-      "PAPUA TENGAH", "PAPUA PEGUNUNGAN", "PAPUA SELATAN"];
-    const wita = ["BALI", "NUSA TENGGARA BARAT", "NUSA TENGGARA TIMUR",
-      "KALIMANTAN SELATAN", "KALIMANTAN TIMUR", "KALIMANTAN TENGAH", "KALIMANTAN UTARA",
-      "SULAWESI UTARA", "GORONTALO", "SULAWESI TENGAH", "SULAWESI BARAT",
-      "SULAWESI SELATAN", "SULAWESI TENGGARA"];
-    if (wit.indexOf(p) >= 0) return "Asia/Jayapura";
-    if (wita.indexOf(p) >= 0) return "Asia/Makassar";
-    return "Asia/Jakarta";
-  }
-
-  const freshCities = {};
-  const usedKeys = {};
-  list.forEach(function(apiCity) {
-    const regencyId = String(apiCity.regency_id || "").trim();
-    const officialName = String(apiCity.regency_name || "").trim();
-    const province = String(apiCity.province_name || "").trim();
-    if (!regencyId || !officialName) return;
-    const nameKey = normalizePrayerCacheCityName_(officialName) + "|" + normalizePrayerCacheCityName_(province);
-    const legacy = oldByName[nameKey] || null;
-    let key = legacy ? legacy.key : slugify(officialName);
-    if (usedKeys[key]) key = key + "-" + regencyId;
-    usedKeys[key] = true;
-    const timezone = legacy && legacy.item.timezone ? legacy.item.timezone : timezoneFromProvince(province);
-    freshCities[key] = {
-      success: false,
-      kota: officialName,
-      provinsi: province,
-      slug: legacy && legacy.item.slug ? legacy.item.slug : key,
-      zona: timezone === "Asia/Jakarta" ? "WIB" : timezone === "Asia/Jayapura" ? "WIT" : "WITA",
-      timezone: timezone,
-      gmt: timezone === "Asia/Jakarta" ? "GMT+7" : timezone === "Asia/Jayapura" ? "GMT+9" : "GMT+8",
-      regency_id: regencyId,
-      source: "API Indonesia",
-      pending: true
-    };
-  });
-  const count = Object.keys(freshCities).length;
-  if (!count) throw new Error("Daftar API tidak memiliki wilayah dengan regency_id dan regency_name; cache lama tidak diubah.");
-
-  const now = new Date().toISOString();
-  const freshDocument = {
-    success: true,
-    source: "API Indonesia",
-    generatedAt: now,
-    updatedAt: now,
-    cityCount: count,
-    cities: freshCities
-  };
-  writeGithubJsonFile_("data/prayer-cache.json", freshDocument,
-    "Ganti cache wilayah lama dengan daftar terbaru API Indonesia (" + count + " wilayah)");
-  const props = PropertiesService.getScriptProperties();
-  props.deleteProperty(PRAYER_CACHE_ALL_CITIES_DAY_KEY_);
-  props.setProperty(PRAYER_CACHE_ALL_CITIES_PROGRESS_KEY_, "0");
-  props.deleteProperty("PRAYER_CACHE_ALL_CITIES_LAST_RESULT");
-  // Bersihkan cache sementara daftar kota agar pemanggilan berikutnya mengambil daftar baru.
-  CacheService.getScriptCache().remove("APIID_SHOLAT_CITIES_V1");
-  Logger.log("CACHE LAMA DIGANTI DENGAN DAFTAR API INDONESIA: " + JSON.stringify({
-    wilayahApi: list.length, wilayahDisimpan: count, jadwal: "menunggu batch",
-    langkahBerikutnya: "jalankan runPrayerCacheAllCitiesBatchNow() berulang sampai selesai"
-  }));
-  return { success: true, wilayahApi: list.length, wilayahDisimpan: count, jadwal: "menunggu batch" };
+  throw new Error("FUNGSI LAMA DINONAKTIFKAN. Jangan membangun ulang jadwal 514 kota. Daftar kota disinkronkan melalui refreshDaftarKotaAPIIndonesia(); jadwal bulanan hanya diambil untuk kota aktif oleh getPrayerSchedule().");
 }
 
 /**
@@ -240,102 +146,14 @@ function startPrayerCacheRebuildFromApiIndonesia() {
  * Setelah seluruh kota selesai, menunggu hari UTC berikutnya sebelum mengulang.
  */
 function processPrayerCacheAllCitiesBatch_() {
-  const lock = LockService.getScriptLock();
-  if (!lock.tryLock(1000)) {
-    Logger.log("CACHE SEMUA KOTA: eksekusi lain masih berjalan; batch dilewati.");
-    return;
-  }
-  try {
-    const props = PropertiesService.getScriptProperties();
-    const utcDay = Utilities.formatDate(new Date(), "Etc/UTC", "yyyy-MM-dd");
-    const savedDay = String(props.getProperty(PRAYER_CACHE_ALL_CITIES_DAY_KEY_) || "");
-    let start = savedDay === utcDay ? Number(props.getProperty(PRAYER_CACHE_ALL_CITIES_PROGRESS_KEY_) || 0) : 0;
-    if (savedDay === utcDay && isFinite(start) && start > 0) {
-      // Semua kota sudah diproses hari ini: jangan mengulang batch dari awal.
-      const previousResult = String(props.getProperty("PRAYER_CACHE_ALL_CITIES_LAST_RESULT") || "");
-      try {
-        const parsedPrevious = JSON.parse(previousResult);
-        if (parsedPrevious && parsedPrevious.selesai === true) {
-          Logger.log("CACHE SEMUA KOTA: seluruh batch hari UTC " + utcDay + " sudah selesai.");
-          return;
-        }
-      } catch (ignorePreviousResult) {}
-    }
-
-    const document = readGithubJsonFile_("data/prayer-cache.json");
-    if (!document || !document.cities || typeof document.cities !== "object") {
-      throw new Error("data/prayer-cache.json tidak memiliki objek cities yang valid.");
-    }
-    const keys = Object.keys(document.cities).sort();
-    if (!keys.length) throw new Error("Tidak ada kota dalam data/prayer-cache.json.");
-    if (!isFinite(start) || start < 0 || start >= keys.length) start = 0;
-
-    const apiKey = String(props.getProperty("API_INDONESIA_KEY") || "").trim();
-    if (!apiKey) throw new Error("Script Property API_INDONESIA_KEY belum diisi.");
-    const apiCities = getPrayerCacheAllCitiesApiList_();
-    const end = Math.min(start + PRAYER_CACHE_ALL_CITIES_BATCH_SIZE_, keys.length);
-    let updated = 0;
-    let failed = 0;
-    const failures = [];
-
-    for (let i = start; i < end; i++) {
-      const key = keys[i];
-      const prior = document.cities[key];
-      if (!prior || !prior.kota) {
-        failed++;
-        failures.push(key + ": entri lama tidak lengkap");
-        continue;
-      }
-      try {
-        const entry = fetchPrayerCacheAllCitiesEntry_(prior, apiCities, apiKey);
-        document.cities[key] = entry;
-        updated++;
-      } catch (cityError) {
-        failed++;
-        failures.push(key + ": " + (cityError && cityError.message ? cityError.message : cityError));
-        const errorText = cityError && cityError.message ? cityError.message : String(cityError);
-        Logger.log("CACHE SEMUA KOTA GAGAL [" + key + "]: " +
-          (cityError && cityError.stack ? cityError.stack : cityError));
-        // Pertahankan metadata kota untuk batch berikutnya, tetapi buang jadwal lama
-        // supaya data dari penyedia lain tidak disajikan sebagai cache API Indonesia.
-        document.cities[key] = {
-          success: false,
-          kota: String(prior.kota || ""),
-          provinsi: String(prior.provinsi || ""),
-          regency_id: String(prior.regency_id || ""),
-          slug: String(prior.slug || key),
-          zona: String(prior.zona || ""),
-          timezone: String(prior.timezone || "Asia/Makassar"),
-          gmt: String(prior.gmt || ""),
-          source: "API Indonesia",
-          error: errorText,
-          attemptedAt: new Date().toISOString()
-        };
-      }
-    }
-
-    document.success = true;
-    document.cityCount = Object.keys(document.cities).length;
-    document.generatedAt = new Date().toISOString();
-    document.updatedAt = document.generatedAt;
-    writeGithubJsonFile_("data/prayer-cache.json", document,
-      "Batch cache jadwal sholat semua kota " + utcDay + " (" + (start + 1) + "-" + end + ")");
-
-    const next = end >= keys.length ? keys.length : end;
-    props.setProperty(PRAYER_CACHE_ALL_CITIES_DAY_KEY_, utcDay);
-    props.setProperty(PRAYER_CACHE_ALL_CITIES_PROGRESS_KEY_, String(next));
-    props.setProperty("PRAYER_CACHE_ALL_CITIES_LAST_RESULT", JSON.stringify({
-      utcDay: utcDay, mulai: start + 1, sampai: end, total: keys.length,
-      diperbarui: updated, gagal: failed, selesai: next >= keys.length,
-      failures: failures.slice(0, 20), timestamp: new Date().toISOString()
-    }));
-    Logger.log("CACHE SEMUA KOTA: " + JSON.stringify({
-      mulai: start + 1, sampai: end, total: keys.length, diperbarui: updated,
-      gagal: failed, selesai: next >= keys.length, failures: failures.slice(0, 20)
-    }));
-  } finally {
-    lock.releaseLock();
-  }
+  // Dinonaktifkan: batch semua kota boros kuota API dan tidak diperlukan.
+  // Handler dipertahankan agar trigger lama aman sampai dihapus manual.
+  Logger.log("CACHE SEMUA KOTA DINONAKTIFKAN: tidak ada jadwal kota yang diunduh.");
+  return {
+    success: true,
+    disabled: true,
+    message: "Batch seluruh kota dinonaktifkan. Jadwal bulanan hanya diambil untuk kota aktif."
+  };
 }
 
 /**
@@ -344,13 +162,24 @@ function processPrayerCacheAllCitiesBatch_() {
  * Tidak menghapus atau mengubah pemicu audio, cache satu kota, maupun pemicu lain.
  */
 function setupPrayerCacheAllCitiesBatchTrigger() {
+  throw new Error("Pemicu batch semua kota tidak boleh dipasang lagi. Gunakan setupDropdownKotaAPIIndonesia() untuk sinkronisasi daftar wilayah dan cache bulanan kota aktif.");
+}
+
+/**
+ * Hentikan pemicu lama yang sebelumnya mengunduh jadwal untuk semua kota.
+ * Aman: hanya menghapus trigger processPrayerCacheAllCitiesBatch_.
+ */
+function stopPrayerCacheAllCitiesBatchTrigger() {
   const handler = PRAYER_CACHE_ALL_CITIES_HANDLER_;
+  let removed = 0;
   ScriptApp.getProjectTriggers().forEach(function(trigger) {
-    if (trigger.getHandlerFunction() === handler) ScriptApp.deleteTrigger(trigger);
+    if (trigger.getHandlerFunction() === handler) {
+      ScriptApp.deleteTrigger(trigger);
+      removed++;
+    }
   });
-  ScriptApp.newTrigger(handler).timeBased().everyMinutes(10).create();
-  Logger.log("PEMICU CACHE SEMUA KOTA AKTIF: batch setiap 10 menit; maksimal " +
-    PRAYER_CACHE_ALL_CITIES_BATCH_SIZE_ + " kota per eksekusi.");
+  Logger.log("PEMICU BATCH SEMUA KOTA DIHENTIKAN: " + removed + " trigger dihapus.");
+  return { success: true, triggersRemoved: removed };
 }
 
 /** Status ringkas batch terakhir; aman dijalankan manual dari editor Apps Script. */
@@ -372,6 +201,10 @@ function getPrayerCacheAllCitiesBatchStatus() {
  * Tidak memasang atau mengubah trigger apa pun.
  */
 function runPrayerCacheAllCitiesBatchNow() {
-  processPrayerCacheAllCitiesBatch_();
-  return getPrayerCacheAllCitiesBatchStatus();
+  Logger.log("FUNGSI DINONAKTIFKAN: batch semua kota tidak lagi mengunduh jadwal.");
+  return {
+    success: true,
+    disabled: true,
+    message: "Tidak ada pemanggilan jadwal API untuk 514 kota."
+  };
 }
