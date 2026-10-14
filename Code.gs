@@ -3886,7 +3886,7 @@ function processKeyValue(
    }
  }
 
-// Jadwal lama MuslimKita dan cache ScriptProperties tidak lagi digunakan.
+// Fallback jadwal legacy dan cache ScriptProperties tidak lagi digunakan.
 // Jadwal sholat aktif hanya diambil dari API Indonesia.
 
 // ============================================================
