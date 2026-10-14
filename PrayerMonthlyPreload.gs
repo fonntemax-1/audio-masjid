@@ -59,7 +59,7 @@ function autoPrepareNextMonthPrayerCache() {
       kota: result.kota || city,
       targetDate: targetDate,
       month: targetDate.slice(0, 7),
-      source: result.source || "API Indonesia / Kemenag",
+      source: result.source || "AlAdhan API / method 20 (Kemenag Indonesia)",
       note: "Cache bulanan AlAdhan berhasil diperiksa/ditulis ke GitHub."
     };
     Logger.log("PRELOAD JADWAL BULAN BERIKUTNYA BERHASIL: " + JSON.stringify(output));
