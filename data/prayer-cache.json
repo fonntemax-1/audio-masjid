@@ -1,8 +1,8 @@
 {
   "success": true,
   "source": "API Indonesia",
-  "generatedAt": "2026-10-14T06:36:42.400Z",
-  "updatedAt": "2026-10-14T06:36:42.400Z",
+  "generatedAt": "2026-10-14T06:37:08.857Z",
+  "updatedAt": "2026-10-14T06:37:08.857Z",
   "cityCount": 514,
   "cities": {
     "aceh-barat": {
@@ -506,16 +506,25 @@
       "generatedAt": "2026-10-14T06:36:42.400Z"
     },
     "karangasem": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Karangasem",
       "provinsi": "Bali",
+      "regency_id": "5107",
       "slug": "karangasem",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "5107",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:37",
+        "terbit": "05:55",
+        "dzuhur": "12:04",
+        "ashar": "15:06",
+        "maghrib": "18:12",
+        "isya": "19:22"
+      },
+      "generatedAt": "2026-10-14T06:37:01.384Z"
     },
     "klungkung": {
       "success": false,
@@ -731,16 +740,25 @@
       "generatedAt": "2026-10-14T06:32:05.275Z"
     },
     "kaur": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kaur",
       "provinsi": "Bengkulu",
+      "regency_id": "1704",
       "slug": "kaur",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1704",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:29",
+        "terbit": "05:47",
+        "dzuhur": "11:53",
+        "ashar": "15:01",
+        "maghrib": "17:59",
+        "isya": "19:09"
+      },
+      "generatedAt": "2026-10-14T06:37:07.536Z"
     },
     "kepahiang": {
       "success": false,
@@ -1493,16 +1511,25 @@
       "generatedAt": "2026-10-14T06:36:36.260Z"
     },
     "karawang": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Karawang",
       "provinsi": "Jawa Barat",
+      "regency_id": "3215",
       "slug": "karawang",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3215",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:12",
+        "terbit": "05:30",
+        "dzuhur": "11:37",
+        "ashar": "14:43",
+        "maghrib": "17:44",
+        "isya": "18:54"
+      },
+      "generatedAt": "2026-10-14T06:37:01.415Z"
     },
     "kuningan": {
       "success": false,
@@ -1953,28 +1980,46 @@
       "generatedAt": "2026-10-14T06:35:22.343Z"
     },
     "jepara": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Jepara",
       "provinsi": "Jawa Tengah",
+      "regency_id": "3320",
       "slug": "jepara",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3320",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "03:58",
+        "terbit": "05:16",
+        "dzuhur": "11:23",
+        "ashar": "14:29",
+        "maghrib": "17:31",
+        "isya": "18:41"
+      },
+      "generatedAt": "2026-10-14T06:36:53.141Z"
     },
     "karanganyar": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Karanganyar",
       "provinsi": "Jawa Tengah",
+      "regency_id": "3313",
       "slug": "karanganyar",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3313",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "03:56",
+        "terbit": "05:15",
+        "dzuhur": "11:22",
+        "ashar": "14:26",
+        "maghrib": "17:30",
+        "isya": "18:40"
+      },
+      "generatedAt": "2026-10-14T06:36:59.879Z"
     },
     "kebumen": {
       "success": false,
@@ -2415,13 +2460,14 @@
       "success": false,
       "kota": "Kabupaten Jombang",
       "provinsi": "Jawa Timur",
+      "regency_id": "3517",
       "slug": "jombang",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3517",
       "source": "API Indonesia",
-      "pending": true
+      "error": "API Indonesia jadwal HTTP 404 untuk Kabupaten Jombang",
+      "attemptedAt": "2026-10-14T06:36:54.542Z"
     },
     "kediri": {
       "success": false,
@@ -2823,28 +2869,46 @@
       "generatedAt": "2026-10-14T06:31:58.221Z"
     },
     "kapuas-hulu": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kapuas Hulu",
       "provinsi": "Kalimantan Barat",
+      "regency_id": "6106",
       "slug": "kapuas-hulu",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "6106",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:06",
+        "terbit": "05:23",
+        "dzuhur": "11:26",
+        "ashar": "14:41",
+        "maghrib": "17:29",
+        "isya": "18:39"
+      },
+      "generatedAt": "2026-10-14T06:36:59.849Z"
     },
     "kayong-utara": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kayong Utara",
       "provinsi": "Kalimantan Barat",
+      "regency_id": "6111",
       "slug": "kayong-utara",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "6111",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:05",
+        "terbit": "05:22",
+        "dzuhur": "11:26",
+        "ashar": "14:39",
+        "maghrib": "17:30",
+        "isya": "18:40"
+      },
+      "generatedAt": "2026-10-14T06:37:08.857Z"
     },
     "ketapang": {
       "success": false,
@@ -3291,28 +3355,46 @@
       "generatedAt": "2026-10-14T06:35:24.201Z"
     },
     "kapuas": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kapuas",
       "provinsi": "Kalimantan Tengah",
+      "regency_id": "6203",
       "slug": "kapuas",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "6203",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "03:46",
+        "terbit": "05:03",
+        "dzuhur": "11:08",
+        "ashar": "14:19",
+        "maghrib": "17:13",
+        "isya": "18:23"
+      },
+      "generatedAt": "2026-10-14T06:36:58.179Z"
     },
     "katingan": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Katingan",
       "provinsi": "Kalimantan Tengah",
+      "regency_id": "6206",
       "slug": "katingan",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "6206",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "03:58",
+        "terbit": "05:16",
+        "dzuhur": "11:20",
+        "ashar": "14:32",
+        "maghrib": "17:25",
+        "isya": "18:34"
+      },
+      "generatedAt": "2026-10-14T06:37:05.910Z"
     },
     "kotawaringin-barat": {
       "success": false,
@@ -3789,13 +3871,14 @@
       "success": false,
       "kota": "Kabupaten Karimun",
       "provinsi": "Kepulauan Riau",
+      "regency_id": "2102",
       "slug": "karimun",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "2102",
       "source": "API Indonesia",
-      "pending": true
+      "error": "API Indonesia jadwal HTTP 404 untuk Kabupaten Karimun",
+      "attemptedAt": "2026-10-14T06:37:02.760Z"
     },
     "kepulauan-anambas": {
       "success": false,
@@ -4975,16 +5058,25 @@
       "generatedAt": "2026-10-14T06:34:35.067Z"
     },
     "kaimana": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kaimana",
       "provinsi": "Papua Barat",
+      "regency_id": "9208",
       "slug": "kaimana",
       "zona": "WIT",
       "timezone": "Asia/Jayapura",
       "gmt": "GMT+9",
-      "regency_id": "9208",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:27",
+        "terbit": "05:45",
+        "dzuhur": "11:50",
+        "ashar": "15:01",
+        "maghrib": "17:56",
+        "isya": "19:05"
+      },
+      "generatedAt": "2026-10-14T06:36:56.263Z"
     },
     "manokwari": {
       "success": false,
@@ -5468,16 +5560,25 @@
       "attemptedAt": "2026-10-14T06:36:36.238Z"
     },
     "kampar": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Kampar",
       "provinsi": "Riau",
+      "regency_id": "1401",
       "slug": "kampar",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1401",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:45",
+        "terbit": "06:02",
+        "dzuhur": "12:05",
+        "ashar": "15:20",
+        "maghrib": "18:08",
+        "isya": "19:17"
+      },
+      "generatedAt": "2026-10-14T06:36:56.293Z"
     },
     "kepulauan-meranti": {
       "success": false,
@@ -5783,16 +5884,25 @@
       "generatedAt": "2026-10-14T06:35:22.282Z"
     },
     "jeneponto": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Jeneponto",
       "provinsi": "Sulawesi Selatan",
+      "regency_id": "7304",
       "slug": "jeneponto",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7304",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:22",
+        "terbit": "05:41",
+        "dzuhur": "11:47",
+        "ashar": "14:54",
+        "maghrib": "17:54",
+        "isya": "19:04"
+      },
+      "generatedAt": "2026-10-14T06:36:53.106Z"
     },
     "kepulauan-selayar": {
       "success": false,
@@ -7265,16 +7375,25 @@
       "generatedAt": "2026-10-14T06:36:33.013Z"
     },
     "karo": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Karo",
       "provinsi": "Sumatera Utara",
+      "regency_id": "1206",
       "slug": "karo",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1206",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:53",
+        "terbit": "06:11",
+        "dzuhur": "12:12",
+        "ashar": "15:29",
+        "maghrib": "18:14",
+        "isya": "19:23"
+      },
+      "generatedAt": "2026-10-14T06:37:04.340Z"
     },
     "labuhanbatu": {
       "success": false,
