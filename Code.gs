@@ -6072,3 +6072,65 @@ function getPanelKeuanganSource() {
 
   return { selector: selectedKey, title: title, date: date, a3: a3, rows: rows, headerStyles: headerStyles };
 }
+
+
+/**
+ * UJI INTEGRASI API INDONESIA (JADWAL SHOLAT + KALENDER HIJRIAH).
+ * Jalankan manual dari Apps Script Editor untuk memastikan kedua endpoint,
+ * API key, lokasi aktif, dan tanggal respons berfungsi normal.
+ * Hanya membaca Spreadsheet/API dan menulis log; tidak mengubah sheet,
+ * cache GitHub, trigger, tampilan, atau scheduler audio.
+ */
+function TEST_API_INDONESIA_KALENDER_DAN_SHOLAT_AMAN() {
+  const ss = getSpreadsheet();
+  const panels = ss.getSheetByName("panels");
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+
+  const loc = panels.getRange("C5:C10").getDisplayValues().map(function(row) {
+    return String(row[0] || "").trim();
+  });
+  const city = loc[0];
+  const province = loc[1];
+  const timezone = loc[3] || "Asia/Makassar";
+  if (!city) throw new Error("Kota pada panels!C5 kosong.");
+
+  const date = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd");
+  const prayer = getPrayerSchedule(date);
+  const hijri = getHijriDateFromApi(date);
+  const report = {
+    test: "API Indonesia jadwal sholat + kalender Hijriah",
+    tanggal: date,
+    kota: city,
+    provinsi: province,
+    timezone: timezone,
+    jadwalSholat: prayer,
+    kalenderHijriah: hijri
+  };
+
+  Logger.log("TEST_API_INDONESIA_KALENDER_DAN_SHOLAT_AMAN: " + JSON.stringify(report));
+
+  if (!prayer || prayer.success !== true ||
+      String(prayer.tanggal || "") !== date ||
+      !prayer.jadwal || !isCompletePrayerScheduleSafe_(prayer.jadwal)) {
+    throw new Error("UJI JADWAL SHOLAT API INDONESIA GAGAL: " +
+      String(prayer && (prayer.apiIndonesiaError || prayer.error) || "respons tidak lengkap"));
+  }
+
+  if (!hijri || hijri.success !== true || !hijri.hijri ||
+      (hijri.date && String(hijri.date) !== date)) {
+    throw new Error("UJI KALENDER HIJRIAH API INDONESIA GAGAL: " +
+      String(hijri && hijri.error || "respons tidak lengkap atau tanggal tidak cocok"));
+  }
+
+  Logger.log("UJI API INDONESIA LULUS: " + city + " | " + date +
+    " | Jadwal sholat lengkap | Hijriah " + hijri.hijri);
+  return {
+    success: true,
+    date: date,
+    city: city,
+    sourcePrayer: prayer.source || "API Indonesia",
+    sourceHijri: hijri.source || "API Indonesia",
+    jadwal: prayer.jadwal,
+    hijri: hijri.hijri
+  };
+}
