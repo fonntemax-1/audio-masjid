@@ -3902,14 +3902,14 @@ function processKeyValue(
        if (!monthlyDays.length) throw new Error('API Indonesia tidak mengembalikan jadwal bulanan untuk ' + kota + '.');
 
        function normalizeMonthlyTime_(value) {
-         var match = String(value == null ? '' : value).trim().match(/^(\\d{1,2}):(\\d{2})(?::\\d{2})?$/);
+         var match = String(value == null ? '' : value).trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
          return match ? ('0' + match[1]).slice(-2) + ':' + match[2] : '';
        }
        var expectedDays = new Date(year, month, 0).getDate();
        var seenDates = {};
        monthlyDays.forEach(function(day) {
          var d = String(day.date || day.tanggal || '').trim();
-         if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(d) || d.slice(0, 7) !== year + '-' + monthText) {
+         if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || d.slice(0, 7) !== year + '-' + monthText) {
            throw new Error('Tanggal tidak valid pada respons jadwal bulanan untuk ' + kota + ': ' + d);
          }
          day.date = d;
@@ -4760,7 +4760,7 @@ function getHijriDateFromApi(
         const annualDays = {};
         annualRows.forEach(function(row) {
           const rowDate = String(row.gregorian_date || row.date || "").trim();
-          if (/^\\d{4}-\\d{2}-\\d{2}$/.test(rowDate) && rowDate.slice(0, 4) === year) {
+          if (/^\d{4}-\d{2}-\d{2}$/.test(rowDate) && rowDate.slice(0, 4) === year) {
             annualDays[rowDate] = {
               gregorian_date: rowDate,
               hijri_day: row.hijri_day,
