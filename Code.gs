@@ -6335,6 +6335,86 @@ function getPanelKeuanganSource() {
  * Membaca lokasi dari panels!C5:C6 dan menguji method 20 (Kemenag Indonesia).
  * Hanya GET API dan menulis log; tidak mengubah sheet, cache, atau scheduler.
  */
+
+/**
+ * Uji nama wilayah AlAdhan lintas WIB, WITA, dan WIT.
+ * Hanya memanggil API dan menulis log; tidak mengubah panels, cache, trigger, atau audio.
+ * Jalankan manual dari Apps Script Editor dan periksa hasil tiap wilayah.
+ */
+function TEST_ALADHAN_CROSS_TIMEZONE() {
+  const samples = [
+    { city: "Kabupaten Sumedang", province: "Jawa Barat", timezone: "Asia/Jakarta", zone: "WIB" },
+    { city: "Kota Balikpapan", province: "Kalimantan Timur", timezone: "Asia/Makassar", zone: "WITA" },
+    { city: "Kota Administrasi Jakarta Pusat", province: "Daerah Khusus Ibukota Jakarta", timezone: "Asia/Jakarta", zone: "WIB" },
+    { city: "Kabupaten Jayapura", province: "Papua", timezone: "Asia/Jayapura", zone: "WIT" }
+  ];
+  const now = new Date();
+  const year = Number(Utilities.formatDate(now, "Asia/Makassar", "yyyy"));
+  const month = Number(Utilities.formatDate(now, "Asia/Makassar", "M"));
+  const expectedDays = new Date(year, month, 0).getDate();
+  const results = [];
+
+  samples.forEach(function(sample) {
+    const url = "https://api.aladhan.com/v1/calendarByCity/" + year + "/" + month +
+      "?city=" + encodeURIComponent(sample.city) +
+      "&country=" + encodeURIComponent("Indonesia") +
+      "&state=" + encodeURIComponent(sample.province) +
+      "&method=20&school=0&timezonestring=" + encodeURIComponent(sample.timezone);
+    const result = {
+      kota: sample.city,
+      provinsi: sample.province,
+      zona: sample.zone,
+      timezone: sample.timezone,
+      success: false
+    };
+    try {
+      const response = UrlFetchApp.fetch(url, {
+        method: "get",
+        muteHttpExceptions: true,
+        headers: { "Accept": "application/json" }
+      });
+      result.httpStatus = response.getResponseCode();
+      if (result.httpStatus !== 200) {
+        result.error = response.getContentText().slice(0, 250);
+      } else {
+        const payload = JSON.parse(response.getContentText() || "{}");
+        const days = Array.isArray(payload.data) ? payload.data : [];
+        const ids = {};
+        const invalid = [];
+        days.forEach(function(day) {
+          const rawDate = String(day && day.date && day.date.gregorian && day.date.gregorian.date || "");
+          const m = rawDate.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+          const iso = m ? m[3] + "-" + m[2] + "-" + m[1] : "";
+          if (!iso || iso.slice(0, 7) !== year + "-" + ("0" + month).slice(-2)) invalid.push("tanggal");
+          if (ids[iso]) invalid.push("duplikat");
+          ids[iso] = true;
+          const methodId = day && day.meta && day.meta.method ? Number(day.meta.method.id) : 20;
+          if (methodId !== 20) invalid.push("method bukan 20");
+          const t = day && day.timings || {};
+          ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"].forEach(function(key) {
+            if (!/^\d{1,2}:\d{2}/.test(String(t[key] || ""))) invalid.push("waktu " + key);
+          });
+        });
+        result.dayCount = days.length;
+        result.expectedDays = expectedDays;
+        result.methodId = days.length && days[0].meta && days[0].meta.method
+          ? Number(days[0].meta.method.id) : null;
+        result.success = days.length === expectedDays && Object.keys(ids).length === expectedDays && invalid.length === 0;
+        if (!result.success) result.error = invalid.slice(0, 5).join(", ") || "Jumlah tanggal tidak sesuai";
+      }
+    } catch (error) {
+      result.error = error && error.message ? error.message : String(error);
+    }
+    results.push(result);
+    Logger.log("UJI ALADHAN " + sample.zone + " " + sample.city + ": " + JSON.stringify(result));
+  });
+
+  const passed = results.filter(function(item) { return item.success; }).length;
+  const report = { success: passed === samples.length, passed: passed, total: samples.length, results: results };
+  Logger.log("RINGKASAN UJI ALADHAN LINTAS ZONA: " + JSON.stringify(report));
+  return report;
+}
+
 function TEST_ALADHAN_SHOLAT_LANGSUNG() {
   var ss = getSpreadsheet();
   var panels = ss.getSheetByName('panels');
