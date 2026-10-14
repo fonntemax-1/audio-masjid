@@ -4899,9 +4899,11 @@ function getHijriDateFromApi(
         try { annualPayload = JSON.parse(annualResponse.getContentText() || "{}"); } catch (ignoreAnnualJson) {}
         const annualRows = annualPayload && Array.isArray(annualPayload.data) ? annualPayload.data : [];
         const annualDays = {};
+        let annualDuplicateDate = false;
         annualRows.forEach(function(row) {
           const rowDate = String(row.gregorian_date || row.date || "").trim();
           if (/^\d{4}-\d{2}-\d{2}$/.test(rowDate) && rowDate.slice(0, 4) === year) {
+            if (annualDays[rowDate]) annualDuplicateDate = true;
             annualDays[rowDate] = {
               gregorian_date: rowDate,
               hijri_day: row.hijri_day,
@@ -4911,7 +4913,7 @@ function getHijriDateFromApi(
             };
           }
         });
-        if (hijriAnnualDaysComplete_(annualDays, year)) {
+        if (!annualDuplicateDate && hijriAnnualDaysComplete_(annualDays, year)) {
           hijriDoc = hijriDoc && hijriDoc.years && typeof hijriDoc.years === "object"
             ? hijriDoc : { success: true, source: "API Indonesia / Kalender Hijriah Kemenag", years: {} };
           hijriDoc.years[year] = {
