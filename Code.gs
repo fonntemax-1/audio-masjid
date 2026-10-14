@@ -5776,16 +5776,32 @@ function syncPrayerPanelLocationFromCity_(cityValue, showToast) {
 
   const wanted = normalizePrayerDropdownName_(city);
   const matches = document.cities.filter(function(item) {
-    return normalizePrayerDropdownName_(item.display_name || "") === wanted;
+    return normalizePrayerDropdownName_(item.display_name || "") === wanted ||
+      normalizePrayerDropdownName_(item.name || "") === wanted;
   });
   if (!matches.length) throw new Error('Kota "' + city + '" tidak ditemukan pada data/daftar-kota.json.');
   if (matches.length > 1) throw new Error('Nama kota "' + city + '" tidak unik pada data/daftar-kota.json.');
 
   const item = matches[0];
+  const province = String(item.province || "").trim();
+  const zone = String(item.zone || "").trim();
+  const timezone = String(item.timezone || "").trim();
+  const gmt = String(item.gmt || "").trim();
+  const slug = String(item.slug || "").trim();
+  if (!province || !zone || !timezone || !gmt || !slug) {
+    throw new Error('Metadata wilayah "' + city + '" tidak lengkap pada data/daftar-kota.json.');
+  }
+
   // C6 Provinsi, C7 Zona, C8 Timezone, C9 GMT, C10 slug kota.
-  panels.getRange("C6:C10").setValues([[
-    item.province || "", item.zone || "", item.timezone || "", item.gmt || "", item.slug || ""
-  ]]);
+  panels.getRange("C6:C10").setValues([[province, zone, timezone, gmt, slug]]);
+  SpreadsheetApp.flush();
+  const written = panels.getRange("C6:C10").getDisplayValues().map(function(row) {
+    return String(row[0] || "").trim();
+  });
+  if (written[0] !== province || written[1] !== zone || written[2] !== timezone ||
+      written[3] !== gmt || written[4] !== slug) {
+    throw new Error('Verifikasi C6:C10 gagal untuk kota "' + city + '".');
+  }
   if (showToast) ss.toast("Lokasi diperbarui dari GitHub JSON: " + item.display_name + " · " + item.province, "Daftar Kota", 3);
   return true;
 }
