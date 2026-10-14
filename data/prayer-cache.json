@@ -1,8 +1,8 @@
 {
   "success": true,
   "source": "API Indonesia",
-  "generatedAt": "2026-10-14T11:22:42.406Z",
-  "updatedAt": "2026-10-14T11:22:42.406Z",
+  "generatedAt": "2026-10-14T11:58:51.338Z",
+  "updatedAt": "2026-10-14T11:58:51.338Z",
   "cityCount": 514,
   "cities": {
     "aceh-barat": {
@@ -661,12 +661,12 @@
       "tanggal": "2026-10-14",
       "kota": "Kota Cilegon",
       "provinsi": "Banten",
-      "regency_id": "3672",
+      "regency_id": "",
       "slug": "cilegon",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
-      "gmt": "GMT+7",
-      "source": "API Indonesia / Kemenag",
+      "gmt": "UTC+7",
+      "source": "AlAdhan API / method 20 (Kemenag Indonesia)",
       "jadwal": {
         "subuh": "04:17",
         "terbit": "05:35",
@@ -675,7 +675,7 @@
         "maghrib": "17:49",
         "isya": "18:59"
       },
-      "generatedAt": "2026-10-14T06:33:58.515Z"
+      "generatedAt": "2026-10-14T11:58:51.338Z"
     },
     "serang-3673": {
       "success": false,
