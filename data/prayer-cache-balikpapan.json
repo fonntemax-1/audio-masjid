@@ -1,6 +1,6 @@
 {
   "success": true,
-  "tanggal": "2026-10-14",
+  "tanggal": "2026-10-15",
   "kota": "Kota Balikpapan",
   "provinsi": "Kalimantan Timur",
   "regency_id": "6471",
@@ -17,5 +17,5 @@
     "maghrib": "18:03",
     "isya": "19:12"
   },
-  "generatedAt": "2026-10-14T12:57:46.955Z"
+  "generatedAt": "2026-10-14T16:01:28.889Z"
 }
