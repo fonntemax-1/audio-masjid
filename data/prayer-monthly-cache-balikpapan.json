@@ -1,8 +1,8 @@
 {
   "success": true,
   "source": "AlAdhan API / method 20 (Kemenag Indonesia)",
-  "generatedAt": "2026-10-14T12:37:45.619Z",
-  "updatedAt": "2026-10-14T12:37:45.619Z",
+  "generatedAt": "2026-10-14T13:30:58.084Z",
+  "updatedAt": "2026-10-14T13:30:58.084Z",
   "monthCount": 1,
   "months": {
     "ALADHAN_kota-balikpapan-kalimantan-timur_asia-makassar_202610": {
@@ -15,7 +15,7 @@
       "bulan": 10,
       "method_id": 20,
       "source": "AlAdhan API / method 20 (Kemenag Indonesia)",
-      "updatedAt": "2026-10-14T12:37:45.618Z",
+      "updatedAt": "2026-10-14T13:30:58.084Z",
       "days": [
         {
           "date": "2026-10-01",
