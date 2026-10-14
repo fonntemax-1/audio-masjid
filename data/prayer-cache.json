@@ -1,8 +1,8 @@
 {
   "success": true,
-  "generatedAt": "2026-10-13T23:28:47.925Z",
-  "updatedAt": "2026-10-13T23:28:47.925Z",
-  "cityCount": 181,
+  "generatedAt": "2026-10-14T00:07:07.970Z",
+  "updatedAt": "2026-10-14T00:07:07.970Z",
+  "cityCount": 182,
   "cities": {
     "balikpapan": {
       "success": true,
@@ -3623,6 +3623,26 @@
         "isya": "19:20"
       },
       "generatedAt": "2026-10-13T21:15:51.377818+00:00"
+    },
+    "kutai-timur": {
+      "success": true,
+      "tanggal": "2026-10-14",
+      "kota": "Kabupaten Kutai Timur",
+      "provinsi": "Kalimantan Timur",
+      "slug": "kutai-timur",
+      "zona": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "GMT+8",
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:38",
+        "terbit": "05:55",
+        "dzuhur": "11:58",
+        "ashar": "15:13",
+        "maghrib": "18:01",
+        "isya": "19:10"
+      },
+      "generatedAt": "2026-10-14T00:07:07.967Z"
     }
   }
 }
