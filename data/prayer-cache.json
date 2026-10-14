@@ -1,8 +1,8 @@
 {
   "success": true,
-  "generatedAt": "2026-10-14T02:16:50.740Z",
-  "updatedAt": "2026-10-14T02:16:50.740Z",
-  "cityCount": 182,
+  "generatedAt": "2026-10-14T02:17:37.805Z",
+  "updatedAt": "2026-10-14T02:17:37.805Z",
+  "cityCount": 183,
   "cities": {
     "balikpapan": {
       "success": true,
@@ -3643,6 +3643,26 @@
         "isya": "19:32"
       },
       "generatedAt": "2026-10-14T02:16:50.740Z"
+    },
+    "bangka": {
+      "success": true,
+      "tanggal": "2026-10-14",
+      "kota": "Kabupaten Bangka",
+      "provinsi": "Kepulauan Bangka Belitung",
+      "slug": "bangka",
+      "zona": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "GMT+7",
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:20",
+        "terbit": "05:37",
+        "dzuhur": "11:42",
+        "ashar": "14:53",
+        "maghrib": "17:46",
+        "isya": "18:56"
+      },
+      "generatedAt": "2026-10-14T02:17:37.805Z"
     }
   }
 }
