@@ -15641,9 +15641,7 @@ function startRealtimeAudioConfigPolling_() {
 
     function isRamadanCalendarDate_() {
 
-      // API Indonesia adalah satu-satunya acuan tanggal Hijriah.
-      // Gunakan bulan dari tanggal Hijriah yang sudah ditampilkan oleh
-      // getHijriDateFromApi(); jangan menghitung ulang dengan kalender lain.
+      // Acuan utama: bulan pada tanggal Hijriah dari API Indonesia.
       try {
         const hijriTextEl = document.getElementById('hijri-text');
         const monthText = String(
@@ -15651,12 +15649,21 @@ function startRealtimeAudioConfigPolling_() {
         ).trim().toLowerCase();
 
         if (/ramadan|ramadhan/.test(monthText)) return true;
-
-        // Bila API belum memberikan tanggal Hijriah, jangan menebak bulan
-        // dari kalender lokal; tunggu pembaruan Hijri API berikutnya.
         if (monthText && monthText !== '--') return false;
       } catch (error) {
         console.warn('RAMADAN CALENDAR MODE: tanggal Hijriah API belum tersedia:', error);
+      }
+
+      // Fallback sementara hanya saat tanggal dari API Indonesia belum dimuat.
+      // Begitu teks Hijriah API tersedia, keputusan selalu memakai API Indonesia.
+      try {
+        if (typeof moment === 'function' && moment.iConvert) {
+          const m = moment(getApiDate(), 'YYYY-MM-DD');
+          const hMonth = typeof m.iMonth === 'function' ? Number(m.iMonth()) : -1;
+          if (hMonth >= 0) return hMonth === 8;
+        }
+      } catch (error) {
+        console.warn('RAMADAN CALENDAR MODE: fallback lokal gagal:', error);
       }
 
       return false;
