@@ -825,45 +825,63 @@ function findAPIIndonesiaRegencyMatch_(regencyName) {
   var rawTarget = String(regencyName || '').trim();
   var target = normalizeAPIIndonesiaAreaName_(rawTarget);
   if (!target) return null;
-  var ss = getSpreadsheet();
-  var listSheet = ss.getSheetByName('daftar-kota');
-  if (!listSheet || listSheet.getLastRow() < 2) return null;
-  var rows = listSheet.getRange(2, 1, listSheet.getLastRow() - 1, 7).getDisplayValues();
-  var matches = rows.filter(function(row) {
-    return normalizeAPIIndonesiaAreaName_(row[0]) === target;
-  });
-  if (!matches.length) return null;
 
-  // Nama kabupaten dan kota dapat sama (contoh Kabupaten Mojokerto vs
-  // Kota Mojokerto). Jangan menggagalkan pencocokan hanya karena nama yang
-  // dinormalisasi sama; utamakan tipe administratif yang dikembalikan geocoder.
-  var wantsKabupaten = /^(kabupaten|kab\.?|kabup)\s+/i.test(rawTarget) || /\s+regency$/i.test(rawTarget);
-  var wantsKota = /^kota\s+/i.test(rawTarget) || /^city of\s+/i.test(rawTarget);
+  // Sumber tunggal pencocokan: katalog JSON di branch pengujian.
+  // Sheet "daftar-kota" tidak dibaca pada jalur ini.
+  var document;
+  try {
+    document = readGithubJsonFile_("data/daftar-kota.json");
+  } catch (error) {
+    Logger.log("KATALOG KOTA GITHUB GAGAL DIBACA: " + String(error));
+    return null;
+  }
+  if (!document || !Array.isArray(document.cities) || document.cities.length !== 514) {
+    Logger.log("KATALOG KOTA GITHUB tidak valid; pencocokan C4 ke C5 dibatalkan.");
+    return null;
+  }
+
+  var matches = document.cities.filter(function(item) {
+    var displayName = String(item && item.display_name || "").trim();
+    var shortName = String(item && item.name || "").trim();
+    return normalizeAPIIndonesiaAreaName_(displayName) === target ||
+      normalizeAPIIndonesiaAreaName_(shortName) === target;
+  });
+
+  // Nama kabupaten/kota bisa sama. Jika geocoder memberi tipe administratif,
+  // pilih hanya entri dengan tipe yang sesuai agar tidak salah kota.
+  var wantsKabupaten = /^(kabupaten|kab\\.?|kabup)\\s+/i.test(rawTarget) || /\\s+regency$/i.test(rawTarget);
+  var wantsKota = /^kota\\s+/i.test(rawTarget) || /^city of\\s+/i.test(rawTarget);
   if (wantsKabupaten) {
-    var kabupatenMatches = matches.filter(function(row) {
-      return /^(kabupaten|kab\.?|kabup)\s+/i.test(String(row[0] || '').trim()) ||
-        /\s+regency$/i.test(String(row[0] || '').trim());
+    var kabupatenMatches = matches.filter(function(item) {
+      return String(item.type || "").toLowerCase() === "kabupaten" ||
+        /^(kabupaten|kab\\.?|kabup)\\s+/i.test(String(item.display_name || ""));
     });
-    if (kabupatenMatches.length === 1) matches = kabupatenMatches;
-    else if (kabupatenMatches.length > 1) matches = kabupatenMatches;
+    if (kabupatenMatches.length) matches = kabupatenMatches;
   } else if (wantsKota) {
-    var kotaMatches = matches.filter(function(row) {
-      return /^kota\s+/i.test(String(row[0] || '').trim()) ||
-        /^city of\s+/i.test(String(row[0] || '').trim());
+    var kotaMatches = matches.filter(function(item) {
+      return String(item.type || "").toLowerCase() === "kota" ||
+        /^kota\\s+/i.test(String(item.display_name || ""));
     });
     if (kotaMatches.length) matches = kotaMatches;
   } else if (matches.length > 1) {
-    // Geocoder tanpa label tipe: lebih aman memilih entri kabupaten daripada
-    // Kota dengan nama sama untuk wilayah kecamatan seperti Pacet.
-    var adminRegencyMatches = matches.filter(function(row) {
-      return /^(kabupaten|kab\.?|kabup)\s+/i.test(String(row[0] || '').trim()) ||
-        /\s+regency$/i.test(String(row[0] || '').trim());
+    var kabupatenOnly = matches.filter(function(item) {
+      return String(item.type || "").toLowerCase() === "kabupaten";
     });
-    if (adminRegencyMatches.length) matches = adminRegencyMatches;
+    if (kabupatenOnly.length) matches = kabupatenOnly;
   }
 
-  if (matches.length !== 1) return null;
-  return { kota: String(matches[0][0] || '').trim(), slug: String(matches[0][6] || '').trim() };
+  if (matches.length !== 1) {
+    Logger.log("Pencocokan katalog JSON menghasilkan " + matches.length +
+      " kandidat untuk wilayah: " + rawTarget);
+    return null;
+  }
+
+  return {
+    kota: String(matches[0].display_name || "").trim(),
+    slug: String(matches[0].slug || "").trim(),
+    regency_id: String(matches[0].regency_id || "").trim(),
+    provinsi: String(matches[0].province || "").trim()
+  };
 }
 
 function normalizeAPIIndonesiaAreaName_(value) {
