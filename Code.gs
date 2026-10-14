@@ -6179,7 +6179,7 @@ function TEST_API_INDONESIA_KALENDER_DAN_SHOLAT_LANGSUNG_TANPA_CACHE_AMAN() {
   }
   function normalizeDirectCity_(value) {
     return String(value || '').toUpperCase()
-      .replace(/^(KOTA\s+ADM\\.?\s*|KOTA\s+|KABUPATEN\s+|KABUP\\.?\s+|KAB\\.?\s+)/, '')
+      .replace(/^(KOTA\s+ADM\.?\s*|KOTA\s+|KABUPATEN\s+|KABUP\.?\s+|KAB\.?\s+)/, '')
       .replace(/[^A-Z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
   }
   function normalizeDirectTime_(value) {
