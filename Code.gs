@@ -3797,6 +3797,9 @@ function processKeyValue(
   var monthId = 'ALADHAN_' + locationKey + '_' + timezoneKey + '_' + year + monthText;
   var apiCacheKey = 'PRAYER_ALADHAN_V2_' + locationKey + '_' + timezoneKey + '_' + dateString.replace(/-/g, '');
   var monthlyCacheKey = 'PRAYER_ALADHAN_MONTH_V2_' + locationKey + '_' + timezoneKey + '_' + year + monthText;
+  // Satu file per kota; isi file hanya menyimpan kalender bulan aktif.
+  var cityCacheSlug = normalizeCityPart_(normalizePrayerLocationName_(kota));
+  var monthlyCachePath = 'data/prayer-monthly-cache-' + cityCacheSlug + '.json';
   var cache = CacheService.getScriptCache();
   var monthlyEntry = null;
   var monthlyDoc = null;
@@ -3812,7 +3815,7 @@ function processKeyValue(
     if (forceFreshAlAdhan || !monthlyEntry || !isTrustedAlAdhanMonthlyEntry_(monthlyEntry, year, month, locationKey, timezone)) {
       monthlyEntry = null;
       try {
-        monthlyDoc = readGithubJsonFile_('data/prayer-monthly-cache.json');
+        monthlyDoc = readGithubJsonFile_(monthlyCachePath);
       } catch (githubReadError) {
         Logger.log('CACHE BULANAN ALADHAN GITHUB BELUM DAPAT DIBACA: ' +
           (githubReadError && githubReadError.message ? githubReadError.message : githubReadError));
@@ -3903,18 +3906,24 @@ function processKeyValue(
         days: normalizedDays
       };
 
-      monthlyDoc = monthlyDoc && monthlyDoc.months && typeof monthlyDoc.months === 'object'
-        ? monthlyDoc
-        : { success: true, source: sourceName, generatedAt: '', updatedAt: '', months: {} };
+      monthlyDoc = {
+        success: true,
+        source: sourceName,
+        generatedAt: '',
+        updatedAt: '',
+        monthCount: 1,
+        months: {}
+      };
+      // REPLACE: file kota ini hanya menyimpan satu bulan aktif, bukan menumpuk bulan.
       monthlyDoc.months[monthId] = monthlyEntry;
       monthlyDoc.success = true;
       monthlyDoc.source = sourceName;
       monthlyDoc.generatedAt = new Date().toISOString();
       monthlyDoc.updatedAt = monthlyDoc.generatedAt;
-      monthlyDoc.monthCount = Object.keys(monthlyDoc.months).length;
+      monthlyDoc.monthCount = 1;
       try {
-        writeGithubJsonFile_('data/prayer-monthly-cache.json', monthlyDoc,
-          'Cache jadwal sholat langsung AlAdhan ' + kota + ' ' + year + '-' + monthText);
+        writeGithubJsonFile_(monthlyCachePath, monthlyDoc,
+          'Replace cache jadwal sholat ' + kota + ' ' + year + '-' + monthText);
         Logger.log('JADWAL ALADHAN DISIMPAN KE GITHUB: ' + kota + ' ' + year + '-' + monthText +
           ' (' + normalizedDays.length + ' tanggal).');
       } catch (githubWriteError) {
