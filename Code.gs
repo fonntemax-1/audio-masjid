@@ -6134,3 +6134,145 @@ function TEST_API_INDONESIA_KALENDER_DAN_SHOLAT_AMAN() {
     hijri: hijri.hijri
   };
 }
+
+
+/**
+ * UJI LANGSUNG API INDONESIA TANPA MEMBACA/MENULIS CACHE.
+ * Memanggil endpoint daftar kota, jadwal sholat, dan kalender Hijriah secara langsung.
+ * Hanya membaca sheet dan API lalu menulis log; tidak mengubah sheet, cache,
+ * GitHub, trigger, tampilan, ataupun scheduler audio.
+ */
+function TEST_API_INDONESIA_KALENDER_DAN_SHOLAT_LANGSUNG_TANPA_CACHE_AMAN() {
+  var props = PropertiesService.getScriptProperties();
+  var apiKey = String(props.getProperty('API_INDONESIA_KEY') || '').trim();
+  if (!apiKey) throw new Error('Script Property API_INDONESIA_KEY belum diisi.');
+
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var city = loc[0] || '';
+  var province = loc[1] || '';
+  var timezone = loc[3] || 'Asia/Makassar';
+  if (!city) throw new Error('panels!C5 (kota) kosong.');
+  var date = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
+
+  function fetchJsonDirect_(url, label) {
+    var response = UrlFetchApp.fetch(url, {
+      method: 'get',
+      muteHttpExceptions: true,
+      headers: { 'x-api-key': apiKey, 'Accept': 'application/json' }
+    });
+    var code = response.getResponseCode();
+    var body = response.getContentText() || '';
+    var json = null;
+    try { json = JSON.parse(body); } catch (parseError) {}
+    if (code < 200 || code >= 300) {
+      throw new Error(label + ' HTTP ' + code + ': ' + body.slice(0, 400));
+    }
+    if (!json || typeof json !== 'object') {
+      throw new Error(label + ' mengembalikan JSON yang tidak valid.');
+    }
+    return { json: json, httpCode: code };
+  }
+  function normalizeDirectCity_(value) {
+    return String(value || '').toUpperCase()
+      .replace(/^(KOTA\\s+ADM\\.?\\s*|KOTA\\s+|KABUPATEN\\s+|KABUP\\.?\\s+|KAB\\.?\\s+)/, '')
+      .replace(/[^A-Z0-9]+/g, ' ').trim().replace(/\\s+/g, ' ');
+  }
+  function normalizeDirectTime_(value) {
+    var m = String(value == null ? '' : value).trim().match(/^(\\d{1,2}):(\\d{2})(?::\\d{2})?$/);
+    return m ? ('0' + m[1]).slice(-2) + ':' + m[2] : '';
+  }
+
+  // Sengaja tidak menggunakan CacheService untuk ketiga request pengujian.
+  var cityResponse = fetchJsonDirect_(
+    'https://use.apiindonesia.id/api/v1/sholat/list-kota',
+    'API Indonesia daftar kota'
+  );
+  var cityList = cityResponse.json && Array.isArray(cityResponse.json.data)
+    ? cityResponse.json.data : [];
+  if (!cityList.length) throw new Error('Endpoint langsung daftar kota tidak mengembalikan data.');
+
+  var wantedCity = normalizeDirectCity_(city);
+  var wantedProvince = normalizeDirectCity_(province);
+  var matches = cityList.filter(function(item) {
+    return normalizeDirectCity_(item && (item.regency_name || item.name || item.alt_name)) === wantedCity;
+  });
+  if (matches.length > 1 && wantedProvince) {
+    var provinceMatches = matches.filter(function(item) {
+      return normalizeDirectCity_(item && (item.province_name || item.province)) === wantedProvince;
+    });
+    if (provinceMatches.length) matches = provinceMatches;
+  }
+  if (matches.length !== 1) {
+    throw new Error('Pencocokan kota langsung API Indonesia harus menghasilkan tepat 1 hasil; ditemukan ' +
+      matches.length + ' untuk ' + city + ' / ' + province + '.');
+  }
+  var regencyId = String(matches[0].regency_id || matches[0].id || matches[0].code || '').trim();
+  if (!regencyId) throw new Error('ID kota API Indonesia kosong untuk ' + city + '.');
+
+  var prayerResponse = fetchJsonDirect_(
+    'https://use.apiindonesia.id/api/v1/sholat?kabupaten_id=' +
+      encodeURIComponent(regencyId) + '&tanggal=' + encodeURIComponent(date),
+    'API Indonesia jadwal sholat'
+  );
+  var prayerData = prayerResponse.json && prayerResponse.json.data;
+  if (!prayerData || typeof prayerData !== 'object' || Array.isArray(prayerData)) {
+    throw new Error('Respons langsung jadwal sholat tidak memiliki data.');
+  }
+  var prayerDate = String(prayerData.date || prayerData.tanggal || '').trim();
+  if (prayerDate !== date) {
+    throw new Error('Tanggal jadwal langsung tidak cocok; diminta ' + date + ', diterima ' + prayerDate + '.');
+  }
+  var prayer = {
+    imsak: normalizeDirectTime_(prayerData.imsyak),
+    subuh: normalizeDirectTime_(prayerData.shubuh),
+    terbit: normalizeDirectTime_(prayerData.terbit),
+    dzuhur: normalizeDirectTime_(prayerData.dzuhur),
+    ashar: normalizeDirectTime_(prayerData.ashr),
+    maghrib: normalizeDirectTime_(prayerData.maghrib),
+    isya: normalizeDirectTime_(prayerData.isya)
+  };
+  if (!isCompletePrayerScheduleSafe_(prayer)) {
+    throw new Error('Respons langsung jadwal sholat tidak lengkap/format waktu tidak valid: ' +
+      JSON.stringify(prayer));
+  }
+
+  var hijriResponse = fetchJsonDirect_(
+    HIJRI_API_BASE_URL + '/konversi?tanggal=' + encodeURIComponent(date),
+    'API Indonesia kalender Hijriah'
+  );
+  var hijriData = hijriResponse.json && hijriResponse.json.data;
+  var hijri = String(hijriData && hijriData.hijri_formatted || '').trim();
+  var hijriDate = String(hijriData && (hijriData.gregorian_date || hijriData.date) || '').trim();
+  if (!hijri) throw new Error('Respons langsung kalender Hijriah tidak memiliki hijri_formatted.');
+  if (hijriDate && hijriDate !== date) {
+    throw new Error('Tanggal kalender Hijriah langsung tidak cocok; diminta ' + date +
+      ', diterima ' + hijriDate + '.');
+  }
+
+  var report = {
+    success: true,
+    test: 'API Indonesia langsung tanpa cache',
+    tanggal: date,
+    kota: city,
+    provinsi: province,
+    regencyId: regencyId,
+    timezone: timezone,
+    requests: {
+      daftarKota: { httpCode: cityResponse.httpCode, cacheUsed: false },
+      jadwalSholat: { httpCode: prayerResponse.httpCode, cacheUsed: false },
+      kalenderHijriah: { httpCode: hijriResponse.httpCode, cacheUsed: false }
+    },
+    jadwalSholat: prayer,
+    kalenderHijriah: hijri,
+    source: 'API Indonesia (direct fetch, no CacheService)'
+  };
+  Logger.log('UJI LANGSUNG API INDONESIA TANPA CACHE: ' + JSON.stringify(report));
+  Logger.log('UJI LANGSUNG API INDONESIA LULUS: ' + city + ' | ' + date +
+    ' | 3 endpoint HTTP sukses | Hijriah ' + hijri);
+  return report;
+}
