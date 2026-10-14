@@ -11892,9 +11892,22 @@ function startRealtimeAudioConfigPolling_() {
       prayerGitHubCacheRequestInFlight = true;
       prayerGitHubCacheLastAttemptMs = nowMs;
 
+      const cacheLocation = WEB_APP_STATE.location || {};
+      const cacheCitySlug = String(cacheLocation.slug || '').trim().toLowerCase();
+
+      // Gunakan cache harian khusus kota yang sumbernya AlAdhan.
+      // Jangan membaca data/prayer-cache.json karena file multi-kota lama
+      // masih berisi sumber MuslimKita/Kemenag.
+      if (!cacheCitySlug) {
+        console.warn('JADWAL GITHUB CACHE: slug kota belum tersedia; lewati cache GitHub.');
+        return Promise.resolve(false);
+      }
+
       const url =
         window.location.origin +
-        '/audio-masjid/data/prayer-cache.json?ts=' +
+        '/audio-masjid/data/prayer-cache-' +
+        encodeURIComponent(cacheCitySlug) +
+        '.json?ts=' +
         Date.now();
 
       console.log(
@@ -11937,25 +11950,15 @@ function startRealtimeAudioConfigPolling_() {
               ''
             ).trim();
 
-          // Format baru:
-          // payload.cities[slug] = jadwal kota untuk tanggal lokal kota tersebut.
-          // Tetap dukung format lama satu-kota agar transisi cache aman.
-          const cityCache =
-            payload &&
-            payload.cities &&
-            targetSlug
-              ? payload.cities[targetSlug]
-              : null;
-
+          // File prayer-cache-<slug>.json adalah cache harian khusus kota.
+          // Gunakan payload itu secara langsung; jangan mengambil data dari
+          // cache multi-kota lama yang dapat berisi sumber berbeda.
           const selectedPayload =
-            cityCache ||
-            (
-              payload &&
-              payload.slug &&
-              String(payload.slug).trim().toLowerCase() === targetSlug
-                ? payload
-                : null
-            );
+            payload &&
+            payload.slug &&
+            String(payload.slug).trim().toLowerCase() === targetSlug
+              ? payload
+              : null;
 
           if (
             !selectedPayload ||
