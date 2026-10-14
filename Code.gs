@@ -4663,6 +4663,99 @@ const HIJRI_CACHE_SECONDS =
 // KONVERSI TANGGAL MASEHI -> HIJRIAH
 // ============================================================
 
+function hijriExpectedDayCount_(year) {
+  const y = Number(year);
+  return new Date(Date.UTC(y + 1, 0, 1) - Date.UTC(y, 0, 1)) / 86400000;
+}
+
+function hijriAnnualDaysComplete_(days, year) {
+  if (!days || typeof days !== "object") return false;
+  const expected = hijriExpectedDayCount_(year);
+  const keys = Object.keys(days);
+  if (keys.length !== expected) return false;
+  const cursor = new Date(Date.UTC(Number(year), 0, 1));
+  for (let i = 0; i < expected; i++) {
+    const dateKey = cursor.toISOString().slice(0, 10);
+    const row = days[dateKey];
+    if (!row) return false;
+    const hijri = String(row.hijri_formatted || "").trim() ||
+      (row.hijri_day && row.hijri_month_name && row.hijri_year
+        ? String(row.hijri_day) + " " + String(row.hijri_month_name).trim() + " " + String(row.hijri_year) + " H"
+        : "");
+    if (!hijri) return false;
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return true;
+}
+
+/**
+ * Validasi manual cache tahunan. Hanya mengganti cache jika API memberi
+ * semua 365/366 tanggal unik dan lengkap; kalender parsial tidak disimpan.
+ * Fungsi ini tidak memasang trigger otomatis.
+ */
+function VALIDASI_CACHE_KALENDER_HIJRIAH() {
+  const year = Utilities.formatDate(new Date(), HIJRI_TIMEZONE, "yyyy");
+  const apiKey = String(PropertiesService.getScriptProperties().getProperty(HIJRI_API_KEY_PROPERTY) || "").trim();
+  if (!apiKey) throw new Error("Script Property " + HIJRI_API_KEY_PROPERTY + " belum diisi.");
+
+  const url = HIJRI_API_BASE_URL + "/kalender?tahun=" + encodeURIComponent(year);
+  const response = UrlFetchApp.fetch(url, {
+    method: "get", muteHttpExceptions: true,
+    headers: { "x-api-key": apiKey, "Accept": "application/json" }
+  });
+  const code = response.getResponseCode();
+  if (code < 200 || code >= 300) throw new Error("API kalender tahunan HTTP " + code);
+
+  let payload;
+  try { payload = JSON.parse(response.getContentText() || "{}"); }
+  catch (e) { throw new Error("Respons kalender tahunan bukan JSON valid."); }
+
+  const rows = payload && Array.isArray(payload.data) ? payload.data : [];
+  const days = {};
+  let duplicate = false;
+  rows.forEach(function(row) {
+    const dateKey = String(row && (row.gregorian_date || row.date) || "").trim();
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateKey) || dateKey.slice(0, 4) !== year) return;
+    if (days[dateKey]) duplicate = true;
+    const formatted = String(row.hijri_formatted || "").trim() ||
+      (row.hijri_day && row.hijri_month_name && row.hijri_year
+        ? String(row.hijri_day) + " " + String(row.hijri_month_name).trim() + " " + String(row.hijri_year) + " H"
+        : "");
+    if (!formatted) return;
+    days[dateKey] = {
+      gregorian_date: dateKey,
+      hijri_day: row.hijri_day,
+      hijri_month_name: String(row.hijri_month_name || ""),
+      hijri_year: row.hijri_year,
+      hijri_formatted: formatted
+    };
+  });
+  if (duplicate || !hijriAnnualDaysComplete_(days, year)) {
+    throw new Error("Validasi gagal: API harus menyediakan " + hijriExpectedDayCount_(year) + " tanggal unik dan lengkap. Cache lama tidak diubah.");
+  }
+
+  let doc = null;
+  try { doc = readGithubJsonFile_("data/hijri-calendar-cache.json"); } catch (e) {}
+  if (!doc || !doc.years || typeof doc.years !== "object") {
+    doc = { success: true, source: "API Indonesia / Kalender Hijriah Kemenag", years: {} };
+  }
+  const now = new Date().toISOString();
+  doc.years[year] = {
+    year: Number(year), source: "API Indonesia / Kalender Hijriah Kemenag",
+    updatedAt: now, dayCount: Object.keys(days).length, days: days
+  };
+  doc.success = true;
+  doc.source = "API Indonesia / Kalender Hijriah Kemenag";
+  doc.generatedAt = now;
+  doc.updatedAt = now;
+  doc.yearCount = Object.keys(doc.years).length;
+  writeGithubJsonFile_("data/hijri-calendar-cache.json", doc,
+    "Validasi cache kalender Hijriah " + year + " dari API Indonesia");
+  const result = { success: true, year: Number(year), expectedDays: hijriExpectedDayCount_(year), validatedDays: Object.keys(days).length, updatedAt: now };
+  Logger.log("VALIDASI CACHE HIJRIAH BERHASIL: " + JSON.stringify(result));
+  return result;
+}
+
 function getHijriDateFromApi(
   dateString
 ) {
@@ -4778,7 +4871,10 @@ function getHijriDateFromApi(
       return day && monthName && hijriYear ? String(day) + " " + monthName + " " + String(hijriYear) + " H" : "";
     }
 
-    if (yearEntry && yearEntry.days && yearEntry.days[normalizedDate]) {
+    const yearEntryComplete = !!(yearEntry && yearEntry.days &&
+      hijriAnnualDaysComplete_(yearEntry.days, year));
+
+    if (yearEntryComplete && yearEntry.days[normalizedDate]) {
       const savedRow = yearEntry.days[normalizedDate];
       const savedHijri = formatHijriCalendarRow_(savedRow);
       if (savedHijri) {
@@ -4792,7 +4888,7 @@ function getHijriDateFromApi(
     }
 
     // Jika tahun belum ada di GitHub, ambil kalender satu tahun penuh satu kali.
-    if (!yearEntry || !yearEntry.days || !Object.keys(yearEntry.days).length) {
+    if (!yearEntryComplete) {
       const annualUrl = HIJRI_API_BASE_URL + "/kalender?tahun=" + encodeURIComponent(year);
       const annualResponse = UrlFetchApp.fetch(annualUrl, {
         method: "get", muteHttpExceptions: true,
@@ -4815,7 +4911,7 @@ function getHijriDateFromApi(
             };
           }
         });
-        if (Object.keys(annualDays).length) {
+        if (hijriAnnualDaysComplete_(annualDays, year)) {
           hijriDoc = hijriDoc && hijriDoc.years && typeof hijriDoc.years === "object"
             ? hijriDoc : { success: true, source: "API Indonesia / Kalender Hijriah Kemenag", years: {} };
           hijriDoc.years[year] = {
