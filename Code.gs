@@ -5471,6 +5471,84 @@ function refreshPrayerCacheForCurrentCity() {
   return { success: true, changed: true, kota: city, tanggal: date, slug: slug };
 }
 
+
+/**
+ * Pemicu installable saat panels!C5 berubah.
+ * Menyelaraskan metadata lokasi dahulu, lalu memperbarui cache jadwal GitHub.
+ * Terpisah dari onEdit(e) agar tidak mengubah alur panel atau scheduler audio.
+ */
+function handlePrayerCacheCityEdit_(e) {
+  if (!e || !e.range) return;
+  const range = e.range;
+  const sheet = range.getSheet();
+  if (sheet.getName() !== "panels" || range.getA1Notation() !== "C5") return;
+
+  try {
+    syncPrayerPanelLocationFromCity_(range.getDisplayValue(), false);
+    runPrayerCacheAutoRefresh_("pergantian kota");
+  } catch (error) {
+    Logger.log("AUTO CACHE JADWAL SAAT KOTA BERUBAH GAGAL: " +
+      (error && error.stack ? error.stack : error));
+    throw error;
+  }
+}
+
+/**
+ * Pemicu berkala untuk menangani pergantian tanggal lokal dan menjaga cache
+ * tetap baru meski kota tidak berubah. Tidak membuat commit jika data sama.
+ */
+function autoRefreshPrayerCachePeriodic_() {
+  runPrayerCacheAutoRefresh_("pemeriksaan berkala");
+}
+
+/** Menjalankan pembaruan dengan lock agar edit kota dan pemicu berkala tidak bertabrakan. */
+function runPrayerCacheAutoRefresh_(reason) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) {
+    Logger.log("AUTO CACHE JADWAL DILEWATI: proses lain masih berjalan (" + reason + ").");
+    return { success: false, skipped: true, reason: "lock_busy" };
+  }
+  try {
+    const result = refreshPrayerCacheForCurrentCity();
+    Logger.log("AUTO CACHE JADWAL (" + reason + "): " + JSON.stringify(result));
+    return result;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * Jalankan SATU KALI secara manual setelah kode ini tersedia di Apps Script.
+ * Memasang pemicu edit khusus untuk panels!C5 dan pemeriksaan berkala 6 jam.
+ * Hanya mengganti pemicu milik fitur cache ini; pemicu audio dan pemicu lain
+ * tidak dihapus atau diubah.
+ */
+function setupPrayerCacheAutoTriggers() {
+  const handlers = ["handlePrayerCacheCityEdit_", "autoRefreshPrayerCachePeriodic_"];
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    if (handlers.indexOf(trigger.getHandlerFunction()) >= 0) {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+
+  const spreadsheetId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+  if (!spreadsheetId) {
+    throw new Error("SPREADSHEET_ID belum diisi pada Script Properties.");
+  }
+
+  ScriptApp.newTrigger("handlePrayerCacheCityEdit_")
+    .forSpreadsheet(spreadsheetId)
+    .onEdit()
+    .create();
+
+  ScriptApp.newTrigger("autoRefreshPrayerCachePeriodic_")
+    .timeBased()
+    .everyHours(6)
+    .create();
+
+  Logger.log("PEMICU CACHE JADWAL AKTIF: saat panels!C5 berubah dan pemeriksaan setiap 6 jam.");
+}
+
 /** Membaca JSON dari branch migration; null hanya jika file memang belum ada (HTTP 404). */
 function readGithubJsonFile_(path) {
   const targetBranch = "migration-api-indonesia-20261014";
