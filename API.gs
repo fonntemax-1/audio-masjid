@@ -182,18 +182,6 @@ function handleGithubApiRequest_(params) {
         result = getYoutubeStatus();
         break;
 
-      case 'lockYoutubeControl':
-        result = lockYoutubeControl();
-        break;
-
-      case 'unlockYoutubeControl':
-        result = unlockYoutubeControl();
-        break;
-
-      case 'getYoutubeControlProtectionState':
-        result = getYoutubeControlProtectionState();
-        break;
-
       case 'validateRemotePin':
         result = validateRemotePinFromApi_(params);
         break;
