@@ -5706,6 +5706,27 @@ function onEdit(e) {
       if (!remotePin) throw new Error("Script Property REMOTE_CONTROL_PIN belum diisi.");
       const result = resolveGoogleMapsLinkCityFromApi_({ mapsUrl: mapsUrl, pin: remotePin });
       if (!result || result.success === false) throw new Error(result && result.error ? result.error : "Lokasi Google Maps gagal dikenali.");
+
+      // C5 diisi oleh script saat C3 Google Maps diproses, sehingga onEdit(C5)
+      // tidak berjalan. Panggil pembaruan cache secara eksplisit setelah lokasi selesai.
+      const activeCity = String(panels.getRange("C5").getDisplayValue() || "").trim();
+      if (activeCity) {
+        try {
+          const cacheResult = runPrayerCacheAutoRefresh_("lokasi Google Maps dari C3");
+          Logger.log("CACHE JADWAL SETELAH GOOGLE MAPS: " + JSON.stringify(cacheResult));
+        } catch (cacheError) {
+          Logger.log("CACHE JADWAL SETELAH GOOGLE MAPS GAGAL: " +
+            (cacheError && cacheError.stack ? cacheError.stack : cacheError));
+          try {
+            getSpreadsheet().toast(
+              "Lokasi berhasil dikenali, tetapi cache jadwal gagal diperbarui. Periksa Executions.",
+              "Cache Jadwal Sholat",
+              8
+            );
+          } catch (ignoreCacheToast) {}
+        }
+      }
+
       try {
         getSpreadsheet().toast(
           "Lokasi dikenali: " + String(result.city || panels.getRange("C4").getDisplayValue()) +
