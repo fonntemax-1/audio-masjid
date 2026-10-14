@@ -4828,7 +4828,7 @@ function refreshHijriCalendarCacheFromAlAdhan() {
       return { year: year, dayCount: annualResults[String(year)].dayCount };
     }),
     path: 'data/hijri-calendar-cache.json',
-    branch: String(PropertiesService.getScriptProperties().getProperty('GITHUB_CACHE_BRANCH') || 'migrate-aladhan-to-main-20261015').trim()
+    branch: String(PropertiesService.getScriptProperties().getProperty('GITHUB_CACHE_BRANCH') || 'main').trim()
   };
   Logger.log('REFRESH KALENDER HIJRIAH ALADHAN SELESAI: ' + JSON.stringify(report));
   return report;
@@ -5743,7 +5743,7 @@ function getIndonesianTimezoneByProvince_(province) {
 /** Mengisi panels!C6:C10 sesuai pilihan di panels!C5. */
 
 function readGithubJsonFile_(path) {
-  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "migrate-aladhan-to-main-20261015").trim();
+  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
   if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
   const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
@@ -5769,7 +5769,7 @@ function readGithubJsonFile_(path) {
 /** Membuat atau memperbarui JSON di target branch dengan token di Script Properties. */
 
 function writeGithubJsonFile_(path, document, message) {
-  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "migrate-aladhan-to-main-20261015").trim();
+  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
   if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
   const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
