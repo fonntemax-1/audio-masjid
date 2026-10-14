@@ -1,7 +1,7 @@
 {
   "success": true,
-  "generatedAt": "2026-10-14T01:37:06.554Z",
-  "updatedAt": "2026-10-14T01:37:06.554Z",
+  "generatedAt": "2026-10-14T02:07:07.173Z",
+  "updatedAt": "2026-10-14T02:07:07.173Z",
   "cityCount": 181,
   "cities": {
     "balikpapan": {
@@ -1927,22 +1927,22 @@
     "lamongan": {
       "success": true,
       "tanggal": "2026-10-14",
-      "kota": "Lamongan",
+      "kota": "Kabupaten Lamongan",
       "provinsi": "Jawa Timur",
       "slug": "lamongan",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
-      "gmt": "UTC+7",
-      "source": "MuslimKita / Kemenag",
+      "gmt": "GMT+7",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "03:55",
-        "terbit": "05:06",
-        "dzuhur": "11:21",
-        "ashar": "14:22",
-        "maghrib": "17:27",
-        "isya": "18:37"
+        "subuh": "03:51",
+        "terbit": "05:09",
+        "dzuhur": "11:16",
+        "ashar": "14:21",
+        "maghrib": "17:24",
+        "isya": "18:34"
       },
-      "generatedAt": "2026-10-13T21:15:46.455703+00:00"
+      "generatedAt": "2026-10-14T02:07:07.173Z"
     },
     "lumajang": {
       "success": true,
