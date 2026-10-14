@@ -6526,3 +6526,138 @@ function TEST_API_INDONESIA_KALENDER_DAN_SHOLAT_LANGSUNG_TANPA_CACHE_AMAN() {
     ' | 3 endpoint HTTP sukses | Hijriah ' + hijri);
   return report;
 }
+
+
+/**
+ * UJI CACHE JADWAL OFFLINE — READ ONLY.
+ *
+ * Tujuan:
+ * - Membaca data/prayer-monthly-cache.json langsung dari GitHub branch pengujian.
+ * - Tidak membaca API_INDONESIA_KEY.
+ * - Tidak memanggil API Indonesia atau penyedia jadwal alternatif.
+ * - Tidak menulis file/cache, tidak mengubah trigger, audio, atau scheduler.
+ *
+ * Jalankan dari editor Apps Script dan lihat Execution log.
+ */
+function TEST_CACHE_JADWAL_OFFLINE() {
+  var tanggalUji = "2026-10-31";
+  var regencyIdUji = "6471";
+  var monthIdUji = regencyIdUji + "_202610";
+  var pathUji = "data/prayer-monthly-cache.json";
+  var sourceTepercaya = "API Indonesia / Kemenag";
+
+  var report = {
+    test: "TEST_CACHE_JADWAL_OFFLINE",
+    success: false,
+    mode: "READ_ONLY_GITHUB_CACHE",
+    branch: "migration-api-indonesia-20261014",
+    path: pathUji,
+    tanggalUji: tanggalUji,
+    regency_idUji: regencyIdUji,
+    checks: {},
+    jadwal: null,
+    errors: []
+  };
+
+  try {
+    // Helper ini hanya melakukan GET ke GitHub Contents API dan membaca branch pengujian.
+    // Tidak menggunakan API_INDONESIA_KEY dan tidak menulis apa pun.
+    var doc = readGithubJsonFile_(pathUji);
+    report.checks.fileDitemukan = !!doc;
+    if (!doc || typeof doc !== "object") {
+      throw new Error("File cache tidak ditemukan atau JSON tidak valid: " + pathUji);
+    }
+
+    var entry = doc.months && doc.months[monthIdUji];
+    report.checks.bulanDitemukan = !!entry;
+    if (!entry || !Array.isArray(entry.days)) {
+      throw new Error("Entri cache bulan tidak ditemukan: months." + monthIdUji);
+    }
+
+    var monthYear = Number(tanggalUji.slice(0, 4));
+    var monthNumber = Number(tanggalUji.slice(5, 7));
+    var expectedDays = new Date(monthYear, monthNumber, 0).getDate();
+
+    report.checks.regencyIdBulanCocok =
+      String(entry.regency_id || "") === regencyIdUji;
+    report.checks.sumberBulanCocok =
+      String(entry.source || "") === sourceTepercaya;
+    report.checks.jumlahHariLengkap = entry.days.length === expectedDays;
+
+    var matches = entry.days.filter(function(day) {
+      return String(day && (day.date || day.tanggal) || "") === tanggalUji;
+    });
+    report.checks.tanggalUnik = matches.length === 1;
+
+    if (!report.checks.regencyIdBulanCocok) {
+      throw new Error("regency_id pada entri bulan tidak cocok; diterima " +
+        String(entry.regency_id || "(kosong)") + ".");
+    }
+    if (!report.checks.sumberBulanCocok) {
+      throw new Error("Sumber entri bulan tidak tepercaya: " +
+        String(entry.source || "(kosong)") + ".");
+    }
+    if (!report.checks.jumlahHariLengkap) {
+      throw new Error("Jumlah hari cache bulan tidak lengkap: " +
+        entry.days.length + " dari " + expectedDays + ".");
+    }
+    if (matches.length !== 1) {
+      throw new Error("Tanggal harus muncul tepat satu kali; ditemukan " +
+        matches.length + " record untuk " + tanggalUji + ".");
+    }
+
+    var day = matches[0];
+    var requiredFields = ["shubuh", "terbit", "dzuhur", "ashr", "maghrib", "isya"];
+    var validTimes = {};
+    requiredFields.forEach(function(field) {
+      validTimes[field] = isValidPrayerTimeSafe_(day[field]);
+    });
+
+    report.checks.tanggalRecordCocok =
+      String(day.date || day.tanggal || "") === tanggalUji;
+    report.checks.regencyIdRecordCocok =
+      String(day.regency_id || day.kabupaten_id || "") === regencyIdUji;
+    report.checks.sumberRecordCocok =
+      String(day.source || "") === sourceTepercaya;
+    report.checks.waktuWajibValid = requiredFields.every(function(field) {
+      return validTimes[field];
+    });
+
+    if (!report.checks.tanggalRecordCocok) {
+      throw new Error("Tanggal pada record tidak cocok.");
+    }
+    if (!report.checks.regencyIdRecordCocok) {
+      throw new Error("regency_id pada record tidak cocok.");
+    }
+    if (!report.checks.sumberRecordCocok) {
+      throw new Error("Sumber record bukan " + sourceTepercaya + ".");
+    }
+    if (!report.checks.waktuWajibValid) {
+      throw new Error("Ada waktu wajib kosong atau tidak valid: " +
+        JSON.stringify(validTimes));
+    }
+
+    report.jadwal = {
+      imsak: String(day.imsyak || day.imsak || ""),
+      subuh: String(day.shubuh || ""),
+      terbit: String(day.terbit || ""),
+      dhuha: String(day.dhuha || ""),
+      dzuhur: String(day.dzuhur || ""),
+      ashar: String(day.ashr || day.ashar || ""),
+      maghrib: String(day.maghrib || ""),
+      isya: String(day.isya || ""),
+      source: String(day.source || ""),
+      created_at: String(day.created_at || "")
+    };
+    report.success = true;
+    Logger.log("TEST_CACHE_JADWAL_OFFLINE LULUS: " + JSON.stringify(report));
+    return report;
+  } catch (err) {
+    var message = err && err.message ? err.message : String(err);
+    report.errors.push(message);
+    report.success = false;
+    Logger.log("TEST_CACHE_JADWAL_OFFLINE GAGAL: " + JSON.stringify(report));
+    throw new Error("TEST_CACHE_JADWAL_OFFLINE GAGAL: " + message +
+      " | Detail lengkap ada di Execution log.");
+  }
+}
