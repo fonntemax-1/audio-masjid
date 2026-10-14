@@ -3801,6 +3801,9 @@ function processKeyValue(
   }
 
   try {
+    if (forceRefresh) {
+      try { monthlyDoc = readGithubJsonFile_(monthlyCachePath); } catch (ignoreExistingMonthlyDoc) { monthlyDoc = null; }
+    }
     if (!forceRefresh) {
       var cachedText = scriptCache.get(cacheKey);
       if (cachedText) {
@@ -4552,7 +4555,7 @@ function hijriAnnualDaysComplete_(days, year) {
 function getHijriDateFromApi(dateString) {
   const date = String(dateString || '').trim();
   if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date)) {
-    return { success: false, found: false, hijri: '', date: date, source: 'GitHub Hijri cache', error: 'Tanggal Masehi tidak valid.' };
+    return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache', error: 'Tanggal Masehi tidak valid.' };
   }
   const cache = CacheService.getScriptCache();
   const cacheKey = 'HIJRI_GITHUB_' + date.replace(/-/g, '');
@@ -4571,11 +4574,16 @@ function getHijriDateFromApi(dateString) {
   try {
     const doc = readGithubJsonFile_('data/hijri-calendar-cache.json');
     const yearEntry = doc && doc.years && doc.years[year];
+    if (String(doc && doc.source || '') !== 'AlAdhan / Kalender Hijriah' ||
+        String(yearEntry && yearEntry.source || '') !== 'AlAdhan / Kalender Hijriah') {
+      return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache',
+        error: 'Cache kalender Hijriah bukan berasal dari AlAdhan. Jalankan refreshHijriCalendarCacheFromAlAdhan().' };
+    }
     const days = yearEntry && yearEntry.days;
     if (!days || !hijriAnnualDaysComplete_(days, year) || !days[date]) {
       return {
         success: false, found: false, hijri: '', date: date,
-        source: 'GitHub Hijri cache',
+        source: 'AlAdhan Hijri cache',
         error: 'Cache kalender Hijriah GitHub tidak tersedia atau tidak lengkap untuk tahun ' + year + '. Tidak ada fallback API.'
       };
     }
@@ -4585,15 +4593,15 @@ function getHijriDateFromApi(dateString) {
         ? String(row.hijri_day) + ' ' + String(row.hijri_month_name).trim() + ' ' + String(row.hijri_year) + ' H'
         : '');
     if (!hijri) {
-      return { success: false, found: false, hijri: '', date: date, source: 'GitHub Hijri cache', error: 'Tanggal Hijriah pada cache kosong.' };
+      return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache', error: 'Tanggal Hijriah pada cache kosong.' };
     }
-    const result = { success: true, found: true, date: date, hijri: hijri, source: 'GitHub Hijri cache', cached: true };
+    const result = { success: true, found: true, date: date, hijri: hijri, source: 'AlAdhan Hijri cache', cached: true };
     try { cache.put(cacheKey, JSON.stringify(result), HIJRI_CACHE_SECONDS); } catch (ignorePut) {}
     return result;
   } catch (error) {
     return {
       success: false, found: false, hijri: '', date: date,
-      source: 'GitHub Hijri cache',
+      source: 'AlAdhan Hijri cache',
       error: 'Gagal membaca cache kalender Hijriah GitHub: ' + String(error && error.message || error)
     };
   }
