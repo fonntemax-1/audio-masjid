@@ -1,8 +1,8 @@
 {
   "success": true,
   "source": "API Indonesia / Kemenag",
-  "generatedAt": "2026-10-14T21:01:37.858Z",
-  "updatedAt": "2026-10-14T21:01:37.858Z",
+  "generatedAt": "2026-10-14T21:11:08.812Z",
+  "updatedAt": "2026-10-14T21:11:08.812Z",
   "monthCount": 1,
   "months": {
     "3211_202610": {
@@ -15,7 +15,7 @@
       "tahun": 2026,
       "bulan": 10,
       "source": "API Indonesia / Kemenag",
-      "updatedAt": "2026-10-14T21:01:37.858Z",
+      "updatedAt": "2026-10-14T21:11:08.811Z",
       "days": [
         {
           "date": "2026-10-01",
