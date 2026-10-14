@@ -3986,13 +3986,13 @@ function processKeyValue(
        cached: false,
        cacheSource: 'API Indonesia',
        jadwal: {
-         imsak: prayerTime_(data.imsyak),
-         subuh: prayerTime_(data.shubuh),
-         terbit: prayerTime_(data.terbit),
-         dzuhur: prayerTime_(data.dzuhur),
-         ashar: prayerTime_(data.ashr),
-         maghrib: prayerTime_(data.maghrib),
-         isya: prayerTime_(data.isya)
+         imsak: normalizePrayerTime(data.imsyak),
+         subuh: normalizePrayerTime(data.shubuh),
+         terbit: normalizePrayerTime(data.terbit),
+         dzuhur: normalizePrayerTime(data.dzuhur),
+         ashar: normalizePrayerTime(data.ashr),
+         maghrib: normalizePrayerTime(data.maghrib),
+         isya: normalizePrayerTime(data.isya)
        }
      };
      if (!isCompletePrayerScheduleSafe_(result.jadwal)) {
