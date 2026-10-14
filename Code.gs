@@ -3758,7 +3758,7 @@ function processKeyValue(
   var year = Number(dateString.slice(0, 4));
   var month = Number(dateString.slice(5, 7));
   var monthText = ('0' + month).slice(-2);
-  var sourceName = 'AlAdhan API / method 20 (Kemenag Indonesia)';
+  var sourceName = 'AlAdhan API / method 20 (Indonesia)';
   var citySlug = normalizePrayerCitySlug_(kota);
   var locationKey = normalizePrayerLocationName_(kota).toLowerCase().replace(/\s+/g, '-') +
     '-' + normalizePrayerLocationName_(provinsi || 'Indonesia').toLowerCase().replace(/\s+/g, '-');
@@ -5204,7 +5204,7 @@ function resetAllPrayerCachesAndRefreshAlAdhan() { // Alias nama lama dipertahan
   return {
     success: true,
     refreshed: true,
-    refreshedFrom: "AlAdhan API / method 20 (Kemenag Indonesia)",
+    refreshedFrom: "AlAdhan API / method 20 (Indonesia)",
     result: result
   };
 }
@@ -5248,7 +5248,7 @@ function refreshPrayerCacheForCurrentCity(forceRefresh) {
     zona: schedule.zona || loc[2] || "",
     timezone: schedule.timezone || timezone,
     gmt: schedule.gmt || loc[4] || "",
-    source: schedule.source || "AlAdhan API / method 20 (Kemenag Indonesia)",
+    source: schedule.source || "AlAdhan API / method 20 (Indonesia)",
     jadwal: {
       subuh: String(schedule.jadwal.subuh || ""),
       terbit: String(schedule.jadwal.terbit || ""),
