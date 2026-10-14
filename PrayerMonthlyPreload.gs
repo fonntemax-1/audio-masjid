@@ -46,7 +46,7 @@ function autoPrepareNextMonthPrayerCache() {
 
     // getPrayerSchedule memvalidasi seluruh tanggal pada respons bulanan dan
     // menyimpan bulan yang belum ada ke data/prayer-monthly-cache.json di GitHub.
-    const result = getPrayerSchedule(targetDate);
+    const result = getPrayerSchedule(targetDate, { forceRefresh: true });
     if (!result || result.success !== true || result.tanggal !== targetDate ||
         !result.jadwal || !isCompletePrayerScheduleSafe_(result.jadwal)) {
       const reason = result && (result.error || result.apiIndonesiaError || result.fallbackReason);
