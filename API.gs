@@ -874,7 +874,7 @@ function normalizeAPIIndonesiaAreaName_(value) {
     .trim().replace(/\s+/g, ' ');
 }
 
-// Pencarian kota tidak lagi memakai endpoint MuslimKita.
+// Pencarian kota hanya menggunakan katalog API Indonesia.
 // Pencocokan kota acuan dilakukan melalui katalog API Indonesia di atas.
 
 function setRemoteCellFromApi_(params) {
