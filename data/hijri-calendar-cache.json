@@ -10,7 +10,7 @@
       "province": "Jawa Barat",
       "timezone": "Asia/Jakarta",
       "method": 20,
-      "generatedAt": "2026-10-14T23:17:58.836Z",
+      "generatedAt": "2026-10-14T23:19:26.666Z",
       "dayCount": 365,
       "days": {
         "2026-01-01": {
@@ -2941,7 +2941,7 @@
       "province": "Jawa Barat",
       "timezone": "Asia/Jakarta",
       "method": 20,
-      "generatedAt": "2026-10-14T23:17:58.836Z",
+      "generatedAt": "2026-10-14T23:19:26.666Z",
       "dayCount": 365,
       "days": {
         "2027-01-01": {
@@ -5867,5 +5867,5 @@
       }
     }
   },
-  "generatedAt": "2026-10-14T23:17:58.836Z"
+  "generatedAt": "2026-10-14T23:19:26.666Z"
 }
