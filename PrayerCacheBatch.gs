@@ -140,6 +140,17 @@ function processPrayerCacheAllCitiesBatch_() {
     const utcDay = Utilities.formatDate(new Date(), "Etc/UTC", "yyyy-MM-dd");
     const savedDay = String(props.getProperty(PRAYER_CACHE_ALL_CITIES_DAY_KEY_) || "");
     let start = savedDay === utcDay ? Number(props.getProperty(PRAYER_CACHE_ALL_CITIES_PROGRESS_KEY_) || 0) : 0;
+    if (savedDay === utcDay && isFinite(start) && start > 0) {
+      // Semua kota sudah diproses hari ini: jangan mengulang batch dari awal.
+      const previousResult = String(props.getProperty("PRAYER_CACHE_ALL_CITIES_LAST_RESULT") || "");
+      try {
+        const parsedPrevious = JSON.parse(previousResult);
+        if (parsedPrevious && parsedPrevious.selesai === true) {
+          Logger.log("CACHE SEMUA KOTA: seluruh batch hari UTC " + utcDay + " sudah selesai.");
+          return;
+        }
+      } catch (ignorePreviousResult) {}
+    }
 
     const document = readGithubJsonFile_("data/prayer-cache.json");
     if (!document || !document.cities || typeof document.cities !== "object") {
