@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "tanggal": "2026-10-15",
+  "kota": "Kabupaten Sumedang",
+  "provinsi": "Jawa Barat",
+  "regency_id": "",
+  "slug": "sumedang",
+  "zona": "WIB",
+  "timezone": "Asia/Jakarta",
+  "gmt": "GMT+7",
+  "source": "AlAdhan API / method 20 (Indonesia)",
+  "jadwal": {
+    "subuh": "04:08",
+    "terbit": "05:26",
+    "dzuhur": "11:33",
+    "ashar": "14:39",
+    "maghrib": "17:41",
+    "isya": "18:51"
+  },
+  "generatedAt": "2026-10-14T23:14:47.968Z"
+}
