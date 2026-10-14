@@ -1,0 +1,2571 @@
+{
+  "success": true,
+  "source": "API Indonesia / Kalender Hijriah Kemenag",
+  "updatedAt": "2026-10-14T08:20:58.677Z",
+  "yearCount": 1,
+  "years": {
+    "2026": {
+      "year": 2026,
+      "source": "API Indonesia / Kalender Hijriah Kemenag",
+      "updatedAt": "2026-10-14T08:20:58.673Z",
+      "dayCount": 365,
+      "days": {
+        "2026-01-01": {
+          "gregorian_date": "2026-01-01",
+          "hijri_day": 12,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "12 Rajab 1447 H"
+        },
+        "2026-01-02": {
+          "gregorian_date": "2026-01-02",
+          "hijri_day": 13,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "13 Rajab 1447 H"
+        },
+        "2026-01-03": {
+          "gregorian_date": "2026-01-03",
+          "hijri_day": 14,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "14 Rajab 1447 H"
+        },
+        "2026-01-04": {
+          "gregorian_date": "2026-01-04",
+          "hijri_day": 15,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "15 Rajab 1447 H"
+        },
+        "2026-01-05": {
+          "gregorian_date": "2026-01-05",
+          "hijri_day": 16,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "16 Rajab 1447 H"
+        },
+        "2026-01-06": {
+          "gregorian_date": "2026-01-06",
+          "hijri_day": 17,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "17 Rajab 1447 H"
+        },
+        "2026-01-07": {
+          "gregorian_date": "2026-01-07",
+          "hijri_day": 18,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "18 Rajab 1447 H"
+        },
+        "2026-01-08": {
+          "gregorian_date": "2026-01-08",
+          "hijri_day": 19,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "19 Rajab 1447 H"
+        },
+        "2026-01-09": {
+          "gregorian_date": "2026-01-09",
+          "hijri_day": 20,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "20 Rajab 1447 H"
+        },
+        "2026-01-10": {
+          "gregorian_date": "2026-01-10",
+          "hijri_day": 21,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "21 Rajab 1447 H"
+        },
+        "2026-01-11": {
+          "gregorian_date": "2026-01-11",
+          "hijri_day": 22,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "22 Rajab 1447 H"
+        },
+        "2026-01-12": {
+          "gregorian_date": "2026-01-12",
+          "hijri_day": 23,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "23 Rajab 1447 H"
+        },
+        "2026-01-13": {
+          "gregorian_date": "2026-01-13",
+          "hijri_day": 24,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "24 Rajab 1447 H"
+        },
+        "2026-01-14": {
+          "gregorian_date": "2026-01-14",
+          "hijri_day": 25,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "25 Rajab 1447 H"
+        },
+        "2026-01-15": {
+          "gregorian_date": "2026-01-15",
+          "hijri_day": 26,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "26 Rajab 1447 H"
+        },
+        "2026-01-16": {
+          "gregorian_date": "2026-01-16",
+          "hijri_day": 27,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "27 Rajab 1447 H"
+        },
+        "2026-01-17": {
+          "gregorian_date": "2026-01-17",
+          "hijri_day": 28,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "28 Rajab 1447 H"
+        },
+        "2026-01-18": {
+          "gregorian_date": "2026-01-18",
+          "hijri_day": 29,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "29 Rajab 1447 H"
+        },
+        "2026-01-19": {
+          "gregorian_date": "2026-01-19",
+          "hijri_day": 30,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1447,
+          "hijri_formatted": "30 Rajab 1447 H"
+        },
+        "2026-01-20": {
+          "gregorian_date": "2026-01-20",
+          "hijri_day": 1,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "1 Syakban 1447 H"
+        },
+        "2026-01-21": {
+          "gregorian_date": "2026-01-21",
+          "hijri_day": 2,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "2 Syakban 1447 H"
+        },
+        "2026-01-22": {
+          "gregorian_date": "2026-01-22",
+          "hijri_day": 3,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "3 Syakban 1447 H"
+        },
+        "2026-01-23": {
+          "gregorian_date": "2026-01-23",
+          "hijri_day": 4,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "4 Syakban 1447 H"
+        },
+        "2026-01-24": {
+          "gregorian_date": "2026-01-24",
+          "hijri_day": 5,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "5 Syakban 1447 H"
+        },
+        "2026-01-25": {
+          "gregorian_date": "2026-01-25",
+          "hijri_day": 6,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "6 Syakban 1447 H"
+        },
+        "2026-01-26": {
+          "gregorian_date": "2026-01-26",
+          "hijri_day": 7,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "7 Syakban 1447 H"
+        },
+        "2026-01-27": {
+          "gregorian_date": "2026-01-27",
+          "hijri_day": 8,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "8 Syakban 1447 H"
+        },
+        "2026-01-28": {
+          "gregorian_date": "2026-01-28",
+          "hijri_day": 9,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "9 Syakban 1447 H"
+        },
+        "2026-01-29": {
+          "gregorian_date": "2026-01-29",
+          "hijri_day": 10,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "10 Syakban 1447 H"
+        },
+        "2026-01-30": {
+          "gregorian_date": "2026-01-30",
+          "hijri_day": 11,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "11 Syakban 1447 H"
+        },
+        "2026-01-31": {
+          "gregorian_date": "2026-01-31",
+          "hijri_day": 12,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "12 Syakban 1447 H"
+        },
+        "2026-02-01": {
+          "gregorian_date": "2026-02-01",
+          "hijri_day": 13,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "13 Syakban 1447 H"
+        },
+        "2026-02-02": {
+          "gregorian_date": "2026-02-02",
+          "hijri_day": 14,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "14 Syakban 1447 H"
+        },
+        "2026-02-03": {
+          "gregorian_date": "2026-02-03",
+          "hijri_day": 15,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "15 Syakban 1447 H"
+        },
+        "2026-02-04": {
+          "gregorian_date": "2026-02-04",
+          "hijri_day": 16,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "16 Syakban 1447 H"
+        },
+        "2026-02-05": {
+          "gregorian_date": "2026-02-05",
+          "hijri_day": 17,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "17 Syakban 1447 H"
+        },
+        "2026-02-06": {
+          "gregorian_date": "2026-02-06",
+          "hijri_day": 18,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "18 Syakban 1447 H"
+        },
+        "2026-02-07": {
+          "gregorian_date": "2026-02-07",
+          "hijri_day": 19,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "19 Syakban 1447 H"
+        },
+        "2026-02-08": {
+          "gregorian_date": "2026-02-08",
+          "hijri_day": 20,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "20 Syakban 1447 H"
+        },
+        "2026-02-09": {
+          "gregorian_date": "2026-02-09",
+          "hijri_day": 21,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "21 Syakban 1447 H"
+        },
+        "2026-02-10": {
+          "gregorian_date": "2026-02-10",
+          "hijri_day": 22,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "22 Syakban 1447 H"
+        },
+        "2026-02-11": {
+          "gregorian_date": "2026-02-11",
+          "hijri_day": 23,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "23 Syakban 1447 H"
+        },
+        "2026-02-12": {
+          "gregorian_date": "2026-02-12",
+          "hijri_day": 24,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "24 Syakban 1447 H"
+        },
+        "2026-02-13": {
+          "gregorian_date": "2026-02-13",
+          "hijri_day": 25,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "25 Syakban 1447 H"
+        },
+        "2026-02-14": {
+          "gregorian_date": "2026-02-14",
+          "hijri_day": 26,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "26 Syakban 1447 H"
+        },
+        "2026-02-15": {
+          "gregorian_date": "2026-02-15",
+          "hijri_day": 27,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "27 Syakban 1447 H"
+        },
+        "2026-02-16": {
+          "gregorian_date": "2026-02-16",
+          "hijri_day": 28,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "28 Syakban 1447 H"
+        },
+        "2026-02-17": {
+          "gregorian_date": "2026-02-17",
+          "hijri_day": 29,
+          "hijri_month_name": "Syakban",
+          "hijri_year": 1447,
+          "hijri_formatted": "29 Syakban 1447 H"
+        },
+        "2026-02-18": {
+          "gregorian_date": "2026-02-18",
+          "hijri_day": 1,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "1 Ramadhan 1447 H"
+        },
+        "2026-02-19": {
+          "gregorian_date": "2026-02-19",
+          "hijri_day": 2,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "2 Ramadhan 1447 H"
+        },
+        "2026-02-20": {
+          "gregorian_date": "2026-02-20",
+          "hijri_day": 3,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "3 Ramadhan 1447 H"
+        },
+        "2026-02-21": {
+          "gregorian_date": "2026-02-21",
+          "hijri_day": 4,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "4 Ramadhan 1447 H"
+        },
+        "2026-02-22": {
+          "gregorian_date": "2026-02-22",
+          "hijri_day": 5,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "5 Ramadhan 1447 H"
+        },
+        "2026-02-23": {
+          "gregorian_date": "2026-02-23",
+          "hijri_day": 6,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "6 Ramadhan 1447 H"
+        },
+        "2026-02-24": {
+          "gregorian_date": "2026-02-24",
+          "hijri_day": 7,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "7 Ramadhan 1447 H"
+        },
+        "2026-02-25": {
+          "gregorian_date": "2026-02-25",
+          "hijri_day": 8,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "8 Ramadhan 1447 H"
+        },
+        "2026-02-26": {
+          "gregorian_date": "2026-02-26",
+          "hijri_day": 9,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "9 Ramadhan 1447 H"
+        },
+        "2026-02-27": {
+          "gregorian_date": "2026-02-27",
+          "hijri_day": 10,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "10 Ramadhan 1447 H"
+        },
+        "2026-02-28": {
+          "gregorian_date": "2026-02-28",
+          "hijri_day": 11,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "11 Ramadhan 1447 H"
+        },
+        "2026-03-01": {
+          "gregorian_date": "2026-03-01",
+          "hijri_day": 12,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "12 Ramadhan 1447 H"
+        },
+        "2026-03-02": {
+          "gregorian_date": "2026-03-02",
+          "hijri_day": 13,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "13 Ramadhan 1447 H"
+        },
+        "2026-03-03": {
+          "gregorian_date": "2026-03-03",
+          "hijri_day": 14,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "14 Ramadhan 1447 H"
+        },
+        "2026-03-04": {
+          "gregorian_date": "2026-03-04",
+          "hijri_day": 15,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "15 Ramadhan 1447 H"
+        },
+        "2026-03-05": {
+          "gregorian_date": "2026-03-05",
+          "hijri_day": 16,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "16 Ramadhan 1447 H"
+        },
+        "2026-03-06": {
+          "gregorian_date": "2026-03-06",
+          "hijri_day": 17,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "17 Ramadhan 1447 H"
+        },
+        "2026-03-07": {
+          "gregorian_date": "2026-03-07",
+          "hijri_day": 18,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "18 Ramadhan 1447 H"
+        },
+        "2026-03-08": {
+          "gregorian_date": "2026-03-08",
+          "hijri_day": 19,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "19 Ramadhan 1447 H"
+        },
+        "2026-03-09": {
+          "gregorian_date": "2026-03-09",
+          "hijri_day": 20,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "20 Ramadhan 1447 H"
+        },
+        "2026-03-10": {
+          "gregorian_date": "2026-03-10",
+          "hijri_day": 21,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "21 Ramadhan 1447 H"
+        },
+        "2026-03-11": {
+          "gregorian_date": "2026-03-11",
+          "hijri_day": 22,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "22 Ramadhan 1447 H"
+        },
+        "2026-03-12": {
+          "gregorian_date": "2026-03-12",
+          "hijri_day": 23,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "23 Ramadhan 1447 H"
+        },
+        "2026-03-13": {
+          "gregorian_date": "2026-03-13",
+          "hijri_day": 24,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "24 Ramadhan 1447 H"
+        },
+        "2026-03-14": {
+          "gregorian_date": "2026-03-14",
+          "hijri_day": 25,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "25 Ramadhan 1447 H"
+        },
+        "2026-03-15": {
+          "gregorian_date": "2026-03-15",
+          "hijri_day": 26,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "26 Ramadhan 1447 H"
+        },
+        "2026-03-16": {
+          "gregorian_date": "2026-03-16",
+          "hijri_day": 27,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "27 Ramadhan 1447 H"
+        },
+        "2026-03-17": {
+          "gregorian_date": "2026-03-17",
+          "hijri_day": 28,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "28 Ramadhan 1447 H"
+        },
+        "2026-03-18": {
+          "gregorian_date": "2026-03-18",
+          "hijri_day": 29,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "29 Ramadhan 1447 H"
+        },
+        "2026-03-19": {
+          "gregorian_date": "2026-03-19",
+          "hijri_day": 30,
+          "hijri_month_name": "Ramadhan",
+          "hijri_year": 1447,
+          "hijri_formatted": "30 Ramadhan 1447 H"
+        },
+        "2026-03-20": {
+          "gregorian_date": "2026-03-20",
+          "hijri_day": 1,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "1 Syawal 1447 H"
+        },
+        "2026-03-21": {
+          "gregorian_date": "2026-03-21",
+          "hijri_day": 1,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "1 Syawal 1447 H"
+        },
+        "2026-03-22": {
+          "gregorian_date": "2026-03-22",
+          "hijri_day": 2,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "2 Syawal 1447 H"
+        },
+        "2026-03-23": {
+          "gregorian_date": "2026-03-23",
+          "hijri_day": 3,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "3 Syawal 1447 H"
+        },
+        "2026-03-24": {
+          "gregorian_date": "2026-03-24",
+          "hijri_day": 4,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "4 Syawal 1447 H"
+        },
+        "2026-03-25": {
+          "gregorian_date": "2026-03-25",
+          "hijri_day": 5,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "5 Syawal 1447 H"
+        },
+        "2026-03-26": {
+          "gregorian_date": "2026-03-26",
+          "hijri_day": 6,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "6 Syawal 1447 H"
+        },
+        "2026-03-27": {
+          "gregorian_date": "2026-03-27",
+          "hijri_day": 7,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "7 Syawal 1447 H"
+        },
+        "2026-03-28": {
+          "gregorian_date": "2026-03-28",
+          "hijri_day": 8,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "8 Syawal 1447 H"
+        },
+        "2026-03-29": {
+          "gregorian_date": "2026-03-29",
+          "hijri_day": 9,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "9 Syawal 1447 H"
+        },
+        "2026-03-30": {
+          "gregorian_date": "2026-03-30",
+          "hijri_day": 10,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "10 Syawal 1447 H"
+        },
+        "2026-03-31": {
+          "gregorian_date": "2026-03-31",
+          "hijri_day": 11,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "11 Syawal 1447 H"
+        },
+        "2026-04-01": {
+          "gregorian_date": "2026-04-01",
+          "hijri_day": 12,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "12 Syawal 1447 H"
+        },
+        "2026-04-02": {
+          "gregorian_date": "2026-04-02",
+          "hijri_day": 13,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "13 Syawal 1447 H"
+        },
+        "2026-04-03": {
+          "gregorian_date": "2026-04-03",
+          "hijri_day": 14,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "14 Syawal 1447 H"
+        },
+        "2026-04-04": {
+          "gregorian_date": "2026-04-04",
+          "hijri_day": 15,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "15 Syawal 1447 H"
+        },
+        "2026-04-05": {
+          "gregorian_date": "2026-04-05",
+          "hijri_day": 16,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "16 Syawal 1447 H"
+        },
+        "2026-04-06": {
+          "gregorian_date": "2026-04-06",
+          "hijri_day": 17,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "17 Syawal 1447 H"
+        },
+        "2026-04-07": {
+          "gregorian_date": "2026-04-07",
+          "hijri_day": 18,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "18 Syawal 1447 H"
+        },
+        "2026-04-08": {
+          "gregorian_date": "2026-04-08",
+          "hijri_day": 19,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "19 Syawal 1447 H"
+        },
+        "2026-04-09": {
+          "gregorian_date": "2026-04-09",
+          "hijri_day": 20,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "20 Syawal 1447 H"
+        },
+        "2026-04-10": {
+          "gregorian_date": "2026-04-10",
+          "hijri_day": 21,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "21 Syawal 1447 H"
+        },
+        "2026-04-11": {
+          "gregorian_date": "2026-04-11",
+          "hijri_day": 22,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "22 Syawal 1447 H"
+        },
+        "2026-04-12": {
+          "gregorian_date": "2026-04-12",
+          "hijri_day": 23,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "23 Syawal 1447 H"
+        },
+        "2026-04-13": {
+          "gregorian_date": "2026-04-13",
+          "hijri_day": 24,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "24 Syawal 1447 H"
+        },
+        "2026-04-14": {
+          "gregorian_date": "2026-04-14",
+          "hijri_day": 25,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "25 Syawal 1447 H"
+        },
+        "2026-04-15": {
+          "gregorian_date": "2026-04-15",
+          "hijri_day": 26,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "26 Syawal 1447 H"
+        },
+        "2026-04-16": {
+          "gregorian_date": "2026-04-16",
+          "hijri_day": 27,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "27 Syawal 1447 H"
+        },
+        "2026-04-17": {
+          "gregorian_date": "2026-04-17",
+          "hijri_day": 28,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "28 Syawal 1447 H"
+        },
+        "2026-04-18": {
+          "gregorian_date": "2026-04-18",
+          "hijri_day": 29,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "29 Syawal 1447 H"
+        },
+        "2026-04-19": {
+          "gregorian_date": "2026-04-19",
+          "hijri_day": 30,
+          "hijri_month_name": "Syawal",
+          "hijri_year": 1447,
+          "hijri_formatted": "30 Syawal 1447 H"
+        },
+        "2026-04-20": {
+          "gregorian_date": "2026-04-20",
+          "hijri_day": 1,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "1 Dzulkaidah 1447 H"
+        },
+        "2026-04-21": {
+          "gregorian_date": "2026-04-21",
+          "hijri_day": 2,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "2 Dzulkaidah 1447 H"
+        },
+        "2026-04-22": {
+          "gregorian_date": "2026-04-22",
+          "hijri_day": 3,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "3 Dzulkaidah 1447 H"
+        },
+        "2026-04-23": {
+          "gregorian_date": "2026-04-23",
+          "hijri_day": 4,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "4 Dzulkaidah 1447 H"
+        },
+        "2026-04-24": {
+          "gregorian_date": "2026-04-24",
+          "hijri_day": 5,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "5 Dzulkaidah 1447 H"
+        },
+        "2026-04-25": {
+          "gregorian_date": "2026-04-25",
+          "hijri_day": 6,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "6 Dzulkaidah 1447 H"
+        },
+        "2026-04-26": {
+          "gregorian_date": "2026-04-26",
+          "hijri_day": 7,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "7 Dzulkaidah 1447 H"
+        },
+        "2026-04-27": {
+          "gregorian_date": "2026-04-27",
+          "hijri_day": 8,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "8 Dzulkaidah 1447 H"
+        },
+        "2026-04-28": {
+          "gregorian_date": "2026-04-28",
+          "hijri_day": 9,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "9 Dzulkaidah 1447 H"
+        },
+        "2026-04-29": {
+          "gregorian_date": "2026-04-29",
+          "hijri_day": 10,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "10 Dzulkaidah 1447 H"
+        },
+        "2026-04-30": {
+          "gregorian_date": "2026-04-30",
+          "hijri_day": 11,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "11 Dzulkaidah 1447 H"
+        },
+        "2026-05-01": {
+          "gregorian_date": "2026-05-01",
+          "hijri_day": 12,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "12 Dzulkaidah 1447 H"
+        },
+        "2026-05-02": {
+          "gregorian_date": "2026-05-02",
+          "hijri_day": 13,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "13 Dzulkaidah 1447 H"
+        },
+        "2026-05-03": {
+          "gregorian_date": "2026-05-03",
+          "hijri_day": 14,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "14 Dzulkaidah 1447 H"
+        },
+        "2026-05-04": {
+          "gregorian_date": "2026-05-04",
+          "hijri_day": 15,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "15 Dzulkaidah 1447 H"
+        },
+        "2026-05-05": {
+          "gregorian_date": "2026-05-05",
+          "hijri_day": 16,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "16 Dzulkaidah 1447 H"
+        },
+        "2026-05-06": {
+          "gregorian_date": "2026-05-06",
+          "hijri_day": 17,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "17 Dzulkaidah 1447 H"
+        },
+        "2026-05-07": {
+          "gregorian_date": "2026-05-07",
+          "hijri_day": 18,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "18 Dzulkaidah 1447 H"
+        },
+        "2026-05-08": {
+          "gregorian_date": "2026-05-08",
+          "hijri_day": 19,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "19 Dzulkaidah 1447 H"
+        },
+        "2026-05-09": {
+          "gregorian_date": "2026-05-09",
+          "hijri_day": 20,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "20 Dzulkaidah 1447 H"
+        },
+        "2026-05-10": {
+          "gregorian_date": "2026-05-10",
+          "hijri_day": 21,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "21 Dzulkaidah 1447 H"
+        },
+        "2026-05-11": {
+          "gregorian_date": "2026-05-11",
+          "hijri_day": 22,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "22 Dzulkaidah 1447 H"
+        },
+        "2026-05-12": {
+          "gregorian_date": "2026-05-12",
+          "hijri_day": 23,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "23 Dzulkaidah 1447 H"
+        },
+        "2026-05-13": {
+          "gregorian_date": "2026-05-13",
+          "hijri_day": 24,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "24 Dzulkaidah 1447 H"
+        },
+        "2026-05-14": {
+          "gregorian_date": "2026-05-14",
+          "hijri_day": 25,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "25 Dzulkaidah 1447 H"
+        },
+        "2026-05-15": {
+          "gregorian_date": "2026-05-15",
+          "hijri_day": 26,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "26 Dzulkaidah 1447 H"
+        },
+        "2026-05-16": {
+          "gregorian_date": "2026-05-16",
+          "hijri_day": 27,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "27 Dzulkaidah 1447 H"
+        },
+        "2026-05-17": {
+          "gregorian_date": "2026-05-17",
+          "hijri_day": 28,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "28 Dzulkaidah 1447 H"
+        },
+        "2026-05-18": {
+          "gregorian_date": "2026-05-18",
+          "hijri_day": 29,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "29 Dzulkaidah 1447 H"
+        },
+        "2026-05-19": {
+          "gregorian_date": "2026-05-19",
+          "hijri_day": 30,
+          "hijri_month_name": "Dzulkaidah",
+          "hijri_year": 1447,
+          "hijri_formatted": "30 Dzulkaidah 1447 H"
+        },
+        "2026-05-20": {
+          "gregorian_date": "2026-05-20",
+          "hijri_day": 1,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "1 Dzulhijjah 1447 H"
+        },
+        "2026-05-21": {
+          "gregorian_date": "2026-05-21",
+          "hijri_day": 2,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "2 Dzulhijjah 1447 H"
+        },
+        "2026-05-22": {
+          "gregorian_date": "2026-05-22",
+          "hijri_day": 3,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "3 Dzulhijjah 1447 H"
+        },
+        "2026-05-23": {
+          "gregorian_date": "2026-05-23",
+          "hijri_day": 4,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "4 Dzulhijjah 1447 H"
+        },
+        "2026-05-24": {
+          "gregorian_date": "2026-05-24",
+          "hijri_day": 5,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "5 Dzulhijjah 1447 H"
+        },
+        "2026-05-25": {
+          "gregorian_date": "2026-05-25",
+          "hijri_day": 6,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "6 Dzulhijjah 1447 H"
+        },
+        "2026-05-26": {
+          "gregorian_date": "2026-05-26",
+          "hijri_day": 7,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "7 Dzulhijjah 1447 H"
+        },
+        "2026-05-27": {
+          "gregorian_date": "2026-05-27",
+          "hijri_day": 10,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "10 Dzulhijjah 1447 H"
+        },
+        "2026-05-28": {
+          "gregorian_date": "2026-05-28",
+          "hijri_day": 11,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "11 Dzulhijjah 1447 H"
+        },
+        "2026-05-29": {
+          "gregorian_date": "2026-05-29",
+          "hijri_day": 12,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "12 Dzulhijjah 1447 H"
+        },
+        "2026-05-30": {
+          "gregorian_date": "2026-05-30",
+          "hijri_day": 13,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "13 Dzulhijjah 1447 H"
+        },
+        "2026-05-31": {
+          "gregorian_date": "2026-05-31",
+          "hijri_day": 14,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "14 Dzulhijjah 1447 H"
+        },
+        "2026-06-01": {
+          "gregorian_date": "2026-06-01",
+          "hijri_day": 15,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "15 Dzulhijjah 1447 H"
+        },
+        "2026-06-02": {
+          "gregorian_date": "2026-06-02",
+          "hijri_day": 16,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "16 Dzulhijjah 1447 H"
+        },
+        "2026-06-03": {
+          "gregorian_date": "2026-06-03",
+          "hijri_day": 17,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "17 Dzulhijjah 1447 H"
+        },
+        "2026-06-04": {
+          "gregorian_date": "2026-06-04",
+          "hijri_day": 18,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "18 Dzulhijjah 1447 H"
+        },
+        "2026-06-05": {
+          "gregorian_date": "2026-06-05",
+          "hijri_day": 19,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "19 Dzulhijjah 1447 H"
+        },
+        "2026-06-06": {
+          "gregorian_date": "2026-06-06",
+          "hijri_day": 20,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "20 Dzulhijjah 1447 H"
+        },
+        "2026-06-07": {
+          "gregorian_date": "2026-06-07",
+          "hijri_day": 21,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "21 Dzulhijjah 1447 H"
+        },
+        "2026-06-08": {
+          "gregorian_date": "2026-06-08",
+          "hijri_day": 22,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "22 Dzulhijjah 1447 H"
+        },
+        "2026-06-09": {
+          "gregorian_date": "2026-06-09",
+          "hijri_day": 23,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "23 Dzulhijjah 1447 H"
+        },
+        "2026-06-10": {
+          "gregorian_date": "2026-06-10",
+          "hijri_day": 24,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "24 Dzulhijjah 1447 H"
+        },
+        "2026-06-11": {
+          "gregorian_date": "2026-06-11",
+          "hijri_day": 25,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "25 Dzulhijjah 1447 H"
+        },
+        "2026-06-12": {
+          "gregorian_date": "2026-06-12",
+          "hijri_day": 26,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "26 Dzulhijjah 1447 H"
+        },
+        "2026-06-13": {
+          "gregorian_date": "2026-06-13",
+          "hijri_day": 27,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "27 Dzulhijjah 1447 H"
+        },
+        "2026-06-14": {
+          "gregorian_date": "2026-06-14",
+          "hijri_day": 28,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "28 Dzulhijjah 1447 H"
+        },
+        "2026-06-15": {
+          "gregorian_date": "2026-06-15",
+          "hijri_day": 29,
+          "hijri_month_name": "Dzulhijjah",
+          "hijri_year": 1447,
+          "hijri_formatted": "29 Dzulhijjah 1447 H"
+        },
+        "2026-06-16": {
+          "gregorian_date": "2026-06-16",
+          "hijri_day": 1,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "1 Muharram 1448 H"
+        },
+        "2026-06-17": {
+          "gregorian_date": "2026-06-17",
+          "hijri_day": 2,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "2 Muharram 1448 H"
+        },
+        "2026-06-18": {
+          "gregorian_date": "2026-06-18",
+          "hijri_day": 3,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "3 Muharram 1448 H"
+        },
+        "2026-06-19": {
+          "gregorian_date": "2026-06-19",
+          "hijri_day": 4,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "4 Muharram 1448 H"
+        },
+        "2026-06-20": {
+          "gregorian_date": "2026-06-20",
+          "hijri_day": 5,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "5 Muharram 1448 H"
+        },
+        "2026-06-21": {
+          "gregorian_date": "2026-06-21",
+          "hijri_day": 6,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "6 Muharram 1448 H"
+        },
+        "2026-06-22": {
+          "gregorian_date": "2026-06-22",
+          "hijri_day": 7,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "7 Muharram 1448 H"
+        },
+        "2026-06-23": {
+          "gregorian_date": "2026-06-23",
+          "hijri_day": 8,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "8 Muharram 1448 H"
+        },
+        "2026-06-24": {
+          "gregorian_date": "2026-06-24",
+          "hijri_day": 9,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "9 Muharram 1448 H"
+        },
+        "2026-06-25": {
+          "gregorian_date": "2026-06-25",
+          "hijri_day": 10,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "10 Muharram 1448 H"
+        },
+        "2026-06-26": {
+          "gregorian_date": "2026-06-26",
+          "hijri_day": 11,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "11 Muharram 1448 H"
+        },
+        "2026-06-27": {
+          "gregorian_date": "2026-06-27",
+          "hijri_day": 12,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "12 Muharram 1448 H"
+        },
+        "2026-06-28": {
+          "gregorian_date": "2026-06-28",
+          "hijri_day": 13,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "13 Muharram 1448 H"
+        },
+        "2026-06-29": {
+          "gregorian_date": "2026-06-29",
+          "hijri_day": 14,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "14 Muharram 1448 H"
+        },
+        "2026-06-30": {
+          "gregorian_date": "2026-06-30",
+          "hijri_day": 15,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "15 Muharram 1448 H"
+        },
+        "2026-07-01": {
+          "gregorian_date": "2026-07-01",
+          "hijri_day": 16,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "16 Muharram 1448 H"
+        },
+        "2026-07-02": {
+          "gregorian_date": "2026-07-02",
+          "hijri_day": 17,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "17 Muharram 1448 H"
+        },
+        "2026-07-03": {
+          "gregorian_date": "2026-07-03",
+          "hijri_day": 18,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "18 Muharram 1448 H"
+        },
+        "2026-07-04": {
+          "gregorian_date": "2026-07-04",
+          "hijri_day": 19,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "19 Muharram 1448 H"
+        },
+        "2026-07-05": {
+          "gregorian_date": "2026-07-05",
+          "hijri_day": 20,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "20 Muharram 1448 H"
+        },
+        "2026-07-06": {
+          "gregorian_date": "2026-07-06",
+          "hijri_day": 21,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "21 Muharram 1448 H"
+        },
+        "2026-07-07": {
+          "gregorian_date": "2026-07-07",
+          "hijri_day": 22,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "22 Muharram 1448 H"
+        },
+        "2026-07-08": {
+          "gregorian_date": "2026-07-08",
+          "hijri_day": 23,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "23 Muharram 1448 H"
+        },
+        "2026-07-09": {
+          "gregorian_date": "2026-07-09",
+          "hijri_day": 24,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "24 Muharram 1448 H"
+        },
+        "2026-07-10": {
+          "gregorian_date": "2026-07-10",
+          "hijri_day": 25,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "25 Muharram 1448 H"
+        },
+        "2026-07-11": {
+          "gregorian_date": "2026-07-11",
+          "hijri_day": 26,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "26 Muharram 1448 H"
+        },
+        "2026-07-12": {
+          "gregorian_date": "2026-07-12",
+          "hijri_day": 27,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "27 Muharram 1448 H"
+        },
+        "2026-07-13": {
+          "gregorian_date": "2026-07-13",
+          "hijri_day": 28,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "28 Muharram 1448 H"
+        },
+        "2026-07-14": {
+          "gregorian_date": "2026-07-14",
+          "hijri_day": 29,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "29 Muharram 1448 H"
+        },
+        "2026-07-15": {
+          "gregorian_date": "2026-07-15",
+          "hijri_day": 30,
+          "hijri_month_name": "Muharram",
+          "hijri_year": 1448,
+          "hijri_formatted": "30 Muharram 1448 H"
+        },
+        "2026-07-16": {
+          "gregorian_date": "2026-07-16",
+          "hijri_day": 1,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "1 Safar 1448 H"
+        },
+        "2026-07-17": {
+          "gregorian_date": "2026-07-17",
+          "hijri_day": 2,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "2 Safar 1448 H"
+        },
+        "2026-07-18": {
+          "gregorian_date": "2026-07-18",
+          "hijri_day": 3,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "3 Safar 1448 H"
+        },
+        "2026-07-19": {
+          "gregorian_date": "2026-07-19",
+          "hijri_day": 4,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "4 Safar 1448 H"
+        },
+        "2026-07-20": {
+          "gregorian_date": "2026-07-20",
+          "hijri_day": 5,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "5 Safar 1448 H"
+        },
+        "2026-07-21": {
+          "gregorian_date": "2026-07-21",
+          "hijri_day": 6,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "6 Safar 1448 H"
+        },
+        "2026-07-22": {
+          "gregorian_date": "2026-07-22",
+          "hijri_day": 7,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "7 Safar 1448 H"
+        },
+        "2026-07-23": {
+          "gregorian_date": "2026-07-23",
+          "hijri_day": 8,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "8 Safar 1448 H"
+        },
+        "2026-07-24": {
+          "gregorian_date": "2026-07-24",
+          "hijri_day": 9,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "9 Safar 1448 H"
+        },
+        "2026-07-25": {
+          "gregorian_date": "2026-07-25",
+          "hijri_day": 10,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "10 Safar 1448 H"
+        },
+        "2026-07-26": {
+          "gregorian_date": "2026-07-26",
+          "hijri_day": 11,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "11 Safar 1448 H"
+        },
+        "2026-07-27": {
+          "gregorian_date": "2026-07-27",
+          "hijri_day": 12,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "12 Safar 1448 H"
+        },
+        "2026-07-28": {
+          "gregorian_date": "2026-07-28",
+          "hijri_day": 13,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "13 Safar 1448 H"
+        },
+        "2026-07-29": {
+          "gregorian_date": "2026-07-29",
+          "hijri_day": 14,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "14 Safar 1448 H"
+        },
+        "2026-07-30": {
+          "gregorian_date": "2026-07-30",
+          "hijri_day": 15,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "15 Safar 1448 H"
+        },
+        "2026-07-31": {
+          "gregorian_date": "2026-07-31",
+          "hijri_day": 16,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "16 Safar 1448 H"
+        },
+        "2026-08-01": {
+          "gregorian_date": "2026-08-01",
+          "hijri_day": 17,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "17 Safar 1448 H"
+        },
+        "2026-08-02": {
+          "gregorian_date": "2026-08-02",
+          "hijri_day": 18,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "18 Safar 1448 H"
+        },
+        "2026-08-03": {
+          "gregorian_date": "2026-08-03",
+          "hijri_day": 19,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "19 Safar 1448 H"
+        },
+        "2026-08-04": {
+          "gregorian_date": "2026-08-04",
+          "hijri_day": 20,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "20 Safar 1448 H"
+        },
+        "2026-08-05": {
+          "gregorian_date": "2026-08-05",
+          "hijri_day": 21,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "21 Safar 1448 H"
+        },
+        "2026-08-06": {
+          "gregorian_date": "2026-08-06",
+          "hijri_day": 22,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "22 Safar 1448 H"
+        },
+        "2026-08-07": {
+          "gregorian_date": "2026-08-07",
+          "hijri_day": 23,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "23 Safar 1448 H"
+        },
+        "2026-08-08": {
+          "gregorian_date": "2026-08-08",
+          "hijri_day": 24,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "24 Safar 1448 H"
+        },
+        "2026-08-09": {
+          "gregorian_date": "2026-08-09",
+          "hijri_day": 25,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "25 Safar 1448 H"
+        },
+        "2026-08-10": {
+          "gregorian_date": "2026-08-10",
+          "hijri_day": 26,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "26 Safar 1448 H"
+        },
+        "2026-08-11": {
+          "gregorian_date": "2026-08-11",
+          "hijri_day": 27,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "27 Safar 1448 H"
+        },
+        "2026-08-12": {
+          "gregorian_date": "2026-08-12",
+          "hijri_day": 28,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "28 Safar 1448 H"
+        },
+        "2026-08-13": {
+          "gregorian_date": "2026-08-13",
+          "hijri_day": 29,
+          "hijri_month_name": "Safar",
+          "hijri_year": 1448,
+          "hijri_formatted": "29 Safar 1448 H"
+        },
+        "2026-08-14": {
+          "gregorian_date": "2026-08-14",
+          "hijri_day": 1,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "1 Rabiul Awal 1448 H"
+        },
+        "2026-08-15": {
+          "gregorian_date": "2026-08-15",
+          "hijri_day": 2,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "2 Rabiul Awal 1448 H"
+        },
+        "2026-08-16": {
+          "gregorian_date": "2026-08-16",
+          "hijri_day": 3,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "3 Rabiul Awal 1448 H"
+        },
+        "2026-08-17": {
+          "gregorian_date": "2026-08-17",
+          "hijri_day": 4,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "4 Rabiul Awal 1448 H"
+        },
+        "2026-08-18": {
+          "gregorian_date": "2026-08-18",
+          "hijri_day": 5,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "5 Rabiul Awal 1448 H"
+        },
+        "2026-08-19": {
+          "gregorian_date": "2026-08-19",
+          "hijri_day": 6,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "6 Rabiul Awal 1448 H"
+        },
+        "2026-08-20": {
+          "gregorian_date": "2026-08-20",
+          "hijri_day": 7,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "7 Rabiul Awal 1448 H"
+        },
+        "2026-08-21": {
+          "gregorian_date": "2026-08-21",
+          "hijri_day": 8,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "8 Rabiul Awal 1448 H"
+        },
+        "2026-08-22": {
+          "gregorian_date": "2026-08-22",
+          "hijri_day": 9,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "9 Rabiul Awal 1448 H"
+        },
+        "2026-08-23": {
+          "gregorian_date": "2026-08-23",
+          "hijri_day": 10,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "10 Rabiul Awal 1448 H"
+        },
+        "2026-08-24": {
+          "gregorian_date": "2026-08-24",
+          "hijri_day": 11,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "11 Rabiul Awal 1448 H"
+        },
+        "2026-08-25": {
+          "gregorian_date": "2026-08-25",
+          "hijri_day": 12,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "12 Rabiul Awal 1448 H"
+        },
+        "2026-08-26": {
+          "gregorian_date": "2026-08-26",
+          "hijri_day": 13,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "13 Rabiul Awal 1448 H"
+        },
+        "2026-08-27": {
+          "gregorian_date": "2026-08-27",
+          "hijri_day": 14,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "14 Rabiul Awal 1448 H"
+        },
+        "2026-08-28": {
+          "gregorian_date": "2026-08-28",
+          "hijri_day": 15,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "15 Rabiul Awal 1448 H"
+        },
+        "2026-08-29": {
+          "gregorian_date": "2026-08-29",
+          "hijri_day": 16,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "16 Rabiul Awal 1448 H"
+        },
+        "2026-08-30": {
+          "gregorian_date": "2026-08-30",
+          "hijri_day": 17,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "17 Rabiul Awal 1448 H"
+        },
+        "2026-08-31": {
+          "gregorian_date": "2026-08-31",
+          "hijri_day": 18,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "18 Rabiul Awal 1448 H"
+        },
+        "2026-09-01": {
+          "gregorian_date": "2026-09-01",
+          "hijri_day": 19,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "19 Rabiul Awal 1448 H"
+        },
+        "2026-09-02": {
+          "gregorian_date": "2026-09-02",
+          "hijri_day": 20,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "20 Rabiul Awal 1448 H"
+        },
+        "2026-09-03": {
+          "gregorian_date": "2026-09-03",
+          "hijri_day": 21,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "21 Rabiul Awal 1448 H"
+        },
+        "2026-09-04": {
+          "gregorian_date": "2026-09-04",
+          "hijri_day": 22,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "22 Rabiul Awal 1448 H"
+        },
+        "2026-09-05": {
+          "gregorian_date": "2026-09-05",
+          "hijri_day": 23,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "23 Rabiul Awal 1448 H"
+        },
+        "2026-09-06": {
+          "gregorian_date": "2026-09-06",
+          "hijri_day": 24,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "24 Rabiul Awal 1448 H"
+        },
+        "2026-09-07": {
+          "gregorian_date": "2026-09-07",
+          "hijri_day": 25,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "25 Rabiul Awal 1448 H"
+        },
+        "2026-09-08": {
+          "gregorian_date": "2026-09-08",
+          "hijri_day": 26,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "26 Rabiul Awal 1448 H"
+        },
+        "2026-09-09": {
+          "gregorian_date": "2026-09-09",
+          "hijri_day": 27,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "27 Rabiul Awal 1448 H"
+        },
+        "2026-09-10": {
+          "gregorian_date": "2026-09-10",
+          "hijri_day": 28,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "28 Rabiul Awal 1448 H"
+        },
+        "2026-09-11": {
+          "gregorian_date": "2026-09-11",
+          "hijri_day": 29,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "29 Rabiul Awal 1448 H"
+        },
+        "2026-09-12": {
+          "gregorian_date": "2026-09-12",
+          "hijri_day": 30,
+          "hijri_month_name": "Rabiul Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "30 Rabiul Awal 1448 H"
+        },
+        "2026-09-13": {
+          "gregorian_date": "2026-09-13",
+          "hijri_day": 1,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "1 Rabiul Akhir 1448 H"
+        },
+        "2026-09-14": {
+          "gregorian_date": "2026-09-14",
+          "hijri_day": 2,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "2 Rabiul Akhir 1448 H"
+        },
+        "2026-09-15": {
+          "gregorian_date": "2026-09-15",
+          "hijri_day": 3,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "3 Rabiul Akhir 1448 H"
+        },
+        "2026-09-16": {
+          "gregorian_date": "2026-09-16",
+          "hijri_day": 4,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "4 Rabiul Akhir 1448 H"
+        },
+        "2026-09-17": {
+          "gregorian_date": "2026-09-17",
+          "hijri_day": 5,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "5 Rabiul Akhir 1448 H"
+        },
+        "2026-09-18": {
+          "gregorian_date": "2026-09-18",
+          "hijri_day": 6,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "6 Rabiul Akhir 1448 H"
+        },
+        "2026-09-19": {
+          "gregorian_date": "2026-09-19",
+          "hijri_day": 7,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "7 Rabiul Akhir 1448 H"
+        },
+        "2026-09-20": {
+          "gregorian_date": "2026-09-20",
+          "hijri_day": 8,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "8 Rabiul Akhir 1448 H"
+        },
+        "2026-09-21": {
+          "gregorian_date": "2026-09-21",
+          "hijri_day": 9,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "9 Rabiul Akhir 1448 H"
+        },
+        "2026-09-22": {
+          "gregorian_date": "2026-09-22",
+          "hijri_day": 10,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "10 Rabiul Akhir 1448 H"
+        },
+        "2026-09-23": {
+          "gregorian_date": "2026-09-23",
+          "hijri_day": 11,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "11 Rabiul Akhir 1448 H"
+        },
+        "2026-09-24": {
+          "gregorian_date": "2026-09-24",
+          "hijri_day": 12,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "12 Rabiul Akhir 1448 H"
+        },
+        "2026-09-25": {
+          "gregorian_date": "2026-09-25",
+          "hijri_day": 13,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "13 Rabiul Akhir 1448 H"
+        },
+        "2026-09-26": {
+          "gregorian_date": "2026-09-26",
+          "hijri_day": 14,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "14 Rabiul Akhir 1448 H"
+        },
+        "2026-09-27": {
+          "gregorian_date": "2026-09-27",
+          "hijri_day": 15,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "15 Rabiul Akhir 1448 H"
+        },
+        "2026-09-28": {
+          "gregorian_date": "2026-09-28",
+          "hijri_day": 16,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "16 Rabiul Akhir 1448 H"
+        },
+        "2026-09-29": {
+          "gregorian_date": "2026-09-29",
+          "hijri_day": 17,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "17 Rabiul Akhir 1448 H"
+        },
+        "2026-09-30": {
+          "gregorian_date": "2026-09-30",
+          "hijri_day": 18,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "18 Rabiul Akhir 1448 H"
+        },
+        "2026-10-01": {
+          "gregorian_date": "2026-10-01",
+          "hijri_day": 19,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "19 Rabiul Akhir 1448 H"
+        },
+        "2026-10-02": {
+          "gregorian_date": "2026-10-02",
+          "hijri_day": 20,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "20 Rabiul Akhir 1448 H"
+        },
+        "2026-10-03": {
+          "gregorian_date": "2026-10-03",
+          "hijri_day": 21,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "21 Rabiul Akhir 1448 H"
+        },
+        "2026-10-04": {
+          "gregorian_date": "2026-10-04",
+          "hijri_day": 22,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "22 Rabiul Akhir 1448 H"
+        },
+        "2026-10-05": {
+          "gregorian_date": "2026-10-05",
+          "hijri_day": 23,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "23 Rabiul Akhir 1448 H"
+        },
+        "2026-10-06": {
+          "gregorian_date": "2026-10-06",
+          "hijri_day": 24,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "24 Rabiul Akhir 1448 H"
+        },
+        "2026-10-07": {
+          "gregorian_date": "2026-10-07",
+          "hijri_day": 25,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "25 Rabiul Akhir 1448 H"
+        },
+        "2026-10-08": {
+          "gregorian_date": "2026-10-08",
+          "hijri_day": 26,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "26 Rabiul Akhir 1448 H"
+        },
+        "2026-10-09": {
+          "gregorian_date": "2026-10-09",
+          "hijri_day": 27,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "27 Rabiul Akhir 1448 H"
+        },
+        "2026-10-10": {
+          "gregorian_date": "2026-10-10",
+          "hijri_day": 28,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "28 Rabiul Akhir 1448 H"
+        },
+        "2026-10-11": {
+          "gregorian_date": "2026-10-11",
+          "hijri_day": 29,
+          "hijri_month_name": "Rabiul Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "29 Rabiul Akhir 1448 H"
+        },
+        "2026-10-12": {
+          "gregorian_date": "2026-10-12",
+          "hijri_day": 1,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "1 Jumadil Awal 1448 H"
+        },
+        "2026-10-13": {
+          "gregorian_date": "2026-10-13",
+          "hijri_day": 2,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "2 Jumadil Awal 1448 H"
+        },
+        "2026-10-14": {
+          "gregorian_date": "2026-10-14",
+          "hijri_day": 3,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "3 Jumadil Awal 1448 H"
+        },
+        "2026-10-15": {
+          "gregorian_date": "2026-10-15",
+          "hijri_day": 4,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "4 Jumadil Awal 1448 H"
+        },
+        "2026-10-16": {
+          "gregorian_date": "2026-10-16",
+          "hijri_day": 5,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "5 Jumadil Awal 1448 H"
+        },
+        "2026-10-17": {
+          "gregorian_date": "2026-10-17",
+          "hijri_day": 6,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "6 Jumadil Awal 1448 H"
+        },
+        "2026-10-18": {
+          "gregorian_date": "2026-10-18",
+          "hijri_day": 7,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "7 Jumadil Awal 1448 H"
+        },
+        "2026-10-19": {
+          "gregorian_date": "2026-10-19",
+          "hijri_day": 8,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "8 Jumadil Awal 1448 H"
+        },
+        "2026-10-20": {
+          "gregorian_date": "2026-10-20",
+          "hijri_day": 9,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "9 Jumadil Awal 1448 H"
+        },
+        "2026-10-21": {
+          "gregorian_date": "2026-10-21",
+          "hijri_day": 10,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "10 Jumadil Awal 1448 H"
+        },
+        "2026-10-22": {
+          "gregorian_date": "2026-10-22",
+          "hijri_day": 11,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "11 Jumadil Awal 1448 H"
+        },
+        "2026-10-23": {
+          "gregorian_date": "2026-10-23",
+          "hijri_day": 12,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "12 Jumadil Awal 1448 H"
+        },
+        "2026-10-24": {
+          "gregorian_date": "2026-10-24",
+          "hijri_day": 13,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "13 Jumadil Awal 1448 H"
+        },
+        "2026-10-25": {
+          "gregorian_date": "2026-10-25",
+          "hijri_day": 14,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "14 Jumadil Awal 1448 H"
+        },
+        "2026-10-26": {
+          "gregorian_date": "2026-10-26",
+          "hijri_day": 15,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "15 Jumadil Awal 1448 H"
+        },
+        "2026-10-27": {
+          "gregorian_date": "2026-10-27",
+          "hijri_day": 16,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "16 Jumadil Awal 1448 H"
+        },
+        "2026-10-28": {
+          "gregorian_date": "2026-10-28",
+          "hijri_day": 17,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "17 Jumadil Awal 1448 H"
+        },
+        "2026-10-29": {
+          "gregorian_date": "2026-10-29",
+          "hijri_day": 18,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "18 Jumadil Awal 1448 H"
+        },
+        "2026-10-30": {
+          "gregorian_date": "2026-10-30",
+          "hijri_day": 19,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "19 Jumadil Awal 1448 H"
+        },
+        "2026-10-31": {
+          "gregorian_date": "2026-10-31",
+          "hijri_day": 20,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "20 Jumadil Awal 1448 H"
+        },
+        "2026-11-01": {
+          "gregorian_date": "2026-11-01",
+          "hijri_day": 21,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "21 Jumadil Awal 1448 H"
+        },
+        "2026-11-02": {
+          "gregorian_date": "2026-11-02",
+          "hijri_day": 22,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "22 Jumadil Awal 1448 H"
+        },
+        "2026-11-03": {
+          "gregorian_date": "2026-11-03",
+          "hijri_day": 23,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "23 Jumadil Awal 1448 H"
+        },
+        "2026-11-04": {
+          "gregorian_date": "2026-11-04",
+          "hijri_day": 24,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "24 Jumadil Awal 1448 H"
+        },
+        "2026-11-05": {
+          "gregorian_date": "2026-11-05",
+          "hijri_day": 25,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "25 Jumadil Awal 1448 H"
+        },
+        "2026-11-06": {
+          "gregorian_date": "2026-11-06",
+          "hijri_day": 26,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "26 Jumadil Awal 1448 H"
+        },
+        "2026-11-07": {
+          "gregorian_date": "2026-11-07",
+          "hijri_day": 27,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "27 Jumadil Awal 1448 H"
+        },
+        "2026-11-08": {
+          "gregorian_date": "2026-11-08",
+          "hijri_day": 28,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "28 Jumadil Awal 1448 H"
+        },
+        "2026-11-09": {
+          "gregorian_date": "2026-11-09",
+          "hijri_day": 29,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "29 Jumadil Awal 1448 H"
+        },
+        "2026-11-10": {
+          "gregorian_date": "2026-11-10",
+          "hijri_day": 30,
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": 1448,
+          "hijri_formatted": "30 Jumadil Awal 1448 H"
+        },
+        "2026-11-11": {
+          "gregorian_date": "2026-11-11",
+          "hijri_day": 1,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "1 Jumadil Akhir 1448 H"
+        },
+        "2026-11-12": {
+          "gregorian_date": "2026-11-12",
+          "hijri_day": 2,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "2 Jumadil Akhir 1448 H"
+        },
+        "2026-11-13": {
+          "gregorian_date": "2026-11-13",
+          "hijri_day": 3,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "3 Jumadil Akhir 1448 H"
+        },
+        "2026-11-14": {
+          "gregorian_date": "2026-11-14",
+          "hijri_day": 4,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "4 Jumadil Akhir 1448 H"
+        },
+        "2026-11-15": {
+          "gregorian_date": "2026-11-15",
+          "hijri_day": 5,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "5 Jumadil Akhir 1448 H"
+        },
+        "2026-11-16": {
+          "gregorian_date": "2026-11-16",
+          "hijri_day": 6,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "6 Jumadil Akhir 1448 H"
+        },
+        "2026-11-17": {
+          "gregorian_date": "2026-11-17",
+          "hijri_day": 7,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "7 Jumadil Akhir 1448 H"
+        },
+        "2026-11-18": {
+          "gregorian_date": "2026-11-18",
+          "hijri_day": 8,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "8 Jumadil Akhir 1448 H"
+        },
+        "2026-11-19": {
+          "gregorian_date": "2026-11-19",
+          "hijri_day": 9,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "9 Jumadil Akhir 1448 H"
+        },
+        "2026-11-20": {
+          "gregorian_date": "2026-11-20",
+          "hijri_day": 10,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "10 Jumadil Akhir 1448 H"
+        },
+        "2026-11-21": {
+          "gregorian_date": "2026-11-21",
+          "hijri_day": 11,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "11 Jumadil Akhir 1448 H"
+        },
+        "2026-11-22": {
+          "gregorian_date": "2026-11-22",
+          "hijri_day": 12,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "12 Jumadil Akhir 1448 H"
+        },
+        "2026-11-23": {
+          "gregorian_date": "2026-11-23",
+          "hijri_day": 13,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "13 Jumadil Akhir 1448 H"
+        },
+        "2026-11-24": {
+          "gregorian_date": "2026-11-24",
+          "hijri_day": 14,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "14 Jumadil Akhir 1448 H"
+        },
+        "2026-11-25": {
+          "gregorian_date": "2026-11-25",
+          "hijri_day": 15,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "15 Jumadil Akhir 1448 H"
+        },
+        "2026-11-26": {
+          "gregorian_date": "2026-11-26",
+          "hijri_day": 16,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "16 Jumadil Akhir 1448 H"
+        },
+        "2026-11-27": {
+          "gregorian_date": "2026-11-27",
+          "hijri_day": 17,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "17 Jumadil Akhir 1448 H"
+        },
+        "2026-11-28": {
+          "gregorian_date": "2026-11-28",
+          "hijri_day": 18,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "18 Jumadil Akhir 1448 H"
+        },
+        "2026-11-29": {
+          "gregorian_date": "2026-11-29",
+          "hijri_day": 19,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "19 Jumadil Akhir 1448 H"
+        },
+        "2026-11-30": {
+          "gregorian_date": "2026-11-30",
+          "hijri_day": 20,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "20 Jumadil Akhir 1448 H"
+        },
+        "2026-12-01": {
+          "gregorian_date": "2026-12-01",
+          "hijri_day": 21,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "21 Jumadil Akhir 1448 H"
+        },
+        "2026-12-02": {
+          "gregorian_date": "2026-12-02",
+          "hijri_day": 22,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "22 Jumadil Akhir 1448 H"
+        },
+        "2026-12-03": {
+          "gregorian_date": "2026-12-03",
+          "hijri_day": 23,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "23 Jumadil Akhir 1448 H"
+        },
+        "2026-12-04": {
+          "gregorian_date": "2026-12-04",
+          "hijri_day": 24,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "24 Jumadil Akhir 1448 H"
+        },
+        "2026-12-05": {
+          "gregorian_date": "2026-12-05",
+          "hijri_day": 25,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "25 Jumadil Akhir 1448 H"
+        },
+        "2026-12-06": {
+          "gregorian_date": "2026-12-06",
+          "hijri_day": 26,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "26 Jumadil Akhir 1448 H"
+        },
+        "2026-12-07": {
+          "gregorian_date": "2026-12-07",
+          "hijri_day": 27,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "27 Jumadil Akhir 1448 H"
+        },
+        "2026-12-08": {
+          "gregorian_date": "2026-12-08",
+          "hijri_day": 28,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "28 Jumadil Akhir 1448 H"
+        },
+        "2026-12-09": {
+          "gregorian_date": "2026-12-09",
+          "hijri_day": 29,
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": 1448,
+          "hijri_formatted": "29 Jumadil Akhir 1448 H"
+        },
+        "2026-12-10": {
+          "gregorian_date": "2026-12-10",
+          "hijri_day": 1,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "1 Rajab 1448 H"
+        },
+        "2026-12-11": {
+          "gregorian_date": "2026-12-11",
+          "hijri_day": 2,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "2 Rajab 1448 H"
+        },
+        "2026-12-12": {
+          "gregorian_date": "2026-12-12",
+          "hijri_day": 3,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "3 Rajab 1448 H"
+        },
+        "2026-12-13": {
+          "gregorian_date": "2026-12-13",
+          "hijri_day": 4,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "4 Rajab 1448 H"
+        },
+        "2026-12-14": {
+          "gregorian_date": "2026-12-14",
+          "hijri_day": 5,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "5 Rajab 1448 H"
+        },
+        "2026-12-15": {
+          "gregorian_date": "2026-12-15",
+          "hijri_day": 6,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "6 Rajab 1448 H"
+        },
+        "2026-12-16": {
+          "gregorian_date": "2026-12-16",
+          "hijri_day": 7,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "7 Rajab 1448 H"
+        },
+        "2026-12-17": {
+          "gregorian_date": "2026-12-17",
+          "hijri_day": 8,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "8 Rajab 1448 H"
+        },
+        "2026-12-18": {
+          "gregorian_date": "2026-12-18",
+          "hijri_day": 9,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "9 Rajab 1448 H"
+        },
+        "2026-12-19": {
+          "gregorian_date": "2026-12-19",
+          "hijri_day": 10,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "10 Rajab 1448 H"
+        },
+        "2026-12-20": {
+          "gregorian_date": "2026-12-20",
+          "hijri_day": 11,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "11 Rajab 1448 H"
+        },
+        "2026-12-21": {
+          "gregorian_date": "2026-12-21",
+          "hijri_day": 12,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "12 Rajab 1448 H"
+        },
+        "2026-12-22": {
+          "gregorian_date": "2026-12-22",
+          "hijri_day": 13,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "13 Rajab 1448 H"
+        },
+        "2026-12-23": {
+          "gregorian_date": "2026-12-23",
+          "hijri_day": 14,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "14 Rajab 1448 H"
+        },
+        "2026-12-24": {
+          "gregorian_date": "2026-12-24",
+          "hijri_day": 15,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "15 Rajab 1448 H"
+        },
+        "2026-12-25": {
+          "gregorian_date": "2026-12-25",
+          "hijri_day": 16,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "16 Rajab 1448 H"
+        },
+        "2026-12-26": {
+          "gregorian_date": "2026-12-26",
+          "hijri_day": 17,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "17 Rajab 1448 H"
+        },
+        "2026-12-27": {
+          "gregorian_date": "2026-12-27",
+          "hijri_day": 18,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "18 Rajab 1448 H"
+        },
+        "2026-12-28": {
+          "gregorian_date": "2026-12-28",
+          "hijri_day": 19,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "19 Rajab 1448 H"
+        },
+        "2026-12-29": {
+          "gregorian_date": "2026-12-29",
+          "hijri_day": 20,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "20 Rajab 1448 H"
+        },
+        "2026-12-30": {
+          "gregorian_date": "2026-12-30",
+          "hijri_day": 21,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "21 Rajab 1448 H"
+        },
+        "2026-12-31": {
+          "gregorian_date": "2026-12-31",
+          "hijri_day": 22,
+          "hijri_month_name": "Rajab",
+          "hijri_year": 1448,
+          "hijri_formatted": "22 Rajab 1448 H"
+        }
+      }
+    }
+  }
+}
