@@ -60,8 +60,8 @@ function autoPrepareNextMonthPrayerCache() {
       regency_id: String(result.regency_id || ""),
       targetDate: targetDate,
       month: targetDate.slice(0, 7),
-      source: "API Indonesia / Kemenag",
-      note: "Cache bulanan tersedia atau berhasil disimpan ke GitHub."
+      source: result.source || "API Indonesia / Kemenag",
+      note: "Cache bulanan API Indonesia berhasil diperiksa/ditulis ke GitHub."
     };
     Logger.log("PRELOAD JADWAL BULAN BERIKUTNYA BERHASIL: " + JSON.stringify(output));
     return output;
