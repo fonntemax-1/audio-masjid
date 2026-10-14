@@ -11842,6 +11842,7 @@ function startRealtimeAudioConfigPolling_() {
 
       const schedule = WEB_APP_STATE.prayer.schedule || {};
       const cached = {
+        source: 'API Indonesia',
         kota: String(WEB_APP_STATE.location.kota || ''),
         timezone: String(getSelectedTimezone() || ''),
         tanggal: String(
@@ -11960,7 +11961,8 @@ function startRealtimeAudioConfigPolling_() {
           if (
             !selectedPayload ||
             selectedPayload.success !== true ||
-            !selectedPayload.jadwal
+            !selectedPayload.jadwal ||
+            !/^API Indonesia(?:\s*\/\s*Kemenag)?$/i.test(String(selectedPayload.source || '').trim())
           ) {
             console.warn(
               'JADWAL GITHUB CACHE MULTI-KOTA: kota belum tersedia',
@@ -12162,6 +12164,8 @@ function startRealtimeAudioConfigPolling_() {
         const j = cached && cached.jadwal;
 
         if (
+          !cached ||
+          cached.source !== 'API Indonesia' ||
           !j ||
           !['subuh','terbit','dzuhur','ashar','maghrib','isya']
             .every(function(k) {
