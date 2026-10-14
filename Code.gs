@@ -3755,7 +3755,7 @@ function processKeyValue(
 
   if (!dateString) dateString = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
   dateString = String(dateString).trim();
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateString)) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
     return { success: false, error: 'Format tanggal harus YYYY-MM-DD.' };
   }
 
@@ -3771,12 +3771,12 @@ function processKeyValue(
 
   function normCity_(value) {
     return String(value || '').toLowerCase()
-      .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
   function normTime_(value) {
     var m = String(value == null ? '' : value).trim()
-      .match(/^(\\d{1,2}):(\\d{2})(?::\\d{2})?$/);
+      .match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
     if (!m) return '';
     var h = Number(m[1]), min = Number(m[2]);
     if (h < 0 || h > 23 || min < 0 || min > 59) return '';
@@ -3848,7 +3848,7 @@ function processKeyValue(
       var normalizedDays = rows.map(function(src) {
         src = src || {};
         var date = String(src.date || src.tanggal || '').trim();
-        if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date) || date.slice(0, 7) !== year + '-' + monthText) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date.slice(0, 7) !== year + '-' + monthText) {
           throw new Error('Tanggal tidak valid pada respons API Indonesia: ' + date);
         }
         if (seen[date]) throw new Error('Tanggal duplikat pada respons API Indonesia: ' + date);
@@ -3974,7 +3974,7 @@ function isTrustedApiIndonesiaMonthlyEntry_(entry, year, month, regencyId, timez
   for (var i = 0; i < entry.days.length; i++) {
     var day = entry.days[i] || {};
     var date = String(day.date || '').trim();
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date) ||
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) ||
         date.slice(0, 7) !== year + '-' + monthText || seen[date] ||
         String(day.regency_id || '') !== String(regencyId) ||
         String(day.source || '') !== 'API Indonesia / Kemenag') return false;
