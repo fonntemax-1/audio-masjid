@@ -1,141 +1,232 @@
 {
   "success": true,
   "source": "API Indonesia",
-  "generatedAt": "2026-10-14T06:27:08.601Z",
-  "updatedAt": "2026-10-14T06:27:08.601Z",
+  "generatedAt": "2026-10-14T06:28:00.326Z",
+  "updatedAt": "2026-10-14T06:28:00.326Z",
   "cityCount": 514,
   "cities": {
     "aceh-barat": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Aceh Barat",
       "provinsi": "Aceh",
+      "regency_id": "1105",
       "slug": "aceh-barat",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1105",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "05:04",
+        "terbit": "06:22",
+        "dzuhur": "12:22",
+        "ashar": "15:41",
+        "maghrib": "18:22",
+        "isya": "19:32"
+      },
+      "generatedAt": "2026-10-14T06:27:34.334Z"
     },
     "aceh-barat-daya": {
       "success": false,
       "kota": "Kabupaten Aceh Barat Daya",
       "provinsi": "Aceh",
+      "regency_id": "1112",
       "slug": "aceh-barat-daya",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1112",
       "source": "API Indonesia",
-      "pending": true
+      "error": "API Indonesia jadwal HTTP 404 untuk Kabupaten Aceh Barat Daya",
+      "attemptedAt": "2026-10-14T06:27:36.905Z"
     },
     "aceh-besar": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Aceh Besar",
       "provinsi": "Aceh",
+      "regency_id": "1106",
       "slug": "aceh-besar",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1106",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:59",
+        "terbit": "06:16",
+        "dzuhur": "12:17",
+        "ashar": "15:35",
+        "maghrib": "18:17",
+        "isya": "19:27"
+      },
+      "generatedAt": "2026-10-14T06:27:38.949Z"
     },
     "aceh-jaya": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Aceh Jaya",
       "provinsi": "Aceh",
+      "regency_id": "1114",
       "slug": "aceh-jaya",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1114",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:55",
+        "terbit": "06:13",
+        "dzuhur": "12:14",
+        "ashar": "15:32",
+        "maghrib": "18:15",
+        "isya": "19:24"
+      },
+      "generatedAt": "2026-10-14T06:27:41.437Z"
     },
     "aceh-selatan": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Aceh Selatan",
       "provinsi": "Aceh",
+      "regency_id": "1101",
       "slug": "aceh-selatan",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1101",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:57",
+        "terbit": "06:14",
+        "dzuhur": "12:15",
+        "ashar": "15:33",
+        "maghrib": "18:15",
+        "isya": "19:25"
+      },
+      "generatedAt": "2026-10-14T06:27:42.901Z"
     },
     "aceh-singkil": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Aceh Singkil",
       "provinsi": "Aceh",
+      "regency_id": "1110",
       "slug": "aceh-singkil",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1110",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:56",
+        "terbit": "06:13",
+        "dzuhur": "12:15",
+        "ashar": "15:32",
+        "maghrib": "18:16",
+        "isya": "19:26"
+      },
+      "generatedAt": "2026-10-14T06:27:44.719Z"
     },
     "aceh-tamiang": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Aceh Tamiang",
       "provinsi": "Aceh",
+      "regency_id": "1116",
       "slug": "aceh-tamiang",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1116",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "05:05",
+        "terbit": "06:23",
+        "dzuhur": "12:24",
+        "ashar": "15:42",
+        "maghrib": "18:24",
+        "isya": "19:34"
+      },
+      "generatedAt": "2026-10-14T06:27:46.079Z"
     },
     "aceh-tengah": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Aceh Tengah",
       "provinsi": "Aceh",
+      "regency_id": "1104",
       "slug": "aceh-tengah",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1104",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "05:06",
+        "terbit": "06:23",
+        "dzuhur": "12:24",
+        "ashar": "15:42",
+        "maghrib": "18:24",
+        "isya": "19:33"
+      },
+      "generatedAt": "2026-10-14T06:27:47.422Z"
     },
     "aceh-tenggara": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Aceh Tenggara",
       "provinsi": "Aceh",
+      "regency_id": "1102",
       "slug": "aceh-tenggara",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1102",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "05:00",
+        "terbit": "06:18",
+        "dzuhur": "12:19",
+        "ashar": "15:37",
+        "maghrib": "18:19",
+        "isya": "19:29"
+      },
+      "generatedAt": "2026-10-14T06:27:49.250Z"
     },
     "aceh-timur": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Aceh Timur",
       "provinsi": "Aceh",
+      "regency_id": "1103",
       "slug": "aceh-timur",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1103",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "05:03",
+        "terbit": "06:21",
+        "dzuhur": "12:22",
+        "ashar": "15:39",
+        "maghrib": "18:22",
+        "isya": "19:32"
+      },
+      "generatedAt": "2026-10-14T06:27:51.029Z"
     },
     "aceh-utara": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Aceh Utara",
       "provinsi": "Aceh",
+      "regency_id": "1108",
       "slug": "aceh-utara",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1108",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "05:01",
+        "terbit": "06:19",
+        "dzuhur": "12:19",
+        "ashar": "15:38",
+        "maghrib": "18:19",
+        "isya": "19:29"
+      },
+      "generatedAt": "2026-10-14T06:27:52.349Z"
     },
     "bener-meriah": {
       "success": false,
@@ -678,52 +769,88 @@
       "pending": true
     },
     "administrasi-jakarta-barat": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kota Administrasi Jakarta Barat",
       "provinsi": "Daerah Khusus Ibukota Jakarta",
+      "regency_id": "3173",
       "slug": "administrasi-jakarta-barat",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3173",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:16",
+        "terbit": "05:29",
+        "dzuhur": "11:42",
+        "ashar": "14:46",
+        "maghrib": "17:49",
+        "isya": "18:58"
+      },
+      "generatedAt": "2026-10-14T06:27:54.186Z"
     },
     "administrasi-jakarta-pusat": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kota Administrasi Jakarta Pusat",
       "provinsi": "Daerah Khusus Ibukota Jakarta",
+      "regency_id": "3171",
       "slug": "administrasi-jakarta-pusat",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3171",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:16",
+        "terbit": "05:29",
+        "dzuhur": "11:42",
+        "ashar": "14:46",
+        "maghrib": "17:49",
+        "isya": "18:58"
+      },
+      "generatedAt": "2026-10-14T06:27:55.509Z"
     },
     "administrasi-jakarta-selatan": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kota Administrasi Jakarta Selatan",
       "provinsi": "Daerah Khusus Ibukota Jakarta",
+      "regency_id": "3174",
       "slug": "administrasi-jakarta-selatan",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3174",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:16",
+        "terbit": "05:29",
+        "dzuhur": "11:42",
+        "ashar": "14:46",
+        "maghrib": "17:49",
+        "isya": "18:58"
+      },
+      "generatedAt": "2026-10-14T06:27:57.317Z"
     },
     "administrasi-jakarta-timur": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kota Administrasi Jakarta Timur",
       "provinsi": "Daerah Khusus Ibukota Jakarta",
+      "regency_id": "3175",
       "slug": "administrasi-jakarta-timur",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3175",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:16",
+        "terbit": "05:29",
+        "dzuhur": "11:42",
+        "ashar": "14:46",
+        "maghrib": "17:49",
+        "isya": "18:58"
+      },
+      "generatedAt": "2026-10-14T06:28:00.326Z"
     },
     "administrasi-jakarta-utara": {
       "success": false,
