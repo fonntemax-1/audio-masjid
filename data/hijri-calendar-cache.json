@@ -1,8 +1,8 @@
 {
   "success": true,
   "source": "AlAdhan / Kalender Hijriah",
-  "updatedAt": "2026-10-14T09:47:08.435Z",
-  "yearCount": 1,
+  "updatedAt": "2026-10-14T23:25:09.808Z",
+  "yearCount": 2,
   "years": {
     "2026": {
       "source": "AlAdhan / Kalender Hijriah",
@@ -10,7 +10,7 @@
       "province": "Jawa Barat",
       "timezone": "Asia/Jakarta",
       "method": 20,
-      "generatedAt": "2026-10-14T23:19:26.666Z",
+      "generatedAt": "2026-10-14T23:25:09.808Z",
       "dayCount": 365,
       "days": {
         "2026-01-01": {
@@ -2941,7 +2941,7 @@
       "province": "Jawa Barat",
       "timezone": "Asia/Jakarta",
       "method": 20,
-      "generatedAt": "2026-10-14T23:19:26.666Z",
+      "generatedAt": "2026-10-14T23:25:09.808Z",
       "dayCount": 365,
       "days": {
         "2027-01-01": {
@@ -5867,5 +5867,5 @@
       }
     }
   },
-  "generatedAt": "2026-10-14T23:19:26.666Z"
+  "generatedAt": "2026-10-14T23:25:09.808Z"
 }
