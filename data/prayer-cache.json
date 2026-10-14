@@ -1,8 +1,8 @@
 {
   "success": true,
   "source": "API Indonesia",
-  "generatedAt": "2026-10-14T06:40:04.802Z",
-  "updatedAt": "2026-10-14T06:40:04.802Z",
+  "generatedAt": "2026-10-14T06:41:51.194Z",
+  "updatedAt": "2026-10-14T06:41:51.194Z",
   "cityCount": 514,
   "cities": {
     "aceh-barat": {
@@ -353,16 +353,25 @@
       "generatedAt": "2026-10-14T06:28:54.781Z"
     },
     "langsa": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kota Langsa",
       "provinsi": "Aceh",
+      "regency_id": "1174",
       "slug": "langsa",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1174",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:59",
+        "terbit": "06:17",
+        "dzuhur": "12:17",
+        "ashar": "15:36",
+        "maghrib": "18:18",
+        "isya": "19:27"
+      },
+      "generatedAt": "2026-10-14T06:41:46.547Z"
     },
     "lhokseumawe": {
       "success": false,
@@ -584,13 +593,14 @@
       "success": false,
       "kota": "Kabupaten Lebak",
       "provinsi": "Banten",
+      "regency_id": "3602",
       "slug": "lebak",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3602",
       "source": "API Indonesia",
-      "pending": true
+      "error": "API Indonesia jadwal HTTP 404 untuk Kabupaten Lebak",
+      "attemptedAt": "2026-10-14T06:41:49.468Z"
     },
     "pandeglang": {
       "success": false,
@@ -791,16 +801,25 @@
       "generatedAt": "2026-10-14T06:37:24.522Z"
     },
     "lebong": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Lebong",
       "provinsi": "Bengkulu",
+      "regency_id": "1707",
       "slug": "lebong",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1707",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:35",
+        "terbit": "05:52",
+        "dzuhur": "11:57",
+        "ashar": "15:08",
+        "maghrib": "18:02",
+        "isya": "19:12"
+      },
+      "generatedAt": "2026-10-14T06:41:51.194Z"
     },
     "mukomuko": {
       "success": false,
@@ -2564,16 +2583,25 @@
       "generatedAt": "2026-10-14T06:37:17.082Z"
     },
     "lamongan": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Lamongan",
       "provinsi": "Jawa Timur",
+      "regency_id": "3524",
       "slug": "lamongan",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3524",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "03:51",
+        "terbit": "05:09",
+        "dzuhur": "11:16",
+        "ashar": "14:21",
+        "maghrib": "17:24",
+        "isya": "18:34"
+      },
+      "generatedAt": "2026-10-14T06:41:30.657Z"
     },
     "lumajang": {
       "success": false,
@@ -3044,16 +3072,25 @@
       "generatedAt": "2026-10-14T06:39:56.389Z"
     },
     "landak": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Landak",
       "provinsi": "Kalimantan Barat",
+      "regency_id": "6108",
       "slug": "landak",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "6108",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:03",
+        "terbit": "05:20",
+        "dzuhur": "11:24",
+        "ashar": "14:38",
+        "maghrib": "17:27",
+        "isya": "18:36"
+      },
+      "generatedAt": "2026-10-14T06:41:44.736Z"
     },
     "melawi": {
       "success": false,
@@ -3557,16 +3594,25 @@
       "generatedAt": "2026-10-14T06:39:51.940Z"
     },
     "lamandau": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Lamandau",
       "provinsi": "Kalimantan Tengah",
+      "regency_id": "6209",
       "slug": "lamandau",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "6209",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "03:53",
+        "terbit": "05:11",
+        "dzuhur": "11:16",
+        "ashar": "14:26",
+        "maghrib": "17:21",
+        "isya": "18:31"
+      },
+      "generatedAt": "2026-10-14T06:41:30.629Z"
     },
     "murung-raya": {
       "success": false,
@@ -4122,64 +4168,109 @@
       "pending": true
     },
     "lampung-barat": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Lampung Barat",
       "provinsi": "Lampung",
+      "regency_id": "1804",
       "slug": "lampung-barat",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1804",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:19",
+        "terbit": "05:37",
+        "dzuhur": "11:44",
+        "ashar": "14:51",
+        "maghrib": "17:50",
+        "isya": "19:00"
+      },
+      "generatedAt": "2026-10-14T06:41:32.214Z"
     },
     "lampung-selatan": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Lampung Selatan",
       "provinsi": "Lampung",
+      "regency_id": "1801",
       "slug": "lampung-selatan",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1801",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:23",
+        "terbit": "05:40",
+        "dzuhur": "11:47",
+        "ashar": "14:55",
+        "maghrib": "17:53",
+        "isya": "19:02"
+      },
+      "generatedAt": "2026-10-14T06:41:33.703Z"
     },
     "lampung-tengah": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Lampung Tengah",
       "provinsi": "Lampung",
+      "regency_id": "1802",
       "slug": "lampung-tengah",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1802",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:21",
+        "terbit": "05:39",
+        "dzuhur": "11:45",
+        "ashar": "14:54",
+        "maghrib": "17:51",
+        "isya": "19:01"
+      },
+      "generatedAt": "2026-10-14T06:41:36.944Z"
     },
     "lampung-timur": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Lampung Timur",
       "provinsi": "Lampung",
+      "regency_id": "1807",
       "slug": "lampung-timur",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1807",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:26",
+        "terbit": "05:44",
+        "dzuhur": "11:50",
+        "ashar": "14:58",
+        "maghrib": "17:56",
+        "isya": "19:06"
+      },
+      "generatedAt": "2026-10-14T06:41:38.887Z"
     },
     "lampung-utara": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Lampung Utara",
       "provinsi": "Lampung",
+      "regency_id": "1803",
       "slug": "lampung-utara",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1803",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:23",
+        "terbit": "05:41",
+        "dzuhur": "11:47",
+        "ashar": "14:55",
+        "maghrib": "17:54",
+        "isya": "19:04"
+      },
+      "generatedAt": "2026-10-14T06:41:41.886Z"
     },
     "mesuji": {
       "success": false,
@@ -5467,16 +5558,25 @@
       "generatedAt": "2026-10-14T06:36:40.870Z"
     },
     "lanny-jaya": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Lanny Jaya",
       "provinsi": "Papua Pegunungan",
+      "regency_id": "9507",
       "slug": "lanny-jaya",
       "zona": "WIT",
       "timezone": "Asia/Jayapura",
       "gmt": "GMT+9",
-      "regency_id": "9507",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:09",
+        "terbit": "05:27",
+        "dzuhur": "11:33",
+        "ashar": "14:42",
+        "maghrib": "17:38",
+        "isya": "18:48"
+      },
+      "generatedAt": "2026-10-14T06:41:48.049Z"
     },
     "mamberamo-tengah": {
       "success": false,
@@ -7461,16 +7561,25 @@
       "generatedAt": "2026-10-14T06:34:31.965Z"
     },
     "lahat": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Lahat",
       "provinsi": "Sumatera Selatan",
+      "regency_id": "1604",
       "slug": "lahat",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1604",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:29",
+        "terbit": "05:46",
+        "dzuhur": "11:52",
+        "ashar": "15:02",
+        "maghrib": "17:57",
+        "isya": "19:07"
+      },
+      "generatedAt": "2026-10-14T06:41:29.173Z"
     },
     "muara-enim": {
       "success": false,
@@ -7809,28 +7918,46 @@
       "generatedAt": "2026-10-14T06:40:04.802Z"
     },
     "labuhanbatu-utara": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Labuhanbatu Utara",
       "provinsi": "Sumatera Utara",
+      "regency_id": "1223",
       "slug": "labuhanbatu-utara",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1223",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:48",
+        "terbit": "06:06",
+        "dzuhur": "12:07",
+        "ashar": "15:24",
+        "maghrib": "18:09",
+        "isya": "19:19"
+      },
+      "generatedAt": "2026-10-14T06:41:27.323Z"
     },
     "langkat": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Langkat",
       "provinsi": "Sumatera Utara",
+      "regency_id": "1205",
       "slug": "langkat",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1205",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:47",
+        "terbit": "06:05",
+        "dzuhur": "12:08",
+        "ashar": "15:23",
+        "maghrib": "18:11",
+        "isya": "19:20"
+      },
+      "generatedAt": "2026-10-14T06:41:46.513Z"
     },
     "mandailing-natal": {
       "success": false,
