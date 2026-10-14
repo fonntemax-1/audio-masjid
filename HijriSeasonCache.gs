@@ -84,7 +84,7 @@ function hijriSeasonRefreshIfNeeded_(today) {
     days && hijriAnnualDaysComplete_(days, year);
   if (!trusted) {
     Logger.log("Cache kalender Hijriah belum valid dari AlAdhan; melakukan refresh tahunan tanpa fallback.");
-    return refreshHijriCalendarCacheFromAlAdhan(Number(year));
+    return refreshHijriCalendarCacheYearFromAlAdhan_(Number(year));
   }
 
   var todayMs = hijriSeasonDateMs_(today);
@@ -106,7 +106,7 @@ function hijriSeasonRefreshIfNeeded_(today) {
   }
   Logger.log("Jendela khusus Hijriah AlAdhan aktif: " + target.month + ", tanggal=" + target.date +
     ", H-" + target.daysUntil + ". Memperbarui kalender tahunan dari AlAdhan.");
-  var result = refreshHijriCalendarCacheFromAlAdhan(Number(year));
+  var result = refreshHijriCalendarCacheYearFromAlAdhan_(Number(year));
   result.target = target;
   return result;
 }
@@ -116,7 +116,7 @@ function hijriSeasonRefreshIfNeeded_(today) {
  * Memanggil calendarByCity untuk setiap bulan dan tidak memakai sumber alternatif.
  * Jalankan manual setelah file ini diperbarui agar cache lama AlAdhan diganti.
  */
-function refreshHijriCalendarCacheFromAlAdhan(year) {
+function refreshHijriCalendarCacheYearFromAlAdhan_(year) {
   var targetYear = Number(year || Utilities.formatDate(new Date(), HIJRI_SEASON_TZ_, "yyyy"));
   if (!Number.isInteger(targetYear) || targetYear < 1900 || targetYear > 2200) {
     throw new Error("Tahun kalender Hijriah tidak valid.");
