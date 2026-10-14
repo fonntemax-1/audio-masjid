@@ -4589,9 +4589,36 @@ function testAdzanSheet() {
 }
 
 
+/**
+ * Memastikan cache kalender Hijriah berisi setiap tanggal pada satu tahun penuh.
+ * Menggunakan UTC agar hasil tidak bergeser karena zona waktu proyek Apps Script.
+ */
+function hijriAnnualDaysComplete_(days, year) {
+  if (!days || typeof days !== 'object') return false;
+
+  var y = Number(year);
+  if (!Number.isInteger(y) || y < 1900 || y > 2200) return false;
+
+  var date = new Date(Date.UTC(y, 0, 1));
+  var end = new Date(Date.UTC(y + 1, 0, 1));
+
+  while (date < end) {
+    var key = Utilities.formatDate(date, 'UTC', 'yyyy-MM-dd');
+    var row = days[key];
+    if (!row || typeof row !== 'object') return false;
+
+    var hasHijri = String(row.hijri_formatted || '').trim() ||
+      (row.hijri_day && row.hijri_month_name && row.hijri_year);
+    if (!hasHijri) return false;
+
+    date.setUTCDate(date.getUTCDate() + 1);
+  }
+  return true;
+}
+
 function getHijriDateFromApi(dateString) {
   const date = String(dateString || '').trim();
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) {
+  if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date)) {
     return { success: false, found: false, hijri: '', date: date, source: 'GitHub Hijri cache', error: 'Tanggal Masehi tidak valid.' };
   }
   const cache = CacheService.getScriptCache();
@@ -5030,32 +5057,27 @@ function getPrayerRegencyIdFromGithub_(cityName, provinceName) {
  * CacheService lama ditinggalkan dengan prefix lama; kode baru memakai key V2.
  * Tidak mengubah scheduler atau audio.
  */
+/**
+ * Refresh eksplisit cache jadwal sholat untuk kota aktif.
+ * Tidak lagi menulis ulang file cache global lama yang sudah dihapus.
+ * Hanya dipanggil manual; tidak mengubah scheduler atau audio.
+ */
 function resetAllPrayerCachesAndRefreshAlAdhan() {
-  const stamp = new Date().toISOString();
-  writeGithubJsonFile_("data/prayer-cache.json", {
-    success: true,
-    source: "AlAdhan API / method 20 (Kemenag Indonesia)",
-    generatedAt: stamp,
-    updatedAt: stamp,
-    cityCount: 0,
-    cities: {}
-  }, "Hapus cache jadwal lama sebelum migrasi penuh ke AlAdhan");
-
-  writeGithubJsonFile_("data/prayer-monthly-cache.json", {
-    success: true,
-    source: "AlAdhan API / method 20 (Kemenag Indonesia)",
-    generatedAt: stamp,
-    updatedAt: stamp,
-    monthCount: 0,
-    months: {}
-  }, "Reset cache bulanan lama untuk membangun ulang dari AlAdhan");
-
-  const result = refreshPrayerCacheForCurrentCity(true);
+  var result = refreshPrayerCacheForCurrentCity(true);
   if (!result || result.success !== true) {
-    throw new Error("Cache lama sudah dikosongkan, tetapi refresh AlAdhan gagal. Periksa log dan jalankan ulang setelah memperbaiki penyebabnya.");
+    throw new Error(
+      "Refresh cache kota aktif gagal. Cache lama tidak diubah. Periksa log dan coba lagi setelah memperbaiki penyebabnya."
+    );
   }
-  Logger.log("RESET CACHE SELESAI: cache lama dikosongkan; cache kota aktif dibangun ulang dari AlAdhan: " + JSON.stringify(result));
-  return { success: true, reset: true, refreshedFrom: "AlAdhan API", result: result };
+  Logger.log(
+    "REFRESH CACHE KOTA AKTIF SELESAI: " + JSON.stringify(result)
+  );
+  return {
+    success: true,
+    refreshed: true,
+    refreshedFrom: "AlAdhan API / method 20 (Kemenag Indonesia)",
+    result: result
+  };
 }
 
 function refreshPrayerCacheForCurrentCity(forceRefresh) {
