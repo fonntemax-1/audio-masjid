@@ -1,8 +1,30 @@
 {
   "success": true,
   "source": "AlAdhan API / method 20 (Kemenag Indonesia)",
-  "generatedAt": "2026-10-14T12:19:59.144Z",
-  "updatedAt": "2026-10-14T12:19:59.144Z",
-  "cityCount": 0,
-  "cities": {}
+  "generatedAt": "2026-10-14T12:20:05.038Z",
+  "updatedAt": "2026-10-14T12:20:05.038Z",
+  "cityCount": 1,
+  "cities": {
+    "samarinda": {
+      "success": true,
+      "tanggal": "2026-10-14",
+      "kota": "Kota Samarinda",
+      "provinsi": "Kalimantan Timur",
+      "regency_id": "6472",
+      "slug": "samarinda",
+      "zona": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "UTC+8",
+      "source": "AlAdhan API / method 20 (Kemenag Indonesia)",
+      "jadwal": {
+        "subuh": "04:36",
+        "terbit": "05:54",
+        "dzuhur": "11:57",
+        "ashar": "15:11",
+        "maghrib": "18:01",
+        "isya": "19:10"
+      },
+      "generatedAt": "2026-10-14T12:20:05.038Z"
+    }
+  }
 }
