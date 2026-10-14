@@ -4048,7 +4048,7 @@ function processKeyValue(
    for (var i = 0; i < entry.days.length; i++) {
      var day = entry.days[i] || {};
      var date = String(day.date || day.tanggal || '').trim();
-     if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date) ||
+     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) ||
          date.slice(0, 7) !== year + '-' + monthText || seen[date] ||
          String(day.regency_id || day.kabupaten_id || '') !== String(regencyId) ||
          String(day.source || '') !== 'API Indonesia / Kemenag') return false;
