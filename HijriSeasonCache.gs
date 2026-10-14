@@ -85,7 +85,7 @@ function refreshHijriCalendarCacheDateFromAlAdhan_(today, schedule) {
   var hijriDay = String(schedule && schedule.hijri_day || "").trim();
   var hijriMonthRaw = String(schedule && schedule.hijri_month_name || "").trim();
   var hijriYear = String(schedule && schedule.hijri_year || "").trim();
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(today) || !hijriDay || !hijriMonthRaw || !hijriYear) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(today) || !hijriDay || !hijriMonthRaw || !hijriYear) {
     Logger.log("Validasi Hijriah AlAdhan gagal: data tanggal berjalan tidak lengkap; cache lama dipertahankan.");
     return { checked: true, updated: false, reason: "invalid_aladhan_hijri_response", source: source };
   }
@@ -99,7 +99,7 @@ function refreshHijriCalendarCacheDateFromAlAdhan_(today, schedule) {
     "dhu al-qi'dah": "Dzulkaidah", "dhu al-qidah": "Dzulkaidah",
     "dhu al-hijjah": "Dzulhijjah"
   };
-  var monthKey = hijriMonthRaw.toLowerCase().replace(/\\s+/g, " ").trim();
+  var monthKey = hijriMonthRaw.toLowerCase().replace(/\s+/g, " ").trim();
   var localMonth = monthMap[monthKey] || hijriMonthRaw;
   var freshRow = {
     gregorian_date: today,
