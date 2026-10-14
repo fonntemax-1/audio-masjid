@@ -5453,7 +5453,8 @@ function refreshPrayerCacheForCurrentCity() {
     prior.kota === entry.kota &&
     prior.provinsi === entry.provinsi &&
     JSON.stringify(prior.jadwal) === JSON.stringify(entry.jadwal) &&
-    prior.timezone === entry.timezone;
+    prior.timezone === entry.timezone &&
+    prior.source === entry.source;
   if (sameSchedule) {
     Logger.log("CACHE JADWAL GITHUB SUDAH TERBARU: " + city + " " + date + "; commit dilewati.");
     return { success: true, changed: false, kota: city, tanggal: date, slug: slug };
