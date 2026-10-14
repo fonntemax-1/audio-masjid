@@ -1,8 +1,8 @@
 {
   "success": true,
   "source": "API Indonesia",
-  "generatedAt": "2026-10-14T06:28:57.918Z",
-  "updatedAt": "2026-10-14T06:28:57.918Z",
+  "generatedAt": "2026-10-14T06:30:32.900Z",
+  "updatedAt": "2026-10-14T06:30:32.900Z",
   "cityCount": 514,
   "cities": {
     "aceh-barat": {
@@ -403,16 +403,25 @@
       "generatedAt": "2026-10-14T06:28:53.413Z"
     },
     "bangli": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bangli",
       "provinsi": "Bali",
+      "regency_id": "5106",
       "slug": "bangli",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "5106",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:38",
+        "terbit": "05:56",
+        "dzuhur": "12:05",
+        "ashar": "15:07",
+        "maghrib": "18:13",
+        "isya": "19:23"
+      },
+      "generatedAt": "2026-10-14T06:30:29.364Z"
     },
     "buleleng": {
       "success": false,
@@ -1360,16 +1369,25 @@
       "generatedAt": "2026-10-14T06:28:56.233Z"
     },
     "banjar": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kota Banjar",
       "provinsi": "Jawa Barat",
+      "regency_id": "3279",
       "slug": "banjar",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3279",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:06",
+        "terbit": "05:24",
+        "dzuhur": "11:32",
+        "ashar": "14:36",
+        "maghrib": "17:39",
+        "isya": "18:50"
+      },
+      "generatedAt": "2026-10-14T06:30:29.394Z"
     },
     "bekasi-3275": {
       "success": false,
@@ -1456,16 +1474,25 @@
       "pending": true
     },
     "banjarnegara": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Banjarnegara",
       "provinsi": "Jawa Tengah",
+      "regency_id": "3304",
       "slug": "banjarnegara",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3304",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:01",
+        "terbit": "05:20",
+        "dzuhur": "11:27",
+        "ashar": "14:32",
+        "maghrib": "17:35",
+        "isya": "18:45"
+      },
+      "generatedAt": "2026-10-14T06:30:31.075Z"
     },
     "banyumas": {
       "success": false,
@@ -1876,16 +1903,25 @@
       "pending": true
     },
     "bangkalan": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bangkalan",
       "provinsi": "Jawa Timur",
+      "regency_id": "3526",
       "slug": "bangkalan",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3526",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "03:49",
+        "terbit": "05:08",
+        "dzuhur": "11:15",
+        "ashar": "14:20",
+        "maghrib": "17:23",
+        "isya": "18:33"
+      },
+      "generatedAt": "2026-10-14T06:30:27.659Z"
     },
     "banyuwangi": {
       "success": false,
@@ -2521,16 +2557,25 @@
       "generatedAt": "2026-10-14T06:28:54.737Z"
     },
     "banjar-6303": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Banjar",
       "provinsi": "Kalimantan Selatan",
+      "regency_id": "6303",
       "slug": "banjar-6303",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "6303",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:44",
+        "terbit": "06:01",
+        "dzuhur": "12:07",
+        "ashar": "15:17",
+        "maghrib": "18:12",
+        "isya": "19:22"
+      },
+      "generatedAt": "2026-10-14T06:30:30.980Z"
     },
     "barito-kuala": {
       "success": false,
@@ -2641,28 +2686,46 @@
       "pending": true
     },
     "banjarbaru": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kota Banjarbaru",
       "provinsi": "Kalimantan Selatan",
+      "regency_id": "6372",
       "slug": "banjarbaru",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "6372",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:44",
+        "terbit": "06:01",
+        "dzuhur": "12:07",
+        "ashar": "15:17",
+        "maghrib": "18:12",
+        "isya": "19:22"
+      },
+      "generatedAt": "2026-10-14T06:30:31.005Z"
     },
     "banjarmasin": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kota Banjarmasin",
       "provinsi": "Kalimantan Selatan",
+      "regency_id": "6371",
       "slug": "banjarmasin",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "6371",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:45",
+        "terbit": "06:03",
+        "dzuhur": "12:08",
+        "ashar": "15:18",
+        "maghrib": "18:13",
+        "isya": "19:23"
+      },
+      "generatedAt": "2026-10-14T06:30:31.049Z"
     },
     "barito-selatan": {
       "success": false,
@@ -3022,52 +3085,88 @@
       "pending": true
     },
     "bangka": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bangka",
       "provinsi": "Kepulauan Bangka Belitung",
+      "regency_id": "1901",
       "slug": "bangka",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1901",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:20",
+        "terbit": "05:37",
+        "dzuhur": "11:42",
+        "ashar": "14:53",
+        "maghrib": "17:46",
+        "isya": "18:56"
+      },
+      "generatedAt": "2026-10-14T06:30:22.999Z"
     },
     "bangka-barat": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bangka Barat",
       "provinsi": "Kepulauan Bangka Belitung",
+      "regency_id": "1905",
       "slug": "bangka-barat",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1905",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:17",
+        "terbit": "05:35",
+        "dzuhur": "11:40",
+        "ashar": "14:50",
+        "maghrib": "17:45",
+        "isya": "18:55"
+      },
+      "generatedAt": "2026-10-14T06:30:24.691Z"
     },
     "bangka-selatan": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bangka Selatan",
       "provinsi": "Kepulauan Bangka Belitung",
+      "regency_id": "1903",
       "slug": "bangka-selatan",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1903",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:23",
+        "terbit": "05:41",
+        "dzuhur": "11:45",
+        "ashar": "14:57",
+        "maghrib": "17:50",
+        "isya": "18:59"
+      },
+      "generatedAt": "2026-10-14T06:30:26.061Z"
     },
     "bangka-tengah": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bangka Tengah",
       "provinsi": "Kepulauan Bangka Belitung",
+      "regency_id": "1904",
       "slug": "bangka-tengah",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1904",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:18",
+        "terbit": "05:36",
+        "dzuhur": "11:40",
+        "ashar": "14:51",
+        "maghrib": "17:45",
+        "isya": "18:55"
+      },
+      "generatedAt": "2026-10-14T06:30:27.618Z"
     },
     "belitung": {
       "success": false,
@@ -4762,16 +4861,25 @@
       "pending": true
     },
     "bantaeng": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Bantaeng",
       "provinsi": "Sulawesi Selatan",
+      "regency_id": "7303",
       "slug": "bantaeng",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7303",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:22",
+        "terbit": "05:40",
+        "dzuhur": "11:46",
+        "ashar": "14:54",
+        "maghrib": "17:53",
+        "isya": "19:03"
+      },
+      "generatedAt": "2026-10-14T06:30:32.900Z"
     },
     "barru": {
       "success": false,
@@ -5050,40 +5158,67 @@
       "pending": true
     },
     "banggai": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Banggai",
       "provinsi": "Sulawesi Tengah",
+      "regency_id": "7201",
       "slug": "banggai",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7201",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:21",
+        "terbit": "05:39",
+        "dzuhur": "11:43",
+        "ashar": "14:56",
+        "maghrib": "17:47",
+        "isya": "18:57"
+      },
+      "generatedAt": "2026-10-14T06:30:20.004Z"
     },
     "banggai-kepulauan": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Banggai Kepulauan",
       "provinsi": "Sulawesi Tengah",
+      "regency_id": "7207",
       "slug": "banggai-kepulauan",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7207",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:14",
+        "terbit": "05:31",
+        "dzuhur": "11:35",
+        "ashar": "14:48",
+        "maghrib": "17:39",
+        "isya": "18:48"
+      },
+      "generatedAt": "2026-10-14T06:30:21.475Z"
     },
     "banggai-laut": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Banggai Laut",
       "provinsi": "Sulawesi Tengah",
+      "regency_id": "7211",
       "slug": "banggai-laut",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7211",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:10",
+        "terbit": "05:28",
+        "dzuhur": "11:32",
+        "ashar": "14:45",
+        "maghrib": "17:36",
+        "isya": "18:46"
+      },
+      "generatedAt": "2026-10-14T06:30:22.967Z"
     },
     "buol": {
       "success": false,
