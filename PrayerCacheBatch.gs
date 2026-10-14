@@ -254,3 +254,13 @@ function getPrayerCacheAllCitiesBatchStatus() {
     lastResult: lastResult
   };
 }
+
+
+/**
+ * Wrapper publik untuk menjalankan satu batch manual dari editor Apps Script.
+ * Tidak memasang atau mengubah trigger apa pun.
+ */
+function runPrayerCacheAllCitiesBatchNow() {
+  processPrayerCacheAllCitiesBatch_();
+  return getPrayerCacheAllCitiesBatchStatus();
+}
