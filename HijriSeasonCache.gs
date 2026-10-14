@@ -177,13 +177,15 @@ function refreshHijriCalendarCacheFromAlAdhan(year) {
           !day || !hijriMonth || !hijriYear) return;
 
       var monthMap = {
-        "Muharram": "Muharam", "Safar": "Safar", "Rabi' al-awwal": "Rabiul Awal",
-        "Rabi' al-thani": "Rabiul Akhir", "Jumada al-awwal": "Jumadil Awal",
-        "Jumada al-thani": "Jumadil Akhir", "Rajab": "Rajab", "Sha'ban": "Syaban",
-        "Ramadan": "Ramadhan", "Shawwal": "Syawal", "Dhu al-Qi'dah": "Dzulkaidah",
-        "Dhu al-Hijjah": "Dzulhijjah"
+        "muharram": "Muharam", "safar": "Safar", "rabi' al-awwal": "Rabiul Awal",
+        "rabi al-awwal": "Rabiul Awal", "rabi' al-thani": "Rabiul Akhir",
+        "rabi al-thani": "Rabiul Akhir", "jumada al-awwal": "Jumadil Awal",
+        "jumada al-thani": "Jumadil Akhir", "rajab": "Rajab", "sha'ban": "Syaban",
+        "shaban": "Syaban", "ramadan": "Ramadhan", "shawwal": "Syawal",
+        "dhu al-qi'dah": "Dzulkaidah", "dhu al-qidah": "Dzulkaidah",
+        "dhu al-hijjah": "Dzulhijjah"
       };
-      var localMonth = monthMap[hijriMonth] || hijriMonth;
+      var localMonth = monthMap[String(hijriMonth).toLowerCase()] || hijriMonth;
       freshDays[date] = {
         gregorian_date: date,
         hijri_day: day,
