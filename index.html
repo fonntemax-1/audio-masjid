@@ -9512,7 +9512,7 @@ function startRealtimeAudioConfigPolling_() {
 
 
     // =========================================================
-    // HIJRI - API INDONESIA
+    // KALENDER HIJRIAH - CACHE ALADHAN SAJA
     // =========================================================
 
     function updateHijriDate() {
@@ -9530,7 +9530,7 @@ function startRealtimeAudioConfigPolling_() {
             !result.hijri
           ) {
             console.warn(
-              'HIJRI API: gagal mengambil tanggal untuk',
+              'KALENDER HIJRIAH ALADHAN: tanggal tidak tersedia untuk',
               apiDate,
               result || {}
             );
@@ -9596,7 +9596,7 @@ function startRealtimeAudioConfigPolling_() {
           }
 
           console.log(
-            'Hijri API Indonesia:',
+            'KALENDER HIJRIAH ALADHAN CACHE:',
             apiDate,
             '=>',
             title,
@@ -9609,7 +9609,7 @@ function startRealtimeAudioConfigPolling_() {
         .catch(function(error) {
 
           console.error(
-            'HIJRI API ERROR:',
+            'KALENDER HIJRIAH ALADHAN ERROR:',
             error && error.message
               ? error.message
               : error
@@ -11505,7 +11505,7 @@ function startRealtimeAudioConfigPolling_() {
             .then(function(r) {
               if (r && r.success) {
                 console.log('JADWAL SHOLAT: besok dipreload ' + nextDate +
-                  ' source=' + (r.cacheSource || 'MuslimKita'));
+                  ' source=' + (r.cacheSource || 'AlAdhan cache'));
               }
             })
             .catch(function(e) {
@@ -11912,7 +11912,7 @@ function startRealtimeAudioConfigPolling_() {
         Date.now();
 
       console.log(
-        'JADWAL GITHUB CACHE MULTI-KOTA: meminta',
+        'JADWAL GITHUB CACHE ALADHAN KOTA: meminta',
         url
       );
 
@@ -11925,7 +11925,7 @@ function startRealtimeAudioConfigPolling_() {
           }
 
           console.log(
-            'JADWAL GITHUB CACHE MULTI-KOTA: HTTP OK',
+            'JADWAL GITHUB CACHE ALADHAN KOTA: HTTP OK',
             response.status,
             response.url
           );
@@ -11967,7 +11967,7 @@ function startRealtimeAudioConfigPolling_() {
             !selectedPayload.jadwal
           ) {
             console.warn(
-              'JADWAL GITHUB CACHE MULTI-KOTA: kota belum tersedia',
+              'JADWAL GITHUB CACHE ALADHAN KOTA: cache kota belum tersedia',
               {
                 targetSlug: targetSlug,
                 targetDate: targetDate,
@@ -12001,7 +12001,7 @@ function startRealtimeAudioConfigPolling_() {
             ).trim();
 
           console.log(
-            'JADWAL GITHUB CACHE MULTI-KOTA: perbandingan',
+            'JADWAL GITHUB CACHE ALADHAN KOTA: perbandingan',
             {
               cacheDate: cacheDate,
               targetDate: targetDate,
@@ -14310,7 +14310,7 @@ function startRealtimeAudioConfigPolling_() {
 
         if (!audioState.prayerScheduleWaitLogged) {
           console.log(
-            'AUDIO SCHEDULE: menunggu jadwal sholat dari API MuslimKita...'
+            'AUDIO SCHEDULE: menunggu jadwal sholat dari cache/API AlAdhan...'
           );
           audioState.prayerScheduleWaitLogged = true;
         }
@@ -16022,9 +16022,9 @@ function setCountdownBlackMode(enabled) {
       ) {
 
         // PRIORITAS TERAKHIR SEBELUM API:
-        // 1. GitHub prayer-cache.json (background service)
-        // 2. localStorage cache kartu
-        // 3. Apps Script / MuslimKita sebagai refresh background
+        // 1. GitHub prayer-cache-<slug>.json yang berasal dari AlAdhan
+        // 2. localStorage cache kartu yang diisi setelah jadwal valid diterima
+        // 3. Apps Script getPrayerSchedule() yang hanya menggunakan AlAdhan
         //
         // Ini juga menangani kondisi ketika cache GitHub sudah tersedia
         // tetapi proses updateUI belum sempat memanggil loader.
