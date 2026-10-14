@@ -3770,6 +3770,25 @@ function processKeyValue(
      if (cityListText) {
        try { cityList = JSON.parse(cityListText); } catch (ignoreCityCache) { cityList = null; }
      }
+     // Daftar resmi dibaca dari GitHub terlebih dahulu; API daftar kota hanya dipanggil
+     // jika file belum tersedia. Ini mencegah pemanggilan API berulang tiap cache sementara habis.
+     if (!Array.isArray(cityList) || !cityList.length) {
+       try {
+         var githubCityDoc = readGithubJsonFile_("data/daftar-kota.json");
+         if (githubCityDoc && Array.isArray(githubCityDoc.cities) && githubCityDoc.cities.length) {
+           cityList = githubCityDoc.cities.map(function(city) {
+             return {
+               regency_id: String(city.regency_id || city.id || ""),
+               regency_name: String(city.name || city.regency_name || ""),
+               province_name: String(city.province || city.province_name || "")
+             };
+           }).filter(function(city) { return city.regency_id && city.regency_name; });
+         }
+       } catch (githubCityReadError) {
+         Logger.log("DAFTAR KOTA GITHUB TIDAK DAPAT DIBACA: " +
+           (githubCityReadError && githubCityReadError.message ? githubCityReadError.message : githubCityReadError));
+       }
+     }
      if (!Array.isArray(cityList) || !cityList.length) {
        var listResponse = UrlFetchApp.fetch('https://use.apiindonesia.id/api/v1/sholat/list-kota', {
          method: 'get',
@@ -3783,7 +3802,33 @@ function processKeyValue(
        cityList = listJson && Array.isArray(listJson.data) ? listJson.data : [];
        if (!cityList.length) throw new Error('API Indonesia tidak mengembalikan daftar kota.');
        try { cache.put(cityCacheKey, JSON.stringify(cityList), 21600); } catch (ignoreCityPut) {}
+       // Simpan daftar API ke GitHub supaya request berikutnya tidak perlu mengambil ulang daftar.
+       try {
+         var cityDoc = {
+           success: true,
+           version: 1,
+           generatedAt: new Date().toISOString(),
+           source: "API Indonesia /api/v1/sholat/list-kota",
+           cityCount: cityList.length,
+           cities: cityList.map(function(city) {
+             return {
+               name: String(city.regency_name || city.name || ""),
+               province: String(city.province_name || city.province || ""),
+               regency_id: String(city.regency_id || city.id || ""),
+               zone: "",
+               timezone: "",
+               gmt: "",
+               slug: ""
+             };
+           })
+         };
+         writeGithubJsonFile_("data/daftar-kota.json", cityDoc, "Simpan daftar kota API Indonesia ke GitHub");
+       } catch (githubCityWriteError) {
+         Logger.log("SIMPAN DAFTAR KOTA GITHUB GAGAL: " +
+           (githubCityWriteError && githubCityWriteError.message ? githubCityWriteError.message : githubCityWriteError));
+       }
      }
+     try { cache.put(cityCacheKey, JSON.stringify(cityList), 21600); } catch (ignoreCityPutFinal) {}
 
      function normalizeCityName_(value) {
        return String(value || '').toUpperCase()
@@ -3813,51 +3858,117 @@ function processKeyValue(
      var regencyId = String(matches[0].regency_id || matches[0].id || matches[0].code || '').trim();
      if (!regencyId) throw new Error('ID kabupaten/kota API Indonesia kosong.');
 
+     var year = Number(dateString.slice(0, 4));
+     var month = Number(dateString.slice(5, 7));
+     var monthText = ('0' + month).slice(-2);
+     var monthId = regencyId + '_' + year + monthText;
      var apiCacheKey = 'PRAYER_APIID_' + regencyId + '_' + dateString.replace(/-/g, '');
-     var apiCached = cache.get(apiCacheKey);
-     if (apiCached) {
-       try {
-         var cachedResult = JSON.parse(apiCached);
-         if (cachedResult && cachedResult.success === true && isCompletePrayerScheduleSafe_(cachedResult.jadwal)) {
-           cachedResult.cached = true;
-           cachedResult.cacheSource = 'API Indonesia CacheService';
-           return cachedResult;
-         }
-       } catch (ignoreScheduleCache) {}
+     var monthlyCacheKey = 'PRAYER_APIID_MONTH_' + monthId;
+     var monthlyDoc = null;
+     var monthlyEntry = null;
+     var monthlyText = cache.get(monthlyCacheKey);
+     if (monthlyText) {
+       try { monthlyEntry = JSON.parse(monthlyText); } catch (ignoreMonthlyCache) { monthlyEntry = null; }
      }
 
-     var apiUrl = 'https://use.apiindonesia.id/api/v1/sholat?kabupaten_id=' +
-       encodeURIComponent(regencyId) + '&tanggal=' + encodeURIComponent(dateString);
-     var response = UrlFetchApp.fetch(apiUrl, {
-       method: 'get',
-       muteHttpExceptions: true,
-       headers: { 'x-api-key': apiKey, 'Accept': 'application/json' }
-     });
-     if (response.getResponseCode() < 200 || response.getResponseCode() >= 300) {
-       throw new Error('API Indonesia jadwal HTTP ' + response.getResponseCode() + '.');
+     // CacheService hanya lapisan sementara. Jika kosong, sumber permanen adalah GitHub.
+     if (!monthlyEntry || !Array.isArray(monthlyEntry.days) || !monthlyEntry.days.length) {
+       try {
+         monthlyDoc = readGithubJsonFile_("data/prayer-monthly-cache.json");
+       } catch (githubMonthlyReadError) {
+         Logger.log("CACHE JADWAL BULANAN GITHUB BELUM DAPAT DIBACA: " +
+           (githubMonthlyReadError && githubMonthlyReadError.message ? githubMonthlyReadError.message : githubMonthlyReadError));
+       }
+       if (monthlyDoc && monthlyDoc.months && monthlyDoc.months[monthId] &&
+           Array.isArray(monthlyDoc.months[monthId].days)) {
+         monthlyEntry = monthlyDoc.months[monthId];
+       }
      }
-     var payload = JSON.parse(response.getContentText() || '{}');
-     var data = payload && payload.data;
-     if (!data || typeof data !== 'object' || Array.isArray(data)) {
-       throw new Error('Respons API Indonesia tidak memiliki object data jadwal.');
+
+     if (!monthlyEntry || !Array.isArray(monthlyEntry.days) || !monthlyEntry.days.length) {
+       var monthlyUrl = 'https://use.apiindonesia.id/api/v1/sholat/monthly?kabupaten_id=' +
+         encodeURIComponent(regencyId) + '&tahun=' + encodeURIComponent(year) +
+         '&bulan=' + encodeURIComponent(month);
+       var monthlyResponse = UrlFetchApp.fetch(monthlyUrl, {
+         method: 'get',
+         muteHttpExceptions: true,
+         headers: { 'x-api-key': apiKey, 'Accept': 'application/json' }
+       });
+       if (monthlyResponse.getResponseCode() < 200 || monthlyResponse.getResponseCode() >= 300) {
+         throw new Error('API Indonesia jadwal bulanan HTTP ' + monthlyResponse.getResponseCode() + '.');
+       }
+       var monthlyPayload = JSON.parse(monthlyResponse.getContentText() || '{}');
+       var monthlyDays = monthlyPayload && Array.isArray(monthlyPayload.data) ? monthlyPayload.data : [];
+       if (!monthlyDays.length) throw new Error('API Indonesia tidak mengembalikan jadwal bulanan untuk ' + kota + '.');
+
+       function normalizeMonthlyTime_(value) {
+         var match = String(value == null ? '' : value).trim().match(/^(\\d{1,2}):(\\d{2})(?::\\d{2})?$/);
+         return match ? ('0' + match[1]).slice(-2) + ':' + match[2] : '';
+       }
+       var expectedDays = new Date(year, month, 0).getDate();
+       var seenDates = {};
+       monthlyDays.forEach(function(day) {
+         var d = String(day.date || day.tanggal || '').trim();
+         if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(d) || d.slice(0, 7) !== year + '-' + monthText) {
+           throw new Error('Tanggal tidak valid pada respons jadwal bulanan untuk ' + kota + ': ' + d);
+         }
+         day.date = d;
+         day.imsyak = normalizeMonthlyTime_(day.imsyak || day.imsyak || day.imsak);
+         day.shubuh = normalizeMonthlyTime_(day.shubuh || day.shubuh);
+         day.terbit = normalizeMonthlyTime_(day.terbit);
+         day.dzuhur = normalizeMonthlyTime_(day.dzuhur);
+         day.ashr = normalizeMonthlyTime_(day.ashr || day.ashar);
+         day.maghrib = normalizeMonthlyTime_(day.maghrib);
+         day.isya = normalizeMonthlyTime_(day.isya);
+         if (!day.shubuh || !day.terbit || !day.dzuhur || !day.ashr || !day.maghrib || !day.isya) {
+           throw new Error('Ada waktu sholat tidak lengkap pada tanggal ' + d + ' untuk ' + kota);
+         }
+         seenDates[d] = true;
+       });
+       if (Object.keys(seenDates).length !== expectedDays) {
+         throw new Error('Jadwal bulanan tidak lengkap: diterima ' + Object.keys(seenDates).length +
+           ' dari ' + expectedDays + ' tanggal untuk ' + kota + '.');
+       }
+
+       monthlyEntry = {
+         regency_id: regencyId,
+         kota: kota,
+         provinsi: provinsi,
+         tahun: year,
+         bulan: month,
+         source: 'API Indonesia / Kemenag',
+         updatedAt: new Date().toISOString(),
+         days: monthlyDays
+       };
+       monthlyDoc = monthlyDoc && monthlyDoc.months && typeof monthlyDoc.months === 'object' ? monthlyDoc : {
+         success: true, source: 'API Indonesia / Kemenag monthly', generatedAt: '', updatedAt: '', months: {}
+       };
+       monthlyDoc.months[monthId] = monthlyEntry;
+       monthlyDoc.success = true;
+       monthlyDoc.source = 'API Indonesia / Kemenag monthly';
+       monthlyDoc.generatedAt = new Date().toISOString();
+       monthlyDoc.updatedAt = monthlyDoc.generatedAt;
+       monthlyDoc.monthCount = Object.keys(monthlyDoc.months).length;
+       writeGithubJsonFile_("data/prayer-monthly-cache.json", monthlyDoc,
+         "Cache jadwal sholat bulanan " + kota + " " + year + "-" + monthText);
+       Logger.log("JADWAL BULANAN DISIMPAN KE GITHUB: " + kota + " " + year + "-" + monthText +
+         " (" + monthlyDays.length + " tanggal).");
      }
+
+     try { cache.put(monthlyCacheKey, JSON.stringify(monthlyEntry), 21600); } catch (ignoreMonthlyPut) {}
+     var data = monthlyEntry.days.filter(function(day) {
+       return String(day.date || day.tanggal || '') === dateString;
+     })[0];
+     if (!data) throw new Error('Tanggal ' + dateString + ' tidak ditemukan dalam cache bulanan GitHub untuk ' + kota + '.');
      var returnedDate = String(data.date || data.tanggal || '').trim();
-     if (!returnedDate) {
-       throw new Error('Respons API Indonesia tidak menyertakan tanggal jadwal.');
-     }
+     var returnedRegencyId = String(data.regency_id || data.kabupaten_id || regencyId).trim();
      if (returnedDate !== dateString) {
        throw new Error('Tanggal respons API Indonesia tidak cocok: diminta ' + dateString + ', diterima ' + returnedDate + '.');
      }
-     var returnedRegencyId = String(data.regency_id || data.kabupaten_id || '').trim();
      if (returnedRegencyId && returnedRegencyId !== regencyId) {
        throw new Error('Respons API Indonesia berasal dari ID kota yang berbeda (' + returnedRegencyId + ').');
      }
 
-     function prayerTime_(value) {
-       if (value === undefined || value === null) return '';
-       var match = String(value).trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-       return match ? ('0' + match[1]).slice(-2) + ':' + match[2] : '';
-     }
      var timezoneFromPanel = timezone || timezoneDefault;
      var zona = loc[2] || (timezoneFromPanel === 'Asia/Jakarta' ? 'WIB' :
        timezoneFromPanel === 'Asia/Jayapura' ? 'WIT' : 'WITA');
