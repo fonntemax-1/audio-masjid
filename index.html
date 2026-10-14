@@ -12020,7 +12020,7 @@ function startRealtimeAudioConfigPolling_() {
               cacheTimezone !== targetTimezone)
           ) {
             console.warn(
-              'JADWAL GITHUB CACHE MULTI-KOTA: tidak cocok',
+              'JADWAL GITHUB CACHE ALADHAN KOTA: tanggal/zona tidak cocok',
               {
                 cacheDate: cacheDate,
                 targetDate: targetDate,
@@ -12054,7 +12054,7 @@ function startRealtimeAudioConfigPolling_() {
 
           if (!valid) {
             console.warn(
-              'JADWAL GITHUB CACHE MULTI-KOTA: format jadwal tidak valid',
+              'JADWAL GITHUB CACHE ALADHAN KOTA: format jadwal tidak valid',
               j
             );
             return false;
@@ -12096,7 +12096,7 @@ function startRealtimeAudioConfigPolling_() {
         })
         .catch(function(error) {
           console.warn(
-            'JADWAL GITHUB CACHE MULTI-KOTA: belum tersedia:',
+            'JADWAL GITHUB CACHE ALADHAN KOTA: belum tersedia:',
             error && error.message
               ? error.message
               : error
