@@ -4589,7 +4589,7 @@ function getHijriDateFromApi(dateString) {
       return {
         success: false, found: false, hijri: '', date: date,
         source: 'AlAdhan Hijri cache',
-        error: 'Cache kalender Hijriah GitHub tidak tersedia atau tidak lengkap untuk tahun ' + year + '. Tidak ada fallback API.'
+        error: 'Cache kalender Hijriah AlAdhan tidak tersedia atau tidak lengkap untuk tahun ' + year + '. Tidak ada fallback API.'
       };
     }
     const row = days[date];
@@ -4955,7 +4955,7 @@ function TEST_JADWAL_AMAN() {
   Logger.log("TEST_JADWAL_AMAN: " + JSON.stringify(report));
   if (!result || result.success !== true) {
     throw new Error("Uji jadwal gagal: " +
-      String(result && (result.error || result.apiIndonesiaError || result.fallbackReason) || "respons tidak sukses"));
+      String(result && (result.error || result.alAdhanError || result.fallbackReason) || "respons tidak sukses"));
   }
   if (String(result.tanggal || "") !== date) {
     throw new Error("Tanggal respons tidak cocok. Diminta " + date +
@@ -5045,7 +5045,7 @@ function refreshPrayerCacheForCurrentCity(forceRefresh) {
   if (!schedule || schedule.success !== true ||
       String(schedule.tanggal || "") !== date ||
       !schedule.jadwal || !isCompletePrayerScheduleSafe_(schedule.jadwal)) {
-    const reason = schedule && (schedule.error || schedule.apiIndonesiaError || schedule.fallbackReason);
+    const reason = schedule && (schedule.error || schedule.alAdhanError || schedule.fallbackReason);
     Logger.log("CACHE JADWAL TIDAK DIPUBLIKASIKAN; respons belum valid untuk " + city + " " + date +
       (reason ? ": " + reason : ""));
     return { success: false, skipped: true, kota: city, tanggal: date, error: reason || "Jadwal belum lengkap." };
