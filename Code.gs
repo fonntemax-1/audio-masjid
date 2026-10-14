@@ -5429,10 +5429,11 @@ function refreshPrayerCacheForCurrentCity() {
 
 /** Membaca JSON dari GitHub main; null hanya jika file memang belum ada (HTTP 404). */
 function readGithubJsonFile_(path) {
+  const targetBranch = "migration-api-indonesia-20261014";
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
   if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
   const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
-    path.split("/").map(encodeURIComponent).join("/") + "?ref=main";
+    path.split("/").map(encodeURIComponent).join("/") + "?ref=" + encodeURIComponent(targetBranch);
   const response = UrlFetchApp.fetch(url, {
     method: "get",
     muteHttpExceptions: true,
@@ -5453,6 +5454,7 @@ function readGithubJsonFile_(path) {
 
 /** Membuat atau memperbarui JSON di branch main dengan token yang tersimpan di Script Properties. */
 function writeGithubJsonFile_(path, document, message) {
+  const targetBranch = "migration-api-indonesia-20261014";
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
   if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
   const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
@@ -5462,7 +5464,7 @@ function writeGithubJsonFile_(path, document, message) {
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28"
   };
-  const getResponse = UrlFetchApp.fetch(url + "?ref=main", {
+  const getResponse = UrlFetchApp.fetch(url + "?ref=" + encodeURIComponent(targetBranch), {
     method: "get", muteHttpExceptions: true, headers: headers
   });
   let sha = "";
@@ -5475,7 +5477,7 @@ function writeGithubJsonFile_(path, document, message) {
   const payload = {
     message: message,
     content: Utilities.base64Encode(Utilities.newBlob(content, "application/json").getBytes()),
-    branch: "main"
+    branch: targetBranch
   };
   if (sha) payload.sha = sha;
   const putResponse = UrlFetchApp.fetch(url, {
