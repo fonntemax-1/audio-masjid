@@ -173,103 +173,26 @@ function hijriSeasonRefreshIfNeeded_(today) {
 }
 
 function refreshActiveCityMonthlyPrayerCache_(today) {
-  var props = PropertiesService.getScriptProperties();
-  var apiKey = String(props.getProperty("API_INDONESIA_KEY") || "").trim();
-  if (!apiKey) throw new Error("Script Property API_INDONESIA_KEY belum diisi.");
-
-  // Fungsi utama memetakan kota aktif ke regency_id dari daftar resmi API Indonesia.
-  var resolved = getPrayerSchedule(today);
-  if (!resolved || resolved.success !== true || !resolved.regency_id) {
-    return { checked: false, updated: false, reason: "active_city_resolution_failed",
-      detail: resolved && (resolved.error || resolved.apiIndonesiaError) };
+  // Gunakan satu jalur operasional yang sama dengan aplikasi: getPrayerSchedule.
+  // Refresh eksplisit meminta API Indonesia dan memublikasikan cache per kota.
+  var schedule = getPrayerSchedule(today, { forceRefresh: true });
+  if (!schedule || schedule.success !== true || !schedule.regency_id ||
+      !schedule.jadwal || !isCompletePrayerScheduleSafe_(schedule.jadwal)) {
+    var detail = schedule && (schedule.error || schedule.apiIndonesiaError);
+    Logger.log("Validasi cache jadwal API Indonesia gagal: " + (detail || "respons tidak lengkap"));
+    return { checked: true, updated: false, reason: "api_indonesia_refresh_failed",
+      detail: detail || "Respons jadwal tidak lengkap" };
   }
-
-  var regencyId = String(resolved.regency_id);
-  var year = Number(today.slice(0, 4));
-  var month = Number(today.slice(5, 7));
-  var monthText = ("0" + month).slice(-2);
-  var monthId = regencyId + "_" + year + monthText;
-  var url = "https://use.apiindonesia.id/api/v1/sholat/monthly?kabupaten_id=" +
-    encodeURIComponent(regencyId) + "&tahun=" + year + "&bulan=" + month;
-  var response = UrlFetchApp.fetch(url, {
-    method: "get",
-    muteHttpExceptions: true,
-    headers: { "x-api-key": apiKey, "Accept": "application/json" }
-  });
-  var http = response.getResponseCode();
-  if (http < 200 || http >= 300) {
-    return { checked: true, updated: false, reason: "api_http_" + http, month: monthId };
-  }
-
-  var payload;
-  try { payload = JSON.parse(response.getContentText() || "{}"); }
-  catch (e) { return { checked: true, updated: false, reason: "invalid_json", month: monthId }; }
-  var rows = payload && Array.isArray(payload.data) ? payload.data : [];
-  var expected = new Date(year, month, 0).getDate();
-  var normalized = [];
-  var seen = {};
-  function time_(v) {
-    var m = String(v == null ? "" : v).trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-    return m ? ("0" + m[1]).slice(-2) + ":" + m[2] : "";
-  }
-  for (var i = 0; i < rows.length; i++) {
-    var src = rows[i] || {};
-    var date = String(src.date || src.tanggal || "").trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date.slice(0, 7) !== year + "-" + monthText || seen[date]) {
-      return { checked: true, updated: false, reason: "invalid_or_duplicate_date", month: monthId };
-    }
-    var day = {
-      date: date,
-      imsyak: time_(src.imsyak || src.imsak),
-      shubuh: time_(src.shubuh),
-      terbit: time_(src.terbit),
-      dzuhur: time_(src.dzuhur),
-      ashr: time_(src.ashr || src.ashar),
-      maghrib: time_(src.maghrib),
-      isya: time_(src.isya),
-      regency_id: regencyId,
-      source: "API Indonesia / Kemenag"
-    };
-    if (!day.shubuh || !day.terbit || !day.dzuhur || !day.ashr || !day.maghrib || !day.isya) {
-      return { checked: true, updated: false, reason: "incomplete_prayer_times", date: date, month: monthId };
-    }
-    seen[date] = true;
-    normalized.push(day);
-  }
-  if (normalized.length !== expected) {
-    return { checked: true, updated: false, reason: "incomplete_month",
-      receivedDays: normalized.length, expectedDays: expected, month: monthId };
-  }
-
-  var doc = null;
-  try { doc = readGithubJsonFile_(HIJRI_SEASON_MONTHLY_PATH_); } catch (e) {}
-  if (!doc || !doc.months || typeof doc.months !== "object") {
-    doc = { success: true, source: "API Indonesia / Kemenag monthly", generatedAt: "", updatedAt: "", months: {} };
-  }
-  var previous = doc.months[monthId];
-  var same = previous && JSON.stringify(previous.days || []) === JSON.stringify(normalized);
-  if (same) {
-    return { checked: true, updated: false, reason: "no_change", month: monthId, days: normalized.length };
-  }
-
-  doc.months[monthId] = {
-    regency_id: regencyId,
-    kota: resolved.kota || "",
-    provinsi: resolved.provinsi || "",
-    tahun: year,
-    bulan: month,
-    source: "API Indonesia / Kemenag",
-    updatedAt: new Date().toISOString(),
-    days: normalized
+  return {
+    checked: true,
+    updated: true,
+    source: schedule.source || "API Indonesia / Kemenag",
+    month: String(schedule.regency_id) + "_" + today.slice(0, 4) + today.slice(5, 7),
+    kota: schedule.kota,
+    tanggal: today,
+    cacheSource: schedule.cacheSource || "",
+    note: "Cache operasional per kota divalidasi melalui API Indonesia."
   };
-  doc.success = true;
-  doc.source = "API Indonesia / Kemenag monthly";
-  doc.generatedAt = new Date().toISOString();
-  doc.updatedAt = doc.generatedAt;
-  doc.monthCount = Object.keys(doc.months).length;
-  writeGithubJsonFile_(HIJRI_SEASON_MONTHLY_PATH_, doc,
-    "Validasi jadwal sholat bulanan " + (resolved.kota || regencyId) + " " + year + "-" + monthText);
-  return { checked: true, updated: true, month: monthId, days: normalized.length };
 }
 
 function hijriSeasonFormatRow_(row) {
