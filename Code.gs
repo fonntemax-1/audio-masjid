@@ -5257,6 +5257,22 @@ function refreshDaftarKotaDariGithub() {
     throw new Error("data/daftar-kota.json tidak ditemukan atau jumlah wilayah tidak valid.");
   }
   const sourceCities = document.cities;
+  const ss = getSpreadsheet();
+  const panels = ss.getSheetByName("panels");
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+
+  // Simpan kode wilayah pilihan saat ini dari sheet lama sebelum ditimpa.
+  const currentCityBeforeSync = String(panels.getRange("C5").getDisplayValue() || "").trim();
+  const oldListSheet = ss.getSheetByName("daftar-kota");
+  let currentRegencyId = "";
+  if (currentCityBeforeSync && oldListSheet && oldListSheet.getLastRow() >= 2) {
+    const oldRows = oldListSheet.getRange(2, 1, oldListSheet.getLastRow() - 1, 7).getDisplayValues();
+    const oldMatches = oldRows.filter(function(row) {
+      return normalizePrayerDropdownName_(row[0]) === normalizePrayerDropdownName_(currentCityBeforeSync);
+    });
+    if (oldMatches.length === 1) currentRegencyId = String(oldMatches[0][2] || "").trim();
+  }
+
   const ids = {};
   const rows = sourceCities.map(function(city) {
     const displayName = String(city.display_name || "").trim();
@@ -5279,7 +5295,6 @@ function refreshDaftarKotaDariGithub() {
     return a[1].localeCompare(b[1], "id") || a[0].localeCompare(b[0], "id");
   });
 
-  const ss = getSpreadsheet();
   let listSheet = ss.getSheetByName("daftar-kota");
   if (!listSheet) listSheet = ss.insertSheet("daftar-kota");
   const headers = ["Kabupaten/Kota", "Provinsi", "Kode Wilayah", "Zona", "Timezone", "GMT", "Slug Kota"];
@@ -5290,8 +5305,6 @@ function refreshDaftarKotaDariGithub() {
   listSheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
   listSheet.autoResizeColumns(1, headers.length);
 
-  const panels = ss.getSheetByName("panels");
-  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
   const validationRange = listSheet.getRange(2, 1, rows.length, 1);
   const rule = SpreadsheetApp.newDataValidation()
     .requireValueInRange(validationRange, true)
@@ -5299,22 +5312,19 @@ function refreshDaftarKotaDariGithub() {
     .build();
   panels.getRange("C5").setDataValidation(rule);
 
-  const currentCity = String(panels.getRange("C5").getDisplayValue() || "").trim();
-  if (currentCity) {
-    let selected = rows.filter(function(row) {
-      return normalizePrayerDropdownName_(row[0]) === normalizePrayerDropdownName_(currentCity);
+  let selected = [];
+  if (currentRegencyId) {
+    selected = rows.filter(function(row) { return String(row[2] || "").trim() === currentRegencyId; });
+  }
+  if (!selected.length && currentCityBeforeSync) {
+    selected = rows.filter(function(row) {
+      return normalizePrayerDropdownName_(row[0]) === normalizePrayerDropdownName_(currentCityBeforeSync);
     });
-    if (!selected.length) {
-      selected = rows.filter(function(row) {
-        return normalizePrayerLocationName_(row[0]) === normalizePrayerLocationName_(currentCity) &&
-          normalizePrayerLocationName_(row[1]) === normalizePrayerLocationName_(panels.getRange("C6").getDisplayValue());
-      });
-    }
-    // Jika label lama hanya nama kota, migrasi hanya bila cocok tepat satu wilayah.
-    if (selected.length === 1) {
-      panels.getRange("C5").setValue(selected[0][0]);
-      syncPrayerPanelLocationFromCity_(selected[0][0], false);
-    }
+  }
+  // Utamakan kode wilayah agar perubahan nama pada JSON tetap memperbarui C5.
+  if (selected.length === 1) {
+    panels.getRange("C5").setValue(selected[0][0]);
+    syncPrayerPanelLocationFromCity_(selected[0][0], false);
   }
 
   const now = new Date().toISOString();
@@ -5690,26 +5700,30 @@ function getIndonesianTimezoneByProvince_(province) {
 function syncPrayerPanelLocationFromCity_(cityValue, showToast) {
   const ss = getSpreadsheet();
   const panels = ss.getSheetByName("panels");
-  const listSheet = ss.getSheetByName("daftar-kota");
-  if (!panels || !listSheet) throw new Error('Pastikan sheet "panels" dan "daftar-kota" tersedia.');
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
 
   const city = String(cityValue || "").trim();
   if (!city) return false;
-  const lastRow = listSheet.getLastRow();
-  if (lastRow < 2) throw new Error('Sheet "daftar-kota" belum berisi data. Jalankan refreshDaftarKotaAPIIndonesia().');
 
-  const rows = listSheet.getRange(2, 1, lastRow - 1, 7).getDisplayValues();
+  // Sumber utama metadata wilayah adalah JSON di branch pengujian, bukan sheet daftar-kota.
+  const document = readGithubJsonFile_("data/daftar-kota.json");
+  if (!document || !Array.isArray(document.cities) || document.cities.length !== 514) {
+    throw new Error("data/daftar-kota.json tidak tersedia atau jumlah wilayah tidak valid.");
+  }
+
   const wanted = normalizePrayerDropdownName_(city);
-  const matches = rows.filter(function(row) {
-    return normalizePrayerDropdownName_(row[0]) === wanted;
+  const matches = document.cities.filter(function(item) {
+    return normalizePrayerDropdownName_(item.display_name || "") === wanted;
   });
-  if (!matches.length) throw new Error('Kota "' + city + '" tidak ditemukan pada sheet daftar-kota.');
-  if (matches.length > 1) throw new Error('Nama kota "' + city + '" tidak unik pada daftar-kota; pastikan label dropdown mencakup jenis wilayah.');
+  if (!matches.length) throw new Error('Kota "' + city + '" tidak ditemukan pada data/daftar-kota.json.');
+  if (matches.length > 1) throw new Error('Nama kota "' + city + '" tidak unik pada data/daftar-kota.json.');
 
-  const row = matches[0];
-  // C6 Provinsi, C7 Zona, C8 Timezone, C9 GMT, C10 slug kota (metadata, bukan sumber jadwal).
-  panels.getRange("C6:C10").setValues([[row[1]], [row[3]], [row[4]], [row[5]], [row[6]]]);
-  if (showToast) ss.toast("Lokasi diperbarui: " + row[0] + " · " + row[1], "Daftar Kota", 3);
+  const item = matches[0];
+  // C6 Provinsi, C7 Zona, C8 Timezone, C9 GMT, C10 slug kota.
+  panels.getRange("C6:C10").setValues([[
+    item.province || "", item.zone || "", item.timezone || "", item.gmt || "", item.slug || ""
+  ]]);
+  if (showToast) ss.toast("Lokasi diperbarui dari GitHub JSON: " + item.display_name + " · " + item.province, "Daftar Kota", 3);
   return true;
 }
 
