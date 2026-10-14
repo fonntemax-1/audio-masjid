@@ -779,11 +779,10 @@ function resolveCoordinatesCityFromApi_(params) {
     var actual = sheet.getRange('C4').getDisplayValue();
     if (String(actual).trim() !== cityName) throw new Error('Nama kota gagal diverifikasi pada C4.');
 
-    // Utamakan kabupaten/kota administratif hasil reverse geocoding.
-    // Jika nama itu tidak ada dalam daftar API Indonesia, gunakan pencarian
-    // kandidat terdekat sebagai fallback. C4 tetap menyimpan wilayah detail.
+    // Gunakan hanya katalog daftar-kota API Indonesia.
+    // Jika nama wilayah tidak cocok, jangan mengambil metadata kota dari
+    // penyedia jadwal lain. C4 tetap menyimpan wilayah detail.
     var nearest = findAPIIndonesiaRegencyMatch_(regencyName);
-    if (!nearest) nearest = findNearestMuslimKitaCity_(sheet, lat, lng);
     if (nearest) {
       sheet.getRange('C5').setValue(nearest.kota);
       SpreadsheetApp.flush();
@@ -881,162 +880,8 @@ function normalizeAPIIndonesiaAreaName_(value) {
     .trim().replace(/\s+/g, ' ');
 }
 
-function findNearestMuslimKitaCity_(sheet, latitude, longitude) {
-  var cache = CacheService.getScriptCache();
-  var cacheKey = 'MUSLIMKITA_CITY_CATALOG_V2';
-  var cached = cache.get(cacheKey);
-  var cities = [];
-
-  if (cached) {
-    try { cities = JSON.parse(cached) || []; } catch (ignoreCache) { cities = []; }
-  }
-
-  if (!cities.length) {
-    var candidates = [];
-    var validation = sheet.getRange('C5').getDataValidation();
-    if (validation) {
-      var criteria = validation.getCriteriaType();
-      var values = validation.getCriteriaValues() || [];
-      if (criteria === SpreadsheetApp.DataValidationCriteria.VALUE_IN_LIST && values[0]) {
-        candidates = values[0];
-      } else if (criteria === SpreadsheetApp.DataValidationCriteria.VALUE_IN_RANGE && values[0]) {
-        candidates = values[0].getDisplayValues().reduce(function(all, row) {
-          return all.concat(row);
-        }, []);
-      }
-    }
-
-    // Fallback jika C5 tidak memiliki validasi dropdown yang dapat dibaca.
-    // Daftar kandidat umum lintas wilayah agar pencarian tetap berjalan.
-    if (!candidates.length) {
-      candidates = [
-        'Banda Aceh','Medan','Padang','Pekanbaru','Jambi','Palembang','Bengkulu','Bandar Lampung',
-        'DKI Jakarta','Bandung','Bekasi','Bogor','Cirebon','Tasikmalaya','Semarang','Surakarta (Solo)',
-        'Yogyakarta','Surabaya','Malang','Denpasar','Mataram','Kupang','Pontianak','Palangka Raya',
-        'Banjarmasin','Balikpapan','Samarinda','Tarakan','Makassar','Palu','Kendari','Manado',
-        'Gorontalo','Ambon','Ternate','Sorong','Manokwari','Jayapura','Merauke','Tangerang',
-        'Tangerang Selatan','Serang','Cilegon','Depok','Cimahi','Sukabumi','Cianjur','Garut',
-        'Purwokerto','Magelang','Pekalongan','Tegal','Kediri','Madiun','Jember','Banyuwangi',
-        'Batam','Tanjungpinang','Bontang','Singkawang','Banjarbaru','Bima','Labuan Bajo','Timika'
-      ];
-    }
-    candidates = candidates.map(function(value) { return String(value || '').trim(); })
-      .filter(function(value, index, all) { return value && all.indexOf(value) === index; });
-    if (!candidates.length) {
-      console.warn('MUSLIMKITA_NEAREST_CITY: kandidat kota kosong.');
-      return null;
-    }
-
-    // Nama dropdown tidak selalu sama dengan slug resmi API (contoh DKI Jakarta -> jakarta).
-    var slugAliases = {
-      'dki jakarta': 'jakarta',
-      'surakarta (solo)': 'surakarta',
-      'tanjung pandan (belitung)': 'tanjung-pandan',
-      'watampone (bone)': 'watampone',
-      'tanjung pinang': 'tanjungpinang',
-      'tanjungpinang': 'tanjungpinang',
-      'pematang siantar': 'pematangsiantar',
-      'kota jakarta': 'jakarta',
-      'jakarta': 'jakarta',
-      'palangka raya': 'palangkaraya',
-      'labuan bajo': 'labuan-bajo',
-      'banda aceh': 'banda-aceh',
-      'bandar lampung': 'bandar-lampung',
-      'tangerang selatan': 'tangerang-selatan',
-      'kota balikpapan': 'balikpapan',
-      'kota samarinda': 'samarinda'
-    };
-    var requests = candidates.map(function(name) {
-      var normalizedName = String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
-      var slug = slugAliases[normalizedName] || normalizedName
-        .replace(/\s*\([^)]*\)\s*/g, ' ')
-        .replace(/^(kota|kabupaten|kab\.)\s+/i, '')
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-');
-      return {
-        url: 'https://www.muslimkita.id/api/jadwal-sholat/v1/' + encodeURIComponent(slug) + '?metode=kemenag',
-        method: 'get',
-        muteHttpExceptions: true
-      };
-    });
-
-    var responses = [];
-    // Batch kecil mengurangi risiko satu permintaan besar gagal.
-    for (var offset = 0; offset < requests.length; offset += 25) {
-      var batch = requests.slice(offset, offset + 25);
-      try {
-        responses = responses.concat(UrlFetchApp.fetchAll(batch));
-      } catch (batchError) {
-        batch.forEach(function(request) {
-          try { responses.push(UrlFetchApp.fetch(request)); } catch (ignoreFetch) { responses.push(null); }
-        });
-      }
-    }
-
-    responses.forEach(function(response) {
-      if (!response) return;
-      try {
-        if (response.getResponseCode() < 200 || response.getResponseCode() >= 300) return;
-        var data = JSON.parse(response.getContentText() || '{}');
-        var point = data.koordinat || {};
-        var cityLat = Number(point.latitude);
-        var cityLng = Number(point.longitude);
-        var citySlug = String(data.slug || '').trim();
-        if (!citySlug || !data.kota || !isFinite(cityLat) || !isFinite(cityLng)) return;
-        var timezone = String(data.timezone || '').trim();
-        var zona = timezone === 'Asia/Jakarta' ? 'WIB' :
-          timezone === 'Asia/Jayapura' ? 'WIT' :
-          timezone ? 'WITA' : '';
-        var offset = timezone === 'Asia/Jakarta' ? '+7' :
-          timezone === 'Asia/Jayapura' ? '+9' :
-          timezone === 'Asia/Makassar' ? '+8' : '';
-        cities.push({
-          kota: String(data.kota).trim(),
-          provinsi: String(data.provinsi || '').trim(),
-          zona: zona,
-          timezone: timezone,
-          gmt: offset ? 'GMT' + offset : '',
-          slug: citySlug,
-          latitude: cityLat,
-          longitude: cityLng
-        });
-      } catch (ignoreCityResponse) {}
-    });
-
-    // Simpan hanya katalog yang sudah diverifikasi oleh endpoint.
-    if (cities.length) {
-      try { cache.put(cacheKey, JSON.stringify(cities), 21600); } catch (ignorePutCache) {}
-    }
-  }
-
-  if (!cities.length) {
-    console.warn('MUSLIMKITA_NEAREST_CITY: tidak ada kandidat kota valid. Periksa validasi dropdown C5, slug kota, dan respons endpoint MuslimKita.');
-    return null;
-  }
-
-  function distanceKm_(lat1, lng1, lat2, lng2) {
-    var rad = Math.PI / 180;
-    var dLat = (lat2 - lat1) * rad;
-    var dLng = (lng2 - lng1) * rad;
-    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
-      Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
-  }
-
-  var nearest = null;
-  var shortest = Infinity;
-  cities.forEach(function(city) {
-    var distance = distanceKm_(latitude, longitude, city.latitude, city.longitude);
-    if (distance < shortest) {
-      shortest = distance;
-      nearest = city;
-    }
-  });
-  if (nearest) nearest.distanceKm = Math.round(shortest * 10) / 10;
-  return nearest;
-}
+// Pencarian kota tidak lagi memakai endpoint MuslimKita.
+// Pencocokan kota acuan dilakukan melalui katalog API Indonesia di atas.
 
 function setRemoteCellFromApi_(params) {
    params = params || {};
