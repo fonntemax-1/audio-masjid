@@ -8368,10 +8368,10 @@ function startRealtimeAudioConfigPolling_() {
         ) {
           WEB_APP_STATE.prayer.dateLoaded = '';
 
-          // STARTUP TIDAK MENUNGGU API MUSLIMKITA.
+          // STARTUP TIDAK MENUNGGU API INDONESIA.
           // Cache lokal dicoba lebih dahulu karena paling cepat.
           // Jika belum ada, cache GitHub menjadi sumber berikutnya.
-          // API MuslimKita baru dipanggil setelah kartu sudah
+          // API Indonesia baru dipanggil setelah kartu sudah
           // mendapatkan data cache, dan berjalan di belakang layar.
           const localLoaded = loadPrayerCardCache();
 
@@ -12302,7 +12302,7 @@ function startRealtimeAudioConfigPolling_() {
             .then(function(r) {
               if (r && r.success) {
                 console.log('JADWAL SHOLAT: besok dipreload ' + nextDate +
-                  ' source=' + (r.cacheSource || 'MuslimKita'));
+                  ' source=' + (r.cacheSource || 'API Indonesia'));
               }
             })
             .catch(function(e) {
@@ -15103,7 +15103,7 @@ function startRealtimeAudioConfigPolling_() {
 
         if (!audioState.prayerScheduleWaitLogged) {
           console.log(
-            'AUDIO SCHEDULE: menunggu jadwal sholat dari API MuslimKita...'
+            'AUDIO SCHEDULE: menunggu jadwal sholat dari API Indonesia...'
           );
           audioState.prayerScheduleWaitLogged = true;
         }
@@ -15641,63 +15641,25 @@ function startRealtimeAudioConfigPolling_() {
 
     function isRamadanCalendarDate_() {
 
+      // API Indonesia adalah satu-satunya acuan tanggal Hijriah.
+      // Gunakan bulan dari tanggal Hijriah yang sudah ditampilkan oleh
+      // getHijriDateFromApi(); jangan menghitung ulang dengan kalender lain.
       try {
+        const hijriTextEl = document.getElementById('hijri-text');
+        const monthText = String(
+          hijriTextEl ? hijriTextEl.textContent : ''
+        ).trim().toLowerCase();
 
-        if (
-          typeof moment === 'function' &&
-          moment.iConvert
-        ) {
+        if (/ramadan|ramadhan/.test(monthText)) return true;
 
-          const m =
-            moment(
-              getApiDate(),
-              'YYYY-MM-DD'
-            );
-
-          const hMonth =
-            typeof m.iMonth === 'function'
-              ? Number(m.iMonth())
-              : -1;
-
-          // moment-hijri menggunakan index bulan 0-based:
-          // Muharram=0 ... Ramadan=8 ... Syawal=9.
-          if (hMonth >= 0) {
-            return hMonth === 8;
-          }
-
-        }
-
+        // Bila API belum memberikan tanggal Hijriah, jangan menebak bulan
+        // dari kalender lokal; tunggu pembaruan Hijri API berikutnya.
+        if (monthText && monthText !== '--') return false;
       } catch (error) {
-
-        console.warn(
-          'RAMADAN CALENDAR MODE: gagal membaca tanggal Hijriah:',
-          error
-        );
-
+        console.warn('RAMADAN CALENDAR MODE: tanggal Hijriah API belum tersedia:', error);
       }
 
-      try {
-
-        const hijriTextEl =
-          document.getElementById('hijri-text');
-
-        const monthText =
-          String(
-            hijriTextEl
-              ? hijriTextEl.textContent
-              : ''
-          )
-            .trim()
-            .toLowerCase();
-
-        if (/ramadan|ramadhan/.test(monthText)) {
-          return true;
-        }
-
-      } catch (_) {}
-
       return false;
-
     }
 
 
@@ -16814,10 +16776,10 @@ function setCountdownBlackMode(enabled) {
         validPrayers.length === 0
       ) {
 
-        // PRIORITAS TERAKHIR SEBELUM API:
+        // PRIORITAS TERAKHIR SEBELUM API INDONESIA:
         // 1. GitHub prayer-cache.json (background service)
         // 2. localStorage cache kartu
-        // 3. Apps Script / MuslimKita sebagai refresh background
+        // 3. Apps Script / API Indonesia sebagai refresh background
         //
         // Ini juga menangani kondisi ketika cache GitHub sudah tersedia
         // tetapi proses updateUI belum sempat memanggil loader.
@@ -18709,7 +18671,7 @@ function setCountdownBlackMode(enabled) {
             updatePrayerCountdown();
           }
 
-          // API MuslimKita hanya refresh di belakang layar.
+          // API Indonesia hanya refresh di belakang layar.
           setTimeout(function() {
             fetchPrayerSchedule();
           }, 0);
