@@ -5246,43 +5246,43 @@ function setupPanelKegiatan() {
  * onEdit memang dipanggil ketika pengguna mengubah nilai sel di Sheets.
  */
 /**
- * Memperbarui sheet "daftar-kota" dari API Indonesia dan memasang dropdown panels!C5.
- * Kolom: Kota/Kabupaten | Provinsi | ID API | Zona | Timezone | GMT | Slug Kota
- * Jalankan refreshDaftarKotaAPIIndonesia() secara manual saat pertama kali.
+ * Memuat daftar 514 kabupaten/kota dari data/daftar-kota.json di branch pengujian GitHub.
+ * GitHub menjadi sumber utama; sheet "daftar-kota" hanya salinan untuk dropdown panels!C5.
+ * Nama dropdown memakai label administratif lengkap agar nama yang sama tidak ambigu.
+ * Fungsi lama dipertahankan sebagai alias agar pemanggilan manual tidak rusak.
  */
-function refreshDaftarKotaAPIIndonesia() {
-  const apiKey = String(PropertiesService.getScriptProperties().getProperty("API_INDONESIA_KEY") || "").trim();
-  if (!apiKey) throw new Error("Script Property API_INDONESIA_KEY belum diisi.");
-
-  const response = UrlFetchApp.fetch("https://use.apiindonesia.id/api/v1/sholat/list-kota", {
-    method: "get",
-    muteHttpExceptions: true,
-    headers: { "x-api-key": apiKey, "Accept": "application/json" }
-  });
-  if (response.getResponseCode() < 200 || response.getResponseCode() >= 300) {
-    throw new Error("Gagal mengambil daftar kota dari API Indonesia. HTTP " + response.getResponseCode());
+function refreshDaftarKotaDariGithub() {
+  const document = readGithubJsonFile_("data/daftar-kota.json");
+  if (!document || !Array.isArray(document.cities) || document.cities.length < 500) {
+    throw new Error("data/daftar-kota.json tidak ditemukan atau jumlah wilayah tidak valid.");
   }
-  const payload = JSON.parse(response.getContentText() || "{}");
-  const cities = payload && Array.isArray(payload.data) ? payload.data : [];
-  if (!cities.length) throw new Error("API Indonesia tidak mengembalikan daftar kota.");
+  const sourceCities = document.cities;
+  const ids = {};
+  const rows = sourceCities.map(function(city) {
+    const displayName = String(city.display_name || "").trim();
+    const provinceName = String(city.province || "").trim();
+    const regencyId = String(city.regency_id || "").trim();
+    const zone = String(city.zone || "").trim();
+    const timezone = String(city.timezone || "").trim();
+    const gmt = String(city.gmt || "").trim();
+    const slug = String(city.slug || "").trim();
+    if (!displayName || !provinceName || !regencyId || !timezone || !slug) return null;
+    if (ids[regencyId]) throw new Error("Kode wilayah duplikat pada data/daftar-kota.json: " + regencyId);
+    ids[regencyId] = true;
+    return [displayName, provinceName, regencyId, zone, timezone, gmt, slug];
+  }).filter(function(row) { return row !== null; });
+
+  if (rows.length !== 514 || Object.keys(ids).length !== 514) {
+    throw new Error("Validasi daftar wilayah gagal. Ditemukan " + rows.length + " baris valid, seharusnya 514.");
+  }
+  rows.sort(function(a, b) {
+    return a[1].localeCompare(b[1], "id") || a[0].localeCompare(b[0], "id");
+  });
 
   const ss = getSpreadsheet();
   let listSheet = ss.getSheetByName("daftar-kota");
   if (!listSheet) listSheet = ss.insertSheet("daftar-kota");
-
-  const headers = ["Kota/Kabupaten", "Provinsi", "ID API", "Zona", "Timezone", "GMT", "Slug Kota"];
-  const rows = cities.map(function(city) {
-    const cityName = titleCaseLocation_(city.regency_name || city.name || "");
-    const provinceName = titleCaseLocation_(city.province_name || "");
-    const regencyId = String(city.regency_id || city.id || "").trim();
-    const zoneInfo = getIndonesianTimezoneByProvince_(provinceName);
-    const slug = normalizePrayerCitySlug_(cityName);
-    return [cityName, provinceName, regencyId, zoneInfo.zona, zoneInfo.timezone, zoneInfo.gmt, slug];
-  }).filter(function(row) { return row[0] && row[1] && row[2]; });
-
-  if (!rows.length) throw new Error("Daftar kota API Indonesia tidak memiliki data yang valid.");
-  rows.sort(function(a, b) { return a[0].localeCompare(b[0], "id"); });
-
+  const headers = ["Kabupaten/Kota", "Provinsi", "Kode Wilayah", "Zona", "Timezone", "GMT", "Slug Kota"];
   listSheet.clearContents();
   listSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   listSheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
@@ -5306,40 +5306,38 @@ function refreshDaftarKotaAPIIndonesia() {
     });
     if (!selected.length) {
       selected = rows.filter(function(row) {
-        return normalizePrayerLocationName_(row[0]) === normalizePrayerLocationName_(currentCity);
+        return normalizePrayerLocationName_(row[0]) === normalizePrayerLocationName_(currentCity) &&
+          normalizePrayerLocationName_(row[1]) === normalizePrayerLocationName_(panels.getRange("C6").getDisplayValue());
       });
     }
-    // Migrasi otomatis nilai C5 lama seperti "Balikpapan" ke label dropdown "Kota Balikpapan"
-    // hanya jika hasilnya tunggal; nama ambigu tidak ditebak.
+    // Jika label lama hanya nama kota, migrasi hanya bila cocok tepat satu wilayah.
     if (selected.length === 1) {
       panels.getRange("C5").setValue(selected[0][0]);
       syncPrayerPanelLocationFromCity_(selected[0][0], false);
     }
   }
 
-  PropertiesService.getScriptProperties().setProperty("APIID_CITY_LIST_UPDATED_AT", new Date().toISOString());
-  try {
-    publishCityListToGithub_(rows);
-  } catch (githubError) {
-    Logger.log("PUBLIKASI DAFTAR KOTA KE GITHUB GAGAL (sheet tetap diperbarui): " +
-      (githubError && githubError.message ? githubError.message : githubError));
-  }
-  Logger.log("DAFTAR KOTA DIPERBARUI: " + rows.length + " kota/kabupaten pada sheet daftar-kota.");
-  return { success: true, count: rows.length, sheet: "daftar-kota" };
+  const now = new Date().toISOString();
+  PropertiesService.getScriptProperties().setProperty("GITHUB_CITY_LIST_SYNCED_AT", now);
+  Logger.log("DAFTAR KOTA DISINKRONKAN DARI GITHUB: " + rows.length +
+    " kabupaten/kota, versi data " + String(document.version || "?") + ".");
+  return { success: true, count: rows.length, source: "GitHub data/daftar-kota.json", sheet: "daftar-kota" };
+}
+
+/** Alias kompatibilitas; tidak lagi memanggil API Indonesia untuk daftar kota. */
+function refreshDaftarKotaAPIIndonesia() {
+  return refreshDaftarKotaDariGithub();
 }
 
 /**
- * Setup awal otomatisasi data lokasi dan jadwal sholat.
- * Zona waktu proyek sebaiknya Asia/Makassar.
- * Pemicu:
- * - daftar kota: harian sekitar pukul 03.00 WITA
- * - cache jadwal kota aktif: harian sekitar 00.05 WITA dan pemeriksaan tiap 30 menit
- * Jalankan sekali dari Apps Script Editor dan selesaikan otorisasi.
+ * Setup sinkronisasi daftar wilayah dari GitHub dan refresh cache jadwal kota aktif.
+ * Jalankan manual sekali dari Apps Script Editor dan selesaikan otorisasi.
  */
 function setupDropdownKotaAPIIndonesia() {
-  const result = refreshDaftarKotaAPIIndonesia();
+  const result = refreshDaftarKotaDariGithub();
   const handlers = [
     "refreshDaftarKotaAPIIndonesia",
+    "refreshDaftarKotaDariGithub",
     "refreshPrayerCacheForCurrentCity"
   ];
   ScriptApp.getProjectTriggers().forEach(function(trigger) {
@@ -5348,7 +5346,7 @@ function setupDropdownKotaAPIIndonesia() {
     }
   });
 
-  ScriptApp.newTrigger("refreshDaftarKotaAPIIndonesia")
+  ScriptApp.newTrigger("refreshDaftarKotaDariGithub")
     .timeBased()
     .atHour(3)
     .everyDays(1)
@@ -5368,45 +5366,8 @@ function setupDropdownKotaAPIIndonesia() {
     .everyMinutes(30)
     .create();
 
-  Logger.log("Auto-update disiapkan: daftar kota harian 03.00 WITA; cache jadwal 00.05 WITA dan pemeriksaan tiap 30 menit.");
+  Logger.log("Auto-update disiapkan: sinkron daftar kota dari GitHub harian 03.00 WITA; cache jadwal 00.05 WITA dan pemeriksaan tiap 30 menit.");
   return result;
-}
-
-/**
- * Publikasikan daftar kota yang sudah divalidasi ke data/daftar-kota.json di branch main.
- * Gagal menulis GitHub tidak membatalkan pembaruan sheet daftar-kota.
- */
-function publishCityListToGithub_(rows) {
-  const cities = (rows || []).map(function(row) {
-    return {
-      name: String(row[0] || ""),
-      province: String(row[1] || ""),
-      regency_id: String(row[2] || ""),
-      zone: String(row[3] || ""),
-      timezone: String(row[4] || ""),
-      gmt: String(row[5] || ""),
-      slug: String(row[6] || "")
-    };
-  });
-  const existing = readGithubJsonFile_("data/daftar-kota.json");
-  if (existing && Array.isArray(existing.cities) &&
-      JSON.stringify(existing.cities) === JSON.stringify(cities)) {
-    Logger.log("GitHub daftar-kota.json tidak berubah; commit dilewati.");
-    return { success: true, changed: false, count: cities.length };
-  }
-  const now = new Date().toISOString();
-  const document = {
-    success: true,
-    version: 1,
-    generatedAt: now,
-    source: "API Indonesia /api/v1/sholat/list-kota",
-    cityCount: cities.length,
-    cities: cities
-  };
-  writeGithubJsonFile_("data/daftar-kota.json", document, "Auto-update daftar kota dari API Indonesia");
-  PropertiesService.getScriptProperties().setProperty("GITHUB_CITY_LIST_UPDATED_AT", now);
-  Logger.log("GitHub data/daftar-kota.json diperbarui: " + cities.length + " wilayah.");
-  return { success: true, changed: true, count: cities.length };
 }
 
 /**
