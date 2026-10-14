@@ -1,28 +1,28 @@
 {
   "success": true,
-  "generatedAt": "2026-10-13T21:16:02.467647+00:00",
-  "updatedAt": "2026-10-13T21:16:02.467669+00:00",
+  "generatedAt": "2026-10-14T01:37:06.554Z",
+  "updatedAt": "2026-10-14T01:37:06.554Z",
   "cityCount": 181,
   "cities": {
     "balikpapan": {
       "success": true,
       "tanggal": "2026-10-14",
-      "kota": "Balikpapan",
+      "kota": "Kota Balikpapan",
       "provinsi": "Kalimantan Timur",
       "slug": "balikpapan",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
-      "gmt": "UTC+8",
-      "source": "MuslimKita / Kemenag",
+      "gmt": "GMT+8",
+      "source": "API Indonesia / Kemenag",
       "jadwal": {
-        "subuh": "04:41",
-        "terbit": "05:51",
-        "dzuhur": "12:03",
-        "ashar": "15:13",
-        "maghrib": "18:06",
-        "isya": "19:15"
+        "subuh": "04:37",
+        "terbit": "05:55",
+        "dzuhur": "11:59",
+        "ashar": "15:12",
+        "maghrib": "18:03",
+        "isya": "19:12"
       },
-      "generatedAt": "2026-10-13T16:14:13.392253+00:00"
+      "generatedAt": "2026-10-14T01:37:06.545Z"
     },
     "banda-aceh": {
       "success": true,
