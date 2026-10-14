@@ -68,19 +68,23 @@ function runHijriSeasonCacheCheckNow() {
 
 function hijriSeasonRefreshIfNeeded_(today) {
   var doc;
+  var cacheMissing = false;
   try {
     doc = readGithubJsonFile_(HIJRI_SEASON_CACHE_PATH_);
+    if (!doc || typeof doc !== "object") throw new Error("format cache tidak valid");
   } catch (e) {
-    Logger.log("Cache kalender Hijriah GitHub tidak dapat dibaca; tidak melakukan refresh spekulatif: " + e);
-    return { checked: false, reason: "github_cache_unavailable" };
+    // Bootstrap aman: file baru ditulis hanya setelah kalender API lengkap tervalidasi.
+    cacheMissing = true;
+    doc = { success: true, source: "API Indonesia / Kalender Hijriah Kemenag",
+      updatedAt: "", yearCount: 0, years: {} };
+    Logger.log("Cache kalender Hijriah belum ada; mencoba bootstrap dari API Indonesia: " + e);
   }
 
+  if (!doc.years || typeof doc.years !== "object") doc.years = {};
   var year = today.slice(0, 4);
-  var yearEntry = doc && doc.years && doc.years[year];
+  var yearEntry = doc.years[year];
   var days = yearEntry && yearEntry.days;
-  if (!days || typeof days !== "object") {
-    return { checked: false, reason: "annual_hijri_cache_missing" };
-  }
+  var annualMissing = !days || typeof days !== "object" || Object.keys(days).length < 350;
 
   var todayMs = hijriSeasonDateMs_(today);
   var target = null;
@@ -95,13 +99,17 @@ function hijriSeasonRefreshIfNeeded_(today) {
     }
   });
 
-  if (!target) {
+  if (!target && !annualMissing) {
     Logger.log("Kalender Hijriah: di luar jendela H-3 sampai H-1 Ramadhan/Syawal/Muharam; tidak memanggil API.");
     return { checked: false, reason: "outside_special_window" };
   }
 
-  Logger.log("Jendela khusus Hijriah aktif: " + target.month + ", perkiraan 1 Hijriah=" +
-    target.date + ", H-" + target.daysUntil + ". Memeriksa kalender tahunan API Indonesia.");
+  if (annualMissing) {
+    Logger.log("Cache kalender Hijriah tahunan belum ada/tidak lengkap; bootstrap kalender tahun " + year + " dari API Indonesia.");
+  } else {
+    Logger.log("Jendela khusus Hijriah aktif: " + target.month + ", perkiraan 1 Hijriah=" +
+      target.date + ", H-" + target.daysUntil + ". Memeriksa kalender tahunan API Indonesia.");
+  }
 
   var props = PropertiesService.getScriptProperties();
   var apiKey = String(props.getProperty("API_INDONESIA_KEY") || "").trim();
@@ -142,7 +150,7 @@ function hijriSeasonRefreshIfNeeded_(today) {
     return { checked: true, updated: false, reason: "annual_calendar_incomplete", receivedDays: Object.keys(freshDays).length, target: target };
   }
 
-  var changed = JSON.stringify(freshDays) !== JSON.stringify(days);
+  var changed = cacheMissing || annualMissing || JSON.stringify(freshDays) !== JSON.stringify(days);
   if (!changed) {
     return { checked: true, updated: false, reason: "no_change", target: target, receivedDays: Object.keys(freshDays).length };
   }
@@ -217,7 +225,9 @@ function refreshActiveCityMonthlyPrayerCache_(today) {
       dzuhur: time_(src.dzuhur),
       ashr: time_(src.ashr || src.ashar),
       maghrib: time_(src.maghrib),
-      isya: time_(src.isya)
+      isya: time_(src.isya),
+      regency_id: regencyId,
+      source: "API Indonesia / Kemenag"
     };
     if (!day.shubuh || !day.terbit || !day.dzuhur || !day.ashr || !day.maghrib || !day.isya) {
       return { checked: true, updated: false, reason: "incomplete_prayer_times", date: date, month: monthId };
