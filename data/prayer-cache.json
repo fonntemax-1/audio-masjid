@@ -1,8 +1,8 @@
 {
   "success": true,
   "source": "API Indonesia",
-  "generatedAt": "2026-10-14T06:33:29.817Z",
-  "updatedAt": "2026-10-14T06:33:29.817Z",
+  "generatedAt": "2026-10-14T06:34:02.979Z",
+  "updatedAt": "2026-10-14T06:34:02.979Z",
   "cityCount": 514,
   "cities": {
     "aceh-barat": {
@@ -583,16 +583,25 @@
       "pending": true
     },
     "cilegon": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kota Cilegon",
       "provinsi": "Banten",
+      "regency_id": "3672",
       "slug": "cilegon",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3672",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:17",
+        "terbit": "05:35",
+        "dzuhur": "11:42",
+        "ashar": "14:49",
+        "maghrib": "17:49",
+        "isya": "18:59"
+      },
+      "generatedAt": "2026-10-14T06:33:58.515Z"
     },
     "serang-3673": {
       "success": false,
@@ -1306,40 +1315,67 @@
       "generatedAt": "2026-10-14T06:32:46.698Z"
     },
     "ciamis": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Ciamis",
       "provinsi": "Jawa Barat",
+      "regency_id": "3207",
       "slug": "ciamis",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3207",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:07",
+        "terbit": "05:25",
+        "dzuhur": "11:33",
+        "ashar": "14:37",
+        "maghrib": "17:40",
+        "isya": "18:51"
+      },
+      "generatedAt": "2026-10-14T06:33:58.400Z"
     },
     "cianjur": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Cianjur",
       "provinsi": "Jawa Barat",
+      "regency_id": "3203",
       "slug": "cianjur",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3203",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:12",
+        "terbit": "05:30",
+        "dzuhur": "11:38",
+        "ashar": "14:43",
+        "maghrib": "17:45",
+        "isya": "18:55"
+      },
+      "generatedAt": "2026-10-14T06:33:58.442Z"
     },
     "cirebon": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Cirebon",
       "provinsi": "Jawa Barat",
+      "regency_id": "3209",
       "slug": "cirebon",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3209",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:07",
+        "terbit": "05:25",
+        "dzuhur": "11:32",
+        "ashar": "14:38",
+        "maghrib": "17:39",
+        "isya": "18:50"
+      },
+      "generatedAt": "2026-10-14T06:33:58.612Z"
     },
     "garut": {
       "success": false,
@@ -1558,28 +1594,46 @@
       "generatedAt": "2026-10-14T06:32:48.231Z"
     },
     "cimahi": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kota Cimahi",
       "provinsi": "Jawa Barat",
+      "regency_id": "3277",
       "slug": "cimahi",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3277",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:10",
+        "terbit": "05:29",
+        "dzuhur": "11:36",
+        "ashar": "14:41",
+        "maghrib": "17:43",
+        "isya": "18:53"
+      },
+      "generatedAt": "2026-10-14T06:33:58.562Z"
     },
     "cirebon-3274": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kota Cirebon",
       "provinsi": "Jawa Barat",
+      "regency_id": "3274",
       "slug": "cirebon",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3274",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:06",
+        "terbit": "05:25",
+        "dzuhur": "11:32",
+        "ashar": "14:37",
+        "maghrib": "17:39",
+        "isya": "18:49"
+      },
+      "generatedAt": "2026-10-14T06:33:59.953Z"
     },
     "depok": {
       "success": false,
@@ -1736,16 +1790,25 @@
       "generatedAt": "2026-10-14T06:33:22.328Z"
     },
     "cilacap": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Cilacap",
       "provinsi": "Jawa Tengah",
+      "regency_id": "3301",
       "slug": "cilacap",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3301",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:04",
+        "terbit": "05:22",
+        "dzuhur": "11:30",
+        "ashar": "14:34",
+        "maghrib": "17:38",
+        "isya": "18:48"
+      },
+      "generatedAt": "2026-10-14T06:33:58.486Z"
     },
     "demak": {
       "success": false,
@@ -3821,28 +3884,46 @@
       "pending": true
     },
     "buru": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Buru",
       "provinsi": "Maluku",
+      "regency_id": "8104",
       "slug": "buru",
       "zona": "WIT",
       "timezone": "Asia/Jayapura",
       "gmt": "GMT+9",
-      "regency_id": "8104",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:55",
+        "terbit": "06:13",
+        "dzuhur": "12:18",
+        "ashar": "15:28",
+        "maghrib": "18:23",
+        "isya": "19:32"
+      },
+      "generatedAt": "2026-10-14T06:33:48.116Z"
     },
     "buru-selatan": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Buru Selatan",
       "provinsi": "Maluku",
+      "regency_id": "8109",
       "slug": "buru-selatan",
       "zona": "WIT",
       "timezone": "Asia/Jayapura",
       "gmt": "GMT+9",
-      "regency_id": "8109",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:56",
+        "terbit": "06:14",
+        "dzuhur": "12:19",
+        "ashar": "15:29",
+        "maghrib": "18:25",
+        "isya": "19:34"
+      },
+      "generatedAt": "2026-10-14T06:33:50.516Z"
     },
     "kepulauan-aru": {
       "success": false,
@@ -4929,16 +5010,25 @@
       "pending": true
     },
     "deiyai": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Deiyai",
       "provinsi": "Papua Tengah",
+      "regency_id": "9408",
       "slug": "deiyai",
       "zona": "WIT",
       "timezone": "Asia/Jayapura",
       "gmt": "GMT+9",
-      "regency_id": "9408",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:17",
+        "terbit": "05:35",
+        "dzuhur": "11:40",
+        "ashar": "14:50",
+        "maghrib": "17:46",
+        "isya": "18:56"
+      },
+      "generatedAt": "2026-10-14T06:34:02.979Z"
     },
     "dogiyai": {
       "success": false,
@@ -5787,52 +5877,88 @@
       "generatedAt": "2026-10-14T06:33:15.604Z"
     },
     "buton": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Buton",
       "provinsi": "Sulawesi Tenggara",
+      "regency_id": "7404",
       "slug": "buton",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7404",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:16",
+        "terbit": "05:34",
+        "dzuhur": "11:40",
+        "ashar": "14:49",
+        "maghrib": "17:45",
+        "isya": "18:55"
+      },
+      "generatedAt": "2026-10-14T06:33:51.860Z"
     },
     "buton-selatan": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Buton Selatan",
       "provinsi": "Sulawesi Tenggara",
+      "regency_id": "7415",
       "slug": "buton-selatan",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7415",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:11",
+        "terbit": "05:29",
+        "dzuhur": "11:36",
+        "ashar": "14:43",
+        "maghrib": "17:42",
+        "isya": "18:52"
+      },
+      "generatedAt": "2026-10-14T06:33:54.247Z"
     },
     "buton-tengah": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Buton Tengah",
       "provinsi": "Sulawesi Tenggara",
+      "regency_id": "7414",
       "slug": "buton-tengah",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7414",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:12",
+        "terbit": "05:30",
+        "dzuhur": "11:36",
+        "ashar": "14:44",
+        "maghrib": "17:42",
+        "isya": "18:52"
+      },
+      "generatedAt": "2026-10-14T06:33:56.010Z"
     },
     "buton-utara": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Buton Utara",
       "provinsi": "Sulawesi Tenggara",
+      "regency_id": "7410",
       "slug": "buton-utara",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "regency_id": "7410",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:15",
+        "terbit": "05:32",
+        "dzuhur": "11:38",
+        "ashar": "14:48",
+        "maghrib": "17:43",
+        "isya": "18:53"
+      },
+      "generatedAt": "2026-10-14T06:33:58.360Z"
     },
     "kolaka": {
       "success": false,
@@ -6714,16 +6840,25 @@
       "generatedAt": "2026-10-14T06:31:33.571Z"
     },
     "dairi": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Dairi",
       "provinsi": "Sumatera Utara",
+      "regency_id": "1211",
       "slug": "dairi",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "1211",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:47",
+        "terbit": "06:04",
+        "dzuhur": "12:07",
+        "ashar": "15:23",
+        "maghrib": "18:09",
+        "isya": "19:18"
+      },
+      "generatedAt": "2026-10-14T06:34:01.633Z"
     },
     "deli-serdang": {
       "success": false,
