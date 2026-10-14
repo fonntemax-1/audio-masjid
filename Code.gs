@@ -3731,7 +3731,7 @@ function processKeyValue(
 
 // ============================================================
 // JADWAL SHOLAT — CACHE GITHUB SEBAGAI SUMBER OPERASIONAL
-// AlAdhan method 20 hanya dipanggil oleh proses refresh eksplisit.
+// Refresh eksplisit menggunakan API Indonesia; operasi normal hanya membaca cache.
 // Operasi normal membaca cache GitHub; cache tidak tersedia = error.
 // ============================================================
  function getPrayerSchedule(dateString, options) {
@@ -3986,41 +3986,6 @@ function isTrustedApiIndonesiaMonthlyEntry_(entry, year, month, regencyId, timez
   }
   return Object.keys(seen).length === expected;
 }
-
-function isTrustedAlAdhanMonthlyEntry_(entry, year, month, locationKey, timezone) {
-  if (!entry ||
-      String(entry.location_key || '') !== String(locationKey) ||
-      String(entry.timezone || '') !== String(timezone || '') ||
-      String(entry.source || '') !== 'AlAdhan API / method 20 (Kemenag Indonesia)' ||
-      Number(entry.method_id) !== 20 ||
-      !Array.isArray(entry.days)) return false;
-
-  var monthText = ('0' + month).slice(-2);
-  var expected = new Date(year, month, 0).getDate();
-  if (Number(entry.tahun) !== year || Number(entry.bulan) !== month ||
-      entry.days.length !== expected) return false;
-
-  var seen = {};
-  for (var i = 0; i < entry.days.length; i++) {
-    var day = entry.days[i] || {};
-    var date = String(day.date || '').trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) ||
-        date.slice(0, 7) !== year + '-' + monthText || seen[date] ||
-        String(day.location_key || '') !== String(locationKey) ||
-        String(day.source || '') !== 'AlAdhan API / method 20 (Kemenag Indonesia)' ||
-        Number(day.method_id) !== 20) return false;
-
-    var fields = ['shubuh', 'terbit', 'dzuhur', 'ashr', 'maghrib', 'isya'];
-    for (var j = 0; j < fields.length; j++) {
-      if (!isValidPrayerTimeSafe_(day[fields[j]])) return false;
-    }
-    seen[date] = true;
-  }
-  return Object.keys(seen).length === expected;
-}
-
-// Operasi normal membaca cache bulanan GitHub. AlAdhan method 20 hanya dipakai saat refresh eksplisit.
-// Cache bulanan dipisahkan per kota/kabupaten, provinsi, dan zona waktu; tidak ada fallback jadwal legacy.
 
 // ============================================================
 // VALIDASI JADWAL SHOLAT LENGKAP
@@ -5050,7 +5015,7 @@ function getPrayerRegencyIdFromGithub_(cityName, provinceName) {
 
 /**
  * Hapus seluruh cache jadwal lama di dua file JSON, lalu isi ulang cache
- * kota aktif langsung dari AlAdhan. Jalankan manual satu kali di branch uji.
+ * kota aktif langsung dari API Indonesia. Jalankan manual satu kali di branch uji.
  * CacheService lama ditinggalkan dengan prefix lama; kode baru memakai key V2.
  * Tidak mengubah scheduler atau audio.
  */
@@ -5059,7 +5024,7 @@ function getPrayerRegencyIdFromGithub_(cityName, provinceName) {
  * Tidak lagi menulis ulang file cache global lama yang sudah dihapus.
  * Hanya dipanggil manual; tidak mengubah scheduler atau audio.
  */
-function resetAllPrayerCachesAndRefreshAlAdhan() { // Nama lama dipertahankan agar pemanggil yang sudah ada tetap kompatibel.
+function resetAllPrayerCachesAndRefreshAlAdhan() { // Alias nama lama dipertahankan agar pemanggil yang sudah ada tetap kompatibel.
   var result = refreshPrayerCacheForCurrentCity(true);
   if (!result || result.success !== true) {
     throw new Error(
