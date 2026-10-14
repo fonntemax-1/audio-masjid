@@ -4828,7 +4828,7 @@ function refreshHijriCalendarCacheFromAlAdhan() {
       return { year: year, dayCount: annualResults[String(year)].dayCount };
     }),
     path: 'data/hijri-calendar-cache.json',
-    branch: String(PropertiesService.getScriptProperties().getProperty('GITHUB_CACHE_BRANCH') || 'main').trim()
+    branch: String(PropertiesService.getScriptProperties().getProperty('GITHUB_CACHE_BRANCH') || 'migrate-aladhan-to-main-20261015').trim()
   };
   Logger.log('REFRESH KALENDER HIJRIAH ALADHAN SELESAI: ' + JSON.stringify(report));
   return report;
@@ -5743,7 +5743,7 @@ function getIndonesianTimezoneByProvince_(province) {
 /** Mengisi panels!C6:C10 sesuai pilihan di panels!C5. */
 
 function readGithubJsonFile_(path) {
-  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
+  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "migrate-aladhan-to-main-20261015").trim();
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
   if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
   const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
@@ -5769,7 +5769,7 @@ function readGithubJsonFile_(path) {
 /** Membuat atau memperbarui JSON di target branch dengan token di Script Properties. */
 
 function writeGithubJsonFile_(path, document, message) {
-  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
+  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "migrate-aladhan-to-main-20261015").trim();
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
   if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
   const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
@@ -5874,4 +5874,100 @@ function TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION() {
   Logger.log('TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION: ' + JSON.stringify(report, null, 2));
   Logger.log('TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION LULUS');
   return report;
+}
+
+function refreshPrayerCacheForCurrentCity(forceRefresh) {
+  const ss = getSpreadsheet();
+  const panels = ss.getSheetByName("panels");
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+
+  const loc = panels.getRange("C5:C10").getDisplayValues().map(function(row) {
+    return String(row[0] || "").trim();
+  });
+  const city = loc[0];
+  const province = loc[1];
+  const timezone = loc[3] || "Asia/Makassar";
+  const slug = loc[5] || normalizePrayerCitySlug_(city);
+  if (!city || !slug) throw new Error("Kota atau slug pada panels!C5/C10 kosong.");
+
+  const date = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd");
+  const schedule = getPrayerSchedule(date, { forceRefresh: forceRefresh === true });
+  if (!schedule || schedule.success !== true ||
+      String(schedule.tanggal || "") !== date ||
+      !schedule.jadwal || !isCompletePrayerScheduleSafe_(schedule.jadwal)) {
+    const reason = schedule && (schedule.error || schedule.alAdhanError || schedule.fallbackReason);
+    Logger.log("CACHE JADWAL TIDAK DIPUBLIKASIKAN; respons belum valid untuk " + city + " " + date +
+      (reason ? ": " + reason : ""));
+    return { success: false, skipped: true, kota: city, tanggal: date, error: reason || "Jadwal belum lengkap." };
+  }
+
+  // Satu file harian per kota; isi file langsung berupa jadwal tanggal aktif.
+  const dailyCachePath = "data/prayer-cache-" + slug + ".json";
+  const prior = readGithubJsonFile_(dailyCachePath);
+
+  const entry = {
+    success: true,
+    tanggal: date,
+    kota: city,
+    provinsi: province,
+    regency_id: String(schedule.regency_id || ""),
+    slug: slug,
+    zona: schedule.zona || loc[2] || "",
+    timezone: schedule.timezone || timezone,
+    gmt: schedule.gmt || loc[4] || "",
+    source: schedule.source || "AlAdhan API / method 20 (Indonesia)",
+    jadwal: {
+      subuh: String(schedule.jadwal.subuh || ""),
+      terbit: String(schedule.jadwal.terbit || ""),
+      dzuhur: String(schedule.jadwal.dzuhur || ""),
+      ashar: String(schedule.jadwal.ashar || ""),
+      maghrib: String(schedule.jadwal.maghrib || ""),
+      isya: String(schedule.jadwal.isya || "")
+    },
+    generatedAt: new Date().toISOString()
+  };
+
+  const sameSchedule = prior && prior.success === true &&
+    prior.tanggal === entry.tanggal &&
+    prior.kota === entry.kota &&
+    prior.provinsi === entry.provinsi &&
+    JSON.stringify(prior.jadwal) === JSON.stringify(entry.jadwal) &&
+    prior.timezone === entry.timezone &&
+    prior.source === entry.source;
+  if (sameSchedule) {
+    Logger.log("CACHE HARIAN GITHUB SUDAH TERBARU: " + city + " " + date + "; commit dilewati.");
+    return { success: true, changed: false, kota: city, tanggal: date, slug: slug, path: dailyCachePath };
+  }
+
+  // Replace file only after the schedule has passed validation above.
+  writeGithubJsonFile_(dailyCachePath, entry,
+    "Replace cache harian jadwal sholat " + city + " " + date);
+  PropertiesService.getScriptProperties().setProperty("GITHUB_PRAYER_CACHE_UPDATED_AT", entry.generatedAt);
+  Logger.log("CACHE HARIAN GITHUB DIPERBARUI: " + city + " " + date + " (" + slug + ").");
+  return { success: true, changed: true, kota: city, tanggal: date, slug: slug, path: dailyCachePath };
+}
+
+
+/**
+ * Pemicu installable saat panels!C5 berubah.
+ * Menyelaraskan metadata lokasi dahulu, lalu memperbarui cache jadwal GitHub.
+ * Terpisah dari onEdit(e) agar tidak mengubah alur panel atau scheduler audio.
+ */
+
+function resetAllPrayerCachesAndRefreshAlAdhan() { // Alias nama lama dipertahankan agar pemanggil yang sudah ada tetap kompatibel.
+  var result = refreshPrayerCacheForCurrentCity(true);
+  if (!result || result.success !== true) {
+    throw new Error(
+      "Refresh cache kota aktif gagal. Cache lama tidak diubah. Periksa log dan coba lagi setelah memperbaiki penyebabnya."
+    );
+  }
+  Logger.log(
+    "REFRESH CACHE KOTA AKTIF SELESAI: " + JSON.stringify(result)
+  );
+  return {
+    success: true,
+    refreshed: true,
+    refreshedFrom: "AlAdhan API / method 20 (Indonesia)",
+    result: result
+  };
 }
