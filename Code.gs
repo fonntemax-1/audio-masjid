@@ -3977,14 +3977,20 @@ function processKeyValue(
     return result;
   } catch (apiError) {
     var message = apiError && apiError.message ? apiError.message : String(apiError);
-    Logger.log('ALADHAN JADWAL GAGAL: ' + message);
+    Logger.log((forceFreshAlAdhan
+      ? 'REFRESH ALADHAN JADWAL GAGAL: '
+      : 'CACHE GITHUB JADWAL GAGAL: ') + message);
     return {
       success: false,
-      source: 'AlAdhan API',
+      source: forceFreshAlAdhan
+        ? 'AlAdhan API / method 20 (Kemenag Indonesia)'
+        : 'GitHub prayer cache',
       kota: kota,
       provinsi: provinsi,
       tanggal: dateString,
-      error: 'Jadwal sholat AlAdhan gagal. Sumber alternatif tidak digunakan.',
+      error: forceFreshAlAdhan
+        ? 'Refresh jadwal sholat AlAdhan gagal.'
+        : 'Cache jadwal sholat GitHub tidak tersedia atau tidak valid. Tidak ada sumber alternatif yang digunakan.',
       aladhanError: message
     };
   }
