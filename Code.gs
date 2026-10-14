@@ -3909,6 +3909,11 @@ function processKeyValue(
       };
       monthlyDoc = monthlyDoc && typeof monthlyDoc === 'object' ? monthlyDoc : {};
       if (!monthlyDoc.months || typeof monthlyDoc.months !== 'object') monthlyDoc.months = {};
+      Object.keys(monthlyDoc.months).forEach(function(existingMonth) {
+        if (String(monthlyDoc.months[existingMonth] && monthlyDoc.months[existingMonth].source || '') !== sourceName) {
+          delete monthlyDoc.months[existingMonth];
+        }
+      });
       monthlyDoc.success = true;
       monthlyDoc.kota = kota;
       monthlyDoc.provinsi = provinsi;
@@ -6187,7 +6192,7 @@ function TEST_ALADHAN_SHOLAT_LANGSUNG() {
 
 
 /**
- * UJI INTEGRASI API INDONESIA (JADWAL SHOLAT + KALENDER HIJRIAH).
+ * UJI INTEGRASI ALADHAN (JADWAL SHOLAT + KALENDER HIJRIAH).
  * Jalankan manual dari Apps Script Editor untuk memastikan kedua endpoint,
  * API key, lokasi aktif, dan tanggal respons berfungsi normal.
  * Hanya membaca Spreadsheet/API dan menulis log; tidak mengubah sheet,
