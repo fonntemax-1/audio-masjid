@@ -1,8 +1,8 @@
 {
   "success": true,
   "source": "API Indonesia",
-  "generatedAt": "2026-10-14T07:31:47.705Z",
-  "updatedAt": "2026-10-14T07:31:47.705Z",
+  "generatedAt": "2026-10-14T10:50:06.537Z",
+  "updatedAt": "2026-10-14T10:50:06.537Z",
   "cityCount": 514,
   "cities": {
     "aceh-barat": {
@@ -1722,16 +1722,25 @@
       "pending": true
     },
     "sumedang": {
-      "success": false,
+      "success": true,
+      "tanggal": "2026-10-14",
       "kota": "Kabupaten Sumedang",
       "provinsi": "Jawa Barat",
+      "regency_id": "3211",
       "slug": "sumedang",
       "zona": "WIB",
       "timezone": "Asia/Jakarta",
       "gmt": "GMT+7",
-      "regency_id": "3211",
-      "source": "API Indonesia",
-      "pending": true
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:09",
+        "terbit": "05:27",
+        "dzuhur": "11:34",
+        "ashar": "14:40",
+        "maghrib": "17:42",
+        "isya": "18:52"
+      },
+      "generatedAt": "2026-10-14T10:50:06.537Z"
     },
     "tasikmalaya": {
       "success": false,
