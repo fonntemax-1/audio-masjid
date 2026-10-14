@@ -85,6 +85,7 @@ function hijriSeasonRefreshIfNeeded_(today) {
   var yearEntry = doc.years[year];
   var days = yearEntry && yearEntry.days;
   var annualMissing = !days || typeof days !== "object" || Object.keys(days).length < 350;
+  if (!days || typeof days !== "object") days = {};
 
   var todayMs = hijriSeasonDateMs_(today);
   var target = null;
