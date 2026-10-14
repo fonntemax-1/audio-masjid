@@ -816,12 +816,6 @@ function resolveCoordinatesCityFromApi_(params) {
 
 
 /**
- * Menemukan kota API MuslimKita terdekat dari koordinat Google Maps.
- * Sumber kandidat adalah dropdown panels!C5 supaya hasilnya sesuai daftar
- * kota yang digunakan oleh spreadsheet. Metadata dan koordinat diverifikasi
- * langsung ke endpoint MuslimKita, lalu disimpan di cache.
- */
-/**
  * Cocokkan kabupaten/kota dari Google Maps dengan katalog jadwal API Indonesia.
  * Contoh: "Kabupaten Sumedang" dicocokkan dengan label "Sumedang" atau
  * "Kabupaten Sumedang" pada sheet daftar-kota. Tidak mengandalkan jarak lurus
