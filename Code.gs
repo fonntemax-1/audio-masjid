@@ -5362,7 +5362,7 @@ function setupPrayerCacheAutoTriggers() {
 
 /** Membaca JSON dari branch migration; null hanya jika file memang belum ada (HTTP 404). */
 function readGithubJsonFile_(path) {
-  const targetBranch = "migration-api-indonesia-20261014";
+  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
   if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
   const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
@@ -5387,7 +5387,7 @@ function readGithubJsonFile_(path) {
 
 /** Membuat atau memperbarui JSON di branch migration dengan token di Script Properties. */
 function writeGithubJsonFile_(path, document, message) {
-  const targetBranch = "migration-api-indonesia-20261014";
+  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
   if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
   const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
