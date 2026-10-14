@@ -4715,7 +4715,7 @@ function VALIDASI_CACHE_KALENDER_HIJRIAH() {
   let duplicate = false;
   rows.forEach(function(row) {
     const dateKey = String(row && (row.gregorian_date || row.date) || "").trim();
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateKey) || dateKey.slice(0, 4) !== year) return;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey) || dateKey.slice(0, 4) !== year) return;
     if (days[dateKey]) duplicate = true;
     const formatted = String(row.hijri_formatted || "").trim() ||
       (row.hijri_day && row.hijri_month_name && row.hijri_year
