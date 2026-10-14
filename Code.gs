@@ -3913,8 +3913,8 @@ function processKeyValue(
            throw new Error('Tanggal tidak valid pada respons jadwal bulanan untuk ' + kota + ': ' + d);
          }
          day.date = d;
-         day.imsyak = normalizeMonthlyTime_(day.imsyak || day.imsyak || day.imsak);
-         day.shubuh = normalizeMonthlyTime_(day.shubuh || day.shubuh);
+         day.imsyak = normalizeMonthlyTime_(day.imsyak || day.imsak);
+         day.shubuh = normalizeMonthlyTime_(day.shubuh);
          day.terbit = normalizeMonthlyTime_(day.terbit);
          day.dzuhur = normalizeMonthlyTime_(day.dzuhur);
          day.ashr = normalizeMonthlyTime_(day.ashr || day.ashar);
@@ -3977,6 +3977,7 @@ function processKeyValue(
        kota: kota,
        provinsi: provinsi,
        slug: loc[5] || String(kota).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+       regency_id: regencyId,
        tanggal: returnedDate,
        timezone: timezoneFromPanel,
        zona: zona,
@@ -5405,6 +5406,7 @@ function refreshPrayerCacheForCurrentCity() {
     tanggal: date,
     kota: city,
     provinsi: province,
+    regency_id: String(schedule.regency_id || ""),
     slug: slug,
     zona: schedule.zona || loc[2] || "",
     timezone: schedule.timezone || timezone,
