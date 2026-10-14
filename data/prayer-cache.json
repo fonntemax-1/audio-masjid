@@ -1,8 +1,8 @@
 {
   "success": true,
-  "generatedAt": "2026-10-14T02:07:07.173Z",
-  "updatedAt": "2026-10-14T02:07:07.173Z",
-  "cityCount": 181,
+  "generatedAt": "2026-10-14T02:16:50.740Z",
+  "updatedAt": "2026-10-14T02:16:50.740Z",
+  "cityCount": 182,
   "cities": {
     "balikpapan": {
       "success": true,
@@ -3623,6 +3623,26 @@
         "isya": "19:20"
       },
       "generatedAt": "2026-10-13T21:15:51.377818+00:00"
+    },
+    "aceh-barat": {
+      "success": true,
+      "tanggal": "2026-10-14",
+      "kota": "Kabupaten Aceh Barat",
+      "provinsi": "Aceh",
+      "slug": "aceh-barat",
+      "zona": "WIB",
+      "timezone": "Asia/Jakarta",
+      "gmt": "GMT+7",
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "05:04",
+        "terbit": "06:22",
+        "dzuhur": "12:22",
+        "ashar": "15:41",
+        "maghrib": "18:22",
+        "isya": "19:32"
+      },
+      "generatedAt": "2026-10-14T02:16:50.740Z"
     }
   }
 }
