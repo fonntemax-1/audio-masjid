@@ -6415,6 +6415,71 @@ function TEST_ALADHAN_CROSS_TIMEZONE() {
   return report;
 }
 
+
+/**
+ * Audit trigger otomatis untuk daftar kota dan cache jadwal.
+ * Hanya membaca trigger yang sudah ada; tidak membuat atau menghapus trigger.
+ */
+function TEST_AUDIT_TRIGGER_ALADHAN() {
+  const expected = {
+    refreshDaftarKotaDariGithub: { daily: 1, everyThirtyMinutes: 0 },
+    refreshPrayerCacheForCurrentCity: { daily: 1, everyThirtyMinutes: 1 }
+  };
+  const triggers = ScriptApp.getProjectTriggers();
+  const counts = {};
+  const details = [];
+
+  triggers.forEach(function(trigger) {
+    const handler = trigger.getHandlerFunction();
+    const eventType = String(trigger.getEventType());
+    const source = String(trigger.getTriggerSource());
+    const triggerSourceId = trigger.getTriggerSourceId ? trigger.getTriggerSourceId() : "";
+    counts[handler] = (counts[handler] || 0) + 1;
+    details.push({
+      handler: handler,
+      eventType: eventType,
+      source: source,
+      sourceId: triggerSourceId || ""
+    });
+  });
+
+  const requiredHandlers = Object.keys(expected);
+  const relevant = details.filter(function(item) {
+    return requiredHandlers.indexOf(item.handler) >= 0 ||
+      item.handler === "refreshDaftarKotaAPIIndonesia";
+  });
+  const issues = [];
+  requiredHandlers.forEach(function(handler) {
+    if (!counts[handler]) issues.push("Trigger belum ada: " + handler);
+  });
+  if ((counts.refreshPrayerCacheForCurrentCity || 0) !== 2) {
+    issues.push("refreshPrayerCacheForCurrentCity seharusnya memiliki 2 trigger (harian dan 30 menit), ditemukan " +
+      (counts.refreshPrayerCacheForCurrentCity || 0));
+  }
+  if ((counts.refreshDaftarKotaDariGithub || 0) !== 1) {
+    issues.push("refreshDaftarKotaDariGithub seharusnya memiliki 1 trigger harian, ditemukan " +
+      (counts.refreshDaftarKotaDariGithub || 0));
+  }
+  if (counts.refreshDaftarKotaAPIIndonesia) {
+    issues.push("Trigger alias lama refreshDaftarKotaAPIIndonesia masih ada; pertimbangkan menjalankan setupDropdownKotaAPIIndonesia sekali untuk merapikan.");
+  }
+
+  const report = {
+    success: issues.length === 0,
+    totalProjectTriggers: triggers.length,
+    relevantTriggerCount: relevant.length,
+    counts: {
+      refreshDaftarKotaDariGithub: counts.refreshDaftarKotaDariGithub || 0,
+      refreshPrayerCacheForCurrentCity: counts.refreshPrayerCacheForCurrentCity || 0,
+      refreshDaftarKotaAPIIndonesia: counts.refreshDaftarKotaAPIIndonesia || 0
+    },
+    issues: issues,
+    triggers: relevant
+  };
+  Logger.log("AUDIT TRIGGER ALADHAN: " + JSON.stringify(report));
+  return report;
+}
+
 function TEST_ALADHAN_SHOLAT_LANGSUNG() {
   var ss = getSpreadsheet();
   var panels = ss.getSheetByName('panels');
