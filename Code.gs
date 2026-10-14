@@ -4796,10 +4796,13 @@ function refreshHijriCalendarCacheFromAlAdhan() {
   var nextDoc = oldDoc && typeof oldDoc === 'object' ? oldDoc : {};
   nextDoc.source = 'AlAdhan / Kalender Hijriah';
   nextDoc.generatedAt = generatedAt;
+  nextDoc.updatedAt = generatedAt;
   nextDoc.years = nextDoc.years && typeof nextDoc.years === 'object' ? nextDoc.years : {};
   yearsToRefresh.forEach(function(year) {
     nextDoc.years[String(year)] = annualResults[String(year)];
   });
+  // Metadata harus mencerminkan jumlah tahun yang benar-benar tersimpan.
+  nextDoc.yearCount = Object.keys(nextDoc.years).length;
 
   writeGithubJsonFile_(
     'data/hijri-calendar-cache.json',
