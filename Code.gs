@@ -3885,6 +3885,13 @@ function processKeyValue(
        }
      }
 
+     // Tolak cache lama yang hanya memiliki metadata API Indonesia tetapi
+     // record hariannya masih berasal dari penyedia lain (mis. aladhan.com).
+     if (monthlyEntry && !isTrustedAPIIndonesiaMonthlyEntry_(monthlyEntry, year, month, regencyId)) {
+       Logger.log('CACHE BULANAN DITOLAK: provenance atau validasi record tidak sesuai API Indonesia; mengambil ulang dari API utama.');
+       monthlyEntry = null;
+     }
+
      if (!monthlyEntry || !Array.isArray(monthlyEntry.days) || !monthlyEntry.days.length) {
        var monthlyUrl = 'https://use.apiindonesia.id/api/v1/sholat/monthly?kabupaten_id=' +
          encodeURIComponent(regencyId) + '&tahun=' + encodeURIComponent(year) +
@@ -3923,6 +3930,9 @@ function processKeyValue(
          if (!day.shubuh || !day.terbit || !day.dzuhur || !day.ashr || !day.maghrib || !day.isya) {
            throw new Error('Ada waktu sholat tidak lengkap pada tanggal ' + d + ' untuk ' + kota);
          }
+         if (seenDates[d]) throw new Error('Tanggal duplikat pada respons jadwal bulanan: ' + d);
+         day.regency_id = regencyId;
+         day.source = 'API Indonesia / Kemenag';
          seenDates[d] = true;
        });
        if (Object.keys(seenDates).length !== expectedDays) {
@@ -4015,6 +4025,33 @@ function processKeyValue(
        apiIndonesiaError: fallbackReason
      };
    }
+ }
+
+
+ // Cache bulanan hanya tepercaya jika metadata DAN setiap record hariannya
+ // benar-benar memenuhi kontrak API Indonesia.
+ function isTrustedAPIIndonesiaMonthlyEntry_(entry, year, month, regencyId) {
+   if (!entry || String(entry.regency_id || '') !== String(regencyId) ||
+       String(entry.source || '') !== 'API Indonesia / Kemenag' ||
+       !Array.isArray(entry.days)) return false;
+   var monthText = ('0' + month).slice(-2);
+   var expected = new Date(year, month, 0).getDate();
+   if (entry.days.length !== expected) return false;
+   var seen = {};
+   for (var i = 0; i < entry.days.length; i++) {
+     var day = entry.days[i] || {};
+     var date = String(day.date || day.tanggal || '').trim();
+     if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date) ||
+         date.slice(0, 7) !== year + '-' + monthText || seen[date] ||
+         String(day.regency_id || day.kabupaten_id || '') !== String(regencyId) ||
+         String(day.source || '') !== 'API Indonesia / Kemenag') return false;
+     var fields = ['shubuh', 'terbit', 'dzuhur', 'ashr', 'maghrib', 'isya'];
+     for (var j = 0; j < fields.length; j++) {
+       if (!isValidPrayerTimeSafe_(day[fields[j]])) return false;
+     }
+     seen[date] = true;
+   }
+   return Object.keys(seen).length === expected;
  }
 
 // Fallback jadwal legacy dan cache ScriptProperties tidak lagi digunakan.
