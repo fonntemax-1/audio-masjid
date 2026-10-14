@@ -4557,6 +4557,144 @@ function hijriAnnualDaysComplete_(days, year) {
   return true;
 }
 
+/**
+ * Refresh kalender Hijriah tahunan dari AlAdhan saja.
+ * Memperbarui tahun 2026 dan 2027 dalam satu eksekusi agar fungsi dapat
+ * dijalankan langsung dari dropdown Apps Script tanpa argumen.
+ * Seluruh bulan/tanggal divalidasi sebelum cache GitHub ditulis.
+ * Tidak memakai API Indonesia dan tidak menyentuh scheduler/audio.
+ */
+function refreshHijriCalendarCacheFromAlAdhan() {
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) throw new Error('Sheet panels tidak ditemukan.');
+
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var city = loc[0];
+  var province = loc[1];
+  var timezone = loc[3] || 'Asia/Makassar';
+  if (!city) throw new Error('panels!C5 (kota) kosong.');
+
+  var yearsToRefresh = [2026, 2027];
+  var annualResults = {};
+  var generatedAt = new Date().toISOString();
+
+  // Ambil dan validasi semua tahun terlebih dahulu. Jika satu saja gagal,
+  // file cache GitHub tidak ditulis sehingga cache lama tetap utuh.
+  yearsToRefresh.forEach(function(year) {
+    var days = {};
+    for (var month = 1; month <= 12; month++) {
+      var url = 'https://api.aladhan.com/v1/calendarByCity/' + year + '/' + month +
+        '?city=' + encodeURIComponent(city) +
+        '&country=' + encodeURIComponent('Indonesia') +
+        (province ? '&state=' + encodeURIComponent(province) : '') +
+        '&method=20&school=0&timezonestring=' + encodeURIComponent(timezone);
+
+      var response = UrlFetchApp.fetch(url, {
+        method: 'get',
+        muteHttpExceptions: true,
+        headers: { 'Accept': 'application/json' }
+      });
+      var status = response.getResponseCode();
+      if (status < 200 || status >= 300) {
+        throw new Error('AlAdhan gagal untuk ' + year + '-' + ('0' + month).slice(-2) +
+          ' (HTTP ' + status + '). Cache lama tidak diubah.');
+      }
+
+      var payload = JSON.parse(response.getContentText() || '{}');
+      var rows = payload && Array.isArray(payload.data) ? payload.data : [];
+      var expectedCount = new Date(Date.UTC(year, month, 0)).getUTCDate();
+      if (rows.length !== expectedCount) {
+        throw new Error('AlAdhan mengembalikan ' + rows.length + ' hari untuk ' +
+          year + '-' + ('0' + month).slice(-2) + ', seharusnya ' + expectedCount +
+          '. Cache lama tidak diubah.');
+      }
+
+      rows.forEach(function(item) {
+        var gregorian = item && item.date && item.date.gregorian;
+        var hijriDate = item && item.date && item.date.hijri;
+        var rawDate = String(gregorian && gregorian.date || '');
+        var match = rawDate.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+        if (!match) throw new Error('Format tanggal Gregorian AlAdhan tidak valid: ' + rawDate);
+        var iso = match[3] + '-' + match[2] + '-' + match[1];
+        if (iso.slice(0, 7) !== year + '-' + ('0' + month).slice(-2)) {
+          throw new Error('Tanggal AlAdhan di luar bulan yang diminta: ' + iso);
+        }
+        if (days[iso]) throw new Error('Tanggal duplikat dari AlAdhan: ' + iso);
+
+        var hijriDay = String(hijriDate && hijriDate.day || '').trim();
+        var hijriMonth = String(hijriDate && hijriDate.month && hijriDate.month.en || '').trim();
+        var hijriYear = String(hijriDate && hijriDate.year || '').trim();
+        if (!hijriDay || !hijriMonth || !hijriYear) {
+          throw new Error('Data Hijriah kosong pada ' + iso + '. Cache lama tidak diubah.');
+        }
+
+        days[iso] = {
+          hijri_day: hijriDay,
+          hijri_month_name: hijriMonth,
+          hijri_month_number: Number(hijriDate.month.number || 0),
+          hijri_year: hijriYear,
+          hijri_formatted: hijriDay + ' ' + hijriMonth + ' ' + hijriYear + ' H',
+          source: 'AlAdhan / Kalender Hijriah'
+        };
+      });
+    }
+
+    if (!hijriAnnualDaysComplete_(days, year)) {
+      throw new Error('Validasi kalender Hijriah ' + year +
+        ' gagal: ada tanggal yang hilang. Cache lama tidak diubah.');
+    }
+    annualResults[String(year)] = {
+      source: 'AlAdhan / Kalender Hijriah',
+      city: city,
+      province: province,
+      timezone: timezone,
+      method: 20,
+      generatedAt: generatedAt,
+      dayCount: Object.keys(days).length,
+      days: days
+    };
+  });
+
+  var oldDoc = readGithubJsonFile_('data/hijri-calendar-cache.json');
+  var nextDoc = oldDoc && typeof oldDoc === 'object' ? oldDoc : {};
+  nextDoc.source = 'AlAdhan / Kalender Hijriah';
+  nextDoc.generatedAt = generatedAt;
+  nextDoc.years = nextDoc.years && typeof nextDoc.years === 'object' ? nextDoc.years : {};
+  yearsToRefresh.forEach(function(year) {
+    nextDoc.years[String(year)] = annualResults[String(year)];
+  });
+
+  writeGithubJsonFile_(
+    'data/hijri-calendar-cache.json',
+    nextDoc,
+    'Refresh kalender Hijriah AlAdhan 2026-2027'
+  );
+
+  // Bersihkan cache runtime agar permintaan berikutnya membaca file terbaru.
+  try { CacheService.getScriptCache().removeAll(
+    Object.keys(annualResults).reduce(function(keys, year) {
+      var days = annualResults[year].days;
+      Object.keys(days).forEach(function(date) { keys.push('HIJRI_ALADHAN_V1_' + date.replace(/-/g, '')); });
+      return keys;
+    }, [])
+  ); } catch (ignoreCacheClear) {}
+
+  var report = {
+    success: true,
+    source: 'AlAdhan / Kalender Hijriah',
+    years: yearsToRefresh.map(function(year) {
+      return { year: year, dayCount: annualResults[String(year)].dayCount };
+    }),
+    path: 'data/hijri-calendar-cache.json',
+    branch: 'migration-api-indonesia-20261014'
+  };
+  Logger.log('REFRESH KALENDER HIJRIAH ALADHAN SELESAI: ' + JSON.stringify(report));
+  return report;
+}
+
 function getHijriDateFromApi(dateString) {
   const date = String(dateString || '').trim();
   if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date)) {
