@@ -4916,7 +4916,7 @@ function setupPanelKegiatan() {
  */
 /**
  * Memperbarui sheet "daftar-kota" dari API Indonesia dan memasang dropdown panels!C5.
- * Kolom: Kota/Kabupaten | Provinsi | ID API | Zona | Timezone | GMT | Slug MuslimKita
+ * Kolom: Kota/Kabupaten | Provinsi | ID API | Zona | Timezone | GMT | Slug Kota
  * Jalankan refreshDaftarKotaAPIIndonesia() secara manual saat pertama kali.
  */
 function refreshDaftarKotaAPIIndonesia() {
@@ -4939,7 +4939,7 @@ function refreshDaftarKotaAPIIndonesia() {
   let listSheet = ss.getSheetByName("daftar-kota");
   if (!listSheet) listSheet = ss.insertSheet("daftar-kota");
 
-  const headers = ["Kota/Kabupaten", "Provinsi", "ID API", "Zona", "Timezone", "GMT", "Slug MuslimKita"];
+  const headers = ["Kota/Kabupaten", "Provinsi", "ID API", "Zona", "Timezone", "GMT", "Slug Kota"];
   const rows = cities.map(function(city) {
     const cityName = titleCaseLocation_(city.regency_name || city.name || "");
     const provinceName = titleCaseLocation_(city.province_name || "");
@@ -5414,7 +5414,7 @@ function syncPrayerPanelLocationFromCity_(cityValue, showToast) {
   if (matches.length > 1) throw new Error('Nama kota "' + city + '" tidak unik pada daftar-kota; pastikan label dropdown mencakup jenis wilayah.');
 
   const row = matches[0];
-  // C6 Provinsi, C7 Zona, C8 Timezone, C9 GMT, C10 slug untuk kompatibilitas MuslimKita.
+  // C6 Provinsi, C7 Zona, C8 Timezone, C9 GMT, C10 slug kota (metadata, bukan sumber jadwal).
   panels.getRange("C6:C10").setValues([[row[1]], [row[3]], [row[4]], [row[5]], [row[6]]]);
   if (showToast) ss.toast("Lokasi diperbarui: " + row[0] + " · " + row[1], "Daftar Kota", 3);
   return true;
