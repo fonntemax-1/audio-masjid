@@ -11751,13 +11751,19 @@ function startRealtimeAudioConfigPolling_() {
         isya: String(j.isya || '').trim()
       };
 
+      const scheduleSource = String(result.source || '').trim();
+      if (!/^AlAdhan\b/i.test(scheduleSource)) {
+        console.warn('JADWAL SHOLAT DITOLAK: sumber bukan AlAdhan.', scheduleSource || '(sumber kosong)');
+        return;
+      }
+
       WEB_APP_STATE.prayer.schedule = normalizedSchedule;
 
       // CACHE JADWAL KARTU:
       // Countdown membaca cache kartu terlebih dahulu. API hanya bertugas
       // memperbarui cache di belakang layar. Dengan demikian pergantian
       // halaman/reload tidak perlu menunggu API untuk mulai menghitung.
-      savePrayerCardCache();
+      savePrayerCardCache(scheduleSource);
 
       setPrayerTime('prayer-subuh', normalizedSchedule.subuh);
       setPrayerTime('prayer-terbit', normalizedSchedule.terbit);
@@ -11836,7 +11842,7 @@ function startRealtimeAudioConfigPolling_() {
     }
 
 
-    function savePrayerCardCache() {
+    function savePrayerCardCache(source) {
       const key = getPrayerCardCacheKey();
       if (!key) return;
 
@@ -11844,6 +11850,7 @@ function startRealtimeAudioConfigPolling_() {
       const cached = {
         kota: String(WEB_APP_STATE.location.kota || ''),
         timezone: String(getSelectedTimezone() || ''),
+        source: String(source || '').trim(),
         tanggal: String(
           WEB_APP_STATE.prayer.dateLoaded || getApiDate()
         ),
@@ -11863,7 +11870,7 @@ function startRealtimeAudioConfigPolling_() {
             return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(cached.jadwal[k]);
           });
 
-      if (!valid) return;
+      if (!valid || !/^AlAdhan\b/i.test(cached.source)) return;
 
       try {
         localStorage.setItem(key, JSON.stringify(cached));
@@ -12084,10 +12091,10 @@ function startRealtimeAudioConfigPolling_() {
 
           updateRamadanPrayerCards();
 
-          savePrayerCardCache();
+          savePrayerCardCache(String(selectedPayload.source || ''));
 
           console.log(
-            'JADWAL SHOLAT: memakai CACHE GITHUB MULTI-KOTA:',
+            'JADWAL SHOLAT: memakai CACHE GITHUB ALADHAN KOTA:',
             targetSlug,
             schedule
           );
@@ -12164,6 +12171,12 @@ function startRealtimeAudioConfigPolling_() {
 
         const cached = JSON.parse(raw);
         const j = cached && cached.jadwal;
+
+        // Cache lokal lama tanpa sumber eksplisit tidak boleh dipercaya.
+        if (!/^AlAdhan\b/i.test(String(cached && cached.source || '').trim())) {
+          console.warn('JADWAL KARTU CACHE DIABAIKAN: sumber lama/tidak dikenal; tunggu cache AlAdhan.');
+          return false;
+        }
 
         if (
           !j ||
@@ -17916,7 +17929,7 @@ function setCountdownBlackMode(enabled) {
             updatePrayerCountdown();
           }
 
-          // API MuslimKita hanya refresh di belakang layar.
+          // Refresh jadwal hanya diterima jika respons menandai sumber AlAdhan.
           setTimeout(function() {
             fetchPrayerSchedule();
           }, 0);
