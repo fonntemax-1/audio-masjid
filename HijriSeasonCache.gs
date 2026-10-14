@@ -1,13 +1,12 @@
 /**
- * CACHE HIJRIAH MUSIMAN + VALIDASI JADWAL BULANAN
+ * VALIDASI HARIAN CACHE JADWAL SHOLAT + KALENDER HIJRIAH ALADHAN
  *
  * Aturan:
- * - Trigger harian, tetapi di luar jendela khusus tidak memanggil API kalender.
- * - Kalender Hijriah AlAdhan diperiksa ulang pada H-3, H-2, dan H-1
- *   sebelum 1 Ramadhan, 1 Syawal, dan 1 Muharam berdasarkan kalender GitHub.
- * - Jadwal sholat kota aktif divalidasi ulang sekali pada tanggal 1 setiap bulan.
- * - Hanya kota aktif pada panels!C5:C10; tidak memproses semua kota.
- * - Data GitHub lama dipertahankan bila API gagal atau hasil tidak lengkap.
+ * - Setiap hari validasi data tanggal berjalan melalui AlAdhan.
+ * - Cache bulanan diperbarui hanya jika data tanggal berjalan berubah.
+ * - Jika tanggal Hijriah hari ini berubah, hanya entri tanggal itu yang diperbarui.
+ * - Jika AlAdhan gagal atau respons tidak valid, cache terakhir tetap dipakai.
+ * - Tidak memakai API alternatif sebagai sumber jadwal sholat atau kalender Hijriah.
  * - Tidak mengubah audio, scheduler sholat, atau trigger yang tidak terkait.
  *
  * Pasang dengan menjalankan setupHijriSeasonCacheTrigger() satu kali.
@@ -22,7 +21,7 @@ var HIJRI_SEASON_SPECIAL_MONTHS_ = ["ramadhan", "ramadan", "syawal", "muharam", 
 function runHijriSeasonCacheCheckNow() {
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(30000)) {
-    Logger.log("Pemeriksaan cache musiman dilewati: proses lain sedang berjalan.");
+    Logger.log("Validasi harian cache AlAdhan dilewati: proses lain sedang berjalan.");
     return { success: false, skipped: true, reason: "lock_busy" };
   }
 
@@ -39,76 +38,113 @@ function runHijriSeasonCacheCheckNow() {
     if (!city) throw new Error("panels!C5 (kota aktif) kosong.");
 
     var today = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd");
-    var hijriRefresh = hijriSeasonRefreshIfNeeded_(today);
-    var monthlyRefresh = null;
+    var prayerCheck = refreshActiveCityMonthlyPrayerCache_(today);
+    var hijriCheck = {
+      checked: false, updated: false,
+      source: "AlAdhan / Kalender Hijriah"
+    };
 
-    // Validasi ulang cache jadwal hanya sekali pada hari pertama bulan Masehi.
-    if (today.slice(8, 10) === "01") {
-      monthlyRefresh = refreshActiveCityMonthlyPrayerCache_(today);
+    if (prayerCheck.alAdhanValidated === true && prayerCheck.schedule) {
+      hijriCheck = refreshHijriCalendarCacheDateFromAlAdhan_(today, prayerCheck.schedule);
     } else {
-      Logger.log("Validasi jadwal bulanan dilewati; bukan tanggal 1.");
+      hijriCheck.reason = "aladhan_unavailable_cache_retained";
+      Logger.log("Validasi kalender Hijriah hari ini dilewati karena AlAdhan tidak tersedia; cache lama dipertahankan.");
     }
 
     var result = {
       success: true,
       tanggal: today,
       kotaAktif: city,
-      kalenderHijriah: hijriRefresh,
-      jadwalSholatBulanan: monthlyRefresh || {
-        skipped: true,
-        reason: "monthly_validation_runs_on_day_1"
-      }
+      sumberUtama: "AlAdhan",
+      kalenderHijriah: hijriCheck,
+      jadwalSholatBulanan: prayerCheck
     };
-    Logger.log("HASIL PEMERIKSAAN CACHE MUSIMAN: " + JSON.stringify(result));
+    Logger.log("HASIL VALIDASI HARIAN CACHE ALADHAN: " + JSON.stringify(result));
     return result;
   } finally {
     lock.releaseLock();
   }
 }
 
+// Alias kompatibilitas untuk pemanggil lama; tidak lagi memakai jendela musiman.
 function hijriSeasonRefreshIfNeeded_(today) {
-  var year = String(today || '').slice(0, 4);
-  var doc = null;
-  var yearEntry = null;
-  var days = null;
-  try {
-    doc = readGithubJsonFile_(HIJRI_SEASON_CACHE_PATH_);
-    yearEntry = doc && doc.years && doc.years[year];
-    days = yearEntry && yearEntry.days;
-  } catch (error) {
-    Logger.log("Cache kalender Hijriah AlAdhan tidak dapat dibaca: " + String(error && error.message || error));
+  var check = refreshActiveCityMonthlyPrayerCache_(today);
+  if (check.alAdhanValidated === true && check.schedule) {
+    return refreshHijriCalendarCacheDateFromAlAdhan_(today, check.schedule);
+  }
+  return {
+    checked: false, updated: false,
+    reason: "aladhan_unavailable_cache_retained",
+    source: "AlAdhan / Kalender Hijriah"
+  };
+}
+
+function refreshHijriCalendarCacheDateFromAlAdhan_(today, schedule) {
+  var source = "AlAdhan / Kalender Hijriah";
+  var year = String(today || "").slice(0, 4);
+  var hijriDay = String(schedule && schedule.hijri_day || "").trim();
+  var hijriMonthRaw = String(schedule && schedule.hijri_month_name || "").trim();
+  var hijriYear = String(schedule && schedule.hijri_year || "").trim();
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(today) || !hijriDay || !hijriMonthRaw || !hijriYear) {
+    Logger.log("Validasi Hijriah AlAdhan gagal: data tanggal berjalan tidak lengkap; cache lama dipertahankan.");
+    return { checked: true, updated: false, reason: "invalid_aladhan_hijri_response", source: source };
   }
 
-  var trusted = String(doc && doc.source || '') === 'AlAdhan / Kalender Hijriah' &&
-    String(yearEntry && yearEntry.source || '') === 'AlAdhan / Kalender Hijriah' &&
-    days && hijriAnnualDaysComplete_(days, year);
-  if (!trusted) {
-    Logger.log("Cache kalender Hijriah belum valid dari AlAdhan; melakukan refresh tahunan tanpa fallback.");
-    return refreshHijriCalendarCacheYearFromAlAdhan_(Number(year));
+  var monthMap = {
+    "muharram": "Muharam", "safar": "Safar", "rabi' al-awwal": "Rabiul Awal",
+    "rabi al-awwal": "Rabiul Awal", "rabi' al-thani": "Rabiul Akhir",
+    "rabi al-thani": "Rabiul Akhir", "jumada al-awwal": "Jumadil Awal",
+    "jumada al-thani": "Jumadil Akhir", "rajab": "Rajab", "sha'ban": "Syaban",
+    "shaban": "Syaban", "ramadan": "Ramadhan", "shawwal": "Syawal",
+    "dhu al-qi'dah": "Dzulkaidah", "dhu al-qidah": "Dzulkaidah",
+    "dhu al-hijjah": "Dzulhijjah"
+  };
+  var monthKey = hijriMonthRaw.toLowerCase().replace(/\\s+/g, " ").trim();
+  var localMonth = monthMap[monthKey] || hijriMonthRaw;
+  var freshRow = {
+    gregorian_date: today,
+    hijri_day: hijriDay,
+    hijri_month_name: localMonth,
+    hijri_year: hijriYear,
+    hijri_formatted: hijriDay + " " + localMonth + " " + hijriYear + " H",
+    source: source
+  };
+
+  var doc;
+  try { doc = readGithubJsonFile_(HIJRI_SEASON_CACHE_PATH_); }
+  catch (error) {
+    Logger.log("Cache kalender Hijriah tidak dapat dibaca; tidak ditimpa: " + String(error && error.message || error));
+    return { checked: true, updated: false, reason: "hijri_cache_read_failed", source: source };
+  }
+  var yearEntry = doc && doc.years && doc.years[year];
+  if (!doc || String(doc.source || "") !== source ||
+      !yearEntry || String(yearEntry.source || "") !== source ||
+      !hijriAnnualDaysComplete_(yearEntry.days, year) || !yearEntry.days[today]) {
+    Logger.log("Cache kalender Hijriah tahunan tidak valid/lengkap; cache lama dipertahankan.");
+    return { checked: true, updated: false, reason: "existing_hijri_cache_invalid", source: source };
   }
 
-  var todayMs = hijriSeasonDateMs_(today);
-  var target = null;
-  Object.keys(days).forEach(function(date) {
-    var row = days[date] || {};
-    var dayNum = Number(row.hijri_day || 0);
-    var monthName = hijriSeasonNormalizeMonth_(row.hijri_month_name || row.hijri_formatted || "");
-    if (dayNum !== 1 || HIJRI_SEASON_SPECIAL_MONTHS_.indexOf(monthName) < 0) return;
-    var delta = Math.round((hijriSeasonDateMs_(date) - todayMs) / 86400000);
-    if (delta >= 1 && delta <= 3 && (!target || delta < target.daysUntil)) {
-      target = { date: date, month: monthName, daysUntil: delta };
-    }
-  });
-
-  if (!target) {
-    Logger.log("Kalender Hijriah AlAdhan: di luar jendela H-3 sampai H-1 Ramadhan/Syawal/Muharam; tidak memanggil API.");
-    return { checked: false, updated: false, reason: "outside_special_window", source: "AlAdhan / Kalender Hijriah" };
+  var priorRow = yearEntry.days[today] || {};
+  var same = String(priorRow.hijri_day || "") === freshRow.hijri_day &&
+    String(priorRow.hijri_month_name || "") === freshRow.hijri_month_name &&
+    String(priorRow.hijri_year || "") === freshRow.hijri_year &&
+    String(priorRow.hijri_formatted || "") === freshRow.hijri_formatted &&
+    String(priorRow.source || "") === source;
+  if (same) {
+    Logger.log("VALIDASI HIJRIAH ALADHAN: " + today + " tidak berubah; commit dilewati.");
+    return { checked: true, updated: false, reason: "no_change", source: source,
+      tanggal: today, hijri: freshRow.hijri_formatted };
   }
-  Logger.log("Jendela khusus Hijriah AlAdhan aktif: " + target.month + ", tanggal=" + target.date +
-    ", H-" + target.daysUntil + ". Memperbarui kalender tahunan dari AlAdhan.");
-  var result = refreshHijriCalendarCacheYearFromAlAdhan_(Number(year));
-  result.target = target;
-  return result;
+
+  yearEntry.days[today] = freshRow;
+  yearEntry.updatedAt = new Date().toISOString();
+  doc.updatedAt = yearEntry.updatedAt;
+  doc.source = source;
+  writeGithubJsonFile_(HIJRI_SEASON_CACHE_PATH_, doc,
+    "Validasi kalender Hijriah AlAdhan " + today);
+  Logger.log("CACHE HIJRIAH ALADHAN DIPERBARUI UNTUK TANGGAL BERJALAN: " + today);
+  return { checked: true, updated: true, source: source, tanggal: today,
+    hijri: freshRow.hijri_formatted };
 }
 
 /**
@@ -235,25 +271,42 @@ function refreshHijriCalendarCacheYearFromAlAdhan_(year) {
 }
 
 function refreshActiveCityMonthlyPrayerCache_(today) {
-  // Gunakan satu jalur operasional yang sama dengan aplikasi: getPrayerSchedule.
-  // Refresh eksplisit meminta AlAdhan dan memublikasikan cache per kota.
-  var schedule = getPrayerSchedule(today, { forceRefresh: true });
-  if (!schedule || schedule.success !== true ||
-      !schedule.jadwal || !isCompletePrayerScheduleSafe_(schedule.jadwal)) {
-    var detail = schedule && (schedule.error || schedule.alAdhanError);
-    Logger.log("Validasi cache jadwal AlAdhan gagal: " + (detail || "respons tidak lengkap"));
-    return { checked: true, updated: false, reason: "aladhan_refresh_failed",
-      detail: detail || "Respons jadwal tidak lengkap" };
+  // Memvalidasi tanggal berjalan melalui AlAdhan. Code.gs membandingkan
+  // entri tanggal ini dan hanya menulis cache bulanan bila datanya berubah.
+  var fresh = getPrayerSchedule(today, { forceRefresh: true });
+  if (fresh && fresh.success === true &&
+      String(fresh.tanggal || "") === String(today) &&
+      String(fresh.source || "").indexOf("AlAdhan") >= 0 &&
+      isCompletePrayerScheduleSafe_(fresh.jadwal)) {
+    var changed = String(fresh.cacheSource || "").indexOf("perubahan tersimpan") >= 0;
+    return {
+      checked: true, updated: changed, alAdhanValidated: true,
+      source: fresh.source, month: String(today).slice(0, 7),
+      kota: fresh.kota, tanggal: today, cacheSource: fresh.cacheSource || "",
+      schedule: fresh, reason: changed ? "current_date_changed" : "no_change"
+    };
   }
+
+  var detail = fresh && (fresh.alAdhanError || fresh.error) || "Respons AlAdhan tidak valid.";
+  Logger.log("VALIDASI ALADHAN GAGAL; menggunakan cache bulanan terakhir jika valid: " + detail);
+  var cached = getPrayerSchedule(today);
+  if (cached && cached.success === true &&
+      String(cached.tanggal || "") === String(today) &&
+      String(cached.source || "").indexOf("AlAdhan") >= 0 &&
+      isCompletePrayerScheduleSafe_(cached.jadwal)) {
+    return {
+      checked: true, updated: false, alAdhanValidated: false, cacheFallback: true,
+      source: cached.source, month: String(today).slice(0, 7),
+      kota: cached.kota, tanggal: today, cacheSource: cached.cacheSource || "Cache",
+      reason: "aladhan_unavailable_cache_retained", detail: detail
+    };
+  }
+
+  Logger.log("AlAdhan gagal dan cache tidak dapat dibaca; tidak ada cache yang ditimpa.");
   return {
-    checked: true,
-    updated: true,
-    source: schedule.source || "AlAdhan / Kemenag",
-    month: today.slice(0, 7),
-    kota: schedule.kota,
-    tanggal: today,
-    cacheSource: schedule.cacheSource || "",
-    note: "Cache operasional per kota divalidasi melalui AlAdhan."
+    checked: true, updated: false, alAdhanValidated: false,
+    cacheFallback: false, reason: "aladhan_unavailable_and_cache_unavailable",
+    detail: detail
   };
 }
 
@@ -286,5 +339,5 @@ function setupHijriSeasonCacheTrigger() {
     if (t.getHandlerFunction() === handler) ScriptApp.deleteTrigger(t);
   });
   ScriptApp.newTrigger(handler).timeBased().everyDays(1).atHour(3).inTimezone("Asia/Makassar").create();
-  Logger.log("Trigger aktif: pemeriksaan harian sekitar pukul 03.00 WITA; API kalender hanya dipanggil pada H-3 s.d. H-1 Ramadhan/Syawal/Muharam, jadwal bulanan diperiksa tanggal 1.");
+  Logger.log("Trigger aktif: validasi harian tanggal berjalan melalui AlAdhan; cache diperbarui hanya bila data berubah dan cache lama dipertahankan jika API gagal.");
 }
