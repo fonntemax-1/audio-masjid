@@ -3730,12 +3730,9 @@ function processKeyValue(
 
 
 // ============================================================
-// JADWAL SHOLAT - API INDONESIA SEBAGAI SUMBER TUNGGAL
-// API key dibaca dari Script Properties: API_INDONESIA_KEY.
-// Jika API Indonesia gagal, fungsi mengembalikan error; tidak
-// mengambil jadwal dari penyedia lain agar sumber tetap konsisten.
-// Kontrak respons tetap kompatibel dengan index.html / API.gs.
-// Tidak mengubah audio, scheduler, atau pemicu sholat.
+// JADWAL SHOLAT — CACHE GITHUB SEBAGAI SUMBER OPERASIONAL
+// AlAdhan method 20 hanya dipanggil oleh proses refresh eksplisit.
+// Operasi normal membaca cache GitHub; cache tidak tersedia = error.
 // ============================================================
  function getPrayerSchedule(dateString, options) {
   options = options || {};
@@ -3825,6 +3822,12 @@ function processKeyValue(
         monthlyEntry = monthlyDoc.months[monthId];
         cacheSourceUsed = 'GitHub';
       }
+    }
+
+    if (!monthlyEntry && !forceFreshAlAdhan) {
+      throw new Error('Cache jadwal sholat GitHub tidak tersedia atau tidak valid untuk ' +
+        kota + ' bulan ' + year + '-' + monthText +
+        '. Jalankan refreshPrayerCacheForCurrentCity(true) untuk memperbarui cache dari AlAdhan method 20.');
     }
 
     if (!monthlyEntry) {
@@ -4019,7 +4022,7 @@ function isTrustedAlAdhanMonthlyEntry_(entry, year, month, locationKey, timezone
   return Object.keys(seen).length === expected;
 }
 
-// Jadwal sholat aktif hanya menggunakan AlAdhan API method 20.
+// Operasi normal membaca cache bulanan GitHub. AlAdhan method 20 hanya dipakai saat refresh eksplisit.
 // Cache bulanan dipisahkan per kota/kabupaten, provinsi, dan zona waktu; tidak ada fallback jadwal legacy.
 
 // ============================================================
@@ -4714,372 +4717,57 @@ function VALIDASI_CACHE_KALENDER_HIJRIAH() {
   return result;
 }
 
-function getHijriDateFromApi(
-  dateString
-) {
-
+function getHijriDateFromApi(dateString) {
+  const date = String(dateString || '').trim();
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) {
+    return { success: false, found: false, hijri: '', date: date, source: 'GitHub Hijri cache', error: 'Tanggal Masehi tidak valid.' };
+  }
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'HIJRI_GITHUB_' + date.replace(/-/g, '');
   try {
-
-    if (!dateString) {
-      return {
-        success: false,
-        found: false,
-        hijri: '',
-        date: '',
-        source: 'API Indonesia',
-        error: 'Tanggal Masehi tidak diberikan.'
-      };
-    }
-
-    const normalizedDate =
-      String(dateString)
-        .trim();
-
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
-      return {
-        success: false,
-        found: false,
-        hijri: '',
-        date: normalizedDate,
-        source: 'API Indonesia',
-        error: 'Format tanggal harus YYYY-MM-DD.'
-      };
-    }
-
-    // --------------------------------------------------------
-    // API KEY
-    // --------------------------------------------------------
-
-    const apiKey = String(
-      PropertiesService
-        .getScriptProperties()
-        .getProperty(HIJRI_API_KEY_PROPERTY) || ''
-    ).trim();
-
-    if (!apiKey) {
-      return {
-        success: false,
-        found: false,
-        hijri: '',
-        date: normalizedDate,
-        source: 'API Indonesia',
-        error:
-          'Script Property ' +
-          HIJRI_API_KEY_PROPERTY +
-          ' belum diisi.'
-      };
-    }
-
-    // --------------------------------------------------------
-    // CACHE
-    // --------------------------------------------------------
-
-    const cache =
-      CacheService.getScriptCache();
-
-    const cacheKey =
-      'HIJRI_API_' +
-      normalizedDate.replace(/-/g, '');
-
-    const cached =
-      cache.get(cacheKey);
-
+    const cached = cache.get(cacheKey);
     if (cached) {
-      try {
-        const cachedResult =
-          JSON.parse(cached);
-
-        if (
-          cachedResult &&
-          cachedResult.success === true &&
-          cachedResult.hijri
-        ) {
-          cachedResult.cached = true;
-          return cachedResult;
-        }
-      } catch (cacheError) {
-        console.warn(
-          'HIJRI API CACHE INVALID:',
-          cacheError
-        );
+      const parsed = JSON.parse(cached);
+      if (parsed && parsed.success === true && parsed.hijri) {
+        parsed.cached = true;
+        return parsed;
       }
     }
+  } catch (ignoreCache) {}
 
-    // --------------------------------------------------------
-    // CACHE PERMANEN GITHUB: kalender tahunan, lalu tanggal spesifik
-    // --------------------------------------------------------
-    const year = normalizedDate.slice(0, 4);
-    let hijriDoc = null;
-    let yearEntry = null;
-    try {
-      hijriDoc = readGithubJsonFile_("data/hijri-calendar-cache.json");
-      if (hijriDoc && hijriDoc.years && hijriDoc.years[year]) {
-        yearEntry = hijriDoc.years[year];
-      }
-    } catch (githubHijriReadError) {
-      console.warn("CACHE HIJRIAH GITHUB TIDAK DAPAT DIBACA:", githubHijriReadError);
-    }
-
-    function formatHijriCalendarRow_(row) {
-      if (!row) return "";
-      if (row.hijri_formatted) return String(row.hijri_formatted).trim();
-      const day = row.hijri_day;
-      const monthName = String(row.hijri_month_name || "").trim();
-      const hijriYear = row.hijri_year;
-      return day && monthName && hijriYear ? String(day) + " " + monthName + " " + String(hijriYear) + " H" : "";
-    }
-
-    const yearEntryComplete = !!(yearEntry && yearEntry.days &&
-      hijriAnnualDaysComplete_(yearEntry.days, year));
-
-    if (yearEntryComplete && yearEntry.days[normalizedDate]) {
-      const savedRow = yearEntry.days[normalizedDate];
-      const savedHijri = formatHijriCalendarRow_(savedRow);
-      if (savedHijri) {
-        const savedResult = {
-          success: true, found: true, date: normalizedDate, hijri: savedHijri,
-          source: "API Indonesia / GitHub cache", cached: true
-        };
-        try { cache.put(cacheKey, JSON.stringify(savedResult), HIJRI_CACHE_SECONDS); } catch (ignoreHijriCache) {}
-        return savedResult;
-      }
-    }
-
-    // Jika tahun belum ada di GitHub, ambil kalender satu tahun penuh satu kali.
-    if (!yearEntryComplete) {
-      const annualUrl = HIJRI_API_BASE_URL + "/kalender?tahun=" + encodeURIComponent(year);
-      const annualResponse = UrlFetchApp.fetch(annualUrl, {
-        method: "get", muteHttpExceptions: true,
-        headers: { "x-api-key": apiKey, "Accept": "application/json" }
-      });
-      if (annualResponse.getResponseCode() >= 200 && annualResponse.getResponseCode() < 300) {
-        let annualPayload = null;
-        try { annualPayload = JSON.parse(annualResponse.getContentText() || "{}"); } catch (ignoreAnnualJson) {}
-        const annualRows = annualPayload && Array.isArray(annualPayload.data) ? annualPayload.data : [];
-        const annualDays = {};
-        let annualDuplicateDate = false;
-        annualRows.forEach(function(row) {
-          const rowDate = String(row.gregorian_date || row.date || "").trim();
-          if (/^\d{4}-\d{2}-\d{2}$/.test(rowDate) && rowDate.slice(0, 4) === year) {
-            if (annualDays[rowDate]) annualDuplicateDate = true;
-            annualDays[rowDate] = {
-              gregorian_date: rowDate,
-              hijri_day: row.hijri_day,
-              hijri_month_name: String(row.hijri_month_name || ""),
-              hijri_year: row.hijri_year,
-              hijri_formatted: formatHijriCalendarRow_(row)
-            };
-          }
-        });
-        if (!annualDuplicateDate && hijriAnnualDaysComplete_(annualDays, year)) {
-          hijriDoc = hijriDoc && hijriDoc.years && typeof hijriDoc.years === "object"
-            ? hijriDoc : { success: true, source: "API Indonesia / Kalender Hijriah Kemenag", years: {} };
-          hijriDoc.years[year] = {
-            year: Number(year), source: "API Indonesia / Kalender Hijriah Kemenag",
-            updatedAt: new Date().toISOString(), dayCount: Object.keys(annualDays).length,
-            days: annualDays
-          };
-          hijriDoc.success = true;
-          hijriDoc.source = "API Indonesia / Kalender Hijriah Kemenag";
-          hijriDoc.generatedAt = new Date().toISOString();
-          hijriDoc.updatedAt = hijriDoc.generatedAt;
-          hijriDoc.yearCount = Object.keys(hijriDoc.years).length;
-          writeGithubJsonFile_("data/hijri-calendar-cache.json", hijriDoc,
-            "Cache kalender Hijriah tahunan " + year + " dari API Indonesia");
-          const annualRow = annualDays[normalizedDate];
-          const annualHijri = formatHijriCalendarRow_(annualRow);
-          if (annualHijri) {
-            const annualResult = {
-              success: true, found: true, date: normalizedDate, hijri: annualHijri,
-              source: "API Indonesia / GitHub cache", cached: false
-            };
-            try { cache.put(cacheKey, JSON.stringify(annualResult), HIJRI_CACHE_SECONDS); } catch (ignoreAnnualCache) {}
-            Logger.log("KALENDER HIJRIAH TAHUNAN DISIMPAN KE GITHUB: " + year +
-              " (" + Object.keys(annualDays).length + " tanggal).");
-            return annualResult;
-          }
-        }
-      }
-      // Bila endpoint kalender tahunan belum menyediakan tahun ini, lanjutkan ke endpoint konversi harian.
-    }
-
-    // --------------------------------------------------------
-    // REQUEST API HARIAN (fallback jika endpoint kalender tahunan tidak tersedia)
-    // --------------------------------------------------------
-
-    const url =
-      HIJRI_API_BASE_URL +
-      '/konversi?tanggal=' +
-      encodeURIComponent(normalizedDate);
-
-    const response =
-      UrlFetchApp.fetch(
-        url,
-        {
-          method: 'get',
-          headers: {
-            'x-api-key': apiKey
-          },
-          muteHttpExceptions: true
-        }
-      );
-
-    const httpCode =
-      response.getResponseCode();
-
-    const body =
-      response.getContentText();
-
-    let json = null;
-
-    try {
-      json = JSON.parse(body);
-    } catch (parseError) {
-      json = null;
-    }
-
-    if (
-      httpCode < 200 ||
-      httpCode >= 300
-    ) {
+  const year = date.slice(0, 4);
+  try {
+    const doc = readGithubJsonFile_('data/hijri-calendar-cache.json');
+    const yearEntry = doc && doc.years && doc.years[year];
+    const days = yearEntry && yearEntry.days;
+    if (!days || !hijriAnnualDaysComplete_(days, year) || !days[date]) {
       return {
-        success: false,
-        found: false,
-        hijri: '',
-        date: normalizedDate,
-        source: 'API Indonesia',
-        httpCode: httpCode,
-        error:
-          json && json.error
-            ? JSON.stringify(json.error)
-            : 'API Indonesia HTTP ' + httpCode
+        success: false, found: false, hijri: '', date: date,
+        source: 'GitHub Hijri cache',
+        error: 'Cache kalender Hijriah GitHub tidak tersedia atau tidak lengkap untuk tahun ' + year + '. Tidak ada fallback API.'
       };
     }
-
-    const data =
-      json && json.data
-        ? json.data
-        : null;
-
-    const hijriFormatted =
-      data && data.hijri_formatted
-        ? String(data.hijri_formatted).trim()
-        : '';
-    const returnedGregorianDate =
-      data && (data.gregorian_date || data.date)
-        ? String(data.gregorian_date || data.date).trim()
-        : '';
-
-    if (returnedGregorianDate && returnedGregorianDate !== normalizedDate) {
-      return {
-        success: false,
-        found: false,
-        hijri: '',
-        date: normalizedDate,
-        source: 'API Indonesia',
-        httpCode: httpCode,
-        error: 'Tanggal respons kalender Hijriah tidak cocok: diminta ' +
-          normalizedDate + ', diterima ' + returnedGregorianDate + '.'
-      };
+    const row = days[date];
+    const hijri = String(row.hijri_formatted || '').trim() ||
+      (row.hijri_day && row.hijri_month_name && row.hijri_year
+        ? String(row.hijri_day) + ' ' + String(row.hijri_month_name).trim() + ' ' + String(row.hijri_year) + ' H'
+        : '');
+    if (!hijri) {
+      return { success: false, found: false, hijri: '', date: date, source: 'GitHub Hijri cache', error: 'Tanggal Hijriah pada cache kosong.' };
     }
-
-    if (!hijriFormatted) {
-      return {
-        success: false,
-        found: false,
-        hijri: '',
-        date: normalizedDate,
-        source: 'API Indonesia',
-        httpCode: httpCode,
-        error:
-          'Respons API tidak memiliki data.hijri_formatted.'
-      };
-    }
-
-    const result = {
-      success: true,
-      found: true,
-      date:
-        returnedGregorianDate ||
-        normalizedDate,
-      hijri: hijriFormatted,
-      source: 'API Indonesia',
-      httpCode: httpCode,
-      disclaimer:
-        json && json.meta && json.meta.disclaimer
-          ? String(json.meta.disclaimer)
-          : ''
-    };
-
-    try {
-      cache.put(
-        cacheKey,
-        JSON.stringify(result),
-        HIJRI_CACHE_SECONDS
-      );
-    } catch (cacheWriteError) {
-      console.warn(
-        'HIJRI API CACHE WRITE ERROR:',
-        cacheWriteError
-      );
-    }
-
+    const result = { success: true, found: true, date: date, hijri: hijri, source: 'GitHub Hijri cache', cached: true };
+    try { cache.put(cacheKey, JSON.stringify(result), HIJRI_CACHE_SECONDS); } catch (ignorePut) {}
     return result;
-
   } catch (error) {
-
-    console.error(
-      'getHijriDateFromApi:',
-      error
-    );
-
     return {
-      success: false,
-      found: false,
-      hijri: '',
-      source: 'API Indonesia',
-      error:
-        String(
-          error && error.message
-            ? error.message
-            : error
-        )
+      success: false, found: false, hijri: '', date: date,
+      source: 'GitHub Hijri cache',
+      error: 'Gagal membaca cache kalender Hijriah GitHub: ' + String(error && error.message || error)
     };
   }
 }
 
 
-// ============================================================
-// FUNGSI PUBLIK UNTUK INDEX.HTML
-// ============================================================
-// Nama fungsi dipertahankan agar perubahan frontend minimal.
-// ============================================================
-
-
-
-// ============================================================
-// TEST KALENDER HIJRIAH
-// ============================================================
-//
-// Test selalu menggunakan tanggal saat ini dalam WITA,
-// bukan timezone kalender Google.
-// ============================================================
-
-
-
-
-// Kompatibilitas nama fungsi test lama.
-
-
-// ============================================================
-// DIAGNOSTIK RAW SHEET ADZAN - PEMERIKSAAN BLOK AUDIO
-// ============================================================
-// Tujuan:
-// - Membaca langsung kolom D:AA dari Spreadsheet runtime.
-// - Memastikan posisi EVENT / DETIK / STATUS benar-benar terbaca.
-// - Tidak mengubah konfigurasi, sequence, audio, atau data Sheet.
-// - Dipakai untuk mencari penyebab AudioSchedule harian kosong.
-// ============================================================
 function DIAGNOSTIK_RAW_AUDIO_SHEET() {
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName('Adzan');
@@ -6669,214 +6357,6 @@ function TEST_ALADHAN_SHOLAT_LANGSUNG() {
  * API key, lokasi aktif, dan tanggal respons berfungsi normal.
  * Hanya membaca Spreadsheet/API dan menulis log; tidak mengubah sheet,
  * cache GitHub, trigger, tampilan, atau scheduler audio.
- */
-function TEST_API_INDONESIA_KALENDER_DAN_SHOLAT_AMAN() {
-  const ss = getSpreadsheet();
-  const panels = ss.getSheetByName("panels");
-  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
-
-  const loc = panels.getRange("C5:C10").getDisplayValues().map(function(row) {
-    return String(row[0] || "").trim();
-  });
-  const city = loc[0];
-  const province = loc[1];
-  const timezone = loc[3] || "Asia/Makassar";
-  if (!city) throw new Error("Kota pada panels!C5 kosong.");
-
-  const date = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd");
-  const prayer = getPrayerSchedule(date);
-  const hijri = getHijriDateFromApi(date);
-  const report = {
-    test: "API Indonesia jadwal sholat + kalender Hijriah",
-    tanggal: date,
-    kota: city,
-    provinsi: province,
-    timezone: timezone,
-    jadwalSholat: prayer,
-    kalenderHijriah: hijri
-  };
-
-  Logger.log("TEST_API_INDONESIA_KALENDER_DAN_SHOLAT_AMAN: " + JSON.stringify(report));
-
-  if (!prayer || prayer.success !== true ||
-      String(prayer.tanggal || "") !== date ||
-      !prayer.jadwal || !isCompletePrayerScheduleSafe_(prayer.jadwal)) {
-    throw new Error("UJI JADWAL SHOLAT API INDONESIA GAGAL: " +
-      String(prayer && (prayer.apiIndonesiaError || prayer.error) || "respons tidak lengkap"));
-  }
-
-  if (!hijri || hijri.success !== true || !hijri.hijri ||
-      (hijri.date && String(hijri.date) !== date)) {
-    throw new Error("UJI KALENDER HIJRIAH API INDONESIA GAGAL: " +
-      String(hijri && hijri.error || "respons tidak lengkap atau tanggal tidak cocok"));
-  }
-
-  Logger.log("UJI API INDONESIA LULUS: " + city + " | " + date +
-    " | Jadwal sholat lengkap | Hijriah " + hijri.hijri);
-  return {
-    success: true,
-    date: date,
-    city: city,
-    sourcePrayer: prayer.source || "API Indonesia",
-    sourceHijri: hijri.source || "API Indonesia",
-    jadwal: prayer.jadwal,
-    hijri: hijri.hijri
-  };
-}
-
-
-/**
- * UJI LANGSUNG API INDONESIA TANPA MEMBACA/MENULIS CACHE.
- * Memanggil endpoint daftar kota, jadwal sholat, dan kalender Hijriah secara langsung.
- * Hanya membaca sheet dan API lalu menulis log; tidak mengubah sheet, cache,
- * GitHub, trigger, tampilan, ataupun scheduler audio.
- */
-function TEST_API_INDONESIA_KALENDER_DAN_SHOLAT_LANGSUNG_TANPA_CACHE_AMAN() {
-  var props = PropertiesService.getScriptProperties();
-  var apiKey = String(props.getProperty('API_INDONESIA_KEY') || '').trim();
-  if (!apiKey) throw new Error('Script Property API_INDONESIA_KEY belum diisi.');
-
-  var ss = getSpreadsheet();
-  var panels = ss.getSheetByName('panels');
-  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
-  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
-    return String(row[0] || '').trim();
-  });
-  var city = loc[0] || '';
-  var province = loc[1] || '';
-  var timezone = loc[3] || 'Asia/Makassar';
-  if (!city) throw new Error('panels!C5 (kota) kosong.');
-  var date = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
-
-  function fetchJsonDirect_(url, label) {
-    var response = UrlFetchApp.fetch(url, {
-      method: 'get',
-      muteHttpExceptions: true,
-      headers: { 'x-api-key': apiKey, 'Accept': 'application/json' }
-    });
-    var code = response.getResponseCode();
-    var body = response.getContentText() || '';
-    var json = null;
-    try { json = JSON.parse(body); } catch (parseError) {}
-    if (code < 200 || code >= 300) {
-      throw new Error(label + ' HTTP ' + code + ': ' + body.slice(0, 400));
-    }
-    if (!json || typeof json !== 'object') {
-      throw new Error(label + ' mengembalikan JSON yang tidak valid.');
-    }
-    return { json: json, httpCode: code };
-  }
-  function normalizeDirectCity_(value) {
-    return String(value || '').toUpperCase()
-      .replace(/^(KOTA\s+ADM\.?\s*|KOTA\s+|KABUPATEN\s+|KABUP\.?\s+|KAB\.?\s+)/, '')
-      .replace(/[^A-Z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
-  }
-  function normalizeDirectTime_(value) {
-    var m = String(value == null ? '' : value).trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-    return m ? ('0' + m[1]).slice(-2) + ':' + m[2] : '';
-  }
-
-  // Sengaja tidak menggunakan CacheService untuk ketiga request pengujian.
-  var cityResponse = fetchJsonDirect_(
-    'https://use.apiindonesia.id/api/v1/sholat/list-kota',
-    'API Indonesia daftar kota'
-  );
-  var cityList = cityResponse.json && Array.isArray(cityResponse.json.data)
-    ? cityResponse.json.data : [];
-  if (!cityList.length) throw new Error('Endpoint langsung daftar kota tidak mengembalikan data.');
-
-  var wantedCity = normalizeDirectCity_(city);
-  var wantedProvince = normalizeDirectCity_(province);
-  var matches = cityList.filter(function(item) {
-    return normalizeDirectCity_(item && (item.regency_name || item.name || item.alt_name)) === wantedCity;
-  });
-  if (matches.length > 1 && wantedProvince) {
-    var provinceMatches = matches.filter(function(item) {
-      return normalizeDirectCity_(item && (item.province_name || item.province)) === wantedProvince;
-    });
-    if (provinceMatches.length) matches = provinceMatches;
-  }
-  if (matches.length !== 1) {
-    throw new Error('Pencocokan kota langsung API Indonesia harus menghasilkan tepat 1 hasil; ditemukan ' +
-      matches.length + ' untuk ' + city + ' / ' + province + '.');
-  }
-  var regencyId = String(matches[0].regency_id || matches[0].id || matches[0].code || '').trim();
-  if (!regencyId) throw new Error('ID kota API Indonesia kosong untuk ' + city + '.');
-
-  var prayerResponse = fetchJsonDirect_(
-    'https://use.apiindonesia.id/api/v1/sholat?kabupaten_id=' +
-      encodeURIComponent(regencyId) + '&tanggal=' + encodeURIComponent(date),
-    'API Indonesia jadwal sholat'
-  );
-  var prayerData = prayerResponse.json && prayerResponse.json.data;
-  if (!prayerData || typeof prayerData !== 'object' || Array.isArray(prayerData)) {
-    throw new Error('Respons langsung jadwal sholat tidak memiliki data.');
-  }
-  var prayerDate = String(prayerData.date || prayerData.tanggal || '').trim();
-  if (prayerDate !== date) {
-    throw new Error('Tanggal jadwal langsung tidak cocok; diminta ' + date + ', diterima ' + prayerDate + '.');
-  }
-  var prayer = {
-    imsak: normalizeDirectTime_(prayerData.imsyak),
-    subuh: normalizeDirectTime_(prayerData.shubuh),
-    terbit: normalizeDirectTime_(prayerData.terbit),
-    dzuhur: normalizeDirectTime_(prayerData.dzuhur),
-    ashar: normalizeDirectTime_(prayerData.ashr),
-    maghrib: normalizeDirectTime_(prayerData.maghrib),
-    isya: normalizeDirectTime_(prayerData.isya)
-  };
-  if (!isCompletePrayerScheduleSafe_(prayer)) {
-    throw new Error('Respons langsung jadwal sholat tidak lengkap/format waktu tidak valid: ' +
-      JSON.stringify(prayer));
-  }
-
-  var hijriResponse = fetchJsonDirect_(
-    HIJRI_API_BASE_URL + '/konversi?tanggal=' + encodeURIComponent(date),
-    'API Indonesia kalender Hijriah'
-  );
-  var hijriData = hijriResponse.json && hijriResponse.json.data;
-  var hijri = String(hijriData && hijriData.hijri_formatted || '').trim();
-  var hijriDate = String(hijriData && (hijriData.gregorian_date || hijriData.date) || '').trim();
-  if (!hijri) throw new Error('Respons langsung kalender Hijriah tidak memiliki hijri_formatted.');
-  if (hijriDate && hijriDate !== date) {
-    throw new Error('Tanggal kalender Hijriah langsung tidak cocok; diminta ' + date +
-      ', diterima ' + hijriDate + '.');
-  }
-
-  var report = {
-    success: true,
-    test: 'API Indonesia langsung tanpa cache',
-    tanggal: date,
-    kota: city,
-    provinsi: province,
-    regencyId: regencyId,
-    timezone: timezone,
-    requests: {
-      daftarKota: { httpCode: cityResponse.httpCode, cacheUsed: false },
-      jadwalSholat: { httpCode: prayerResponse.httpCode, cacheUsed: false },
-      kalenderHijriah: { httpCode: hijriResponse.httpCode, cacheUsed: false }
-    },
-    jadwalSholat: prayer,
-    kalenderHijriah: hijri,
-    source: 'API Indonesia (direct fetch, no CacheService)'
-  };
-  Logger.log('UJI LANGSUNG API INDONESIA TANPA CACHE: ' + JSON.stringify(report));
-  Logger.log('UJI LANGSUNG API INDONESIA LULUS: ' + city + ' | ' + date +
-    ' | 3 endpoint HTTP sukses | Hijriah ' + hijri);
-  return report;
-}
-
-
-/**
- * UJI CACHE JADWAL OFFLINE — READ ONLY.
- *
- * Tujuan:
- * - Membaca data/prayer-monthly-cache.json langsung dari GitHub branch pengujian.
- * - Tidak membaca API_INDONESIA_KEY.
- * - Tidak memanggil API Indonesia atau penyedia jadwal alternatif.
- * - Tidak menulis file/cache, tidak mengubah trigger, audio, atau scheduler.
- *
- * Jalankan dari editor Apps Script dan lihat Execution log.
  */
 function TEST_CACHE_JADWAL_OFFLINE() {
   var tanggalUji = "2026-10-31";
