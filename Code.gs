@@ -4563,7 +4563,7 @@ function getHijriDateFromApi(dateString) {
     return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache', error: 'Tanggal Masehi tidak valid.' };
   }
   const cache = CacheService.getScriptCache();
-  const cacheKey = 'HIJRI_GITHUB_' + date.replace(/-/g, '');
+  const cacheKey = 'HIJRI_ALADHAN_V1_' + date.replace(/-/g, '');
   try {
     const cached = cache.get(cacheKey);
     if (cached) {
@@ -4960,6 +4960,9 @@ function TEST_JADWAL_AMAN() {
   if (String(result.tanggal || "") !== date) {
     throw new Error("Tanggal respons tidak cocok. Diminta " + date +
       ", diterima " + String(result.tanggal || "(kosong)") + ".");
+  }
+  if (String(result.source || "").indexOf("AlAdhan") < 0) {
+    throw new Error("Sumber jadwal bukan AlAdhan: " + String(result.source || "(kosong)"));
   }
   if (!result.jadwal || !isCompletePrayerScheduleSafe_(result.jadwal)) {
     throw new Error("Jadwal tidak lengkap untuk " + city + " tanggal " + date + ".");
