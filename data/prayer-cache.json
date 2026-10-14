@@ -1,8 +1,8 @@
 {
   "success": true,
   "source": "API Indonesia",
-  "generatedAt": "2026-10-14T10:50:06.537Z",
-  "updatedAt": "2026-10-14T10:50:06.537Z",
+  "generatedAt": "2026-10-14T11:22:42.406Z",
+  "updatedAt": "2026-10-14T11:22:42.406Z",
   "cityCount": 514,
   "cities": {
     "aceh-barat": {
@@ -3988,12 +3988,12 @@
       "tanggal": "2026-10-14",
       "kota": "Kota Balikpapan",
       "provinsi": "Kalimantan Timur",
-      "regency_id": "6471",
+      "regency_id": "",
       "slug": "balikpapan",
       "zona": "WITA",
       "timezone": "Asia/Makassar",
       "gmt": "GMT+8",
-      "source": "API Indonesia / Kemenag",
+      "source": "AlAdhan API / method 20 (Kemenag Indonesia)",
       "jadwal": {
         "subuh": "04:37",
         "terbit": "05:55",
@@ -4002,7 +4002,7 @@
         "maghrib": "18:03",
         "isya": "19:12"
       },
-      "generatedAt": "2026-10-14T06:28:54.753Z"
+      "generatedAt": "2026-10-14T11:22:42.406Z"
     },
     "bontang": {
       "success": true,
