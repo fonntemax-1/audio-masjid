@@ -11971,6 +11971,7 @@ function startRealtimeAudioConfigPolling_() {
           if (
             !selectedPayload ||
             selectedPayload.success !== true ||
+            !/^AlAdhan\b/i.test(String(selectedPayload.source || '').trim()) ||
             !selectedPayload.jadwal
           ) {
             console.warn(
