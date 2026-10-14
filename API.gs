@@ -779,10 +779,10 @@ function resolveCoordinatesCityFromApi_(params) {
     var actual = sheet.getRange('C4').getDisplayValue();
     if (String(actual).trim() !== cityName) throw new Error('Nama kota gagal diverifikasi pada C4.');
 
-    // Gunakan hanya katalog daftar-kota API Indonesia.
+    // Gunakan hanya katalog daftar-kota katalog wilayah GitHub.
     // Jika nama wilayah tidak cocok, jangan mengambil metadata kota dari
     // penyedia jadwal lain. C4 tetap menyimpan wilayah detail.
-    var nearest = findAPIIndonesiaRegencyMatch_(regencyName);
+    var nearest = findGithubRegencyMatch_(regencyName);
     if (nearest) {
       sheet.getRange('C5').setValue(nearest.kota);
       SpreadsheetApp.flush();
@@ -797,7 +797,7 @@ function resolveCoordinatesCityFromApi_(params) {
         String(nearest.slug || '').trim()
       ];
       if (locationValues.some(function(value) { return !value; })) {
-        throw new Error('Katalog API Indonesia tidak memiliki metadata lengkap untuk ' + nearest.kota + '.');
+        throw new Error('Katalog katalog wilayah GitHub tidak memiliki metadata lengkap untuk ' + nearest.kota + '.');
       }
       sheet.getRange('C6:C10').setValues(locationValues.map(function(value) { return [value]; }));
       SpreadsheetApp.flush();
@@ -832,14 +832,14 @@ function resolveCoordinatesCityFromApi_(params) {
 
 
 /**
- * Cocokkan kabupaten/kota dari Google Maps dengan katalog jadwal API Indonesia.
+ * Cocokkan kabupaten/kota dari Google Maps dengan katalog jadwal katalog wilayah GitHub.
  * Contoh: "Kabupaten Sumedang" dicocokkan dengan label "Sumedang" atau
  * "Kabupaten Sumedang" pada sheet daftar-kota. Tidak mengandalkan jarak lurus
  * bila Google Maps sudah memberikan kabupaten/kota administratif yang tepat.
  */
-function findAPIIndonesiaRegencyMatch_(regencyName) {
+function findGithubRegencyMatch_(regencyName) {
   var rawTarget = String(regencyName || '').trim();
-  var target = normalizeAPIIndonesiaAreaName_(rawTarget);
+  var target = normalizeGithubAreaName_(rawTarget);
   if (!target) return null;
 
   // Sumber tunggal pencocokan: katalog JSON di branch pengujian.
@@ -859,8 +859,8 @@ function findAPIIndonesiaRegencyMatch_(regencyName) {
   var matches = document.cities.filter(function(item) {
     var displayName = String(item && item.display_name || "").trim();
     var shortName = String(item && item.name || "").trim();
-    return normalizeAPIIndonesiaAreaName_(displayName) === target ||
-      normalizeAPIIndonesiaAreaName_(shortName) === target;
+    return normalizeGithubAreaName_(displayName) === target ||
+      normalizeGithubAreaName_(shortName) === target;
   });
 
   // Nama kabupaten/kota bisa sama. Jika geocoder memberi tipe administratif,
@@ -903,7 +903,7 @@ function findAPIIndonesiaRegencyMatch_(regencyName) {
   };
 }
 
-function normalizeAPIIndonesiaAreaName_(value) {
+function normalizeGithubAreaName_(value) {
   return String(value || '').toUpperCase()
     .replace(/\b(REGENCY OF|KABUPATEN|KABUP|KAB\.?|KOTA ADMINISTRASI|KOTA ADM\.?|KOTA)\s+/g, '')
     .replace(/\s+REGENCY$/g, '')
@@ -911,8 +911,8 @@ function normalizeAPIIndonesiaAreaName_(value) {
     .trim().replace(/\s+/g, ' ');
 }
 
-// Pencarian kota hanya menggunakan katalog API Indonesia.
-// Pencocokan kota acuan dilakukan melalui katalog API Indonesia di atas.
+// Pencarian kota hanya menggunakan katalog katalog wilayah GitHub.
+// Pencocokan kota acuan dilakukan melalui katalog katalog wilayah GitHub di atas.
 
 function setRemoteCellFromApi_(params) {
    params = params || {};
