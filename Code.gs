@@ -4929,6 +4929,43 @@ function setupDropdownKotaAPIIndonesia() {
  * Aman: hanya membaca Spreadsheet/API dan menulis hasil ke log; tidak mengubah cache,
  * tidak membuat trigger, dan tidak mengubah scheduler audio.
  */
+/**
+ * Uji baca cache jadwal sholat tanpa memaksa refresh dan tanpa sumber alternatif.
+ * Lulus hanya bila jadwal lengkap berasal dari AlAdhan.
+ */
+function TEST_CACHE_GITHUB_JADWAL_SHOLAT() {
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName("panels");
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+  var loc = panels.getRange("C5:C10").getDisplayValues().map(function(row) {
+    return String(row[0] || "").trim();
+  });
+  var city = loc[0];
+  var timezone = loc[3] || "Asia/Makassar";
+  if (!city) throw new Error("Kota pada panels!C5 kosong.");
+  var date = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd");
+  var result = getPrayerSchedule(date);
+  Logger.log("TEST_CACHE_GITHUB_JADWAL_SHOLAT: " + JSON.stringify({
+    kota: city, tanggal: date, source: result && result.source,
+    cacheSource: result && result.cacheSource, success: result && result.success,
+    jadwal: result && result.jadwal, error: result && result.error,
+    alAdhanError: result && result.alAdhanError
+  }));
+  if (!result || result.success !== true) {
+    throw new Error("Cache AlAdhan gagal dibaca. Tidak ada fallback yang digunakan. " +
+      String(result && (result.error || result.alAdhanError) || ""));
+  }
+  if (String(result.source || "").indexOf("AlAdhan") < 0) {
+    throw new Error("Sumber cache bukan AlAdhan.");
+  }
+  if (String(result.tanggal || "") !== date ||
+      !isCompletePrayerScheduleSafe_(result.jadwal)) {
+    throw new Error("Cache AlAdhan tidak lengkap atau tanggalnya tidak cocok.");
+  }
+  Logger.log("TEST_CACHE_GITHUB_JADWAL_SHOLAT LULUS: sumber AlAdhan, cache=" + result.cacheSource);
+  return result;
+}
+
 function TEST_JADWAL_AMAN() {
   const ss = getSpreadsheet();
   const panels = ss.getSheetByName("panels");
