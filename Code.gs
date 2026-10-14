@@ -3890,6 +3890,13 @@ function processKeyValue(
      if (monthlyEntry && !isTrustedAPIIndonesiaMonthlyEntry_(monthlyEntry, year, month, regencyId)) {
        Logger.log('CACHE BULANAN DITOLAK: provenance atau validasi record tidak sesuai API Indonesia; mengambil ulang dari API utama.');
        monthlyEntry = null;
+       // Baca ulang dokumen GitHub agar cache bulan/kota lain tetap dipertahankan
+       // saat record lama di ScriptCache ternyata tidak tepercaya.
+       try { monthlyDoc = readGithubJsonFile_("data/prayer-monthly-cache.json"); }
+       catch (invalidMonthlyDocReadError) {
+         Logger.log("CACHE BULANAN GITHUB TIDAK DAPAT DIBACA: " +
+           (invalidMonthlyDocReadError && invalidMonthlyDocReadError.message ? invalidMonthlyDocReadError.message : invalidMonthlyDocReadError));
+       }
      }
 
      if (!monthlyEntry || !Array.isArray(monthlyEntry.days) || !monthlyEntry.days.length) {
