@@ -3880,7 +3880,7 @@ function processKeyValue(
        kota: kota,
        provinsi: provinsi,
        tanggal: dateString,
-       error: 'Jadwal sholat API Indonesia gagal. Tidak menggunakan sumber jadangan agar data tetap konsisten.',
+       error: 'Jadwal sholat API Indonesia gagal. Tidak menggunakan penyedia lain agar data tetap konsisten.',
        apiIndonesiaError: fallbackReason
      };
    }
