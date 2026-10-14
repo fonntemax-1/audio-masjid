@@ -3923,16 +3923,32 @@ function processKeyValue(
           delete monthlyDoc.months[existingMonth];
         }
       });
-      monthlyDoc.success = true;
-      monthlyDoc.kota = kota;
-      monthlyDoc.provinsi = provinsi;
-      monthlyDoc.timezone = timezone;
-      monthlyDoc.source = sourceName;
-      monthlyDoc.updatedAt = monthlyEntry.updatedAt;
-      monthlyDoc.months[monthId] = monthlyEntry;
-      writeGithubJsonFile_(monthlyCachePath, monthlyDoc,
-        'Simpan cache bulanan AlAdhan ' + kota + ' ' + year + '-' + monthText);
-      cacheSourceUsed = 'AlAdhan (refresh tersimpan ke GitHub)';
+      // Bandingkan isi data, bukan updatedAt. Validasi harian yang tidak
+      // menemukan perubahan tidak boleh membuat commit GitHub baru.
+      var existingMonth = monthlyDoc.months[monthId];
+      var sameMonthlyData = trustedEntry_(existingMonth) &&
+        String(existingMonth.source || '') === String(monthlyEntry.source || '') &&
+        Number(existingMonth.method) === Number(monthlyEntry.method) &&
+        Number(existingMonth.school) === Number(monthlyEntry.school) &&
+        JSON.stringify(existingMonth.days) === JSON.stringify(monthlyEntry.days);
+
+      if (sameMonthlyData) {
+        monthlyEntry = existingMonth;
+        cacheSourceUsed = 'AlAdhan (validasi tidak berubah; cache GitHub dipertahankan)';
+        Logger.log('VALIDASI CACHE BULANAN ALADHAN: tidak ada perubahan untuk ' +
+          kota + ' ' + monthId + '; commit dilewati.');
+      } else {
+        monthlyDoc.success = true;
+        monthlyDoc.kota = kota;
+        monthlyDoc.provinsi = provinsi;
+        monthlyDoc.timezone = timezone;
+        monthlyDoc.source = sourceName;
+        monthlyDoc.updatedAt = monthlyEntry.updatedAt;
+        monthlyDoc.months[monthId] = monthlyEntry;
+        writeGithubJsonFile_(monthlyCachePath, monthlyDoc,
+          'Simpan cache bulanan AlAdhan ' + kota + ' ' + year + '-' + monthText);
+        cacheSourceUsed = 'AlAdhan (perubahan tersimpan ke GitHub)';
+      }
     }
 
     if (!trustedEntry_(monthlyEntry)) {
