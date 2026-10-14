@@ -3742,7 +3742,153 @@ function processKeyValue(
 // JADWAL SHOLAT MUSLIMKITA - BALIKPAPAN
 // =========================================================
 
+// =========================================================
+// API INDONESIA - SUMBER UTAMA JADWAL SHOLAT
+// Data jadwal bersumber dari Kemenag melalui API Indonesia.
+// Script Property wajib: API_INDONESIA_KEY
+// Pemetaan kota memakai endpoint resmi /sholat/list-kota.
+// =========================================================
+function getPrayerScheduleFromApiIndonesia_(dateString, locationValues) {
+  var apiKey = String(PropertiesService.getScriptProperties().getProperty('API_INDONESIA_KEY') || '').trim();
+  if (!apiKey) throw new Error('Script Property API_INDONESIA_KEY belum diisi.');
+
+  var timezone = String(locationValues[3] || 'Asia/Makassar').trim();
+  if (!dateString) dateString = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
+  dateString = String(dateString).trim();
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateString)) throw new Error('Format tanggal harus YYYY-MM-DD.');
+
+  var cityName = String(locationValues[0] || '').trim();
+  if (!cityName) throw new Error('panels!C5 (kota) kosong.');
+  var cityKey = cityName.toUpperCase().replace(/^KOTA\\s+|^KABUPATEN\\s+/,'').replace(/[^A-Z0-9]/g,'');
+  var cache = CacheService.getScriptCache();
+  var mapCacheKey = 'APIID_SHOLAT_CITY_MAP_V1';
+  var cityMap = null;
+  var savedMap = cache.get(mapCacheKey);
+  if (savedMap) { try { cityMap = JSON.parse(savedMap); } catch (ignore) {} }
+
+  if (!cityMap || !cityMap[cityKey]) {
+    var listResponse = UrlFetchApp.fetch('https://use.apiindonesia.id/api/v1/sholat/list-kota', {
+      method: 'get', headers: {'x-api-key': apiKey, 'Accept':'application/json'},
+      muteHttpExceptions: true
+    });
+    var listCode = listResponse.getResponseCode();
+    if (listCode < 200 || listCode >= 300) throw new Error('API Indonesia list-kota HTTP ' + listCode + '.');
+    var listJson = JSON.parse(listResponse.getContentText());
+    var cityRows = listJson && listJson.data;
+    if (!Array.isArray(cityRows)) throw new Error('Respons API Indonesia list-kota tidak memiliki data array.');
+    cityMap = {};
+    cityRows.forEach(function(row) {
+      var name = String(row.regency_name || '').toUpperCase().replace(/^KOTA\\s+|^KABUPATEN\\s+/,'').replace(/[^A-Z0-9]/g,'');
+      if (name && row.regency_id) cityMap[name] = {
+        id: String(row.regency_id),
+        name: String(row.regency_name || ''),
+        province: String(row.province_name || '')
+      };
+    });
+    try { cache.put(mapCacheKey, JSON.stringify(cityMap), 21600); } catch (ignore) {}
+  }
+
+  var city = cityMap[cityKey];
+  if (!city) {
+    // Beberapa sel C5 berisi nama kota dengan awalan "Kota"; normalisasi
+    // sudah dilakukan. Jangan menebak kabupaten terdekat karena bisa
+    // menggeser jadwal sholat.
+    throw new Error('Kota "' + cityName + '" tidak ditemukan pada daftar API Indonesia /sholat/list-kota.');
+  }
+
+  var scheduleCacheKey = 'APIID_PRAYER_' + city.id + '_' + dateString.replace(/-/g,'');
+  var cached = cache.get(scheduleCacheKey);
+  if (cached) {
+    try {
+      var cachedResult = JSON.parse(cached);
+      if (cachedResult && cachedResult.success === true && isCompletePrayerScheduleSafe_(cachedResult.jadwal)) {
+        cachedResult.cached = true;
+        cachedResult.cacheSource = 'API Indonesia';
+        return cachedResult;
+      }
+    } catch (ignore) {}
+  }
+
+  var url = 'https://use.apiindonesia.id/api/v1/sholat?kabupaten_id=' +
+    encodeURIComponent(city.id) + '&tanggal=' + encodeURIComponent(dateString);
+  var response = UrlFetchApp.fetch(url, {
+    method: 'get', headers: {'x-api-key': apiKey, 'Accept':'application/json'},
+    muteHttpExceptions: true
+  });
+  var code = response.getResponseCode();
+  var body = response.getContentText();
+  if (code < 200 || code >= 300) throw new Error('API Indonesia jadwal sholat HTTP ' + code + '.');
+  var json = JSON.parse(body);
+  var data = json && json.data;
+  if (!data || typeof data !== 'object') throw new Error('Respons API Indonesia jadwal sholat tidak memiliki objek data.');
+
+  var result = {
+    success: true,
+    kota: city.name || cityName,
+    provinsi: city.province || String(locationValues[1] || ''),
+    slug: String(locationValues[5] || ''),
+    tanggal: String(data.date || dateString),
+    timezone: timezone,
+    zona: String(locationValues[2] || ''),
+    gmt: String(locationValues[4] || ''),
+    source: 'API Indonesia / Kemenag',
+    cached: false,
+    cacheSource: 'API Indonesia',
+    jadwal: {
+      imsak: normalizePrayerTime(data.imsyak || data.imsak || ''),
+      subuh: normalizePrayerTime(data.shubuh || data.subuh || data.fajr || ''),
+      terbit: normalizePrayerTime(data.terbit || data.sunrise || ''),
+      dzuhur: normalizePrayerTime(data.dzuhur || data.dhuhr || ''),
+      ashar: normalizePrayerTime(data.ashr || data.ashar || data.asr || ''),
+      maghrib: normalizePrayerTime(data.maghrib || data.magrib || ''),
+      isya: normalizePrayerTime(data.isya || data.isha || '')
+    }
+  };
+  if (!isCompletePrayerScheduleSafe_(result.jadwal)) {
+    throw new Error('Jadwal API Indonesia tidak lengkap untuk ' + cityName + ': ' + JSON.stringify(result.jadwal));
+  }
+  try { cache.put(scheduleCacheKey, JSON.stringify(result), 21600); } catch (ignore) {}
+  return result;
+}
+
+// Wrapper utama: API Indonesia selalu dicoba lebih dahulu. Jalur MuslimKita
+// dipertahankan hanya sebagai fallback jika API Indonesia gagal, agar signage
+// tetap memiliki jadwal ketika API key/koneksi/daftar kota bermasalah.
 function getPrayerSchedule(dateString) {
+  try {
+    var ss = getSpreadsheet();
+    var panels = ss.getSheetByName('panels');
+    if (!panels) return {success:false, error:'Sheet panels tidak ditemukan.'};
+    var locationValues = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+      return String(row[0] || '').trim();
+    });
+    try {
+      return getPrayerScheduleFromApiIndonesia_(dateString, locationValues);
+    } catch (apiError) {
+      Logger.log('API INDONESIA JADWAL SHOLAT GAGAL; MENCOBA FALLBACK LAMA: ' +
+        (apiError && apiError.message ? apiError.message : apiError));
+      var fallback = getPrayerScheduleMuslimKitaFallback_(dateString);
+      if (fallback && fallback.success === true) {
+        fallback.primarySourceError = apiError && apiError.message ? apiError.message : String(apiError);
+        fallback.fallbackUsed = true;
+        return fallback;
+      }
+      return {
+        success:false,
+        error:'API Indonesia gagal: ' + (apiError && apiError.message ? apiError.message : String(apiError)) +
+          '; fallback juga gagal: ' + (fallback && fallback.error ? fallback.error : 'jadwal tidak tersedia')
+      };
+    }
+  } catch (error) {
+    return {success:false, error:error && error.message ? error.message : String(error)};
+  }
+}
+
+// =========================================================
+// FALLBACK LAMA - MUSLIMKITA
+// Hanya digunakan bila API Indonesia tidak dapat menyediakan data.
+// =========================================================
+function getPrayerScheduleMuslimKitaFallback_(dateString) {
   try {
     const timezoneDefault = 'Asia/Makassar';
     const ss = getSpreadsheet();
