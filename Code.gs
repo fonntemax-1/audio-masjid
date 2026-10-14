@@ -3795,16 +3795,22 @@ function processKeyValue(
      var wantedCity = normalizeCityName_(kota);
      var wantedProvince = normalizeCityName_(provinsi);
      var matches = cityList.filter(function(item) {
-       return normalizeCityName_(item.regency_name) === wantedCity;
+       var apiCityName = item && (item.regency_name || item.name || item.alt_name);
+       return normalizeCityName_(apiCityName) === wantedCity;
      });
      if (matches.length > 1 && wantedProvince) {
        var provinceMatches = matches.filter(function(item) {
-         return normalizeCityName_(item.province_name) === wantedProvince;
+         return normalizeCityName_(item.province_name || item.province) === wantedProvince;
        });
        if (provinceMatches.length) matches = provinceMatches;
      }
-     if (!matches.length) throw new Error('Kota "' + kota + '" belum ditemukan pada daftar API Indonesia; menggunakan sumber cadangan.');
-     var regencyId = String(matches[0].regency_id || '').trim();
+     if (!matches.length) {
+       throw new Error('Kota "' + kota + '" tidak ditemukan pada daftar kota API Indonesia. Jalankan refreshDaftarKotaAPIIndonesia() dan periksa panels!C5:C6.');
+     }
+     if (matches.length > 1) {
+       throw new Error('Nama kota "' + kota + '" cocok dengan lebih dari satu wilayah API Indonesia; periksa provinsi pada panels!C6.');
+     }
+     var regencyId = String(matches[0].regency_id || matches[0].id || matches[0].code || '').trim();
      if (!regencyId) throw new Error('ID kabupaten/kota API Indonesia kosong.');
 
      var apiCacheKey = 'PRAYER_APIID_' + regencyId + '_' + dateString.replace(/-/g, '');
@@ -3832,7 +3838,20 @@ function processKeyValue(
      }
      var payload = JSON.parse(response.getContentText() || '{}');
      var data = payload && payload.data;
-     if (!data || typeof data !== 'object') throw new Error('Respons API Indonesia tidak memiliki data jadwal.');
+     if (!data || typeof data !== 'object' || Array.isArray(data)) {
+       throw new Error('Respons API Indonesia tidak memiliki object data jadwal.');
+     }
+     var returnedDate = String(data.date || data.tanggal || '').trim();
+     if (!returnedDate) {
+       throw new Error('Respons API Indonesia tidak menyertakan tanggal jadwal.');
+     }
+     if (returnedDate !== dateString) {
+       throw new Error('Tanggal respons API Indonesia tidak cocok: diminta ' + dateString + ', diterima ' + returnedDate + '.');
+     }
+     var returnedRegencyId = String(data.regency_id || data.kabupaten_id || '').trim();
+     if (returnedRegencyId && returnedRegencyId !== regencyId) {
+       throw new Error('Respons API Indonesia berasal dari ID kota yang berbeda (' + returnedRegencyId + ').');
+     }
 
      function prayerTime_(value) {
        if (value === undefined || value === null) return '';
@@ -3847,7 +3866,7 @@ function processKeyValue(
        kota: kota,
        provinsi: provinsi,
        slug: loc[5] || String(kota).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-       tanggal: String(data.date || dateString),
+       tanggal: returnedDate,
        timezone: timezoneFromPanel,
        zona: zona,
        gmt: loc[4] || '',
@@ -3880,7 +3899,7 @@ function processKeyValue(
        kota: kota,
        provinsi: provinsi,
        tanggal: dateString,
-       error: 'Jadwal sholat API Indonesia gagal. Tidak menggunakan penyedia lain agar data tetap konsisten.',
+       error: 'Jadwal sholat API Indonesia gagal. Sumber lain tidak digunakan.',
        apiIndonesiaError: fallbackReason
      };
    }
@@ -4524,10 +4543,11 @@ function getHijriDateFromApi(
     // API KEY
     // --------------------------------------------------------
 
-    const apiKey =
+    const apiKey = String(
       PropertiesService
         .getScriptProperties()
-        .getProperty(HIJRI_API_KEY_PROPERTY);
+        .getProperty(HIJRI_API_KEY_PROPERTY) || ''
+    ).trim();
 
     if (!apiKey) {
       return {
@@ -4640,6 +4660,23 @@ function getHijriDateFromApi(
       data && data.hijri_formatted
         ? String(data.hijri_formatted).trim()
         : '';
+    const returnedGregorianDate =
+      data && (data.gregorian_date || data.date)
+        ? String(data.gregorian_date || data.date).trim()
+        : '';
+
+    if (returnedGregorianDate && returnedGregorianDate !== normalizedDate) {
+      return {
+        success: false,
+        found: false,
+        hijri: '',
+        date: normalizedDate,
+        source: 'API Indonesia',
+        httpCode: httpCode,
+        error: 'Tanggal respons kalender Hijriah tidak cocok: diminta ' +
+          normalizedDate + ', diterima ' + returnedGregorianDate + '.'
+      };
+    }
 
     if (!hijriFormatted) {
       return {
@@ -4658,7 +4695,7 @@ function getHijriDateFromApi(
       success: true,
       found: true,
       date:
-        data.gregorian_date ||
+        returnedGregorianDate ||
         normalizedDate,
       hijri: hijriFormatted,
       source: 'API Indonesia',
