@@ -2,8 +2,8 @@
  * CACHE JADWAL SHOLAT SEMUA KOTA — branch migration
  *
  * Memperbarui kota-kota yang sudah terdaftar di data/prayer-cache.json
- * secara bertahap melalui API Indonesia. Kota yang gagal tidak ditimpa;
- * jadwal valid yang sudah tersimpan tetap dipertahankan.
+ * secara bertahap melalui API Indonesia. Kota yang gagal ditandai tidak tersedia
+ * agar jadwal lama dari penyedia lain tidak tetap disajikan sebagai data aktif.
  *
  * Tidak mengubah scheduler audio atau alur getPrayerSchedule() yang aktif.
  */
@@ -183,9 +183,23 @@ function processPrayerCacheAllCitiesBatch_() {
       } catch (cityError) {
         failed++;
         failures.push(key + ": " + (cityError && cityError.message ? cityError.message : cityError));
+        const errorText = cityError && cityError.message ? cityError.message : String(cityError);
         Logger.log("CACHE SEMUA KOTA GAGAL [" + key + "]: " +
           (cityError && cityError.stack ? cityError.stack : cityError));
-        // Jangan mengganti/menghapus jadwal lama ketika pembaruan kota ini gagal.
+        // Pertahankan metadata kota untuk batch berikutnya, tetapi buang jadwal lama
+        // supaya data dari penyedia lain tidak disajikan sebagai cache API Indonesia.
+        document.cities[key] = {
+          success: false,
+          kota: String(prior.kota || ""),
+          provinsi: String(prior.provinsi || ""),
+          slug: String(prior.slug || key),
+          zona: String(prior.zona || ""),
+          timezone: String(prior.timezone || "Asia/Makassar"),
+          gmt: String(prior.gmt || ""),
+          source: "API Indonesia",
+          error: errorText,
+          attemptedAt: new Date().toISOString()
+        };
       }
     }
 
