@@ -5059,7 +5059,7 @@ function getPrayerRegencyIdFromGithub_(cityName, provinceName) {
  * Tidak lagi menulis ulang file cache global lama yang sudah dihapus.
  * Hanya dipanggil manual; tidak mengubah scheduler atau audio.
  */
-function resetAllPrayerCachesAndRefreshAlAdhan() {
+function resetAllPrayerCachesAndRefreshAlAdhan() { // Nama lama dipertahankan agar pemanggil yang sudah ada tetap kompatibel.
   var result = refreshPrayerCacheForCurrentCity(true);
   if (!result || result.success !== true) {
     throw new Error(
@@ -5072,7 +5072,7 @@ function resetAllPrayerCachesAndRefreshAlAdhan() {
   return {
     success: true,
     refreshed: true,
-    refreshedFrom: "AlAdhan API / method 20 (Kemenag Indonesia)",
+    refreshedFrom: "API Indonesia / Kemenag",
     result: result
   };
 }
@@ -5116,7 +5116,7 @@ function refreshPrayerCacheForCurrentCity(forceRefresh) {
     zona: schedule.zona || loc[2] || "",
     timezone: schedule.timezone || timezone,
     gmt: schedule.gmt || loc[4] || "",
-    source: schedule.source || "AlAdhan API / method 20 (Kemenag Indonesia)",
+    source: schedule.source || "API Indonesia / Kemenag",
     jadwal: {
       subuh: String(schedule.jadwal.subuh || ""),
       terbit: String(schedule.jadwal.terbit || ""),
@@ -5162,7 +5162,7 @@ function handlePrayerCacheCityEdit_(e) {
 
   try {
     syncPrayerPanelLocationFromCity_(range.getDisplayValue(), false);
-    // Saat kota berubah, ambil ulang kalender bulanan langsung dari AlAdhan
+    // Saat kota berubah, ambil ulang kalender bulanan langsung dari API Indonesia
     // agar cache kota baru benar-benar tersedia; tidak menyentuh scheduler/audio.
     runPrayerCacheAutoRefresh_("pergantian kota", true);
   } catch (error) {
