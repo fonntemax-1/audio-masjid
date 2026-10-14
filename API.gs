@@ -809,6 +809,11 @@ function resolveCoordinatesCityFromApi_(params) {
         throw new Error('C5 berubah menjadi ' + nearest.kota +
           ', tetapi ada sel C6:C10 yang masih kosong. Jalankan ulang sinkronisasi lokasi.');
       }
+      if (verifiedLocation[4] !== String(nearest.slug || '').trim()) {
+        throw new Error('C5 berubah menjadi ' + nearest.kota +
+          ', tetapi slug C10 tidak sesuai katalog API Indonesia. Seharusnya: ' +
+          String(nearest.slug || '(kosong)') + ', terbaca: ' + verifiedLocation[4] + '.');
+      }
     }
     return {
       success: true,
