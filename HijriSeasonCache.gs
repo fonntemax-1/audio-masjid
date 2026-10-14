@@ -236,18 +236,18 @@ function refreshActiveCityMonthlyPrayerCache_(today) {
   // Gunakan satu jalur operasional yang sama dengan aplikasi: getPrayerSchedule.
   // Refresh eksplisit meminta AlAdhan dan memublikasikan cache per kota.
   var schedule = getPrayerSchedule(today, { forceRefresh: true });
-  if (!schedule || schedule.success !== true || !schedule.regency_id ||
+  if (!schedule || schedule.success !== true ||
       !schedule.jadwal || !isCompletePrayerScheduleSafe_(schedule.jadwal)) {
-    var detail = schedule && (schedule.error || schedule.apiIndonesiaError);
+    var detail = schedule && (schedule.error || schedule.alAdhanError);
     Logger.log("Validasi cache jadwal AlAdhan gagal: " + (detail || "respons tidak lengkap"));
-    return { checked: true, updated: false, reason: "api_indonesia_refresh_failed",
+    return { checked: true, updated: false, reason: "aladhan_refresh_failed",
       detail: detail || "Respons jadwal tidak lengkap" };
   }
   return {
     checked: true,
     updated: true,
     source: schedule.source || "AlAdhan / Kemenag",
-    month: String(schedule.regency_id) + "_" + today.slice(0, 4) + today.slice(5, 7),
+    month: today.slice(0, 7),
     kota: schedule.kota,
     tanggal: today,
     cacheSource: schedule.cacheSource || "",
