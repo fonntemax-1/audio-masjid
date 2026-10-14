@@ -3738,417 +3738,239 @@ function processKeyValue(
 }
 
 
-// =========================================================
-// JADWAL SHOLAT MUSLIMKITA - BALIKPAPAN
-// =========================================================
+// ============================================================
+// JADWAL SHOLAT — CACHE GITHUB SEBAGAI SUMBER OPERASIONAL
+// Refresh eksplisit menggunakan AlAdhan; operasi normal hanya membaca cache.
+// Operasi normal membaca cache GitHub; cache tidak tersedia = error.
+// ============================================================
+ function getPrayerSchedule(dateString, options) {
+  options = options || {};
+  var forceRefresh = options.forceRefresh === true;
+  var timezoneDefault = 'Asia/Makassar';
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) return { success: false, error: 'Sheet panels tidak ditemukan.' };
 
-// =========================================================
-// API INDONESIA - SUMBER UTAMA JADWAL SHOLAT
-// Data jadwal bersumber dari Kemenag melalui API Indonesia.
-// Script Property wajib: API_INDONESIA_KEY
-// Pemetaan kota memakai endpoint resmi /sholat/list-kota.
-// =========================================================
-function getPrayerScheduleFromApiIndonesia_(dateString, locationValues) {
-  var apiKey = String(PropertiesService.getScriptProperties().getProperty('API_INDONESIA_KEY') || '').trim();
-  if (!apiKey) throw new Error('Script Property API_INDONESIA_KEY belum diisi.');
-
-  var timezone = String(locationValues[3] || 'Asia/Makassar').trim();
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var kota = loc[0] || '';
+  var provinsi = loc[1] || '';
+  var timezone = loc[3] || timezoneDefault;
+  if (!kota) return { success: false, error: 'panels!C5 (kota) kosong.' };
   if (!dateString) dateString = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
   dateString = String(dateString).trim();
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateString)) throw new Error('Format tanggal harus YYYY-MM-DD.');
-
-  var cityName = String(locationValues[0] || '').trim();
-  if (!cityName) throw new Error('panels!C5 (kota) kosong.');
-  var cityKey = cityName.toUpperCase().replace(/^KOTA\\s+|^KABUPATEN\\s+/,'').replace(/[^A-Z0-9]/g,'');
-  var cache = CacheService.getScriptCache();
-  var mapCacheKey = 'APIID_SHOLAT_CITY_MAP_V1';
-  var cityMap = null;
-  var savedMap = cache.get(mapCacheKey);
-  if (savedMap) { try { cityMap = JSON.parse(savedMap); } catch (ignore) {} }
-
-  if (!cityMap || !cityMap[cityKey]) {
-    var listResponse = UrlFetchApp.fetch('https://use.apiindonesia.id/api/v1/sholat/list-kota', {
-      method: 'get', headers: {'x-api-key': apiKey, 'Accept':'application/json'},
-      muteHttpExceptions: true
-    });
-    var listCode = listResponse.getResponseCode();
-    if (listCode < 200 || listCode >= 300) throw new Error('API Indonesia list-kota HTTP ' + listCode + '.');
-    var listJson = JSON.parse(listResponse.getContentText());
-    var cityRows = listJson && listJson.data;
-    if (!Array.isArray(cityRows)) throw new Error('Respons API Indonesia list-kota tidak memiliki data array.');
-    cityMap = {};
-    cityRows.forEach(function(row) {
-      var name = String(row.regency_name || '').toUpperCase().replace(/^KOTA\\s+|^KABUPATEN\\s+/,'').replace(/[^A-Z0-9]/g,'');
-      if (name && row.regency_id) cityMap[name] = {
-        id: String(row.regency_id),
-        name: String(row.regency_name || ''),
-        province: String(row.province_name || '')
-      };
-    });
-    try { cache.put(mapCacheKey, JSON.stringify(cityMap), 21600); } catch (ignore) {}
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return { success: false, error: 'Format tanggal harus YYYY-MM-DD.' };
   }
 
-  var city = cityMap[cityKey];
-  if (!city) {
-    // Beberapa sel C5 berisi nama kota dengan awalan "Kota"; normalisasi
-    // sudah dilakukan. Jangan menebak kabupaten terdekat karena bisa
-    // menggeser jadwal sholat.
-    throw new Error('Kota "' + cityName + '" tidak ditemukan pada daftar API Indonesia /sholat/list-kota.');
+  var year = Number(dateString.slice(0, 4));
+  var month = Number(dateString.slice(5, 7));
+  var monthText = ('0' + month).slice(-2);
+  var sourceName = 'AlAdhan API / method 20 (Indonesia)';
+  var citySlug = normalizePrayerCitySlug_(kota);
+  var locationKey = normalizePrayerLocationName_(kota).toLowerCase().replace(/\s+/g, '-') +
+    '-' + normalizePrayerLocationName_(provinsi || 'Indonesia').toLowerCase().replace(/\s+/g, '-');
+  var cacheKey = 'PRAYER_ALADHAN_MONTH_V1_' + locationKey + '_' +
+    String(timezone).replace(/[^A-Za-z0-9]/g, '_') + '_' + year + monthText;
+  var monthlyCachePath = 'data/prayer-monthly-cache-' + citySlug + '.json';
+  var monthId = year + '-' + monthText;
+  var scriptCache = CacheService.getScriptCache();
+  var monthlyEntry = null;
+  var monthlyDoc = null;
+  var cacheSourceUsed = '';
+
+  function normalizeTime_(value) {
+    var m = String(value == null ? '' : value).trim()
+      .match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(?:\([^)]*\))?$/);
+    if (!m) return '';
+    var h = Number(m[1]), min = Number(m[2]);
+    if (h < 0 || h > 23 || min < 0 || min > 59) return '';
+    return ('0' + h).slice(-2) + ':' + ('0' + min).slice(-2);
   }
-
-  var scheduleCacheKey = 'APIID_PRAYER_' + city.id + '_' + dateString.replace(/-/g,'');
-  var cached = cache.get(scheduleCacheKey);
-  if (cached) {
-    try {
-      var cachedResult = JSON.parse(cached);
-      if (cachedResult && cachedResult.success === true && isCompletePrayerScheduleSafe_(cachedResult.jadwal)) {
-        cachedResult.cached = true;
-        cachedResult.cacheSource = 'API Indonesia';
-        return cachedResult;
-      }
-    } catch (ignore) {}
-  }
-
-  var url = 'https://use.apiindonesia.id/api/v1/sholat?kabupaten_id=' +
-    encodeURIComponent(city.id) + '&tanggal=' + encodeURIComponent(dateString);
-  var response = UrlFetchApp.fetch(url, {
-    method: 'get', headers: {'x-api-key': apiKey, 'Accept':'application/json'},
-    muteHttpExceptions: true
-  });
-  var code = response.getResponseCode();
-  var body = response.getContentText();
-  if (code < 200 || code >= 300) throw new Error('API Indonesia jadwal sholat HTTP ' + code + '.');
-  var json = JSON.parse(body);
-  var data = json && json.data;
-  if (!data || typeof data !== 'object') throw new Error('Respons API Indonesia jadwal sholat tidak memiliki objek data.');
-
-  var result = {
-    success: true,
-    kota: city.name || cityName,
-    provinsi: city.province || String(locationValues[1] || ''),
-    slug: String(locationValues[5] || ''),
-    tanggal: String(data.date || dateString),
-    timezone: timezone,
-    zona: String(locationValues[2] || ''),
-    gmt: String(locationValues[4] || ''),
-    source: 'API Indonesia / Kemenag',
-    cached: false,
-    cacheSource: 'API Indonesia',
-    jadwal: {
-      imsak: normalizePrayerTime(data.imsyak || data.imsak || ''),
-      subuh: normalizePrayerTime(data.shubuh || data.subuh || data.fajr || ''),
-      terbit: normalizePrayerTime(data.terbit || data.sunrise || ''),
-      dzuhur: normalizePrayerTime(data.dzuhur || data.dhuhr || ''),
-      ashar: normalizePrayerTime(data.ashr || data.ashar || data.asr || ''),
-      maghrib: normalizePrayerTime(data.maghrib || data.magrib || ''),
-      isya: normalizePrayerTime(data.isya || data.isha || '')
+  function trustedEntry_(entry) {
+    if (!entry || String(entry.source || '') !== sourceName ||
+        String(entry.kota || '') !== kota ||
+        String(entry.provinsi || '') !== provinsi ||
+        String(entry.timezone || '') !== timezone ||
+        Number(entry.tahun) !== year || Number(entry.bulan) !== month ||
+        !Array.isArray(entry.days)) return false;
+    var expected = new Date(year, month, 0).getDate();
+    if (entry.days.length !== expected) return false;
+    var seen = {};
+    for (var i = 0; i < entry.days.length; i++) {
+      var day = entry.days[i] || {};
+      var date = String(day.date || '');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+          date.slice(0, 7) !== year + '-' + monthText || seen[date] ||
+          !isCompletePrayerScheduleSafe_(day.jadwal)) return false;
+      seen[date] = true;
     }
-  };
-  if (!isCompletePrayerScheduleSafe_(result.jadwal)) {
-    throw new Error('Jadwal API Indonesia tidak lengkap untuk ' + cityName + ': ' + JSON.stringify(result.jadwal));
+    return Object.keys(seen).length === expected;
   }
-  try { cache.put(scheduleCacheKey, JSON.stringify(result), 21600); } catch (ignore) {}
-  return result;
-}
 
-// Wrapper utama: API Indonesia selalu dicoba lebih dahulu. Jalur MuslimKita
-// dipertahankan hanya sebagai fallback jika API Indonesia gagal, agar signage
-// tetap memiliki jadwal ketika API key/koneksi/daftar kota bermasalah.
-function getPrayerSchedule(dateString) {
   try {
-    var ss = getSpreadsheet();
-    var panels = ss.getSheetByName('panels');
-    if (!panels) return {success:false, error:'Sheet panels tidak ditemukan.'};
-    var locationValues = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
-      return String(row[0] || '').trim();
-    });
-    try {
-      return getPrayerScheduleFromApiIndonesia_(dateString, locationValues);
-    } catch (apiError) {
-      Logger.log('API INDONESIA JADWAL SHOLAT GAGAL; MENCOBA FALLBACK LAMA: ' +
-        (apiError && apiError.message ? apiError.message : apiError));
-      var fallback = getPrayerScheduleMuslimKitaFallback_(dateString);
-      if (fallback && fallback.success === true) {
-        fallback.primarySourceError = apiError && apiError.message ? apiError.message : String(apiError);
-        fallback.fallbackUsed = true;
-        return fallback;
+    if (forceRefresh) {
+      try { monthlyDoc = readGithubJsonFile_(monthlyCachePath); } catch (ignoreExistingMonthlyDoc) { monthlyDoc = null; }
+    }
+    if (!forceRefresh) {
+      var cachedText = scriptCache.get(cacheKey);
+      if (cachedText) {
+        try { monthlyEntry = JSON.parse(cachedText); } catch (ignoreCacheJson) { monthlyEntry = null; }
+        if (trustedEntry_(monthlyEntry)) cacheSourceUsed = 'CacheService';
+        else monthlyEntry = null;
       }
-      return {
-        success:false,
-        error:'API Indonesia gagal: ' + (apiError && apiError.message ? apiError.message : String(apiError)) +
-          '; fallback juga gagal: ' + (fallback && fallback.error ? fallback.error : 'jadwal tidak tersedia')
-      };
-    }
-  } catch (error) {
-    return {success:false, error:error && error.message ? error.message : String(error)};
-  }
-}
-
-// =========================================================
-// FALLBACK LAMA - MUSLIMKITA
-// Hanya digunakan bila API Indonesia tidak dapat menyediakan data.
-// =========================================================
-function getPrayerScheduleMuslimKitaFallback_(dateString) {
-  try {
-    const timezoneDefault = 'Asia/Makassar';
-    const ss = getSpreadsheet();
-    const panels = ss.getSheetByName('panels');
-
-    if (!panels) {
-      return { success: false, error: 'Sheet panels tidak ditemukan.' };
-    }
-
-    const locationValues = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
-      return String(row[0] || '').trim();
-    });
-
-    const kotaPilihan = locationValues[0] || '';
-    const provinsi = locationValues[1] || '';
-    const zona = locationValues[2] || '';
-    const panelTimezone = locationValues[3] || '';
-    const gmt = locationValues[4] || '';
-    const panelSlug = locationValues[5] || '';
-
-    // C5 tetap menjadi acuan resmi kota untuk API MuslimKita.
-    // C14 hanya menyimpan nama wilayah aktual hasil Google Maps dan tidak
-    // boleh langsung mengganti sumber jadwal agar jadwal/audio tetap konsisten.
-    var kota = kotaPilihan;
-    const kotaSlug = panelSlug || kota.toLowerCase()
-      .replace(/[()]/g, '')
-      .replace(/[^a-z0-9\s-]/g, '')
-      .trim()
-      .replace(/\s+/g, '-');
-
-    const timezone = panelTimezone || timezoneDefault;
-
-    if (!kota) return { success: false, error: 'panels!C5 (kota) kosong.' };
-    if (!kotaSlug) return { success: false, error: 'Slug kota untuk API MuslimKita kosong.' };
-
-    if (!dateString) {
-      dateString = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
-    }
-
-    dateString = String(dateString).trim();
-
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-      return { success: false, error: 'Format tanggal harus YYYY-MM-DD.' };
-    }
-
-    const safeSlug = kotaSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-');
-    const cacheKey = 'PRAYER_' + safeSlug + '_' + dateString.replace(/-/g, '');
-    const propertyKey = 'PRAYER_SCHEDULE_' + safeSlug + '_' + dateString;
-
-    const cache = CacheService.getScriptCache();
-    const properties = PropertiesService.getScriptProperties();
-
-    const cached = cache.get(cacheKey);
-    if (cached) {
-      try {
-        const result = JSON.parse(cached);
-        if (result && result.success === true && result.jadwal &&
-            isCompletePrayerSchedule_(result.jadwal)) {
-          result.cached = true;
-          result.cacheSource = 'CacheService';
-          return result;
+      if (!monthlyEntry) {
+        try { monthlyDoc = readGithubJsonFile_(monthlyCachePath); }
+        catch (githubReadError) {
+          Logger.log('CACHE JADWAL ALADHAN GITHUB TIDAK DAPAT DIBACA: ' +
+            String(githubReadError && githubReadError.message || githubReadError));
         }
-      } catch (e) {
-        Logger.log('CACHE JADWAL INVALID: ' + e.message);
-      }
-    }
-
-    const stored = properties.getProperty(propertyKey);
-    if (stored) {
-      try {
-        const result = JSON.parse(stored);
-        if (result && result.success === true && result.jadwal &&
-            isCompletePrayerSchedule_(result.jadwal)) {
-          try {
-            cache.put(cacheKey, JSON.stringify(result), 21600);
-          } catch (e) {}
-          result.cached = true;
-          result.cacheSource = 'ScriptProperties';
-          return result;
-        }
-      } catch (e) {
-        Logger.log('PROPERTY JADWAL INVALID: ' + e.message);
-      }
-    }
-
-    const apiUrl =
-      'https://www.muslimkita.id/api/jadwal-sholat/v1/' +
-      encodeURIComponent(kotaSlug) +
-      '?tanggal=' + encodeURIComponent(dateString) +
-      '&metode=kemenag';
-
-    Logger.log(
-      'JADWAL SHOLAT API REQUEST: kota=[' + kota +
-      '] slug=[' + kotaSlug +
-      '] tanggal=[' + dateString +
-      '] timezone=[' + timezone + '] URL=[' + apiUrl + ']'
-    );
-
-    const response = UrlFetchApp.fetch(apiUrl, {
-      method: 'get',
-      muteHttpExceptions: true,
-      followRedirects: true,
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Google Apps Script)'
-      }
-    });
-
-    const responseCode = response.getResponseCode();
-    const responseText = response.getContentText();
-
-    Logger.log('JADWAL SHOLAT API HTTP = ' + responseCode);
-    Logger.log('JADWAL SHOLAT API RAW = ' + responseText.substring(0, 3000));
-
-    if (responseCode !== 200) {
-      return {
-        success: false,
-        error: 'HTTP ' + responseCode + ' dari API MuslimKita untuk ' + kota
-      };
-    }
-
-    let json;
-    try {
-      json = JSON.parse(responseText);
-    } catch (e) {
-      Logger.log('JADWAL SHOLAT JSON ERROR = ' + e.message);
-      return {
-        success: false,
-        error: 'Respons API MuslimKita bukan JSON valid untuk ' + kota
-      };
-    }
-
-    // Dukung beberapa bentuk response MuslimKita.
-    let jadwalApi = null;
-
-    if (json && json.jadwal && typeof json.jadwal === 'object') {
-      jadwalApi = json.jadwal;
-    } else if (
-      json && json.data && json.data.jadwal &&
-      typeof json.data.jadwal === 'object'
-    ) {
-      jadwalApi = json.data.jadwal;
-    } else if (
-      json && json.data && typeof json.data === 'object' &&
-      (
-        json.data.subuh || json.data.fajr ||
-        json.data.dzuhur || json.data.dhuhr ||
-        json.data.ashar || json.data.asr
-      )
-    ) {
-      jadwalApi = json.data;
-    }
-
-    if (!jadwalApi) {
-      Logger.log(
-        'JADWAL SHOLAT API TANPA FIELD JADWAL: ' +
-        JSON.stringify(json).substring(0, 3000)
-      );
-      return {
-        success: false,
-        error: 'Data jadwal sholat tidak tersedia untuk ' + kota
-      };
-    }
-
-    function pickPrayerField_(obj, keys) {
-      for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        if (
-          obj &&
-          obj[key] !== undefined &&
-          obj[key] !== null &&
-          String(obj[key]).trim() !== ''
-        ) {
-          return obj[key];
+        if (monthlyDoc && monthlyDoc.months && trustedEntry_(monthlyDoc.months[monthId])) {
+          monthlyEntry = monthlyDoc.months[monthId];
+          cacheSourceUsed = 'GitHub';
         }
       }
-      return '';
+      if (!monthlyEntry) {
+        throw new Error('Cache jadwal AlAdhan tidak tersedia/tidak valid untuk ' +
+          kota + ' bulan ' + year + '-' + monthText +
+          '. Jalankan refreshPrayerCacheForCurrentCity(true) untuk memperbarui cache dari AlAdhan.');
+      }
     }
 
-    const result = {
+    if (!monthlyEntry) {
+      var apiCity = normalizePrayerLocationName_(kota) || kota;
+      var url = 'https://api.aladhan.com/v1/calendarByCity/' + year + '/' + month +
+        '?city=' + encodeURIComponent(apiCity) +
+        '&country=' + encodeURIComponent('Indonesia') +
+        (provinsi ? '&state=' + encodeURIComponent(provinsi) : '') +
+        '&method=20&school=0&timezonestring=' + encodeURIComponent(timezone);
+      var response = UrlFetchApp.fetch(url, {
+        method: 'get',
+        muteHttpExceptions: true,
+        headers: { 'Accept': 'application/json' }
+      });
+      var http = response.getResponseCode();
+      var body = response.getContentText() || '';
+      if (http < 200 || http >= 300) {
+        throw new Error('AlAdhan HTTP ' + http + ': ' + body.slice(0, 350));
+      }
+      var payload = JSON.parse(body);
+      var rows = payload && Array.isArray(payload.data) ? payload.data : [];
+      if (!rows.length) throw new Error('AlAdhan tidak mengembalikan data kalender bulanan untuk ' + apiCity + '.');
+
+      var expectedDays = new Date(year, month, 0).getDate();
+      var seenDates = {};
+      var normalizedDays = rows.map(function(row) {
+        row = row || {};
+        var gregorian = row.date && row.date.gregorian || {};
+        var rawDate = String(gregorian.date || '').trim();
+        var parts = rawDate.split('-');
+        var date = parts.length === 3
+          ? parts[2] + '-' + parts[1] + '-' + parts[0]
+          : String(gregorian.iso || '').slice(0, 10);
+        var timings = row.timings || {};
+        var jadwal = {
+          subuh: normalizeTime_(timings.Fajr),
+          terbit: normalizeTime_(timings.Sunrise),
+          dzuhur: normalizeTime_(timings.Dhuhr),
+          ashar: normalizeTime_(timings.Asr),
+          maghrib: normalizeTime_(timings.Maghrib),
+          isya: normalizeTime_(timings.Isha)
+        };
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date.slice(0, 7) !== year + '-' + monthText) {
+          throw new Error('Tanggal Gregorian tidak valid pada respons AlAdhan: ' + rawDate);
+        }
+        if (seenDates[date]) throw new Error('Tanggal duplikat pada respons AlAdhan: ' + date);
+        if (!isCompletePrayerScheduleSafe_(jadwal)) {
+          throw new Error('Waktu sholat AlAdhan tidak lengkap pada tanggal ' + date + '.');
+        }
+        var hijri = row.date && row.date.hijri || {};
+        var hijriMonth = hijri.month && hijri.month.en || '';
+        seenDates[date] = true;
+        return {
+          date: date,
+          jadwal: jadwal,
+          hijri_day: String(hijri.day || ''),
+          hijri_month_name: String(hijriMonth),
+          hijri_year: String(hijri.year || ''),
+          hijri_formatted: hijri.day && hijriMonth && hijri.year
+            ? String(hijri.day) + ' ' + String(hijriMonth) + ' ' + String(hijri.year) + ' H' : '',
+          source: sourceName
+        };
+      });
+      if (normalizedDays.length !== expectedDays || Object.keys(seenDates).length !== expectedDays) {
+        throw new Error('Kalender bulanan AlAdhan tidak lengkap: diterima ' +
+          normalizedDays.length + ', seharusnya ' + expectedDays + ' tanggal.');
+      }
+
+      monthlyEntry = {
+        tahun: year,
+        bulan: month,
+        kota: kota,
+        provinsi: provinsi,
+        timezone: timezone,
+        method: 20,
+        school: 0,
+        source: sourceName,
+        updatedAt: new Date().toISOString(),
+        days: normalizedDays
+      };
+      monthlyDoc = monthlyDoc && typeof monthlyDoc === 'object' ? monthlyDoc : {};
+      if (!monthlyDoc.months || typeof monthlyDoc.months !== 'object') monthlyDoc.months = {};
+      Object.keys(monthlyDoc.months).forEach(function(existingMonth) {
+        if (String(monthlyDoc.months[existingMonth] && monthlyDoc.months[existingMonth].source || '') !== sourceName) {
+          delete monthlyDoc.months[existingMonth];
+        }
+      });
+      monthlyDoc.success = true;
+      monthlyDoc.kota = kota;
+      monthlyDoc.provinsi = provinsi;
+      monthlyDoc.timezone = timezone;
+      monthlyDoc.source = sourceName;
+      monthlyDoc.updatedAt = monthlyEntry.updatedAt;
+      monthlyDoc.months[monthId] = monthlyEntry;
+      writeGithubJsonFile_(monthlyCachePath, monthlyDoc,
+        'Simpan cache bulanan AlAdhan ' + kota + ' ' + year + '-' + monthText);
+      cacheSourceUsed = 'AlAdhan (refresh tersimpan ke GitHub)';
+    }
+
+    if (!trustedEntry_(monthlyEntry)) {
+      throw new Error('Validasi cache bulanan AlAdhan gagal; cache tidak digunakan.');
+    }
+    try { scriptCache.put(cacheKey, JSON.stringify(monthlyEntry), 21600); } catch (ignoreMonthPut) {}
+    var dayEntry = monthlyEntry.days.filter(function(day) { return day.date === dateString; })[0];
+    if (!dayEntry) throw new Error('Tanggal ' + dateString + ' tidak ditemukan dalam cache bulanan AlAdhan.');
+    var geo = getIndonesianTimezoneByProvince_(provinsi);
+    var result = {
       success: true,
-      kota: json.kota || kota,
-      provinsi: json.provinsi || provinsi,
-      slug: json.slug || kotaSlug,
-      tanggal: json.tanggal || dateString,
-      timezone: json.timezone || timezone,
-      zona: zona || (
-        String(json.timezone || timezone).indexOf('Asia/Jakarta') === 0
-          ? 'WIB'
-          : String(json.timezone || timezone).indexOf('Asia/Jayapura') === 0
-            ? 'WIT'
-            : 'WITA'
-      ),
-      gmt: gmt || '',
-      source: 'MuslimKita / Kemenag',
-      cached: false,
-      cacheSource: 'MuslimKita',
-      jadwal: {
-        imsak: normalizePrayerTime(
-          pickPrayerField_(jadwalApi, ['imsak', 'imsakiyah'])
-        ),
-        subuh: normalizePrayerTime(
-          pickPrayerField_(jadwalApi, ['subuh', 'fajr'])
-        ),
-        terbit: normalizePrayerTime(
-          pickPrayerField_(jadwalApi, ['terbit', 'sunrise', 'syuruq'])
-        ),
-        dzuhur: normalizePrayerTime(
-          pickPrayerField_(jadwalApi, ['dzuhur', 'dhuhur', 'dhuhr', 'zuhur'])
-        ),
-        ashar: normalizePrayerTime(
-          pickPrayerField_(jadwalApi, ['ashar', 'asr'])
-        ),
-        maghrib: normalizePrayerTime(
-          pickPrayerField_(jadwalApi, ['maghrib', 'magrib'])
-        ),
-        isya: normalizePrayerTime(
-          pickPrayerField_(jadwalApi, ['isya', 'isha'])
-        )
-      }
+      tanggal: dateString,
+      kota: kota,
+      provinsi: provinsi,
+      timezone: timezone,
+      zona: geo.zona,
+      gmt: geo.gmt,
+      jadwal: dayEntry.jadwal,
+      hijri: dayEntry.hijri_formatted || '',
+      hijri_day: dayEntry.hijri_day || '',
+      hijri_month_name: dayEntry.hijri_month_name || '',
+      hijri_year: dayEntry.hijri_year || '',
+      source: sourceName,
+      cacheSource: cacheSourceUsed || 'CacheService'
     };
-
-    // Validasi aman berbasis nilai HH:mm. Beberapa deployment Apps Script
-    // lama dapat menjalankan validator lama/berbeda walaupun hasil normalisasi
-    // sudah lengkap. Gunakan validator unik ini sebagai sumber kebenaran untuk
-    // hasil API yang baru saja diterima.
-    if (!isCompletePrayerScheduleSafe_(result.jadwal)) {
-      Logger.log(
-        'JADWAL SHOLAT TIDAK LENGKAP SETELAH NORMALISASI = ' +
-        JSON.stringify(result.jadwal)
-      );
-      return {
-        success: false,
-        error: 'Data jadwal sholat tidak lengkap untuk ' + kota,
-        jadwalDebug: result.jadwal
-      };
-    }
-
-    const serialized = JSON.stringify(result);
-
-    try {
-      cache.put(cacheKey, serialized, 21600);
-    } catch (e) {}
-
-    try {
-      properties.setProperty(propertyKey, serialized);
-    } catch (e) {}
-
-    Logger.log('JADWAL SHOLAT DITERIMA = ' + serialized);
+    try { scriptCache.put('PRAYER_ALADHAN_DAY_' + dateString.replace(/-/g, '') + '_' + citySlug,
+      JSON.stringify(result), 21600); } catch (ignoreDayPut) {}
+    Logger.log('JADWAL SHOLAT SUMBER UTAMA: AlAdhan, kota=' + kota +
+      ', tanggal=' + dateString + ', cache=' + result.cacheSource);
     return result;
-
   } catch (error) {
-    Logger.log(
-      'JADWAL SHOLAT ERROR: ' +
-      (error && error.message ? error.message : error)
-    );
-
+    var message = String(error && error.message || error);
+    Logger.log((forceRefresh ? 'REFRESH ALADHAN JADWAL GAGAL: ' : 'CACHE ALADHAN JADWAL GAGAL: ') + message);
     return {
-      success: false,
-      error: error && error.message ? error.message : String(error)
+      success: false, source: sourceName, kota: kota, provinsi: provinsi, tanggal: dateString,
+      error: forceRefresh ? 'Refresh jadwal sholat dari AlAdhan gagal.' :
+        'Cache jadwal AlAdhan GitHub tidak tersedia atau tidak valid. Tidak ada sumber alternatif yang digunakan.',
+      alAdhanError: message
     };
   }
 }
@@ -4839,351 +4661,246 @@ function testAdzanSheet() {
 
 
 // ============================================================
-// API INDONESIA - SUMBER TANGGAL HIJRIAH
 // ============================================================
-//
-// Sumber:
-//   https://use.apiindonesia.id/api/v1/hijriah/konversi
-//
-// Acuan API:
-//   Kalender Hijriah Indonesia (Kemenag, hisab MABIMS)
-//
-// API key WAJIB disimpan di Script Properties:
-//   API_INDONESIA_KEY = aip_live_xxxxxxxxx
-//
-// Tanggal selalu dibuat berdasarkan Asia/Makassar (WITA).
-// Hasil disimpan sementara di CacheService agar tidak melakukan
-// request API berulang-ulang dalam waktu singkat.
+// KALENDER HIJRIAH — ALADHAN SAJA
+// Cache tahunan GitHub adalah sumber operasional; tidak ada fallback API.
 // ============================================================
+const HIJRI_CACHE_SECONDS = 21600;
 
-const HIJRI_API_BASE_URL =
-  'https://use.apiindonesia.id/api/v1/hijriah';
+function hijriAnnualDaysComplete_(days, year) {
+  if (!days || typeof days !== 'object') return false;
 
-const HIJRI_API_KEY_PROPERTY =
-  'API_INDONESIA_KEY';
+  var y = Number(year);
+  if (!Number.isInteger(y) || y < 1900 || y > 2200) return false;
 
-const HIJRI_TIMEZONE =
-  'Asia/Makassar';
+  var date = new Date(Date.UTC(y, 0, 1));
+  var end = new Date(Date.UTC(y + 1, 0, 1));
 
-const HIJRI_CACHE_SECONDS =
-  21600; // 6 jam
+  while (date < end) {
+    var key = Utilities.formatDate(date, 'UTC', 'yyyy-MM-dd');
+    var row = days[key];
+    if (!row || typeof row !== 'object') return false;
 
+    var hasHijri = String(row.hijri_formatted || '').trim() ||
+      (row.hijri_day && row.hijri_month_name && row.hijri_year);
+    if (!hasHijri) return false;
 
-// ============================================================
-// KONVERSI TANGGAL MASEHI -> HIJRIAH
-// ============================================================
+    date.setUTCDate(date.getUTCDate() + 1);
+  }
+  return true;
+}
 
-function getHijriDateFromApi(
-  dateString
-) {
+/**
+ * Refresh kalender Hijriah tahunan dari AlAdhan saja.
+ * Memperbarui tahun 2026 dan 2027 dalam satu eksekusi agar fungsi dapat
+ * dijalankan langsung dari dropdown Apps Script tanpa argumen.
+ * Seluruh bulan/tanggal divalidasi sebelum cache GitHub ditulis.
+ * Tidak memakai API Indonesia dan tidak menyentuh scheduler/audio.
+ */
 
-  try {
+function refreshHijriCalendarCacheFromAlAdhan() {
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) throw new Error('Sheet panels tidak ditemukan.');
 
-    if (!dateString) {
-      return {
-        success: false,
-        found: false,
-        hijri: '',
-        date: '',
-        source: 'API Indonesia',
-        error: 'Tanggal Masehi tidak diberikan.'
-      };
-    }
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var city = loc[0];
+  var province = loc[1];
+  var timezone = loc[3] || 'Asia/Makassar';
+  if (!city) throw new Error('panels!C5 (kota) kosong.');
 
-    const normalizedDate =
-      String(dateString)
-        .trim();
+  var yearsToRefresh = [2026, 2027];
+  var annualResults = {};
+  var generatedAt = new Date().toISOString();
 
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
-      return {
-        success: false,
-        found: false,
-        hijri: '',
-        date: normalizedDate,
-        source: 'API Indonesia',
-        error: 'Format tanggal harus YYYY-MM-DD.'
-      };
-    }
+  // Ambil dan validasi semua tahun terlebih dahulu. Jika satu saja gagal,
+  // file cache GitHub tidak ditulis sehingga cache lama tetap utuh.
+  yearsToRefresh.forEach(function(year) {
+    var days = {};
+    for (var month = 1; month <= 12; month++) {
+      var url = 'https://api.aladhan.com/v1/calendarByCity/' + year + '/' + month +
+        '?city=' + encodeURIComponent(city) +
+        '&country=' + encodeURIComponent('Indonesia') +
+        (province ? '&state=' + encodeURIComponent(province) : '') +
+        '&method=20&school=0&timezonestring=' + encodeURIComponent(timezone);
 
-    // --------------------------------------------------------
-    // API KEY
-    // --------------------------------------------------------
+      var response = UrlFetchApp.fetch(url, {
+        method: 'get',
+        muteHttpExceptions: true,
+        headers: { 'Accept': 'application/json' }
+      });
+      var status = response.getResponseCode();
+      if (status < 200 || status >= 300) {
+        throw new Error('AlAdhan gagal untuk ' + year + '-' + ('0' + month).slice(-2) +
+          ' (HTTP ' + status + '). Cache lama tidak diubah.');
+      }
 
-    const apiKey =
-      PropertiesService
-        .getScriptProperties()
-        .getProperty(HIJRI_API_KEY_PROPERTY);
+      var payload = JSON.parse(response.getContentText() || '{}');
+      var rows = payload && Array.isArray(payload.data) ? payload.data : [];
+      var expectedCount = new Date(Date.UTC(year, month, 0)).getUTCDate();
+      if (rows.length !== expectedCount) {
+        throw new Error('AlAdhan mengembalikan ' + rows.length + ' hari untuk ' +
+          year + '-' + ('0' + month).slice(-2) + ', seharusnya ' + expectedCount +
+          '. Cache lama tidak diubah.');
+      }
 
-    if (!apiKey) {
-      return {
-        success: false,
-        found: false,
-        hijri: '',
-        date: normalizedDate,
-        source: 'API Indonesia',
-        error:
-          'Script Property ' +
-          HIJRI_API_KEY_PROPERTY +
-          ' belum diisi.'
-      };
-    }
-
-    // --------------------------------------------------------
-    // CACHE
-    // --------------------------------------------------------
-
-    const cache =
-      CacheService.getScriptCache();
-
-    const cacheKey =
-      'HIJRI_API_' +
-      normalizedDate.replace(/-/g, '');
-
-    const cached =
-      cache.get(cacheKey);
-
-    if (cached) {
-      try {
-        const cachedResult =
-          JSON.parse(cached);
-
-        if (
-          cachedResult &&
-          cachedResult.success === true &&
-          cachedResult.hijri
-        ) {
-          cachedResult.cached = true;
-          return cachedResult;
+      rows.forEach(function(item) {
+        var gregorian = item && item.date && item.date.gregorian;
+        var hijriDate = item && item.date && item.date.hijri;
+        var rawDate = String(gregorian && gregorian.date || '');
+        var match = rawDate.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+        if (!match) throw new Error('Format tanggal Gregorian AlAdhan tidak valid: ' + rawDate);
+        var iso = match[3] + '-' + match[2] + '-' + match[1];
+        if (iso.slice(0, 7) !== year + '-' + ('0' + month).slice(-2)) {
+          throw new Error('Tanggal AlAdhan di luar bulan yang diminta: ' + iso);
         }
-      } catch (cacheError) {
-        console.warn(
-          'HIJRI API CACHE INVALID:',
-          cacheError
-        );
+        if (days[iso]) throw new Error('Tanggal duplikat dari AlAdhan: ' + iso);
+
+        var hijriDay = String(hijriDate && hijriDate.day || '').trim();
+        var hijriMonth = String(hijriDate && hijriDate.month && hijriDate.month.en || '').trim();
+        var hijriYear = String(hijriDate && hijriDate.year || '').trim();
+        if (!hijriDay || !hijriMonth || !hijriYear) {
+          throw new Error('Data Hijriah kosong pada ' + iso + '. Cache lama tidak diubah.');
+        }
+
+        days[iso] = {
+          hijri_day: hijriDay,
+          hijri_month_name: hijriMonth,
+          hijri_month_number: Number(hijriDate.month.number || 0),
+          hijri_year: hijriYear,
+          hijri_formatted: hijriDay + ' ' + hijriMonth + ' ' + hijriYear + ' H',
+          source: 'AlAdhan / Kalender Hijriah'
+        };
+      });
+    }
+
+    if (!hijriAnnualDaysComplete_(days, year)) {
+      throw new Error('Validasi kalender Hijriah ' + year +
+        ' gagal: ada tanggal yang hilang. Cache lama tidak diubah.');
+    }
+    annualResults[String(year)] = {
+      source: 'AlAdhan / Kalender Hijriah',
+      city: city,
+      province: province,
+      timezone: timezone,
+      method: 20,
+      generatedAt: generatedAt,
+      dayCount: Object.keys(days).length,
+      days: days
+    };
+  });
+
+  var oldDoc = readGithubJsonFile_('data/hijri-calendar-cache.json');
+  var nextDoc = oldDoc && typeof oldDoc === 'object' ? oldDoc : {};
+  nextDoc.source = 'AlAdhan / Kalender Hijriah';
+  nextDoc.generatedAt = generatedAt;
+  nextDoc.years = nextDoc.years && typeof nextDoc.years === 'object' ? nextDoc.years : {};
+  yearsToRefresh.forEach(function(year) {
+    nextDoc.years[String(year)] = annualResults[String(year)];
+  });
+
+  writeGithubJsonFile_(
+    'data/hijri-calendar-cache.json',
+    nextDoc,
+    'Refresh kalender Hijriah AlAdhan 2026-2027'
+  );
+
+  // Bersihkan cache runtime per batch agar permintaan berikutnya membaca file terbaru.
+  try {
+    var cacheKeys = [];
+    Object.keys(annualResults).forEach(function(year) {
+      Object.keys(annualResults[year].days).forEach(function(date) {
+        cacheKeys.push('HIJRI_ALADHAN_V1_' + date.replace(/-/g, ''));
+      });
+    });
+    var scriptCache = CacheService.getScriptCache();
+    for (var keyOffset = 0; keyOffset < cacheKeys.length; keyOffset += 100) {
+      scriptCache.removeAll(cacheKeys.slice(keyOffset, keyOffset + 100));
+    }
+  } catch (ignoreCacheClear) {}
+
+  var report = {
+    success: true,
+    source: 'AlAdhan / Kalender Hijriah',
+    years: yearsToRefresh.map(function(year) {
+      return { year: year, dayCount: annualResults[String(year)].dayCount };
+    }),
+    path: 'data/hijri-calendar-cache.json',
+    branch: String(PropertiesService.getScriptProperties().getProperty('GITHUB_CACHE_BRANCH') || 'main').trim()
+  };
+  Logger.log('REFRESH KALENDER HIJRIAH ALADHAN SELESAI: ' + JSON.stringify(report));
+  return report;
+}
+
+function getHijriDateFromApi(dateString) {
+  const date = String(dateString || '').trim();
+  if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date)) {
+    return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache', error: 'Tanggal Masehi tidak valid.' };
+  }
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'HIJRI_ALADHAN_V1_' + date.replace(/-/g, '');
+  try {
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && parsed.success === true && parsed.hijri) {
+        parsed.cached = true;
+        return parsed;
       }
     }
+  } catch (ignoreCache) {}
 
-    // --------------------------------------------------------
-    // REQUEST API
-    // --------------------------------------------------------
-
-    const url =
-      HIJRI_API_BASE_URL +
-      '/konversi?tanggal=' +
-      encodeURIComponent(normalizedDate);
-
-    const response =
-      UrlFetchApp.fetch(
-        url,
-        {
-          method: 'get',
-          headers: {
-            'x-api-key': apiKey
-          },
-          muteHttpExceptions: true
-        }
-      );
-
-    const httpCode =
-      response.getResponseCode();
-
-    const body =
-      response.getContentText();
-
-    let json = null;
-
-    try {
-      json = JSON.parse(body);
-    } catch (parseError) {
-      json = null;
+  const year = date.slice(0, 4);
+  try {
+    const doc = readGithubJsonFile_('data/hijri-calendar-cache.json');
+    const yearEntry = doc && doc.years && doc.years[year];
+    if (String(doc && doc.source || '') !== 'AlAdhan / Kalender Hijriah' ||
+        String(yearEntry && yearEntry.source || '') !== 'AlAdhan / Kalender Hijriah') {
+      return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache',
+        error: 'Cache kalender Hijriah bukan berasal dari AlAdhan. Jalankan refreshHijriCalendarCacheFromAlAdhan().' };
     }
-
-    if (
-      httpCode < 200 ||
-      httpCode >= 300
-    ) {
+    const days = yearEntry && yearEntry.days;
+    if (!days || !hijriAnnualDaysComplete_(days, year) || !days[date]) {
       return {
-        success: false,
-        found: false,
-        hijri: '',
-        date: normalizedDate,
-        source: 'API Indonesia',
-        httpCode: httpCode,
-        error:
-          json && json.error
-            ? JSON.stringify(json.error)
-            : 'API Indonesia HTTP ' + httpCode
+        success: false, found: false, hijri: '', date: date,
+        source: 'AlAdhan Hijri cache',
+        error: 'Cache kalender Hijriah AlAdhan tidak tersedia atau tidak lengkap untuk tahun ' + year + '. Tidak ada fallback API.'
       };
     }
-
-    const data =
-      json && json.data
-        ? json.data
-        : null;
-
-    const hijriFormatted =
-      data && data.hijri_formatted
-        ? String(data.hijri_formatted).trim()
-        : '';
-
-    if (!hijriFormatted) {
-      return {
-        success: false,
-        found: false,
-        hijri: '',
-        date: normalizedDate,
-        source: 'API Indonesia',
-        httpCode: httpCode,
-        error:
-          'Respons API tidak memiliki data.hijri_formatted.'
-      };
+    const row = days[date];
+    const hijri = String(row.hijri_formatted || '').trim() ||
+      (row.hijri_day && row.hijri_month_name && row.hijri_year
+        ? String(row.hijri_day) + ' ' + String(row.hijri_month_name).trim() + ' ' + String(row.hijri_year) + ' H'
+        : '');
+    if (!hijri) {
+      return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache', error: 'Tanggal Hijriah pada cache kosong.' };
     }
-
-    const result = {
-      success: true,
-      found: true,
-      date:
-        data.gregorian_date ||
-        normalizedDate,
-      hijri: hijriFormatted,
-      source: 'API Indonesia',
-      httpCode: httpCode,
-      disclaimer:
-        json && json.meta && json.meta.disclaimer
-          ? String(json.meta.disclaimer)
-          : ''
-    };
-
-    try {
-      cache.put(
-        cacheKey,
-        JSON.stringify(result),
-        HIJRI_CACHE_SECONDS
-      );
-    } catch (cacheWriteError) {
-      console.warn(
-        'HIJRI API CACHE WRITE ERROR:',
-        cacheWriteError
-      );
-    }
-
+    const result = { success: true, found: true, date: date, hijri: hijri, source: 'AlAdhan Hijri cache', cached: true };
+    try { cache.put(cacheKey, JSON.stringify(result), HIJRI_CACHE_SECONDS); } catch (ignorePut) {}
     return result;
-
   } catch (error) {
-
-    console.error(
-      'getHijriDateFromApi:',
-      error
-    );
-
     return {
-      success: false,
-      found: false,
-      hijri: '',
-      source: 'API Indonesia',
-      error:
-        String(
-          error && error.message
-            ? error.message
-            : error
-        )
+      success: false, found: false, hijri: '', date: date,
+      source: 'AlAdhan Hijri cache',
+      error: 'Gagal membaca cache kalender Hijriah GitHub: ' + String(error && error.message || error)
     };
   }
 }
 
-
-// ============================================================
-// FUNGSI PUBLIK UNTUK INDEX.HTML
-// ============================================================
-// Nama fungsi dipertahankan agar perubahan frontend minimal.
-// ============================================================
-
-function getHijriDateFromCalendar(
-  dateString
-) {
-  return getHijriDateFromApi(
-    dateString
-  );
+function getHijriDateFromCalendar(dateString) {
+  return getHijriDateFromApi(dateString);
 }
 
-
-// ============================================================
-// TEST KALENDER HIJRIAH
-// ============================================================
-//
-// Test selalu menggunakan tanggal saat ini dalam WITA,
-// bukan timezone kalender Google.
-// ============================================================
-
-function TEST_HIJRI_API() {
-
-  const timezone =
-    HIJRI_TIMEZONE;
-
-  const dateString =
-    Utilities.formatDate(
-      new Date(),
-      timezone,
-      'yyyy-MM-dd'
-    );
-
-
-  Logger.log(
-    '========================================'
-  );
-
-  Logger.log(
-    'TEST API INDONESIA KALENDER HIJRIAH'
-  );
-
-  Logger.log(
-    'Tanggal WITA: ' +
-    dateString
-  );
-
-  Logger.log(
-    'Timezone acuan: ' +
-    timezone
-  );
-
-  Logger.log(
-    'Endpoint: ' +
-    HIJRI_API_BASE_URL + '/konversi'
-  );
-
-  Logger.log(
-    '========================================'
-  );
-
-
-  const result =
-    getHijriDateFromCalendar(
-      dateString
-    );
-
-
-  Logger.log(
-    JSON.stringify(
-      result,
-      null,
-      2
-    )
-  );
-
-
-  return result;
-
-}
-
-
-
-// Kompatibilitas nama fungsi test lama.
 function TEST_HIJRI_CALENDAR() {
-  return TEST_HIJRI_API();
+  const tz = "Asia/Makassar";
+  const date = Utilities.formatDate(new Date(), tz, "yyyy-MM-dd");
+  const result = getHijriDateFromApi(date);
+  Logger.log("TEST HIJRIAH ALADHAN: " + JSON.stringify(result));
+  return result;
 }
 
-
-// ============================================================
 // DIAGNOSTIK RAW SHEET ADZAN - PEMERIKSAAN BLOK AUDIO
 // ============================================================
 // Tujuan:
@@ -5991,4 +5708,266 @@ function getPanelKeuanganSource() {
   }
 
   return { selector: selectedKey, title: title, date: date, a3: a3, rows: rows, headerStyles: headerStyles };
+}
+
+function normalizePrayerLocationName_(value) {
+  return String(value || "").toUpperCase()
+    .replace(/^(KOTA\s+ADM\.?\s*|KOTA\s+|KABUPATEN\s+|KABUP\.?\s+|KAB\.?\s+)/, "")
+    .replace(/[^A-Z0-9]+/g, " ").trim().replace(/\s+/g, " ");
+}
+
+function normalizePrayerCitySlug_(value) {
+  return normalizePrayerLocationName_(value).toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+/** Zona waktu ditentukan dari provinsi administratif, bukan tebakan koordinat. */
+
+function getIndonesianTimezoneByProvince_(province) {
+  const p = normalizePrayerLocationName_(province);
+  const wit = [
+    "MALUKU", "MALUKU UTARA", "PAPUA", "PAPUA BARAT", "PAPUA BARAT DAYA",
+    "PAPUA TENGAH", "PAPUA PEGUNUNGAN", "PAPUA SELATAN"
+  ];
+  const wita = [
+    "BALI", "NUSA TENGGARA BARAT", "NUSA TENGGARA TIMUR",
+    "KALIMANTAN SELATAN", "KALIMANTAN TIMUR", "KALIMANTAN UTARA",
+    "SULAWESI UTARA", "SULAWESI TENGAH", "SULAWESI SELATAN",
+    "SULAWESI TENGGARA", "SULAWESI BARAT", "GORONTALO"
+  ];
+  if (wit.indexOf(p) >= 0) return { zona: "WIT", timezone: "Asia/Jayapura", gmt: "GMT+9" };
+  if (wita.indexOf(p) >= 0) return { zona: "WITA", timezone: "Asia/Makassar", gmt: "GMT+8" };
+  return { zona: "WIB", timezone: "Asia/Jakarta", gmt: "GMT+7" };
+}
+
+/** Mengisi panels!C6:C10 sesuai pilihan di panels!C5. */
+
+function readGithubJsonFile_(path) {
+  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
+  const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
+  if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
+  const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
+    path.split("/").map(encodeURIComponent).join("/") + "?ref=" + encodeURIComponent(targetBranch);
+  const response = UrlFetchApp.fetch(url, {
+    method: "get",
+    muteHttpExceptions: true,
+    headers: {
+      Authorization: "Bearer " + token,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28"
+    }
+  });
+  if (response.getResponseCode() === 404) return null;
+  if (response.getResponseCode() !== 200) {
+    throw new Error("Gagal membaca GitHub " + path + " (HTTP " + response.getResponseCode() + ").");
+  }
+  const file = JSON.parse(response.getContentText() || "{}");
+  const raw = Utilities.base64Decode(String(file.content || "").replace(/\s/g, ""));
+  return JSON.parse(Utilities.newBlob(raw).getDataAsString("UTF-8"));
+}
+
+/** Membuat atau memperbarui JSON di target branch dengan token di Script Properties. */
+
+function writeGithubJsonFile_(path, document, message) {
+  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
+  const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
+  if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
+  const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
+    path.split("/").map(encodeURIComponent).join("/");
+  const headers = {
+    Authorization: "Bearer " + token,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+  const getResponse = UrlFetchApp.fetch(url + "?ref=" + encodeURIComponent(targetBranch), {
+    method: "get", muteHttpExceptions: true, headers: headers
+  });
+  let sha = "";
+  if (getResponse.getResponseCode() === 200) {
+    sha = String(JSON.parse(getResponse.getContentText() || "{}").sha || "");
+  } else if (getResponse.getResponseCode() !== 404) {
+    throw new Error("Gagal memeriksa GitHub " + path + " (HTTP " + getResponse.getResponseCode() + ").");
+  }
+  const content = JSON.stringify(document, null, 2) + "\n";
+  const payload = {
+    message: message,
+    content: Utilities.base64Encode(Utilities.newBlob(content, "application/json").getBytes()),
+    branch: targetBranch
+  };
+  if (sha) payload.sha = sha;
+  const putResponse = UrlFetchApp.fetch(url, {
+    method: "put",
+    contentType: "application/json",
+    headers: headers,
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+  const code = putResponse.getResponseCode();
+  if (code < 200 || code >= 300) {
+    let detail = "";
+    try { detail = JSON.parse(putResponse.getContentText()).message || ""; } catch (ignore) {}
+    throw new Error("GitHub gagal menyimpan " + path + " (HTTP " + code + ")" +
+      (detail ? ": " + detail : "") + ".");
+  }
+  return { success: true, path: path };
+}
+
+function TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION() {
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) throw new Error('Sheet panels tidak ditemukan.');
+
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var city = loc[0];
+  var province = loc[1];
+  var timezone = loc[3] || 'Asia/Makassar';
+  if (!city) throw new Error('panels!C5 (kota) kosong.');
+
+  var date = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
+  var prayer = getPrayerSchedule(date);
+  if (!prayer || prayer.success !== true) {
+    throw new Error('Uji jadwal sholat gagal: ' +
+      String(prayer && (prayer.alAdhanError || prayer.error) || 'respons tidak sukses'));
+  }
+  if (String(prayer.tanggal || '') !== date ||
+      !isCompletePrayerScheduleSafe_(prayer.jadwal)) {
+    throw new Error('Jadwal sholat tidak lengkap atau tanggal respons tidak cocok.');
+  }
+  if (String(prayer.source || '').indexOf('AlAdhan') < 0) {
+    throw new Error('Sumber jadwal sholat bukan AlAdhan: ' + String(prayer.source || '(kosong)'));
+  }
+
+  var hijri = getHijriDateFromApi(date);
+  if (!hijri || hijri.success !== true || hijri.found !== true || !String(hijri.hijri || '').trim()) {
+    throw new Error('Uji kalender Hijriah gagal: ' +
+      String(hijri && hijri.error || 'tanggal Hijriah tidak ditemukan'));
+  }
+  if (String(hijri.date || '') !== date) {
+    throw new Error('Tanggal respons kalender Hijriah tidak cocok.');
+  }
+
+  var prayerHijri = String(prayer.hijri || '').trim().replace(/\s+/g, ' ');
+  var cacheHijri = String(hijri.hijri || '').trim().replace(/\s+/g, ' ');
+  if (prayerHijri && cacheHijri && prayerHijri !== cacheHijri) {
+    throw new Error('Tanggal Hijriah berbeda antara cache jadwal bulanan dan cache tahunan: ' +
+      JSON.stringify({ jadwal: prayerHijri, kalenderTahunan: cacheHijri }));
+  }
+
+  var report = {
+    success: true,
+    pengujian: 'Integrasi jadwal sholat + kalender Hijriah AlAdhan',
+    kota: city,
+    provinsi: province,
+    tanggal: date,
+    timezone: timezone,
+    jadwalSource: prayer.source,
+    jadwalCacheSource: prayer.cacheSource || '',
+    jadwalLengkap: true,
+    kalenderHijriahSource: hijri.source,
+    kalenderHijriahCache: hijri.cached === true,
+    hijriJadwalBulanan: prayerHijri,
+    hijriCacheTahunan: cacheHijri,
+    jadwal: prayer.jadwal
+  };
+  Logger.log('TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION: ' + JSON.stringify(report, null, 2));
+  Logger.log('TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION LULUS');
+  return report;
+}
+
+function refreshPrayerCacheForCurrentCity(forceRefresh) {
+  const ss = getSpreadsheet();
+  const panels = ss.getSheetByName("panels");
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+
+  const loc = panels.getRange("C5:C10").getDisplayValues().map(function(row) {
+    return String(row[0] || "").trim();
+  });
+  const city = loc[0];
+  const province = loc[1];
+  const timezone = loc[3] || "Asia/Makassar";
+  const slug = loc[5] || normalizePrayerCitySlug_(city);
+  if (!city || !slug) throw new Error("Kota atau slug pada panels!C5/C10 kosong.");
+
+  const date = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd");
+  const schedule = getPrayerSchedule(date, { forceRefresh: forceRefresh === true });
+  if (!schedule || schedule.success !== true ||
+      String(schedule.tanggal || "") !== date ||
+      !schedule.jadwal || !isCompletePrayerScheduleSafe_(schedule.jadwal)) {
+    const reason = schedule && (schedule.error || schedule.alAdhanError || schedule.fallbackReason);
+    Logger.log("CACHE JADWAL TIDAK DIPUBLIKASIKAN; respons belum valid untuk " + city + " " + date +
+      (reason ? ": " + reason : ""));
+    return { success: false, skipped: true, kota: city, tanggal: date, error: reason || "Jadwal belum lengkap." };
+  }
+
+  // Satu file harian per kota; isi file langsung berupa jadwal tanggal aktif.
+  const dailyCachePath = "data/prayer-cache-" + slug + ".json";
+  const prior = readGithubJsonFile_(dailyCachePath);
+
+  const entry = {
+    success: true,
+    tanggal: date,
+    kota: city,
+    provinsi: province,
+    regency_id: String(schedule.regency_id || ""),
+    slug: slug,
+    zona: schedule.zona || loc[2] || "",
+    timezone: schedule.timezone || timezone,
+    gmt: schedule.gmt || loc[4] || "",
+    source: schedule.source || "AlAdhan API / method 20 (Indonesia)",
+    jadwal: {
+      subuh: String(schedule.jadwal.subuh || ""),
+      terbit: String(schedule.jadwal.terbit || ""),
+      dzuhur: String(schedule.jadwal.dzuhur || ""),
+      ashar: String(schedule.jadwal.ashar || ""),
+      maghrib: String(schedule.jadwal.maghrib || ""),
+      isya: String(schedule.jadwal.isya || "")
+    },
+    generatedAt: new Date().toISOString()
+  };
+
+  const sameSchedule = prior && prior.success === true &&
+    prior.tanggal === entry.tanggal &&
+    prior.kota === entry.kota &&
+    prior.provinsi === entry.provinsi &&
+    JSON.stringify(prior.jadwal) === JSON.stringify(entry.jadwal) &&
+    prior.timezone === entry.timezone &&
+    prior.source === entry.source;
+  if (sameSchedule) {
+    Logger.log("CACHE HARIAN GITHUB SUDAH TERBARU: " + city + " " + date + "; commit dilewati.");
+    return { success: true, changed: false, kota: city, tanggal: date, slug: slug, path: dailyCachePath };
+  }
+
+  // Replace file only after the schedule has passed validation above.
+  writeGithubJsonFile_(dailyCachePath, entry,
+    "Replace cache harian jadwal sholat " + city + " " + date);
+  PropertiesService.getScriptProperties().setProperty("GITHUB_PRAYER_CACHE_UPDATED_AT", entry.generatedAt);
+  Logger.log("CACHE HARIAN GITHUB DIPERBARUI: " + city + " " + date + " (" + slug + ").");
+  return { success: true, changed: true, kota: city, tanggal: date, slug: slug, path: dailyCachePath };
+}
+
+
+/**
+ * Pemicu installable saat panels!C5 berubah.
+ * Menyelaraskan metadata lokasi dahulu, lalu memperbarui cache jadwal GitHub.
+ * Terpisah dari onEdit(e) agar tidak mengubah alur panel atau scheduler audio.
+ */
+
+function resetAllPrayerCachesAndRefreshAlAdhan() { // Alias nama lama dipertahankan agar pemanggil yang sudah ada tetap kompatibel.
+  var result = refreshPrayerCacheForCurrentCity(true);
+  if (!result || result.success !== true) {
+    throw new Error(
+      "Refresh cache kota aktif gagal. Cache lama tidak diubah. Periksa log dan coba lagi setelah memperbaiki penyebabnya."
+    );
+  }
+  Logger.log(
+    "REFRESH CACHE KOTA AKTIF SELESAI: " + JSON.stringify(result)
+  );
+  return {
+    success: true,
+    refreshed: true,
+    refreshedFrom: "AlAdhan API / method 20 (Indonesia)",
+    result: result
+  };
 }
