@@ -11899,6 +11899,7 @@ function startRealtimeAudioConfigPolling_() {
       // Jangan membaca data/prayer-cache.json karena file multi-kota lama
       // masih berisi sumber MuslimKita/Kemenag.
       if (!cacheCitySlug) {
+        prayerGitHubCacheRequestInFlight = false;
         console.warn('JADWAL GITHUB CACHE: slug kota belum tersedia; lewati cache GitHub.');
         return Promise.resolve(false);
       }
