@@ -6424,8 +6424,8 @@ function TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION() {
     throw new Error('Tanggal respons kalender Hijriah tidak cocok.');
   }
 
-  var prayerHijri = String(prayer.hijri || '').trim().replace(/\\s+/g, ' ');
-  var cacheHijri = String(hijri.hijri || '').trim().replace(/\\s+/g, ' ');
+  var prayerHijri = String(prayer.hijri || '').trim().replace(/\s+/g, ' ');
+  var cacheHijri = String(hijri.hijri || '').trim().replace(/\s+/g, ' ');
   if (prayerHijri && cacheHijri && prayerHijri !== cacheHijri) {
     throw new Error('Tanggal Hijriah berbeda antara cache jadwal bulanan dan cache tahunan: ' +
       JSON.stringify({ jadwal: prayerHijri, kalenderTahunan: cacheHijri }));
