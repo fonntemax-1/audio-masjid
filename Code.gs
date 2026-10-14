@@ -3790,20 +3790,24 @@ function processKeyValue(
   }
 
   var locationKey = normalizeCityPart_(kota) + '-' + normalizeCityPart_(provinsi || 'indonesia');
-  var monthId = 'ALADHAN_' + locationKey + '_' + year + monthText;
-  var apiCacheKey = 'PRAYER_ALADHAN_' + locationKey + '_' + dateString.replace(/-/g, '');
-  var monthlyCacheKey = 'PRAYER_ALADHAN_MONTH_' + locationKey + '_' + year + monthText;
+  // Cache dipisahkan per kota/kabupaten, provinsi, zona waktu, tahun, dan bulan.
+  var timezoneKey = normalizeCityPart_(timezone);
+  var monthId = 'ALADHAN_' + locationKey + '_' + timezoneKey + '_' + year + monthText;
+  var apiCacheKey = 'PRAYER_ALADHAN_' + locationKey + '_' + timezoneKey + '_' + dateString.replace(/-/g, '');
+  var monthlyCacheKey = 'PRAYER_ALADHAN_MONTH_' + locationKey + '_' + timezoneKey + '_' + year + monthText;
   var cache = CacheService.getScriptCache();
   var monthlyEntry = null;
   var monthlyDoc = null;
+  var cacheSourceUsed = 'AlAdhan API';
 
   try {
     var cachedText = cache.get(monthlyCacheKey);
     if (cachedText) {
       try { monthlyEntry = JSON.parse(cachedText); } catch (ignoreAlAdhanCache) { monthlyEntry = null; }
+      if (monthlyEntry && isTrustedAlAdhanMonthlyEntry_(monthlyEntry, year, month, locationKey, timezone)) cacheSourceUsed = 'CacheService';
     }
 
-    if (!monthlyEntry || !isTrustedAlAdhanMonthlyEntry_(monthlyEntry, year, month, locationKey)) {
+    if (!monthlyEntry || !isTrustedAlAdhanMonthlyEntry_(monthlyEntry, year, month, locationKey, timezone)) {
       monthlyEntry = null;
       try {
         monthlyDoc = readGithubJsonFile_('data/prayer-monthly-cache.json');
@@ -3812,8 +3816,9 @@ function processKeyValue(
           (githubReadError && githubReadError.message ? githubReadError.message : githubReadError));
       }
       if (monthlyDoc && monthlyDoc.months && monthlyDoc.months[monthId] &&
-          isTrustedAlAdhanMonthlyEntry_(monthlyDoc.months[monthId], year, month, locationKey)) {
+          isTrustedAlAdhanMonthlyEntry_(monthlyDoc.months[monthId], year, month, locationKey, timezone)) {
         monthlyEntry = monthlyDoc.months[monthId];
+        cacheSourceUsed = 'GitHub';
       }
     }
 
@@ -3905,10 +3910,16 @@ function processKeyValue(
       monthlyDoc.generatedAt = new Date().toISOString();
       monthlyDoc.updatedAt = monthlyDoc.generatedAt;
       monthlyDoc.monthCount = Object.keys(monthlyDoc.months).length;
-      writeGithubJsonFile_('data/prayer-monthly-cache.json', monthlyDoc,
-        'Cache jadwal sholat langsung AlAdhan ' + kota + ' ' + year + '-' + monthText);
-      Logger.log('JADWAL ALADHAN DISIMPAN KE GITHUB: ' + kota + ' ' + year + '-' + monthText +
-        ' (' + normalizedDays.length + ' tanggal).');
+      try {
+        writeGithubJsonFile_('data/prayer-monthly-cache.json', monthlyDoc,
+          'Cache jadwal sholat langsung AlAdhan ' + kota + ' ' + year + '-' + monthText);
+        Logger.log('JADWAL ALADHAN DISIMPAN KE GITHUB: ' + kota + ' ' + year + '-' + monthText +
+          ' (' + normalizedDays.length + ' tanggal).');
+      } catch (githubWriteError) {
+        // Kegagalan publikasi cache tidak membatalkan jadwal yang valid dari AlAdhan.
+        Logger.log('CACHE GITHUB ALADHAN GAGAL, jadwal API tetap digunakan: ' +
+          (githubWriteError && githubWriteError.message ? githubWriteError.message : githubWriteError));
+      }
     }
 
     try { cache.put(monthlyCacheKey, JSON.stringify(monthlyEntry), 21600); } catch (ignoreMonthPut) {}
@@ -3931,8 +3942,8 @@ function processKeyValue(
       gmt: loc[4] || '',
       source: sourceName,
       method_id: 20,
-      cached: false,
-      cacheSource: 'AlAdhan API',
+      cached: cacheSourceUsed !== 'AlAdhan API',
+      cacheSource: cacheSourceUsed,
       jadwal: {
         imsak: normalizePrayerTime(data.imsyak),
         subuh: normalizePrayerTime(data.shubuh),
@@ -3965,9 +3976,10 @@ function processKeyValue(
   }
 }
 
-function isTrustedAlAdhanMonthlyEntry_(entry, year, month, locationKey) {
+function isTrustedAlAdhanMonthlyEntry_(entry, year, month, locationKey, timezone) {
   if (!entry ||
       String(entry.location_key || '') !== String(locationKey) ||
+      String(entry.timezone || '') !== String(timezone || '') ||
       String(entry.source || '') !== 'AlAdhan API / method 20 (Kemenag Indonesia)' ||
       Number(entry.method_id) !== 20 ||
       !Array.isArray(entry.days)) return false;
@@ -3996,8 +4008,8 @@ function isTrustedAlAdhanMonthlyEntry_(entry, year, month, locationKey) {
   return Object.keys(seen).length === expected;
 }
 
-// Fallback jadwal legacy dan cache ScriptProperties tidak lagi digunakan.
-// Jadwal sholat aktif hanya diambil dari API Indonesia.
+// Jadwal sholat aktif hanya menggunakan AlAdhan API method 20.
+// Cache bulanan dipisahkan per kota/kabupaten, provinsi, dan zona waktu; tidak ada fallback jadwal legacy.
 
 // ============================================================
 // VALIDASI JADWAL SHOLAT LENGKAP
