@@ -1,8 +1,8 @@
 {
   "success": true,
-  "generatedAt": "2026-10-14T02:17:37.805Z",
-  "updatedAt": "2026-10-14T02:17:37.805Z",
-  "cityCount": 183,
+  "generatedAt": "2026-10-14T02:30:46.491Z",
+  "updatedAt": "2026-10-14T02:30:46.491Z",
+  "cityCount": 184,
   "cities": {
     "balikpapan": {
       "success": true,
@@ -3663,6 +3663,26 @@
         "isya": "18:56"
       },
       "generatedAt": "2026-10-14T02:17:37.805Z"
+    },
+    "penajam-paser-utara": {
+      "success": true,
+      "tanggal": "2026-10-14",
+      "kota": "Kabupaten Penajam Paser Utara",
+      "provinsi": "Kalimantan Timur",
+      "slug": "penajam-paser-utara",
+      "zona": "WITA",
+      "timezone": "Asia/Makassar",
+      "gmt": "GMT+8",
+      "source": "API Indonesia / Kemenag",
+      "jadwal": {
+        "subuh": "04:38",
+        "terbit": "05:55",
+        "dzuhur": "11:59",
+        "ashar": "15:12",
+        "maghrib": "18:03",
+        "isya": "19:13"
+      },
+      "generatedAt": "2026-10-14T02:30:46.491Z"
     }
   }
 }
