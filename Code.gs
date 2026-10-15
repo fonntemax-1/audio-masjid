@@ -5008,7 +5008,7 @@ function setupPanelKegiatan() {
  * Fungsi lama dipertahankan sebagai alias agar pemanggilan manual tidak rusak.
  */
 function refreshDaftarKotaDariGithub() {
-  const document = readGithubJsonFile_("data/daftar-kota.json");
+  const document = readGithubJsonFile_("data/daftar-kota.json", "migration-api-indonesia-20261014");
   if (!document || !Array.isArray(document.cities) || document.cities.length < 500) {
     throw new Error("data/daftar-kota.json tidak ditemukan atau jumlah wilayah tidak valid.");
   }
@@ -5430,8 +5430,8 @@ function setupPrayerCacheAutoTriggers() {
 }
 
 /** Membaca JSON dari branch migration; null hanya jika file memang belum ada (HTTP 404). */
-function readGithubJsonFile_(path) {
-  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
+function readGithubJsonFile_(path, branchOverride) {
+  const targetBranch = String(branchOverride || PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
   if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
   const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
