@@ -3963,7 +3963,7 @@ function getPrayerScheduleFromMonthlyCache_(dateString, options) {
 
   try {
     if (forceRefresh) {
-      try { monthlyDoc = readGithubJsonFile_(monthlyCachePath); } catch (ignoreExistingMonthlyDoc) { monthlyDoc = null; }
+      try { monthlyDoc = readGithubJsonFile_(monthlyCachePath, 'migration-api-indonesia-20261014'); } catch (ignoreExistingMonthlyDoc) { monthlyDoc = null; }
     }
     if (!forceRefresh) {
       var cachedText = scriptCache.get(cacheKey);
@@ -4104,7 +4104,8 @@ function getPrayerScheduleFromMonthlyCache_(dateString, options) {
         monthlyDoc.updatedAt = monthlyEntry.updatedAt;
         monthlyDoc.months[monthId] = monthlyEntry;
         writeGithubJsonFile_(monthlyCachePath, monthlyDoc,
-          'Simpan cache bulanan AlAdhan ' + kota + ' ' + year + '-' + monthText);
+          'Simpan cache bulanan AlAdhan ' + kota + ' ' + year + '-' + monthText,
+          'migration-api-indonesia-20261014');
         cacheSourceUsed = 'AlAdhan (refresh tersimpan ke GitHub)';
       }
     }
@@ -5482,7 +5483,7 @@ function refreshPrayerCacheForCurrentCity(forceRefresh) {
 
   // forceRefresh=true membuat getPrayerSchedule memperbarui dokumen cache bulanan
   // dari calendarByCity AlAdhan. Jalur ini tidak menulis data harian.
-  const schedule = getPrayerSchedule(date, { forceRefresh: true });
+  const schedule = getPrayerSchedule(date, { forceRefresh: forceRefresh === true });
   if (!schedule || schedule.success !== true ||
       String(schedule.tanggal || "") !== date ||
       !schedule.jadwal || !isCompletePrayerScheduleSafe_(schedule.jadwal) ||
@@ -5530,7 +5531,8 @@ function handlePrayerCacheCityEdit_(e) {
  * tetap baru meski kota tidak berubah. Tidak membuat commit jika data sama.
  */
 function autoRefreshPrayerCachePeriodic_() {
-  runPrayerCacheAutoRefresh_("pemeriksaan berkala");
+  // Refresh kalender bulanan dari AlAdhan secara berkala; tidak membuat cache harian.
+  runPrayerCacheAutoRefresh_("pemeriksaan berkala", true);
 }
 
 /** Menjalankan pembaruan dengan lock agar edit kota dan pemicu berkala tidak bertabrakan. */
@@ -5607,8 +5609,8 @@ function readGithubJsonFile_(path, branchOverride) {
 }
 
 /** Membuat atau memperbarui JSON di branch migration dengan token di Script Properties. */
-function writeGithubJsonFile_(path, document, message) {
-  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
+function writeGithubJsonFile_(path, document, message, branchOverride) {
+  const targetBranch = String(branchOverride || PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
   if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
   const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
