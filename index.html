@@ -554,6 +554,10 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 
         </div>
 
+        <div id="main-frame-advertisement" aria-hidden="true" style="display:none;">
+          <img id="main-frame-advertisement-image" alt="Iklan masjid" decoding="async">
+        </div>
+
         <div class="event-banner">
           <div class="event-running" id="event-running"></div>
         </div>
@@ -692,6 +696,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
       'getEventCountdownConfig',
       'getEidFitriVideoConfig',
       'getEidAdhaVideoConfig',
+      'getEventAdvertisingConfig',
       'getRealtimeAudioStatus'
     ]);
 
@@ -17670,6 +17675,64 @@ function setCountdownBlackMode(enabled) {
     );
 
   
+    // =========================================================
+    // IKLAN MAIN FRAME - panels!B70:E72
+    // Komponen terpisah; tidak mengubah banner atau scheduler audio.
+    // =========================================================
+    (function initMainFrameAdvertisement_() {
+      const box = document.getElementById('main-frame-advertisement');
+      const image = document.getElementById('main-frame-advertisement-image');
+      if (!box || !image) return;
+      const adFiles = {
+        'IKLAN-1': 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-1.jpg',
+        'IKLAN-2': 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-2.jpg',
+        'IKLAN-3': 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-3.jpeg'
+      };
+      function todayLocal_() {
+        try {
+          if (typeof getApiDate === 'function') return String(getApiDate() || '');
+        } catch (e) {}
+        const parts = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Makassar', year: 'numeric', month: '2-digit', day: '2-digit'
+        }).formatToParts(new Date());
+        const p = {};
+        parts.forEach(function(x) { p[x.type] = x.value; });
+        return p.year + '-' + p.month + '-' + p.day;
+      }
+      function update_() {
+        if (document.body.classList.contains('prayer-black-mode')) {
+          box.style.display = 'none';
+          return;
+        }
+        gasApiCall('getEventAdvertisingConfig').then(function(rows) {
+          if (!Array.isArray(rows)) rows = rows && Array.isArray(rows.data) ? rows.data : [];
+          const today = todayLocal_();
+          const active = rows.filter(function(row) {
+            const name = String(row.name || '').trim().toUpperCase();
+            return adFiles[name] && String(row.status || '').toUpperCase() === 'ON' &&
+              row.start && row.end && today >= row.start && today <= row.end;
+          }).sort(function(a,b) { return Number(a.row || 0) - Number(b.row || 0); });
+          if (!active.length) {
+            box.style.display = 'none';
+            box.setAttribute('aria-hidden', 'true');
+            image.removeAttribute('src');
+            return;
+          }
+          const chosen = active[0];
+          const src = adFiles[String(chosen.name).trim().toUpperCase()];
+          if (image.src !== src) image.src = src;
+          box.style.display = 'block';
+          box.setAttribute('aria-hidden', 'false');
+        }).catch(function(err) {
+          console.warn('IKLAN MAIN FRAME: konfigurasi belum tersedia', err);
+          box.style.display = 'none';
+        });
+      }
+      image.addEventListener('error', function() { box.style.display = 'none'; });
+      update_();
+      setInterval(update_, 60000);
+    })();
+
     // =========================================================
     // VIDEO ANIMASI IDUL FITRI - panels!C68:E68
     // C68 = waktu mulai, D68 = waktu berhenti, E68 = ON/OFF.

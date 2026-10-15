@@ -1022,8 +1022,9 @@ function getEventAdvertisingConfigFromApi_() {
     var ss = getSpreadsheet();
     var sheet = ss.getSheetByName('panels');
     if (!sheet) throw new Error('Sheet panels tidak ditemukan.');
-    var values = sheet.getRange('C68:E72').getValues();
-    var displays = sheet.getRange('C68:E72').getDisplayValues();
+    // B:E agar nama iklan di kolom B ikut dikirim bersama jadwal C:E.
+    var values = sheet.getRange('B68:E72').getValues();
+    var displays = sheet.getRange('B68:E72').getDisplayValues();
     var timeZone = ss.getSpreadsheetTimeZone() || Session.getScriptTimeZone() || 'Asia/Makassar';
     function normalizeDate(value, display) {
       if (value instanceof Date && !isNaN(value.getTime())) {
@@ -1040,14 +1041,16 @@ function getEventAdvertisingConfigFromApi_() {
     return values.map(function(row, index) {
       var display = displays[index] || [];
       var sheetRow = index + 68;
-      var status = String(row[2] == null ? display[2] || '' : row[2]).trim().toUpperCase();
+      var name = String(row[0] == null ? display[0] || '' : row[0]).trim();
+      var status = String(row[3] == null ? display[3] || '' : row[3]).trim().toUpperCase();
       return {
         row: sheetRow,
-        start: normalizeDate(row[0], display[0]),
-        end: normalizeDate(row[1], display[1]),
+        name: name,
+        start: normalizeDate(row[1], display[1]),
+        end: normalizeDate(row[2], display[2]),
         status: status === 'ON' ? 'ON' : 'OFF'
       };
-    });
+    }).filter(function(item) { return item.row >= 70; });
   } catch (error) {
     Logger.log('EVENT ADVERTISING CONFIG ERROR: ' + (error && error.message ? error.message : error));
     return [];
