@@ -7556,7 +7556,7 @@ function startRealtimeAudioConfigPolling_() {
         ) {
           WEB_APP_STATE.prayer.dateLoaded = '';
 
-          // STARTUP TIDAK MENUNGGU API INDONESIA.
+          // STARTUP TIDAK MENUNGGU AlAdhan.
           // Cache lokal dicoba lebih dahulu karena paling cepat.
           // Jika belum ada, cache GitHub menjadi sumber berikutnya.
           // AlAdhan baru dipanggil setelah kartu sudah
@@ -9501,7 +9501,7 @@ function startRealtimeAudioConfigPolling_() {
 
 
     // =========================================================
-    // HIJRI - API INDONESIA
+    // HIJRI - AlAdhan
     // =========================================================
 
     function updateHijriDate() {
@@ -11909,7 +11909,7 @@ function startRealtimeAudioConfigPolling_() {
             !selectedPayload ||
             selectedPayload.success !== true ||
             !selectedPayload.jadwal ||
-            !/^AlAdhan(?: API(?:\s*\/\s*method 20 \(Indonesia\))?)?$/i.test(String(selectedPayload.source || '').trim())
+            !/^AlAdhan(?: API(?:\s*\/\s*method 20 \((?:Indonesia|Kemenag Indonesia)\))?)?$/i.test(String(selectedPayload.source || '').trim())
           ) {
             console.warn(
               'JADWAL GITHUB CACHE MULTI-KOTA: kota belum tersedia',
@@ -12112,7 +12112,7 @@ function startRealtimeAudioConfigPolling_() {
 
         if (
           !cached ||
-          !/^AlAdhan(?: API(?:\s*\/\s*method 20 \(Indonesia\))?)?$/i.test(String(cached.source || '').trim()) ||
+          !/^AlAdhan(?: API(?:\s*\/\s*method 20 \((?:Indonesia|Kemenag Indonesia)\))?)?$/i.test(String(cached.source || '').trim()) ||
           !j ||
           !['subuh','terbit','dzuhur','ashar','maghrib','isya']
             .every(function(k) {
@@ -15925,7 +15925,7 @@ function setCountdownBlackMode(enabled) {
         validPrayers.length === 0
       ) {
 
-        // PRIORITAS TERAKHIR SEBELUM API INDONESIA:
+        // PRIORITAS TERAKHIR SEBELUM AlAdhan:
         // 1. GitHub prayer-cache.json (background service)
         // 2. localStorage cache kartu
         // 3. Apps Script / AlAdhan sebagai refresh background
