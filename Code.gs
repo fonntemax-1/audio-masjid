@@ -4770,8 +4770,9 @@ function refreshHijriCalendarCacheFromAlAdhan() {
   yearsToRefresh.forEach(function(year) {
     var days = {};
     for (var month = 1; month <= 12; month++) {
+      var apiCity = normalizePrayerLocationName_(city) || city;
       var url = 'https://api.aladhan.com/v1/calendarByCity/' + year + '/' + month +
-        '?city=' + encodeURIComponent(city) +
+        '?city=' + encodeURIComponent(apiCity) +
         '&country=' + encodeURIComponent('Indonesia') +
         (province ? '&state=' + encodeURIComponent(province) : '') +
         '&method=20&school=0&timezonestring=' + encodeURIComponent(timezone);
@@ -4784,7 +4785,8 @@ function refreshHijriCalendarCacheFromAlAdhan() {
       var status = response.getResponseCode();
       if (status < 200 || status >= 300) {
         throw new Error('AlAdhan gagal untuk ' + year + '-' + ('0' + month).slice(-2) +
-          ' (HTTP ' + status + '). Cache lama tidak diubah.');
+          ' (HTTP ' + status + ', kota API: ' + apiCity + '): ' +
+          String(response.getContentText() || '').slice(0, 250) + '. Cache lama tidak diubah.');
       }
 
       var payload = JSON.parse(response.getContentText() || '{}');
