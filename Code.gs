@@ -4837,9 +4837,16 @@ function getHijriCalendarLocationSlug_(location) {
 }
 
 function getHijriCalendarCachePath_(location, year) {
-  return 'data/hijri-calendar-cache/' +
-    getHijriCalendarZoneFolder_(location) + '/' +
-    getHijriCalendarLocationSlug_(location) + '-' + String(year) + '.json';
+  // Satu cache tahunan per zona: kota aktif tidak harus sama dengan kota perwakilan.
+  var zone = getHijriCalendarZoneFolder_(location);
+  var seeds = getHijriCalendarSeedLocations_();
+  var seed = null;
+  for (var i = 0; i < seeds.length; i++) {
+    if (String(seeds[i].zona || '').toUpperCase() === zone) { seed = seeds[i]; break; }
+  }
+  if (!seed) throw new Error('Lokasi perwakilan cache tidak ditemukan untuk zona ' + zone);
+  return 'data/hijri-calendar-cache/' + zone + '/' +
+    getHijriCalendarLocationSlug_(seed) + '-' + String(year) + '.json';
 }
 
 /** Mengambil dan memvalidasi satu bulan kalender Hijriah dari AlAdhan. */
@@ -4976,9 +4983,8 @@ function refreshHijriCalendarAnnualForLocation_(loc) {
 /** Hapus entri runtime agar pembacaan berikutnya memakai versi GitHub terbaru. */
 function clearHijriCalendarRuntimeCacheForLocation_(loc, dates) {
   try {
-    var locationKey = [loc.kota, loc.provinsi || '', loc.timezone].join('|').toLowerCase();
-    var prefix = 'HIJRI_ALADHAN_V2_' +
-      Utilities.base64EncodeWebSafe(locationKey).replace(/=+$/g, '') + '_';
+    var zoneKey = getHijriCalendarZoneFolder_(loc);
+    var prefix = 'HIJRI_ALADHAN_ZONE_V3_' + zoneKey + '_';
     var keys = (dates || []).map(function(date) { return prefix + String(date).replace(/-/g, ''); });
     var cache = CacheService.getScriptCache();
     for (var i = 0; i < keys.length; i += 100) cache.removeAll(keys.slice(i, i + 100));
@@ -5029,9 +5035,7 @@ function validateHijriCalendarCacheDaily() {
   var doc = readGithubJsonFile_(path, 'main');
   if (!doc || String(doc.source || '') !== 'AlAdhan / Kalender Hijriah' ||
       Number(doc.year) !== year || !hijriAnnualDaysComplete_(doc.days, year) ||
-      String(doc.city || '').trim().toLowerCase() !== String(loc.kota || '').trim().toLowerCase() ||
-      String(doc.province || '').trim().toLowerCase() !== String(loc.provinsi || '').trim().toLowerCase() ||
-      String(doc.timezone || '').trim() !== String(loc.timezone).trim()) {
+      String(doc.zoneFolder || '').trim().toUpperCase() !== getHijriCalendarZoneFolder_(loc)) {
     return refreshHijriCalendarCacheFromAlAdhan();
   }
 
@@ -5054,9 +5058,8 @@ function validateHijriCalendarCacheDaily() {
       'Validasi kalender Hijriah AlAdhan ' + year + '-' + ('0' + month).slice(-2) +
       ' (' + changedDates.length + ' tanggal berubah)', 'main');
     try {
-      var locationKey = [loc.kota, loc.provinsi || '', loc.timezone].join('|').toLowerCase();
-      var prefix = 'HIJRI_ALADHAN_V2_' +
-        Utilities.base64EncodeWebSafe(locationKey).replace(/=+$/g, '') + '_';
+      var zoneKey = getHijriCalendarZoneFolder_(loc);
+      var prefix = 'HIJRI_ALADHAN_ZONE_V3_' + zoneKey + '_';
       var keys = changedDates.map(function(date) { return prefix + date.replace(/-/g, ''); });
       var cache = CacheService.getScriptCache();
       for (var i = 0; i < keys.length; i += 100) cache.removeAll(keys.slice(i, i + 100));
@@ -5102,9 +5105,7 @@ function validateHijriCalendarCacheForLocation_(loc) {
   var doc = readGithubJsonFile_(path, 'main');
   if (!doc || String(doc.source || '') !== 'AlAdhan / Kalender Hijriah' ||
       Number(doc.year) !== year || !hijriAnnualDaysComplete_(doc.days, year) ||
-      String(doc.city || '').trim().toLowerCase() !== String(loc.kota || '').trim().toLowerCase() ||
-      String(doc.province || '').trim().toLowerCase() !== String(loc.provinsi || '').trim().toLowerCase() ||
-      String(doc.timezone || '').trim() !== timezone) {
+      String(doc.zoneFolder || '').trim().toUpperCase() !== getHijriCalendarZoneFolder_(loc)) {
     var full = refreshHijriCalendarAnnualForLocation_(loc);
     var cleanup = cleanupOldHijriCalendarCaches_(year, false);
     full.cleanup = cleanup;
@@ -5338,8 +5339,8 @@ function getHijriDateFromAnnualCache_(dateString) {
     return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache', error: 'Lokasi panels!C5 belum tersedia.' };
   }
   activeLocation.timezone = activeLocation.timezone || 'Asia/Makassar';
-  const locationKey = [activeLocation.kota, activeLocation.provinsi || '', activeLocation.timezone].join('|').toLowerCase();
-  const cacheKey = 'HIJRI_ALADHAN_V2_' + Utilities.base64EncodeWebSafe(locationKey).replace(/=+$/g, '') + '_' + date.replace(/-/g, '');
+  const activeZone = getHijriCalendarZoneFolder_(activeLocation);
+  const cacheKey = 'HIJRI_ALADHAN_ZONE_V3_' + activeZone + '_' + date.replace(/-/g, '');
   try {
     const cached = cache.get(cacheKey);
     if (cached) {
@@ -5367,13 +5368,10 @@ function getHijriDateFromAnnualCache_(dateString) {
       return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache',
         error: 'Cache kalender Hijriah AlAdhan belum tersedia di ' + path + '. Jalankan refreshHijriCalendarCacheFromAlAdhan().' };
     }
-    const sameCity = String(doc.city || '').trim().toLowerCase() === String(activeLocation.kota || '').trim().toLowerCase();
-    const sameProvince = String(doc.province || '').trim().toLowerCase() === String(activeLocation.provinsi || '').trim().toLowerCase();
-    const sameTimezone = String(doc.timezone || '').trim() === String(activeLocation.timezone).trim();
-    const sameZone = String(doc.zoneFolder || '') === getHijriCalendarZoneFolder_(activeLocation);
-    if (!sameCity || !sameProvince || !sameTimezone || !sameZone) {
+    const sameZone = String(doc.zoneFolder || '').trim().toUpperCase() === activeZone;
+    if (!sameZone) {
       return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache',
-        error: 'Cache kalender Hijriah tidak cocok dengan lokasi aktif (' + activeLocation.kota + ', ' + activeLocation.provinsi + ', ' + activeLocation.timezone + '). Jalankan refreshHijriCalendarCacheFromAlAdhan().' };
+        error: 'Zona cache kalender Hijriah tidak cocok dengan zona lokasi aktif (' + activeZone + '). Jalankan refreshHijriCalendarCacheFromAlAdhan().' };
     }
     const days = doc.days;
     if (!days || !hijriAnnualDaysComplete_(days, year) || !days[date]) {
