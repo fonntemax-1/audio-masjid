@@ -5910,13 +5910,10 @@ function setupPrayerCacheAutoTriggers() {
     .everyHours(6)
     .create();
 
-  ScriptApp.newTrigger("autoRefreshHijriCalendarCachePeriodic_")
-    .timeBased()
-    .onWeekDay(ScriptApp.WeekDay.SUNDAY)
-    .everyWeeks(1)
-    .create();
+  // Kalender Hijriah kini memakai pemicu harian per zona; tidak lagi pemicu mingguan.
+  setupHijriCalendarCacheAutoTriggers();
 
-  Logger.log("PEMICU CACHE AKTIF: saat panels!C5 berubah, jadwal sholat tiap 6 jam, kalender Hijriah tiap minggu.");
+  Logger.log("PEMICU CACHE AKTIF: saat panels!C5 berubah, jadwal sholat tiap 6 jam, kalender Hijriah harian WIB/WITA/WIT.");
 }
 
 /** Membaca JSON dari branch migration; null hanya jika file memang belum ada (HTTP 404). */
