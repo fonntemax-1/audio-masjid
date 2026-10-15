@@ -846,7 +846,7 @@ function findGithubRegencyMatch_(regencyName) {
   // Sheet "daftar-kota" tidak dibaca pada jalur ini.
   var document;
   try {
-    document = readGithubJsonFile_("data/daftar-kota.json", "migration-api-indonesia-20261014");
+    document = readGithubJsonFile_("data/daftar-kota.json", "main");
   } catch (error) {
     Logger.log("KATALOG KOTA GITHUB GAGAL DIBACA: " + String(error));
     return null;
