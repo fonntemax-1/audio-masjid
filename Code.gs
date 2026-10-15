@@ -5614,7 +5614,7 @@ function onEdit(e) {
       const activeCity = String(panels.getRange("C5").getDisplayValue() || "").trim();
       if (activeCity) {
         try {
-          const cacheResult = runPrayerCacheAutoRefresh_("lokasi Google Maps dari C3");
+          const cacheResult = runPrayerCacheAutoRefresh_("lokasi Google Maps dari C3", true);
           Logger.log("CACHE JADWAL SETELAH GOOGLE MAPS: " + JSON.stringify(cacheResult));
         } catch (cacheError) {
           Logger.log("CACHE JADWAL SETELAH GOOGLE MAPS GAGAL: " +
