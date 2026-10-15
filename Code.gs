@@ -5374,6 +5374,8 @@ function setupDropdownKotaAPIIndonesia() {
   ];
   ScriptApp.getProjectTriggers().forEach(function(trigger) {
     if (handlers.indexOf(trigger.getHandlerFunction()) >= 0) {
+      // Hapus hanya pemicu lama milik sinkron daftar kota/cache jadwal.
+      // Cache jadwal kini ditangani oleh autoRefreshPrayerCachePeriodic_ setiap 6 jam.
       ScriptApp.deleteTrigger(trigger);
     }
   });
@@ -5385,20 +5387,7 @@ function setupDropdownKotaAPIIndonesia() {
     .inTimezone("Asia/Makassar")
     .create();
 
-  ScriptApp.newTrigger("refreshPrayerCacheForCurrentCity")
-    .timeBased()
-    .atHour(0)
-    .nearMinute(5)
-    .everyDays(1)
-    .inTimezone("Asia/Makassar")
-    .create();
-
-  ScriptApp.newTrigger("refreshPrayerCacheForCurrentCity")
-    .timeBased()
-    .everyMinutes(30)
-    .create();
-
-  Logger.log("Auto-update disiapkan: sinkron daftar kota dari GitHub harian 03.00 WITA; cache jadwal 00.05 WITA dan pemeriksaan tiap 30 menit.");
+  Logger.log("Auto-update disiapkan: sinkron daftar kota dari GitHub harian 03.00 WITA; cache jadwal ditangani pemicu AlAdhan setiap 6 jam.");
   return result;
 }
 
@@ -5665,7 +5654,9 @@ function setupPrayerCacheAutoTriggers() {
   const handlers = [
     "handlePrayerCacheCityEdit_",
     "autoRefreshPrayerCachePeriodic_",
-    "autoRefreshHijriCalendarCachePeriodic_"
+    "autoRefreshHijriCalendarCachePeriodic_",
+    // Pemicu lama ini digantikan oleh autoRefreshPrayerCachePeriodic_ setiap 6 jam.
+    "refreshPrayerCacheForCurrentCity"
   ];
   ScriptApp.getProjectTriggers().forEach(function(trigger) {
     if (handlers.indexOf(trigger.getHandlerFunction()) >= 0) {
