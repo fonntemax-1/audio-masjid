@@ -5031,6 +5031,7 @@ function refreshDaftarKotaDariGithub() {
     if (ids[regencyId]) throw new Error("Kode wilayah duplikat pada data/daftar-kota.json: " + regencyId);
     ids[regencyId] = true;
     return {
+      name: String(city.name || "").trim(),
       displayName: displayName,
       province: provinceName,
       regencyId: regencyId,
@@ -5060,7 +5061,8 @@ function refreshDaftarKotaDariGithub() {
   if (currentCityBeforeSync) {
     const wanted = normalizePrayerDropdownName_(currentCityBeforeSync);
     const selected = rows.filter(function(city) {
-      return normalizePrayerDropdownName_(city.displayName) === wanted;
+      return normalizePrayerDropdownName_(city.displayName) === wanted ||
+        normalizePrayerDropdownName_(city.name) === wanted;
     });
     if (selected.length === 1) {
       panels.getRange("C5").setValue(selected[0].displayName);
