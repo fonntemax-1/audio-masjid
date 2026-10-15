@@ -5690,6 +5690,7 @@ function setupPrayerCacheAutoTriggers() {
 
   ScriptApp.newTrigger("autoRefreshHijriCalendarCachePeriodic_")
     .timeBased()
+    .onWeekDay(ScriptApp.WeekDay.SUNDAY)
     .everyWeeks(1)
     .create();
 
