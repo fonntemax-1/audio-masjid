@@ -3734,7 +3734,47 @@ function processKeyValue(
 // Refresh eksplisit menggunakan AlAdhan; operasi normal hanya membaca cache.
 // Operasi normal membaca cache GitHub; cache tidak tersedia = error.
 // ============================================================
- function getPrayerSchedule(dateString, options) {
+ /**
+ * Normalisasi nama bulan Hijriah AlAdhan menjadi ejaan Bahasa Indonesia.
+ * Sumber data tetap AlAdhan; fungsi ini hanya mengubah label tampilannya.
+ */
+function normalizeHijriMonthNameIndonesia_(value) {
+  var raw = String(value == null ? '' : value).trim();
+  if (!raw) return '';
+  var key = raw.toLowerCase();
+  try {
+    key = key.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  } catch (ignoreUnicodeNormalize) {}
+  key = key
+    .replace(/[ʿʻ‘’'`-]/g, ' ')
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  var monthMap = {
+    'muharram': 'Muharam', 'muharam': 'Muharam',
+    'safar': 'Safar',
+    'rabi al awwal': 'Rabiul Awal', 'rabiul awal': 'Rabiul Awal',
+    'rabi al thani': 'Rabiul Akhir', 'rabi al akhir': 'Rabiul Akhir',
+    'rabiul akhir': 'Rabiul Akhir',
+    'jumada al awwal': 'Jumadil Awal', 'jumada al ula': 'Jumadil Awal',
+    'jumadil awal': 'Jumadil Awal',
+    'jumada al thani': 'Jumadil Akhir', 'jumada al akhirah': 'Jumadil Akhir',
+    'jumada al akhira': 'Jumadil Akhir', 'jumada al ukhraa': 'Jumadil Akhir',
+    'jumadil akhir': 'Jumadil Akhir',
+    'rajab': 'Rajab',
+    'shaban': 'Syaban', 'shaaban': 'Syaban', 'syaban': 'Syaban',
+    'ramadan': 'Ramadhan', 'ramadhan': 'Ramadhan',
+    'shawwal': 'Syawal', 'syawal': 'Syawal',
+    'dhu al qidah': 'Dzulkaidah', 'dhul qidah': 'Dzulkaidah',
+    'dzulkaidah': 'Dzulkaidah',
+    'dhu al hijjah': 'Dzulhijjah', 'dhul hijjah': 'Dzulhijjah',
+    'dzulhijjah': 'Dzulhijjah'
+  };
+  return monthMap[key] || raw;
+}
+
+function getPrayerSchedule(dateString, options) {
   options = options || {};
   var forceRefresh = options.forceRefresh === true;
   var timezoneDefault = 'Asia/Makassar';
@@ -3878,7 +3918,7 @@ function processKeyValue(
           throw new Error('Waktu sholat AlAdhan tidak lengkap pada tanggal ' + date + '.');
         }
         var hijri = row.date && row.date.hijri || {};
-        var hijriMonth = hijri.month && hijri.month.en || '';
+        var hijriMonth = normalizeHijriMonthNameIndonesia_(hijri.month && hijri.month.en || '');
         seenDates[date] = true;
         return {
           date: date,
@@ -4648,7 +4688,7 @@ function refreshHijriCalendarCacheFromAlAdhan() {
         if (days[iso]) throw new Error('Tanggal duplikat dari AlAdhan: ' + iso);
 
         var hijriDay = String(hijriDate && hijriDate.day || '').trim();
-        var hijriMonth = String(hijriDate && hijriDate.month && hijriDate.month.en || '').trim();
+        var hijriMonth = normalizeHijriMonthNameIndonesia_(hijriDate && hijriDate.month && hijriDate.month.en || '');
         var hijriYear = String(hijriDate && hijriDate.year || '').trim();
         if (!hijriDay || !hijriMonth || !hijriYear) {
           throw new Error('Data Hijriah kosong pada ' + iso + '. Cache lama tidak diubah.');
