@@ -4905,7 +4905,7 @@ function refreshHijriCalendarCacheFromAlAdhan() {
     };
   });
 
-  var oldDoc = readGithubJsonFile_('data/hijri-calendar-cache.json', 'migration-api-indonesia-20261014');
+  var oldDoc = readGithubJsonFile_('data/hijri-calendar-cache.json', 'main');
   var nextDoc = oldDoc && typeof oldDoc === 'object' ? oldDoc : {};
   nextDoc.source = 'AlAdhan / Kalender Hijriah';
   nextDoc.generatedAt = generatedAt;
@@ -4921,7 +4921,7 @@ function refreshHijriCalendarCacheFromAlAdhan() {
     'data/hijri-calendar-cache.json',
     nextDoc,
     'Refresh kalender Hijriah AlAdhan 2026-2027',
-    'migration-api-indonesia-20261014'
+    'main'
   );
 
   // Bersihkan cache runtime per batch agar permintaan berikutnya membaca file terbaru.
@@ -4945,7 +4945,7 @@ function refreshHijriCalendarCacheFromAlAdhan() {
       return { year: year, dayCount: annualResults[String(year)].dayCount };
     }),
     path: 'data/hijri-calendar-cache.json',
-    branch: 'migration-api-indonesia-20261014'
+    branch: 'main'
   };
   Logger.log('REFRESH KALENDER HIJRIAH ALADHAN SELESAI: ' + JSON.stringify(report));
   return report;
@@ -5046,7 +5046,7 @@ function getHijriDateFromAnnualCache_(dateString) {
 
   const year = date.slice(0, 4);
   try {
-    const doc = readGithubJsonFile_('data/hijri-calendar-cache.json', 'migration-api-indonesia-20261014');
+    const doc = readGithubJsonFile_('data/hijri-calendar-cache.json', 'main');
     const yearEntry = doc && doc.years && doc.years[year];
     if (String(doc && doc.source || '') !== 'AlAdhan / Kalender Hijriah' ||
         String(yearEntry && yearEntry.source || '') !== 'AlAdhan / Kalender Hijriah') {
