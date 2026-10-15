@@ -6410,17 +6410,6 @@ function startRealtimeAudioConfigPolling_() {
       if (day === 1 && /syawal/.test(monthText)) return true;
       if (day === 10 && /dzulhijjah|zulhijjah|dzulhijah|zulhijah/.test(monthText)) return true;
 
-      // Fallback ketika teks Hijriah dari API belum selesai dimuat.
-      try {
-        if (typeof moment === 'function' && moment.iConvert) {
-          const m = moment(getApiDate(), 'YYYY-MM-DD');
-          const hDay = typeof m.iDate === 'function' ? m.iDate() : 0;
-          const hMonth = typeof m.iMonth === 'function' ? m.iMonth() : -1;
-          if (hDay === 1 && hMonth === 9) return true;
-          if (hDay === 10 && hMonth === 11) return true;
-        }
-      } catch (e) {}
-
       return false;
     }
 
