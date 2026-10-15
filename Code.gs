@@ -4169,7 +4169,7 @@ function TEST_ALADHAN_FALLBACK_OTOMATIS(dateString) {
   var timezone = loc[3] || 'Asia/Makassar';
   if (!city) throw new Error('panels!C5 (kota) kosong.');
   var date = String(dateString || Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd')).trim();
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) throw new Error('Format tanggal harus YYYY-MM-DD.');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Format tanggal harus YYYY-MM-DD.');
 
   var simulated = { _testForceAlAdhanFailure: true };
   var prayer = getPrayerSchedule(date, simulated);
