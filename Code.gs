@@ -4866,7 +4866,7 @@ function refreshHijriCalendarCacheFromAlAdhan() {
     var cacheKeys = [];
     Object.keys(annualResults).forEach(function(year) {
       Object.keys(annualResults[year].days).forEach(function(date) {
-        cacheKeys.push('HIJRI_ALADHAN_V1_' + date.replace(/-/g, ''));
+        cacheKeys.push('HIJRI_ALADHAN_V2_' + Utilities.base64EncodeWebSafe([city, province, timezone].join('|').toLowerCase()).replace(/=+$/g, '') + '_' + date.replace(/-/g, ''));
       });
     });
     var scriptCache = CacheService.getScriptCache();
