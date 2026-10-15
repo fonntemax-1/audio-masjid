@@ -3966,7 +3966,7 @@ function getPrayerScheduleFromMonthlyCache_(dateString, options) {
 
   try {
     if (forceRefresh) {
-      try { monthlyDoc = readGithubJsonFile_(monthlyCachePath, 'migration-api-indonesia-20261014'); } catch (ignoreExistingMonthlyDoc) { monthlyDoc = null; }
+      try { monthlyDoc = readGithubJsonFile_(monthlyCachePath, 'main'); } catch (ignoreExistingMonthlyDoc) { monthlyDoc = null; }
     }
     if (!forceRefresh) {
       var cachedText = scriptCache.get(cacheKey);
@@ -3976,7 +3976,7 @@ function getPrayerScheduleFromMonthlyCache_(dateString, options) {
         else monthlyEntry = null;
       }
       if (!monthlyEntry) {
-        try { monthlyDoc = readGithubJsonFile_(monthlyCachePath, 'migration-api-indonesia-20261014'); }
+        try { monthlyDoc = readGithubJsonFile_(monthlyCachePath, 'main'); }
         catch (githubReadError) {
           Logger.log('CACHE JADWAL ALADHAN GITHUB TIDAK DAPAT DIBACA: ' +
             String(githubReadError && githubReadError.message || githubReadError));
@@ -4108,7 +4108,7 @@ function getPrayerScheduleFromMonthlyCache_(dateString, options) {
         monthlyDoc.months[monthId] = monthlyEntry;
         writeGithubJsonFile_(monthlyCachePath, monthlyDoc,
           'Simpan cache bulanan AlAdhan ' + kota + ' ' + year + '-' + monthText,
-          'migration-api-indonesia-20261014');
+          'main');
         cacheSourceUsed = 'AlAdhan (refresh tersimpan ke GitHub)';
       }
     }
