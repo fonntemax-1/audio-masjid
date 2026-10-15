@@ -6,10 +6,8 @@ on:
     branches:
       - "main"
     paths:
-      - "Code.gs"
-      - "API.gs"
-      - "HijriSeasonCache.gs"
-      - "PrayerMonthlyPreload.gs"
+      # Semua file Apps Script (.gs), termasuk file baru atau di subfolder.
+      - "**.gs"
       - "appsscript.json"
       - ".github/workflows/deploy-apps-script.yml"
 
