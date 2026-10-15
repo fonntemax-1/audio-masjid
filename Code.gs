@@ -6688,3 +6688,71 @@ function TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION() {
   Logger.log('TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION LULUS');
   return report;
 }
+
+/**
+ * UJI BACA CACHE CADANGAN ALADHAN TANPA MEMANGGIL API.
+ * Memastikan cache bulanan jadwal dan cache tahunan Hijriah tersedia,
+ * cocok dengan tanggal/lokasi aktif, lengkap, dan konsisten.
+ * Hanya membaca GitHub/Spreadsheet dan dapat mengisi CacheService runtime;
+ * tidak menulis file GitHub, sheet, trigger, UI, atau scheduler audio.
+ * Opsional: panggil dengan tanggal YYYY-MM-DD.
+ */
+function TEST_ALADHAN_CACHE_CADANGAN(dateString) {
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) throw new Error('Sheet panels tidak ditemukan.');
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var city = loc[0] || '';
+  var province = loc[1] || '';
+  var timezone = loc[3] || 'Asia/Makassar';
+  if (!city) throw new Error('panels!C5 (kota) kosong.');
+  var date = String(dateString || Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd')).trim();
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) {
+    throw new Error('Format tanggal harus YYYY-MM-DD.');
+  }
+
+  var prayer = getPrayerScheduleFromMonthlyCache_(date, { forceRefresh: false });
+  var hijri = getHijriDateFromAnnualCache_(date);
+  var issues = [];
+  if (!prayer || prayer.success !== true) {
+    issues.push('Cache bulanan jadwal gagal: ' + String(prayer && (prayer.alAdhanError || prayer.error) || 'respons tidak sukses'));
+  }
+  if (!hijri || hijri.success !== true || hijri.found !== true) {
+    issues.push('Cache tahunan Hijriah gagal: ' + String(hijri && hijri.error || 'respons tidak sukses'));
+  }
+  if (prayer && prayer.success === true && String(prayer.tanggal || '') !== date) {
+    issues.push('Tanggal jadwal cache tidak cocok.');
+  }
+  if (hijri && hijri.success === true && String(hijri.date || '') !== date) {
+    issues.push('Tanggal Hijriah cache tidak cocok.');
+  }
+  var prayerHijri = String(prayer && prayer.hijri || '').trim().replace(/\\s+/g, ' ');
+  var annualHijri = String(hijri && hijri.hijri || '').trim().replace(/\\s+/g, ' ');
+  if (prayerHijri && annualHijri && prayerHijri !== annualHijri) {
+    issues.push('Tanggal Hijriah cache bulanan dan tahunan berbeda: ' +
+      JSON.stringify({ jadwalBulanan: prayerHijri, kalenderTahunan: annualHijri }));
+  }
+
+  var report = {
+    success: issues.length === 0,
+    pengujian: 'Baca cache cadangan AlAdhan tanpa panggilan API',
+    kota: city,
+    provinsi: province,
+    tanggal: date,
+    timezone: timezone,
+    jadwalSource: prayer && prayer.source || '',
+    jadwalCacheSource: prayer && prayer.cacheSource || '',
+    jadwalLengkap: !!(prayer && prayer.success === true && isCompletePrayerScheduleSafe_(prayer.jadwal)),
+    kalenderHijriahSource: hijri && hijri.source || '',
+    hijriCache: annualHijri,
+    hijriJadwalBulanan: prayerHijri,
+    issues: issues
+  };
+  Logger.log('TEST_ALADHAN_CACHE_CADANGAN: ' + JSON.stringify(report, null, 2));
+  if (!report.success) throw new Error('TEST_ALADHAN_CACHE_CADANGAN GAGAL: ' + JSON.stringify(issues));
+  Logger.log('TEST_ALADHAN_CACHE_CADANGAN LULUS');
+  return report;
+}
+
