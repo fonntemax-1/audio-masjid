@@ -90,17 +90,7 @@ function refreshHijriCalendarCacheDateFromAlAdhan_(today, schedule) {
     return { checked: true, updated: false, reason: "invalid_aladhan_hijri_response", source: source };
   }
 
-  var monthMap = {
-    "muharram": "Muharam", "safar": "Safar", "rabi' al-awwal": "Rabiul Awal",
-    "rabi al-awwal": "Rabiul Awal", "rabi' al-thani": "Rabiul Akhir",
-    "rabi al-thani": "Rabiul Akhir", "jumada al-awwal": "Jumadil Awal",
-    "jumada al-thani": "Jumadil Akhir", "rajab": "Rajab", "sha'ban": "Syaban",
-    "shaban": "Syaban", "ramadan": "Ramadhan", "shawwal": "Syawal",
-    "dhu al-qi'dah": "Dzulkaidah", "dhu al-qidah": "Dzulkaidah",
-    "dhu al-hijjah": "Dzulhijjah"
-  };
-  var monthKey = hijriMonthRaw.toLowerCase().replace(/\s+/g, " ").trim();
-  var localMonth = monthMap[monthKey] || hijriMonthRaw;
+  var localMonth = normalizeHijriMonthNameIndonesia_(hijriMonthRaw);
   var freshRow = {
     gregorian_date: today,
     hijri_day: hijriDay,
@@ -212,16 +202,7 @@ function refreshHijriCalendarCacheYearFromAlAdhan_(year) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date.slice(0, 4) !== String(targetYear) ||
           !day || !hijriMonth || !hijriYear) return;
 
-      var monthMap = {
-        "muharram": "Muharam", "safar": "Safar", "rabi' al-awwal": "Rabiul Awal",
-        "rabi al-awwal": "Rabiul Awal", "rabi' al-thani": "Rabiul Akhir",
-        "rabi al-thani": "Rabiul Akhir", "jumada al-awwal": "Jumadil Awal",
-        "jumada al-thani": "Jumadil Akhir", "rajab": "Rajab", "sha'ban": "Syaban",
-        "shaban": "Syaban", "ramadan": "Ramadhan", "shawwal": "Syawal",
-        "dhu al-qi'dah": "Dzulkaidah", "dhu al-qidah": "Dzulkaidah",
-        "dhu al-hijjah": "Dzulhijjah"
-      };
-      var localMonth = monthMap[String(hijriMonth).toLowerCase()] || hijriMonth;
+      var localMonth = normalizeHijriMonthNameIndonesia_(hijriMonth);
       freshDays[date] = {
         gregorian_date: date,
         hijri_day: day,
