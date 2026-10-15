@@ -7556,59 +7556,24 @@ function startRealtimeAudioConfigPolling_() {
         ) {
           WEB_APP_STATE.prayer.dateLoaded = '';
 
-          // STARTUP TIDAK MENUNGGU AlAdhan.
-          // Cache lokal dicoba lebih dahulu karena paling cepat.
-          // Jika belum ada, cache GitHub menjadi sumber berikutnya.
-          // AlAdhan baru dipanggil setelah kartu sudah
-          // mendapatkan data cache, dan berjalan di belakang layar.
-          const localLoaded = loadPrayerCardCache();
-
-          const continuePrayerRefresh = function() {
-            prayerScheduleRetryCount = 0;
-
-            if (prayerScheduleRetryTimer) {
-              clearTimeout(prayerScheduleRetryTimer);
-              prayerScheduleRetryTimer = null;
-            }
-
-            // Refresh API sengaja tidak ditunggu oleh UI.
-            setTimeout(function() {
-              fetchPrayerSchedule();
-            }, 0);
-          };
-
-          if (localLoaded) {
-            updatePrayerCountdown();
-
-            loadGitHubPrayerCache()
-              .then(function(githubLoaded) {
-                if (githubLoaded) {
-                  updatePrayerCountdown();
-                }
-                continuePrayerRefresh();
-              })
-              .catch(function() {
-                continuePrayerRefresh();
-              });
-          } else {
-            loadGitHubPrayerCache()
-              .then(function(githubLoaded) {
-                if (!githubLoaded) {
-                  loadPrayerCardCache();
-                }
-
-                if (githubLoaded) {
-                  updatePrayerCountdown();
-                }
-
-                continuePrayerRefresh();
-              })
-              .catch(function() {
-                loadPrayerCardCache();
-                updatePrayerCountdown();
-                continuePrayerRefresh();
-              });
+          // Validasi AlAdhan menjadi langkah pertama untuk kota/tanggal aktif.
+          // Jangan memakai cache harian browser/GitHub sebelum respons server.
+          // Backend hanya memakai cache bulanan AlAdhan jika permintaan harian gagal.
+          WEB_APP_STATE.prayer.schedule = {};
+          ['subuh','terbit','dzuhur','ashar','maghrib','isya'].forEach(function(key) {
+            setPrayerTime('prayer-' + key, '--');
+          });
+          updatePrayerCountdown();
+          prayerScheduleRetryCount = 0;
+          if (prayerScheduleRetryTimer) {
+            clearTimeout(prayerScheduleRetryTimer);
+            prayerScheduleRetryTimer = null;
           }
+          setTimeout(function() {
+            fetchPrayerSchedule();
+          }, 0);
+          // Kalender Hijriah juga diminta ulang setelah lokasi/tanggal aktif berubah.
+          updateHijriDate();
         }
 
         const timezoneElement =
