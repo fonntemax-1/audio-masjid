@@ -4816,11 +4816,11 @@ function getHijriCalendarZoneFolder_(location) {
   location = location || getLokasiPanels();
   var timezone = String(location && location.timezone || '').trim();
   var zone = String(location && location.zona || '').trim().toUpperCase();
-  if (zone === 'WIB' || zone === 'WITA' || zone === 'WIT') return zone;
+  // Zona waktu IANA menjadi sumber utama agar folder mengikuti lokasi sebenarnya.
   if (timezone === 'Asia/Jakarta' || timezone === 'Asia/Pontianak') return 'WIB';
-  if (timezone === 'Asia/Makassar' || timezone === 'Asia/Ujung_Pandang') return 'WITA';
-  if (timezone === 'Asia/Jayapura' || timezone === 'Asia/Palu' ||
-      timezone === 'Asia/Ambon' || timezone === 'Asia/Manokwari') return 'WIT';
+  if (timezone === 'Asia/Makassar' || timezone === 'Asia/Ujung_Pandang' || timezone === 'Asia/Palu') return 'WITA';
+  if (timezone === 'Asia/Jayapura' || timezone === 'Asia/Ambon' || timezone === 'Asia/Manokwari') return 'WIT';
+  if (zone === 'WIB' || zone === 'WITA' || zone === 'WIT') return zone;
   throw new Error('Zona waktu lokasi tidak dapat dipetakan ke WIB/WITA/WIT: ' + timezone);
 }
 
