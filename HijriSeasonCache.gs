@@ -16,12 +16,11 @@
 var HIJRI_SEASON_CACHE_PATH_ = "data/hijri-calendar-cache.json";
 var HIJRI_SEASON_MONTHLY_PATH_ = "data/prayer-monthly-cache.json";
 var HIJRI_SEASON_TZ_ = "Asia/Makassar";
-var HIJRI_SEASON_SPECIAL_MONTHS_ = ["ramadhan", "ramadan", "syawal", "muharam", "muharram"];
 
 function runHijriSeasonCacheCheckNow() {
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(30000)) {
-    Logger.log("Pemeriksaan cache musiman dilewati: proses lain sedang berjalan.");
+    Logger.log("Validasi cache Hijriah harian dilewati: proses lain sedang berjalan.");
     return { success: false, skipped: true, reason: "lock_busy" };
   }
 
