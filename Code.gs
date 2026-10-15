@@ -3865,9 +3865,11 @@ function normalizeHijriMonthNameIndonesia_(value) {
         }
       }
       if (!monthlyEntry) {
-        throw new Error('Cache jadwal AlAdhan tidak tersedia/tidak valid untuk ' +
-          kota + ' bulan ' + year + '-' + monthText +
-          '. Jalankan refreshPrayerCacheForCurrentCity(true) untuk memperbarui cache dari AlAdhan.');
+        // Cache miss bukan alasan menghentikan jadwal: ambil bulan langsung dari
+        // AlAdhan (method 20), validasi lengkap, lalu simpan ke GitHub main.
+        // Tidak ada fallback ke API Indonesia, MuslimKita, atau sumber lain.
+        Logger.log('CACHE ALADHAN TIDAK DITEMUKAN; mengambil kalender bulanan langsung dari AlAdhan untuk ' +
+          kota + ' ' + year + '-' + monthText + '.');
       }
     }
 
