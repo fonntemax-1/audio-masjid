@@ -5832,7 +5832,7 @@ function readGithubJsonFile_(path) {
 /** Membuat atau memperbarui JSON di target branch dengan token di Script Properties. */
 
 function writeGithubJsonFile_(path, document, message) {
-  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
+  const targetBranch = "main"; // Cache produksi AlAdhan selalu membaca dari dan menulis ke main.
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
   if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
   const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
