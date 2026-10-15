@@ -5612,6 +5612,14 @@ function autoRefreshPrayerCachePeriodic_() {
 }
 
 /**
+ * Pembungkus publik agar pemeriksaan cache dapat dijalankan manual dari editor.
+ * Pemicu otomatis tetap menggunakan autoRefreshPrayerCachePeriodic_.
+ */
+function testAutoRefreshPrayerCachePeriodic() {
+  return autoRefreshPrayerCachePeriodic_();
+}
+
+/**
  * Refresh kalender Hijriah tahunan secara terpisah dari jadwal sholat.
  * Trigger mingguan menjaga cache tetap segar tanpa memanggil 24 endpoint
  * kalender setiap enam jam. Pergantian kota tetap memicu refresh langsung.
