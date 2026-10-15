@@ -4886,7 +4886,70 @@ function refreshHijriCalendarCacheFromAlAdhan() {
   return report;
 }
 
+/**
+ * Kalender Hijriah: AlAdhan harian selalu divalidasi terlebih dahulu.
+ * Kalender tahunan AlAdhan hanya menjadi fallback saat permintaan harian gagal.
+ */
 function getHijriDateFromApi(dateString) {
+  var date = String(dateString || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan', error: 'Tanggal Masehi tidak valid.' };
+  }
+  var loc = getLokasiPanels();
+  if (!loc || loc.success !== true || !loc.kota) {
+    return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan', error: 'Lokasi panels!C5 belum tersedia.' };
+  }
+  var parts = date.split('-');
+  var apiCity = normalizePrayerLocationName_(loc.kota) || loc.kota;
+  var url = 'https://api.aladhan.com/v1/timingsByCity/' +
+    parts[2] + '-' + parts[1] + '-' + parts[0] +
+    '?city=' + encodeURIComponent(apiCity) +
+    '&country=' + encodeURIComponent('Indonesia') +
+    (loc.provinsi ? '&state=' + encodeURIComponent(loc.provinsi) : '') +
+    '&method=20&school=0&timezonestring=' + encodeURIComponent(loc.timezone || 'Asia/Makassar');
+  var apiError = '';
+  try {
+    var response = UrlFetchApp.fetch(url, { method: 'get', muteHttpExceptions: true, headers: { 'Accept': 'application/json' } });
+    var http = response.getResponseCode();
+    if (http < 200 || http >= 300) throw new Error('AlAdhan HTTP ' + http);
+    var payload = JSON.parse(response.getContentText() || '{}');
+    var data = payload && payload.data || {};
+    var gd = data.date && data.date.gregorian || {};
+    var rawDate = String(gd.date || '').trim();
+    var apiDate = /^\d{2}-\d{2}-\d{4}$/.test(rawDate)
+      ? rawDate.slice(6,10) + '-' + rawDate.slice(3,5) + '-' + rawDate.slice(0,2)
+      : String(gd.iso || '').slice(0,10);
+    if (apiDate !== date) throw new Error('Tanggal respons AlAdhan tidak cocok.');
+    var h = data.date && data.date.hijri || {};
+    var monthName = normalizeHijriMonthNameIndonesia_(h.month && h.month.en || '');
+    var hijri = h.day && monthName && h.year
+      ? String(h.day) + ' ' + monthName + ' ' + String(h.year) + ' H' : '';
+    if (!hijri) throw new Error('Tanggal Hijriah tidak lengkap pada respons AlAdhan.');
+    var result = { success: true, found: true, date: date, hijri: hijri, source: 'AlAdhan API / method 20 (Indonesia)', cached: false };
+    Logger.log('KALENDER HIJRIAH VALIDASI LANGSUNG ALADHAN: ' + date + ' => ' + hijri + ' (' + loc.kota + ')');
+    return result;
+  } catch (error) {
+    apiError = String(error && error.message || error);
+    Logger.log('ALADHAN HIJRIAH HARIAN GAGAL; mencoba cache tahunan: ' + apiError);
+  }
+  var fallback = getHijriDateFromAnnualCache_(date);
+  if (fallback && fallback.success === true && fallback.found === true &&
+      String(fallback.date || '') === date && String(fallback.hijri || '').trim()) {
+    fallback.cached = true;
+    fallback.cacheSource = 'Cache tahunan AlAdhan (fallback setelah API harian gagal)';
+    fallback.alAdhanError = apiError;
+    return fallback;
+  }
+  return {
+    success: false, found: false, hijri: '', date: date,
+    source: 'AlAdhan API / method 20 (Indonesia)',
+    error: 'AlAdhan gagal dan cache kalender Hijriah AlAdhan tidak tersedia atau tidak cocok.',
+    alAdhanError: apiError,
+    fallbackReason: fallback && fallback.error || 'Cache tahunan tidak valid.'
+  };
+}
+
+function getHijriDateFromAnnualCache_(dateString) {
   const date = String(dateString || '').trim();
   if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date)) {
     return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache', error: 'Tanggal Masehi tidak valid.' };
