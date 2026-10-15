@@ -5562,12 +5562,17 @@ function refreshPrayerCacheForCurrentCity(forceRefresh) {
     return { success: false, skipped: true, kota: city, tanggal: date, error: reason || "Data AlAdhan belum lengkap." };
   }
 
+  const cacheSource = String(schedule.cacheSource || "Cache bulanan AlAdhan tervalidasi");
+  // "changed" hanya true jika dokumen bulanan benar-benar ditulis ke GitHub.
+  // Validasi data identik tidak dihitung sebagai perubahan.
+  const changed = cacheSource.indexOf("refresh tersimpan ke GitHub") >= 0;
   Logger.log("CACHE BULANAN ALADHAN VALID: " + city + " " + date +
+    "; status=" + cacheSource + "; changed=" + changed +
     "; tidak ada cache harian GitHub yang dibuat.");
   return {
-    success: true, changed: true, kota: city, tanggal: date,
+    success: true, changed: changed, kota: city, tanggal: date,
     timezone: timezone, source: schedule.source,
-    cacheSource: "Cache bulanan AlAdhan diperbarui"
+    cacheSource: cacheSource
   };
 }
 
