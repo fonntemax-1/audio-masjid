@@ -3774,7 +3774,127 @@ function normalizeHijriMonthNameIndonesia_(value) {
   return monthMap[key] || raw;
 }
 
+/**
+ * Sumber utama harian: AlAdhan timingsByCity untuk tanggal aktif.
+ * Cache bulanan AlAdhan hanya dipakai bila permintaan harian gagal.
+ * forceRefresh=true khusus layanan latar belakang untuk memperbarui cache bulanan.
+ */
 function getPrayerSchedule(dateString, options) {
+  options = options || {};
+  if (options.forceRefresh === true) {
+    return getPrayerScheduleFromMonthlyCache_(dateString, options);
+  }
+
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) return { success: false, error: 'Sheet panels tidak ditemukan.' };
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var kota = loc[0] || '';
+  var provinsi = loc[1] || '';
+  var timezone = loc[3] || 'Asia/Makassar';
+  if (!kota) return { success: false, error: 'panels!C5 (kota) kosong.' };
+  if (!dateString) dateString = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
+  dateString = String(dateString).trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return { success: false, error: 'Format tanggal harus YYYY-MM-DD.' };
+  }
+
+  var parts = dateString.split('-');
+  var day = parts[2], month = parts[1], year = parts[0];
+  var apiCity = normalizePrayerLocationName_(kota) || kota;
+  var url = 'https://api.aladhan.com/v1/timingsByCity/' +
+    day + '-' + month + '-' + year +
+    '?city=' + encodeURIComponent(apiCity) +
+    '&country=' + encodeURIComponent('Indonesia') +
+    (provinsi ? '&state=' + encodeURIComponent(provinsi) : '') +
+    '&method=20&school=0&timezonestring=' + encodeURIComponent(timezone);
+
+  var alAdhanError = '';
+  try {
+    var response = UrlFetchApp.fetch(url, {
+      method: 'get', muteHttpExceptions: true,
+      headers: { 'Accept': 'application/json' }
+    });
+    var http = response.getResponseCode();
+    if (http < 200 || http >= 300) {
+      throw new Error('AlAdhan HTTP ' + http + ': ' + String(response.getContentText() || '').slice(0, 300));
+    }
+    var payload = JSON.parse(response.getContentText() || '{}');
+    var data = payload && payload.data || {};
+    var gDate = data.date && data.date.gregorian || {};
+    var rawDate = String(gDate.date || '').trim();
+    var apiDate = rawDate;
+    if (/^\d{2}-\d{2}-\d{4}$/.test(rawDate)) {
+      apiDate = rawDate.slice(6, 10) + '-' + rawDate.slice(3, 5) + '-' + rawDate.slice(0, 2);
+    } else if (gDate.iso) {
+      apiDate = String(gDate.iso).slice(0, 10);
+    }
+    if (apiDate !== dateString) {
+      throw new Error('Tanggal respons AlAdhan tidak cocok: diminta ' + dateString + ', diterima ' + apiDate);
+    }
+    var t = data.timings || {};
+    function normTime(value) {
+      var m = String(value == null ? '' : value).trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(?:\([^)]*\))?$/);
+      if (!m) return '';
+      var h = Number(m[1]), mi = Number(m[2]);
+      if (h > 23 || mi > 59) return '';
+      return ('0' + h).slice(-2) + ':' + ('0' + mi).slice(-2);
+    }
+    var jadwal = {
+      subuh: normTime(t.Fajr), terbit: normTime(t.Sunrise),
+      dzuhur: normTime(t.Dhuhr), ashar: normTime(t.Asr),
+      maghrib: normTime(t.Maghrib), isya: normTime(t.Isha)
+    };
+    if (!isCompletePrayerScheduleSafe_(jadwal)) {
+      throw new Error('Respons jadwal harian AlAdhan tidak lengkap.');
+    }
+    var hijri = data.date && data.date.hijri || {};
+    var hijriMonth = normalizeHijriMonthNameIndonesia_(hijri.month && hijri.month.en || '');
+    var hijriText = hijri.day && hijriMonth && hijri.year
+      ? String(hijri.day) + ' ' + hijriMonth + ' ' + String(hijri.year) + ' H' : '';
+    var geo = getIndonesianTimezoneByProvince_(provinsi);
+    var result = {
+      success: true, tanggal: dateString, kota: kota, provinsi: provinsi,
+      timezone: timezone, zona: geo.zona, gmt: geo.gmt,
+      jadwal: jadwal, hijri: hijriText,
+      hijri_day: String(hijri.day || ''),
+      hijri_month_name: String(hijriMonth || ''),
+      hijri_year: String(hijri.year || ''),
+      source: 'AlAdhan API / method 20 (Indonesia)',
+      cacheSource: 'AlAdhan (validasi harian langsung)'
+    };
+    Logger.log('VALIDASI HARIAN ALADHAN BERHASIL: ' + kota + ' ' + dateString +
+      '; kalender Hijriah dan jadwal sholat langsung dari AlAdhan.');
+    return result;
+  } catch (error) {
+    alAdhanError = String(error && error.message || error);
+    Logger.log('ALADHAN HARIAN GAGAL; mencoba cache bulanan yang cocok: ' + alAdhanError);
+  }
+
+  var fallback = getPrayerScheduleFromMonthlyCache_(dateString, { forceRefresh: false });
+  if (fallback && fallback.success === true &&
+      String(fallback.tanggal || '') === dateString &&
+      String(fallback.kota || '') === kota &&
+      String(fallback.timezone || '') === timezone &&
+      fallback.jadwal && isCompletePrayerScheduleSafe_(fallback.jadwal) &&
+      String(fallback.hijri || '').trim()) {
+    fallback.cacheSource = 'Cache bulanan AlAdhan (fallback setelah API harian gagal)';
+    fallback.alAdhanError = alAdhanError;
+    Logger.log('FALLBACK CACHE BULANAN ALADHAN DIGUNAKAN: ' + kota + ' ' + dateString);
+    return fallback;
+  }
+  return {
+    success: false, source: 'AlAdhan API / method 20 (Indonesia)',
+    kota: kota, provinsi: provinsi, timezone: timezone, tanggal: dateString,
+    error: 'AlAdhan gagal dan cache bulanan AlAdhan tidak tersedia atau tidak cocok.',
+    alAdhanError: alAdhanError,
+    fallbackReason: fallback && (fallback.alAdhanError || fallback.error) || 'Cache bulanan tidak valid.'
+  };
+}
+
+function getPrayerScheduleFromMonthlyCache_(dateString, options) {
   options = options || {};
   var forceRefresh = options.forceRefresh === true;
   var timezoneDefault = 'Asia/Makassar';
