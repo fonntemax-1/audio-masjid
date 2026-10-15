@@ -140,7 +140,7 @@ function hijriSeasonRefreshIfNeeded_(today) {
     if (date !== today) return;
 
     var hijri = dateInfo.hijri || {};
-    var hijriMonth = String(hijri.month && hijri.month.en || "");
+    var hijriMonth = normalizeHijriMonthNameIndonesia_(hijri.month && hijri.month.en || "");
     var day = String(hijri.day || "");
     var hijriYear = String(hijri.year || "");
     if (!day || !hijriMonth || !hijriYear) {
@@ -156,7 +156,7 @@ function hijriSeasonRefreshIfNeeded_(today) {
       "dhu al-qi'dah": "Dzulkaidah", "dhu al-qidah": "Dzulkaidah",
       "dhu al-hijjah": "Dzulhijjah"
     };
-    var localMonth = monthMap[hijriMonth.toLowerCase()] || hijriMonth;
+    var localMonth = hijriMonth;
     apiRow = {
       gregorian_date: today,
       hijri_day: day,
@@ -270,7 +270,7 @@ function refreshHijriCalendarCacheYearFromAlAdhan_(year) {
         ? iso
         : (parts.length === 3 ? parts[2] + "-" + parts[1] + "-" + parts[0] : "");
       var hijri = dateInfo.hijri || {};
-      var hijriMonth = hijri.month && hijri.month.en || "";
+      var hijriMonth = normalizeHijriMonthNameIndonesia_(hijri.month && hijri.month.en || "");
       var day = String(hijri.day || "");
       var hijriYear = String(hijri.year || "");
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date.slice(0, 4) !== String(targetYear) ||
@@ -285,7 +285,7 @@ function refreshHijriCalendarCacheYearFromAlAdhan_(year) {
         "dhu al-qi'dah": "Dzulkaidah", "dhu al-qidah": "Dzulkaidah",
         "dhu al-hijjah": "Dzulhijjah"
       };
-      var localMonth = monthMap[String(hijriMonth).toLowerCase()] || hijriMonth;
+      var localMonth = hijriMonth;
       freshDays[date] = {
         gregorian_date: date,
         hijri_day: day,
