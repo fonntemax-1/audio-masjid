@@ -5271,7 +5271,7 @@ function setupPanelKegiatan() {
  * Fungsi lama dipertahankan sebagai alias agar pemanggilan manual tidak rusak.
  */
 function refreshDaftarKotaDariGithub() {
-  const document = readGithubJsonFile_("data/daftar-kota.json", "migration-api-indonesia-20261014");
+  const document = readGithubJsonFile_("data/daftar-kota.json", "main");
   if (!document || !Array.isArray(document.cities) || document.cities.length < 500) {
     throw new Error("data/daftar-kota.json tidak ditemukan atau jumlah wilayah tidak valid.");
   }
@@ -5821,7 +5821,7 @@ function syncPrayerPanelLocationFromCity_(cityValue, showToast) {
   if (!city) return false;
 
   // Sumber utama metadata wilayah adalah JSON di branch pengujian, bukan sheet daftar-kota.
-  const document = readGithubJsonFile_("data/daftar-kota.json", "migration-api-indonesia-20261014");
+  const document = readGithubJsonFile_("data/daftar-kota.json", "main");
   if (!document || !Array.isArray(document.cities) || document.cities.length !== 514) {
     throw new Error("data/daftar-kota.json tidak tersedia atau jumlah wilayah tidak valid.");
   }
