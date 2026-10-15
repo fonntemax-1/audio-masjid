@@ -4821,7 +4821,8 @@ function refreshHijriCalendarCacheFromAlAdhan() {
   var timezone = loc[3] || 'Asia/Makassar';
   if (!city) throw new Error('panels!C5 (kota) kosong.');
 
-  var yearsToRefresh = [2026, 2027];
+  var currentYear = Number(Utilities.formatDate(new Date(), timezone, 'yyyy'));
+  var yearsToRefresh = [currentYear, currentYear + 1];
   var annualResults = {};
   var generatedAt = new Date().toISOString();
 
@@ -5594,9 +5595,17 @@ function handlePrayerCacheCityEdit_(e) {
 
   try {
     syncPrayerPanelLocationFromCity_(range.getDisplayValue(), false);
-    // Saat kota berubah, ambil ulang kalender bulanan langsung dari AlAdhan
-    // agar cache kota baru benar-benar tersedia; tidak menyentuh scheduler/audio.
+    // Saat kota berubah, refresh cache bulanan dan tahunan dari AlAdhan.
+    // Cache tahunan harus mengikuti lokasi baru agar fallback Hijriah tersedia.
     runPrayerCacheAutoRefresh_("pergantian kota", true);
+    try {
+      var hijriRefresh = refreshHijriCalendarCacheFromAlAdhan();
+      Logger.log("AUTO CACHE HIJRIAH SAAT KOTA BERUBAH: " + JSON.stringify(hijriRefresh));
+    } catch (hijriError) {
+      // Kegagalan cache Hijriah tidak membatalkan hasil cache sholat yang sudah berhasil.
+      Logger.log("AUTO CACHE HIJRIAH SAAT KOTA BERUBAH GAGAL: " +
+        (hijriError && hijriError.stack ? hijriError.stack : hijriError));
+    }
   } catch (error) {
     Logger.log("AUTO CACHE JADWAL SAAT KOTA BERUBAH GAGAL: " +
       (error && error.stack ? error.stack : error));
