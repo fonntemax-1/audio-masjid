@@ -18,6 +18,9 @@ permissions:
 
 jobs:
   deploy:
+    # Deployment hanya boleh berjalan dari main; workflow_dispatch di branch uji
+    # tidak boleh mendorong kode ke proyek Apps Script produksi.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
