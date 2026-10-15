@@ -5549,7 +5549,7 @@ function syncPrayerPanelLocationFromCity_(cityValue, showToast) {
   if (!city) return false;
 
   // Sumber utama metadata wilayah adalah JSON di branch pengujian, bukan sheet daftar-kota.
-  const document = readGithubJsonFile_("data/daftar-kota.json");
+  const document = readGithubJsonFile_("data/daftar-kota.json", "migration-api-indonesia-20261014");
   if (!document || !Array.isArray(document.cities) || document.cities.length !== 514) {
     throw new Error("data/daftar-kota.json tidak tersedia atau jumlah wilayah tidak valid.");
   }
@@ -5573,7 +5573,7 @@ function syncPrayerPanelLocationFromCity_(cityValue, showToast) {
   }
 
   // C6 Provinsi, C7 Zona, C8 Timezone, C9 GMT, C10 slug kota.
-  panels.getRange("C6:C10").setValues([[province, zone, timezone, gmt, slug]]);
+  panels.getRange("C6:C10").setValues([[province], [zone], [timezone], [gmt], [slug]]);
   SpreadsheetApp.flush();
   const written = panels.getRange("C6:C10").getDisplayValues().map(function(row) {
     return String(row[0] || "").trim();
