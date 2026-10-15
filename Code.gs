@@ -3766,7 +3766,7 @@ function normalizeHijriMonthNameIndonesia_(value) {
     'shaban': 'Syaban', 'shaaban': 'Syaban', 'sha ban': 'Syaban', 'syaban': 'Syaban',
     'ramadan': 'Ramadhan', 'ramadhan': 'Ramadhan',
     'shawwal': 'Syawal', 'syawal': 'Syawal',
-    'dhu al qidah': 'Dzulkaidah', 'dhul qidah': 'Dzulkaidah',
+    'dhu al qidah': 'Dzulkaidah', 'dhu al qa dah': 'Dzulkaidah', 'dhu al qaidah': 'Dzulkaidah', 'dhul qidah': 'Dzulkaidah',
     'dzulkaidah': 'Dzulkaidah',
     'dhu al hijjah': 'Dzulhijjah', 'dhul hijjah': 'Dzulhijjah',
     'dzulhijjah': 'Dzulhijjah'
