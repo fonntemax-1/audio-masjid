@@ -8371,7 +8371,7 @@ function startRealtimeAudioConfigPolling_() {
           // STARTUP TIDAK MENUNGGU API INDONESIA.
           // Cache lokal dicoba lebih dahulu karena paling cepat.
           // Jika belum ada, cache GitHub menjadi sumber berikutnya.
-          // API Indonesia baru dipanggil setelah kartu sudah
+          // AlAdhan baru dipanggil setelah kartu sudah
           // mendapatkan data cache, dan berjalan di belakang layar.
           const localLoaded = loadPrayerCardCache();
 
@@ -10393,7 +10393,7 @@ function startRealtimeAudioConfigPolling_() {
           }
 
           console.log(
-            'Hijri API Indonesia:',
+            'Hijri AlAdhan:',
             apiDate,
             '=>',
             title,
@@ -12302,7 +12302,7 @@ function startRealtimeAudioConfigPolling_() {
             .then(function(r) {
               if (r && r.success) {
                 console.log('JADWAL SHOLAT: besok dipreload ' + nextDate +
-                  ' source=' + (r.cacheSource || 'API Indonesia'));
+                  ' source=' + (r.cacheSource || 'AlAdhan'));
               }
             })
             .catch(function(e) {
@@ -12388,48 +12388,6 @@ function startRealtimeAudioConfigPolling_() {
             'JADWAL SHOLAT API RAW:',
             prayerResult
           );
-
-          // Kompatibilitas dengan deployment Apps Script yang sudah
-          // mendapatkan jadwal lengkap tetapi masih mengirim success:false
-          // beserta jadwalDebug. Jika keenam waktu valid, gunakan data itu.
-          if (
-            prayerResult &&
-            prayerResult.success !== true &&
-            prayerResult.jadwalDebug &&
-            typeof prayerResult.jadwalDebug === 'object'
-          ) {
-            const debugSchedule = prayerResult.jadwalDebug;
-            const requiredPrayerKeys = [
-              'subuh',
-              'terbit',
-              'dzuhur',
-              'ashar',
-              'maghrib',
-              'isya'
-            ];
-
-            const debugScheduleReady =
-              requiredPrayerKeys.every(function(key) {
-                return /^([01]?\d|2[0-3]):[0-5]\d$/.test(
-                  String(debugSchedule[key] || '').trim()
-                );
-              });
-
-            if (debugScheduleReady) {
-              prayerResult = Object.assign(
-                {},
-                prayerResult,
-                {
-                  success: true,
-                  jadwal: debugSchedule
-                }
-              );
-
-              console.warn(
-                'JADWAL SHOLAT: success:false tetapi jadwalDebug lengkap; dipakai sebagai fallback.'
-              );
-            }
-          }
 
           if (
             !prayerResult ||
@@ -12639,7 +12597,7 @@ function startRealtimeAudioConfigPolling_() {
 
       const schedule = WEB_APP_STATE.prayer.schedule || {};
       const cached = {
-        source: 'API Indonesia',
+        source: 'AlAdhan API / method 20 (Indonesia)',
         kota: String(WEB_APP_STATE.location.kota || ''),
         timezone: String(getSelectedTimezone() || ''),
         tanggal: String(
@@ -12759,7 +12717,7 @@ function startRealtimeAudioConfigPolling_() {
             !selectedPayload ||
             selectedPayload.success !== true ||
             !selectedPayload.jadwal ||
-            !/^API Indonesia(?:\s*\/\s*Kemenag)?$/i.test(String(selectedPayload.source || '').trim())
+            !/^AlAdhan(?: API(?:\s*\/\s*method 20 \(Indonesia\))?)?$/i.test(String(selectedPayload.source || '').trim())
           ) {
             console.warn(
               'JADWAL GITHUB CACHE MULTI-KOTA: kota belum tersedia',
@@ -12962,7 +12920,7 @@ function startRealtimeAudioConfigPolling_() {
 
         if (
           !cached ||
-          cached.source !== 'API Indonesia' ||
+          !/^AlAdhan(?: API(?:\s*\/\s*method 20 \(Indonesia\))?)?$/i.test(String(cached.source || '').trim()) ||
           !j ||
           !['subuh','terbit','dzuhur','ashar','maghrib','isya']
             .every(function(k) {
@@ -15107,7 +15065,7 @@ function startRealtimeAudioConfigPolling_() {
 
         if (!audioState.prayerScheduleWaitLogged) {
           console.log(
-            'AUDIO SCHEDULE: menunggu jadwal sholat dari API Indonesia...'
+            'AUDIO SCHEDULE: menunggu jadwal sholat dari AlAdhan...'
           );
           audioState.prayerScheduleWaitLogged = true;
         }
@@ -15645,7 +15603,7 @@ function startRealtimeAudioConfigPolling_() {
 
     function isRamadanCalendarDate_() {
 
-      // Acuan utama: bulan pada tanggal Hijriah dari API Indonesia.
+      // Acuan utama: bulan pada tanggal Hijriah dari AlAdhan.
       try {
         const hijriTextEl = document.getElementById('hijri-text');
         const monthText = String(
@@ -15656,18 +15614,6 @@ function startRealtimeAudioConfigPolling_() {
         if (monthText && monthText !== '--') return false;
       } catch (error) {
         console.warn('RAMADAN CALENDAR MODE: tanggal Hijriah API belum tersedia:', error);
-      }
-
-      // Fallback sementara hanya saat tanggal dari API Indonesia belum dimuat.
-      // Begitu teks Hijriah API tersedia, keputusan selalu memakai API Indonesia.
-      try {
-        if (typeof moment === 'function' && moment.iConvert) {
-          const m = moment(getApiDate(), 'YYYY-MM-DD');
-          const hMonth = typeof m.iMonth === 'function' ? Number(m.iMonth()) : -1;
-          if (hMonth >= 0) return hMonth === 8;
-        }
-      } catch (error) {
-        console.warn('RAMADAN CALENDAR MODE: fallback lokal gagal:', error);
       }
 
       return false;
@@ -16790,7 +16736,7 @@ function setCountdownBlackMode(enabled) {
         // PRIORITAS TERAKHIR SEBELUM API INDONESIA:
         // 1. GitHub prayer-cache.json (background service)
         // 2. localStorage cache kartu
-        // 3. Apps Script / API Indonesia sebagai refresh background
+        // 3. Apps Script / AlAdhan sebagai refresh background
         //
         // Ini juga menangani kondisi ketika cache GitHub sudah tersedia
         // tetapi proses updateUI belum sempat memanggil loader.
@@ -18682,7 +18628,7 @@ function setCountdownBlackMode(enabled) {
             updatePrayerCountdown();
           }
 
-          // API Indonesia hanya refresh di belakang layar.
+          // AlAdhan hanya refresh di belakang layar.
           setTimeout(function() {
             fetchPrayerSchedule();
           }, 0);
