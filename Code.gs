@@ -5464,77 +5464,43 @@ function resetAllPrayerCachesAndRefreshAlAdhan() { // Alias nama lama dipertahan
   };
 }
 
+/**
+ * Refresh layanan latar belakang: memperbarui cache BULANAN AlAdhan saja.
+ * Tidak membuat atau menulis cache harian GitHub.
+ */
 function refreshPrayerCacheForCurrentCity(forceRefresh) {
   const ss = getSpreadsheet();
   const panels = ss.getSheetByName("panels");
   if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
-
   const loc = panels.getRange("C5:C10").getDisplayValues().map(function(row) {
     return String(row[0] || "").trim();
   });
   const city = loc[0];
-  const province = loc[1];
   const timezone = loc[3] || "Asia/Makassar";
-  const slug = loc[5] || normalizePrayerCitySlug_(city);
-  if (!city || !slug) throw new Error("Kota atau slug pada panels!C5/C10 kosong.");
-
+  if (!city) throw new Error("panels!C5 (kota) kosong.");
   const date = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd");
-  const schedule = getPrayerSchedule(date, { forceRefresh: forceRefresh === true });
+
+  // forceRefresh=true membuat getPrayerSchedule memperbarui dokumen cache bulanan
+  // dari calendarByCity AlAdhan. Jalur ini tidak menulis data harian.
+  const schedule = getPrayerSchedule(date, { forceRefresh: true });
   if (!schedule || schedule.success !== true ||
       String(schedule.tanggal || "") !== date ||
-      !schedule.jadwal || !isCompletePrayerScheduleSafe_(schedule.jadwal)) {
+      !schedule.jadwal || !isCompletePrayerScheduleSafe_(schedule.jadwal) ||
+      !String(schedule.hijri || "").trim()) {
     const reason = schedule && (schedule.error || schedule.alAdhanError || schedule.fallbackReason);
-    Logger.log("CACHE JADWAL TIDAK DIPUBLIKASIKAN; respons belum valid untuk " + city + " " + date +
+    Logger.log("REFRESH CACHE BULANAN DILEWATI; data AlAdhan belum valid untuk " + city + " " + date +
       (reason ? ": " + reason : ""));
-    return { success: false, skipped: true, kota: city, tanggal: date, error: reason || "Jadwal belum lengkap." };
+    return { success: false, skipped: true, kota: city, tanggal: date, error: reason || "Data AlAdhan belum lengkap." };
   }
 
-  // Satu file harian per kota; isi file langsung berupa jadwal tanggal aktif.
-  const dailyCachePath = "data/prayer-cache-" + slug + ".json";
-  const prior = readGithubJsonFile_(dailyCachePath);
-
-  const entry = {
-    success: true,
-    tanggal: date,
-    kota: city,
-    provinsi: province,
-    regency_id: String(schedule.regency_id || ""),
-    slug: slug,
-    zona: schedule.zona || loc[2] || "",
-    timezone: schedule.timezone || timezone,
-    gmt: schedule.gmt || loc[4] || "",
-    source: schedule.source || "AlAdhan API / method 20 (Indonesia)",
-    jadwal: {
-      subuh: String(schedule.jadwal.subuh || ""),
-      terbit: String(schedule.jadwal.terbit || ""),
-      dzuhur: String(schedule.jadwal.dzuhur || ""),
-      ashar: String(schedule.jadwal.ashar || ""),
-      maghrib: String(schedule.jadwal.maghrib || ""),
-      isya: String(schedule.jadwal.isya || "")
-    },
-    generatedAt: new Date().toISOString()
+  Logger.log("CACHE BULANAN ALADHAN VALID: " + city + " " + date +
+    "; tidak ada cache harian GitHub yang dibuat.");
+  return {
+    success: true, changed: true, kota: city, tanggal: date,
+    timezone: timezone, source: schedule.source,
+    cacheSource: "Cache bulanan AlAdhan diperbarui"
   };
-
-  const sameSchedule = prior && prior.success === true &&
-    prior.tanggal === entry.tanggal &&
-    prior.kota === entry.kota &&
-    prior.provinsi === entry.provinsi &&
-    JSON.stringify(prior.jadwal) === JSON.stringify(entry.jadwal) &&
-    prior.timezone === entry.timezone &&
-    prior.source === entry.source;
-  if (sameSchedule) {
-    Logger.log("CACHE HARIAN GITHUB SUDAH TERBARU: " + city + " " + date + "; commit dilewati.");
-    return { success: true, changed: false, kota: city, tanggal: date, slug: slug, path: dailyCachePath };
-  }
-
-  // Replace file only after the schedule has passed validation above.
-  writeGithubJsonFile_(dailyCachePath, entry,
-    "Replace cache harian jadwal sholat " + city + " " + date);
-  PropertiesService.getScriptProperties().setProperty("GITHUB_PRAYER_CACHE_UPDATED_AT", entry.generatedAt);
-  Logger.log("CACHE HARIAN GITHUB DIPERBARUI: " + city + " " + date + " (" + slug + ").");
-  return { success: true, changed: true, kota: city, tanggal: date, slug: slug, path: dailyCachePath };
 }
-
 
 /**
  * Pemicu installable saat panels!C5 berubah.
