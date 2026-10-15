@@ -1,16 +1,16 @@
 {
   "success": true,
   "source": "AlAdhan / Kalender Hijriah",
-  "updatedAt": "2026-10-14T09:47:08.435Z",
-  "yearCount": 1,
+  "updatedAt": "2026-10-15T03:16:10.757Z",
+  "yearCount": 2,
   "years": {
     "2026": {
       "source": "AlAdhan / Kalender Hijriah",
-      "city": "Kabupaten Sumedang",
-      "province": "Jawa Barat",
-      "timezone": "Asia/Jakarta",
+      "city": "Kabupaten Kutai Kartanegara",
+      "province": "Kalimantan Timur",
+      "timezone": "Asia/Makassar",
       "method": 20,
-      "generatedAt": "2026-10-14T21:42:10.238Z",
+      "generatedAt": "2026-10-15T03:16:10.757Z",
       "dayCount": 365,
       "days": {
         "2026-01-01": {
@@ -2937,11 +2937,11 @@
     },
     "2027": {
       "source": "AlAdhan / Kalender Hijriah",
-      "city": "Kabupaten Sumedang",
-      "province": "Jawa Barat",
-      "timezone": "Asia/Jakarta",
+      "city": "Kabupaten Kutai Kartanegara",
+      "province": "Kalimantan Timur",
+      "timezone": "Asia/Makassar",
       "method": 20,
-      "generatedAt": "2026-10-14T21:42:10.238Z",
+      "generatedAt": "2026-10-15T03:16:10.757Z",
       "dayCount": 365,
       "days": {
         "2027-01-01": {
@@ -5867,5 +5867,5 @@
       }
     }
   },
-  "generatedAt": "2026-10-14T21:42:10.238Z"
+  "generatedAt": "2026-10-15T03:16:10.757Z"
 }
