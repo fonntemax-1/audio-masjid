@@ -3785,6 +3785,7 @@ function processKeyValue(
         String(entry.provinsi || '') !== provinsi ||
         String(entry.timezone || '') !== timezone ||
         Number(entry.tahun) !== year || Number(entry.bulan) !== month ||
+        Number(entry.method) !== 20 || Number(entry.school) !== 0 ||
         !Array.isArray(entry.days)) return false;
     var expected = new Date(year, month, 0).getDate();
     if (entry.days.length !== expected) return false;
