@@ -5003,7 +5003,7 @@ function setupPanelKegiatan() {
  */
 /**
  * Memuat daftar 514 kabupaten/kota dari data/daftar-kota.json di branch pengujian GitHub.
- * GitHub menjadi sumber utama; sheet "daftar-kota" hanya salinan untuk dropdown panels!C5.
+ * GitHub menjadi sumber utama; dropdown panels!C5 menggunakan daftar langsung tanpa sheet perantara.
  * Nama dropdown memakai label administratif lengkap agar nama yang sama tidak ambigu.
  * Fungsi lama dipertahankan sebagai alias agar pemanggilan manual tidak rusak.
  */
@@ -5012,25 +5012,14 @@ function refreshDaftarKotaDariGithub() {
   if (!document || !Array.isArray(document.cities) || document.cities.length < 500) {
     throw new Error("data/daftar-kota.json tidak ditemukan atau jumlah wilayah tidak valid.");
   }
-  const sourceCities = document.cities;
+
   const ss = getSpreadsheet();
   const panels = ss.getSheetByName("panels");
   if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
 
-  // Simpan kode wilayah pilihan saat ini dari sheet lama sebelum ditimpa.
   const currentCityBeforeSync = String(panels.getRange("C5").getDisplayValue() || "").trim();
-  const oldListSheet = ss.getSheetByName("daftar-kota");
-  let currentRegencyId = "";
-  if (currentCityBeforeSync && oldListSheet && oldListSheet.getLastRow() >= 2) {
-    const oldRows = oldListSheet.getRange(2, 1, oldListSheet.getLastRow() - 1, 7).getDisplayValues();
-    const oldMatches = oldRows.filter(function(row) {
-      return normalizePrayerDropdownName_(row[0]) === normalizePrayerDropdownName_(currentCityBeforeSync);
-    });
-    if (oldMatches.length === 1) currentRegencyId = String(oldMatches[0][2] || "").trim();
-  }
-
   const ids = {};
-  const rows = sourceCities.map(function(city) {
+  const rows = document.cities.map(function(city) {
     const displayName = String(city.display_name || "").trim();
     const provinceName = String(city.province || "").trim();
     const regencyId = String(city.regency_id || "").trim();
@@ -5041,53 +5030,57 @@ function refreshDaftarKotaDariGithub() {
     if (!displayName || !provinceName || !regencyId || !timezone || !slug) return null;
     if (ids[regencyId]) throw new Error("Kode wilayah duplikat pada data/daftar-kota.json: " + regencyId);
     ids[regencyId] = true;
-    return [displayName, provinceName, regencyId, zone, timezone, gmt, slug];
-  }).filter(function(row) { return row !== null; });
+    return {
+      displayName: displayName,
+      province: provinceName,
+      regencyId: regencyId,
+      zone: zone,
+      timezone: timezone,
+      gmt: gmt,
+      slug: slug
+    };
+  }).filter(function(city) { return city !== null; });
 
   if (rows.length !== 514 || Object.keys(ids).length !== 514) {
     throw new Error("Validasi daftar wilayah gagal. Ditemukan " + rows.length + " baris valid, seharusnya 514.");
   }
   rows.sort(function(a, b) {
-    return a[1].localeCompare(b[1], "id") || a[0].localeCompare(b[0], "id");
+    return a.province.localeCompare(b.province, "id") || a.displayName.localeCompare(b.displayName, "id");
   });
 
-  let listSheet = ss.getSheetByName("daftar-kota");
-  if (!listSheet) listSheet = ss.insertSheet("daftar-kota");
-  const headers = ["Kabupaten/Kota", "Provinsi", "Kode Wilayah", "Zona", "Timezone", "GMT", "Slug Kota"];
-  listSheet.clearContents();
-  listSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-  listSheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
-  listSheet.setFrozenRows(1);
-  listSheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
-  listSheet.autoResizeColumns(1, headers.length);
-
-  const validationRange = listSheet.getRange(2, 1, rows.length, 1);
+  // Dropdown memakai daftar langsung dari JSON; tidak memerlukan sheet "daftar-kota".
+  const cityNames = rows.map(function(city) { return city.displayName; });
   const rule = SpreadsheetApp.newDataValidation()
-    .requireValueInRange(validationRange, true)
+    .requireValueInList(cityNames, true)
     .setAllowInvalid(false)
     .build();
   panels.getRange("C5").setDataValidation(rule);
 
-  let selected = [];
-  if (currentRegencyId) {
-    selected = rows.filter(function(row) { return String(row[2] || "").trim() === currentRegencyId; });
-  }
-  if (!selected.length && currentCityBeforeSync) {
-    selected = rows.filter(function(row) {
-      return normalizePrayerDropdownName_(row[0]) === normalizePrayerDropdownName_(currentCityBeforeSync);
+  // Pertahankan kota terpilih bila masih cocok dengan label administratif.
+  if (currentCityBeforeSync) {
+    const wanted = normalizePrayerDropdownName_(currentCityBeforeSync);
+    const selected = rows.filter(function(city) {
+      return normalizePrayerDropdownName_(city.displayName) === wanted;
     });
+    if (selected.length === 1) {
+      panels.getRange("C5").setValue(selected[0].displayName);
+      syncPrayerPanelLocationFromCity_(selected[0].displayName, false);
+    }
   }
-  // Utamakan kode wilayah agar perubahan nama pada JSON tetap memperbarui C5.
-  if (selected.length === 1) {
-    panels.getRange("C5").setValue(selected[0][0]);
-    syncPrayerPanelLocationFromCity_(selected[0][0], false);
+
+  // Hapus sheet salinan lama jika ada; dropdown sudah tidak bergantung padanya.
+  const oldListSheet = ss.getSheetByName("daftar-kota");
+  if (oldListSheet) {
+    if (ss.getSheets().length <= 1) throw new Error("Sheet daftar-kota tidak dapat dihapus karena merupakan satu-satunya sheet.");
+    ss.deleteSheet(oldListSheet);
   }
 
   const now = new Date().toISOString();
   PropertiesService.getScriptProperties().setProperty("GITHUB_CITY_LIST_SYNCED_AT", now);
   Logger.log("DAFTAR KOTA DISINKRONKAN DARI GITHUB: " + rows.length +
-    " kabupaten/kota, versi data " + String(document.version || "?") + ".");
-  return { success: true, count: rows.length, source: "GitHub data/daftar-kota.json", sheet: "daftar-kota" };
+    " kabupaten/kota, versi data " + String(document.version || "?") +
+    "; dropdown langsung dari JSON; sheet daftar-kota tidak digunakan.");
+  return { success: true, count: rows.length, source: "GitHub data/daftar-kota.json", dropdown: "panels!C5", sheet: null };
 }
 
 /** Alias kompatibilitas; tidak lagi memanggil AlAdhan untuk daftar kota. */
