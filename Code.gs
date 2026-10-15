@@ -3813,6 +3813,9 @@ function getPrayerSchedule(dateString, options) {
 
   var alAdhanError = '';
   try {
+    if (options._testForceAlAdhanFailure === true) {
+      throw new Error('Simulasi kegagalan API AlAdhan untuk pengujian fallback.');
+    }
     var response = UrlFetchApp.fetch(url, {
       method: 'get', muteHttpExceptions: true,
       headers: { 'Accept': 'application/json' }
@@ -4148,6 +4151,63 @@ function getPrayerScheduleFromMonthlyCache_(dateString, options) {
       alAdhanError: message
     };
   }
+}
+
+
+/**
+ * UJI JALUR FALLBACK OTOMATIS TANPA MEMATIKAN API ATAU MENGUBAH DATA.
+ * Flag simulasi hanya diteruskan oleh fungsi pengujian ini.
+ */
+function TEST_ALADHAN_FALLBACK_OTOMATIS(dateString) {
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) throw new Error('Sheet panels tidak ditemukan.');
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var city = loc[0] || '';
+  var timezone = loc[3] || 'Asia/Makassar';
+  if (!city) throw new Error('panels!C5 (kota) kosong.');
+  var date = String(dateString || Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd')).trim();
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) throw new Error('Format tanggal harus YYYY-MM-DD.');
+
+  var simulated = { _testForceAlAdhanFailure: true };
+  var prayer = getPrayerSchedule(date, simulated);
+  var hijri = getHijriDateFromApi(date, simulated);
+  var issues = [];
+  if (!prayer || prayer.success !== true ||
+      String(prayer.tanggal || '') !== date ||
+      String(prayer.kota || '') !== city ||
+      String(prayer.timezone || '') !== timezone ||
+      !prayer.jadwal || !isCompletePrayerScheduleSafe_(prayer.jadwal) ||
+      String(prayer.cacheSource || '').indexOf('fallback setelah API harian gagal') < 0) {
+    issues.push('Fallback jadwal sholat otomatis tidak berhasil: ' +
+      String(prayer && (prayer.error || prayer.fallbackReason || prayer.alAdhanError) || 'respons tidak valid'));
+  }
+  if (!hijri || hijri.success !== true || hijri.found !== true ||
+      String(hijri.date || '') !== date || !String(hijri.hijri || '').trim() ||
+      String(hijri.cacheSource || '').indexOf('fallback setelah API harian gagal') < 0) {
+    issues.push('Fallback kalender Hijriah otomatis tidak berhasil: ' +
+      String(hijri && (hijri.error || hijri.fallbackReason || hijri.alAdhanError) || 'respons tidak valid'));
+  }
+  var report = {
+    success: issues.length === 0,
+    pengujian: 'Simulasi kegagalan API harian; verifikasi fallback otomatis',
+    apiBenarBenarDipanggil: false,
+    kota: city,
+    tanggal: date,
+    timezone: timezone,
+    jadwalFallback: prayer && prayer.cacheSource || '',
+    jadwalCacheSource: prayer && prayer.cacheSource || '',
+    hijriFallback: hijri && hijri.cacheSource || '',
+    hijri: hijri && hijri.hijri || '',
+    jadwalLengkap: !!(prayer && prayer.success === true && isCompletePrayerScheduleSafe_(prayer.jadwal)),
+    issues: issues
+  };
+  Logger.log('TEST_ALADHAN_FALLBACK_OTOMATIS: ' + JSON.stringify(report, null, 2));
+  if (!report.success) throw new Error('TEST_ALADHAN_FALLBACK_OTOMATIS GAGAL: ' + JSON.stringify(issues));
+  Logger.log('TEST_ALADHAN_FALLBACK_OTOMATIS LULUS');
+  return report;
 }
 
 // ============================================================
@@ -4894,7 +4954,8 @@ function refreshHijriCalendarCacheFromAlAdhan() {
  * Kalender Hijriah: AlAdhan harian selalu divalidasi terlebih dahulu.
  * Kalender tahunan AlAdhan hanya menjadi fallback saat permintaan harian gagal.
  */
-function getHijriDateFromApi(dateString) {
+function getHijriDateFromApi(dateString, options) {
+  options = options || {};
   var date = String(dateString || '').trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan', error: 'Tanggal Masehi tidak valid.' };
@@ -4913,6 +4974,9 @@ function getHijriDateFromApi(dateString) {
     '&method=20&school=0&timezonestring=' + encodeURIComponent(loc.timezone || 'Asia/Makassar');
   var apiError = '';
   try {
+    if (options._testForceAlAdhanFailure === true) {
+      throw new Error('Simulasi kegagalan API AlAdhan untuk pengujian fallback.');
+    }
     var response = UrlFetchApp.fetch(url, { method: 'get', muteHttpExceptions: true, headers: { 'Accept': 'application/json' } });
     var http = response.getResponseCode();
     if (http < 200 || http >= 300) throw new Error('AlAdhan HTTP ' + http);
