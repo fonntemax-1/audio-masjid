@@ -827,7 +827,7 @@ function resolveCoordinatesCityFromApi_(params) {
 
 /**
  * Memilih kota jadwal yang didukung dari hasil reverse geocoding Google Maps.
- * Pencarian ini tidak mengambil jadwal sholat dan tidak memanggil MuslimKita
+ * Pencarian ini tidak mengambil jadwal sholat dan tidak memanggil penyedia eksternal
  * atau API Indonesia. C5 hanya diubah bila komponen kabupaten/kota cocok
  * dengan pilihan yang benar-benar tersedia pada dropdown C5.
  */
