@@ -12706,7 +12706,7 @@ function startRealtimeAudioConfigPolling_() {
             !selectedPayload ||
             selectedPayload.success !== true ||
             !selectedPayload.jadwal ||
-            !/^AlAdhan(?: API(?:\s*\/\s*method 20 \((?:Indonesia|Kemenag Indonesia)\))?)?$/i.test(String(selectedPayload.source || '').trim())
+            !/^AlAdhan(?: API(?:\s*\/\s*method 20 \(Indonesia\))?)?$/i.test(String(selectedPayload.source || '').trim())
           ) {
             console.warn(
               'JADWAL GITHUB CACHE MULTI-KOTA: kota belum tersedia',
@@ -12909,7 +12909,7 @@ function startRealtimeAudioConfigPolling_() {
 
         if (
           !cached ||
-          !/^AlAdhan(?: API(?:\s*\/\s*method 20 \((?:Indonesia|Kemenag Indonesia)\))?)?$/i.test(String(cached.source || '').trim()) ||
+          !/^AlAdhan(?: API(?:\s*\/\s*method 20 \(Indonesia\))?)?$/i.test(String(cached.source || '').trim()) ||
           !j ||
           !['subuh','terbit','dzuhur','ashar','maghrib','isya']
             .every(function(k) {
