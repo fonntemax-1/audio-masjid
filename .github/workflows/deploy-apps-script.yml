@@ -3,9 +3,13 @@ name: Deploy Apps Script Backend
 on:
   workflow_dispatch:
   push:
+    branches:
+      - "main"
     paths:
       - "Code.gs"
       - "API.gs"
+      - "HijriSeasonCache.gs"
+      - "PrayerMonthlyPreload.gs"
       - "appsscript.json"
       - ".github/workflows/deploy-apps-script.yml"
 
