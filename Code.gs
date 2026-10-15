@@ -5166,13 +5166,6 @@ function deleteGithubFile_(path, branch, message) {
 }
 
 /**
- * Alias kompatibilitas untuk pemicu mingguan lama, bila masih terpasang.
- */
-function autoRefreshHijriCalendarCachePeriodic_() {
-  return validateHijriCalendarCacheDaily();
-}
-
-/**
  * Kalender Hijriah: AlAdhan harian selalu divalidasi terlebih dahulu.
  * Kalender tahunan AlAdhan hanya menjadi fallback saat permintaan harian gagal.
  */
@@ -5843,20 +5836,10 @@ function testAutoRefreshPrayerCachePeriodic() {
 }
 
 /**
- * Refresh kalender Hijriah tahunan secara terpisah dari jadwal sholat.
- * Trigger mingguan menjaga cache tetap segar tanpa memanggil 24 endpoint
- * kalender setiap enam jam. Pergantian kota tetap memicu refresh langsung.
+ * Kompatibilitas pemicu lama: validasi harian, bukan unduhan ulang satu tahun.
  */
 function autoRefreshHijriCalendarCachePeriodic_() {
-  try {
-    var result = refreshHijriCalendarCacheFromAlAdhan();
-    Logger.log("AUTO REFRESH KALENDER HIJRIAH BERKALA: " + JSON.stringify(result));
-    return result;
-  } catch (error) {
-    Logger.log("AUTO REFRESH KALENDER HIJRIAH BERKALA GAGAL: " +
-      (error && error.stack ? error.stack : error));
-    throw error;
-  }
+  return validateHijriCalendarCacheDaily();
 }
 
 /** Menjalankan pembaruan dengan lock agar edit kota dan pemicu berkala tidak bertabrakan. */
