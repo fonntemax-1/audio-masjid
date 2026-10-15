@@ -5618,8 +5618,25 @@ function handlePrayerCacheCityEdit_(e) {
  * tetap baru meski kota tidak berubah. Tidak membuat commit jika data sama.
  */
 function autoRefreshPrayerCachePeriodic_() {
-  // Refresh kalender bulanan dari AlAdhan secara berkala; tidak membuat cache harian.
+  // Refresh cache jadwal sholat bulanan dari AlAdhan; tidak membuat cache harian.
   runPrayerCacheAutoRefresh_("pemeriksaan berkala", true);
+}
+
+/**
+ * Refresh kalender Hijriah tahunan secara terpisah dari jadwal sholat.
+ * Trigger mingguan menjaga cache tetap segar tanpa memanggil 24 endpoint
+ * kalender setiap enam jam. Pergantian kota tetap memicu refresh langsung.
+ */
+function autoRefreshHijriCalendarCachePeriodic_() {
+  try {
+    var result = refreshHijriCalendarCacheFromAlAdhan();
+    Logger.log("AUTO REFRESH KALENDER HIJRIAH BERKALA: " + JSON.stringify(result));
+    return result;
+  } catch (error) {
+    Logger.log("AUTO REFRESH KALENDER HIJRIAH BERKALA GAGAL: " +
+      (error && error.stack ? error.stack : error));
+    throw error;
+  }
 }
 
 /** Menjalankan pembaruan dengan lock agar edit kota dan pemicu berkala tidak bertabrakan. */
@@ -5645,7 +5662,11 @@ function runPrayerCacheAutoRefresh_(reason, forceRefresh) {
  * tidak dihapus atau diubah.
  */
 function setupPrayerCacheAutoTriggers() {
-  const handlers = ["handlePrayerCacheCityEdit_", "autoRefreshPrayerCachePeriodic_"];
+  const handlers = [
+    "handlePrayerCacheCityEdit_",
+    "autoRefreshPrayerCachePeriodic_",
+    "autoRefreshHijriCalendarCachePeriodic_"
+  ];
   ScriptApp.getProjectTriggers().forEach(function(trigger) {
     if (handlers.indexOf(trigger.getHandlerFunction()) >= 0) {
       ScriptApp.deleteTrigger(trigger);
@@ -5667,7 +5688,12 @@ function setupPrayerCacheAutoTriggers() {
     .everyHours(6)
     .create();
 
-  Logger.log("PEMICU CACHE JADWAL AKTIF: saat panels!C5 berubah dan pemeriksaan setiap 6 jam.");
+  ScriptApp.newTrigger("autoRefreshHijriCalendarCachePeriodic_")
+    .timeBased()
+    .everyWeeks(1)
+    .create();
+
+  Logger.log("PEMICU CACHE AKTIF: saat panels!C5 berubah, jadwal sholat tiap 6 jam, kalender Hijriah tiap minggu.");
 }
 
 /** Membaca JSON dari branch migration; null hanya jika file memang belum ada (HTTP 404). */
