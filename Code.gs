@@ -4736,7 +4736,10 @@ function getHijriDateFromApi(dateString) {
     const cached = cache.get(cacheKey);
     if (cached) {
       const parsed = JSON.parse(cached);
-      if (parsed && parsed.success === true && parsed.hijri) {
+      if (parsed && parsed.success === true &&
+          String(parsed.source || '') === 'AlAdhan Hijri cache' &&
+          String(parsed.date || '') === date &&
+          String(parsed.hijri || '').trim()) {
         parsed.cached = true;
         return parsed;
       }
