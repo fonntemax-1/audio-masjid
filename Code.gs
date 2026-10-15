@@ -6709,7 +6709,7 @@ function TEST_ALADHAN_CACHE_CADANGAN(dateString) {
   var timezone = loc[3] || 'Asia/Makassar';
   if (!city) throw new Error('panels!C5 (kota) kosong.');
   var date = String(dateString || Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd')).trim();
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new Error('Format tanggal harus YYYY-MM-DD.');
   }
 
@@ -6728,8 +6728,8 @@ function TEST_ALADHAN_CACHE_CADANGAN(dateString) {
   if (hijri && hijri.success === true && String(hijri.date || '') !== date) {
     issues.push('Tanggal Hijriah cache tidak cocok.');
   }
-  var prayerHijri = String(prayer && prayer.hijri || '').trim().replace(/\\s+/g, ' ');
-  var annualHijri = String(hijri && hijri.hijri || '').trim().replace(/\\s+/g, ' ');
+  var prayerHijri = String(prayer && prayer.hijri || '').trim().replace(/\s+/g, ' ');
+  var annualHijri = String(hijri && hijri.hijri || '').trim().replace(/\s+/g, ' ');
   if (prayerHijri && annualHijri && prayerHijri !== annualHijri) {
     issues.push('Tanggal Hijriah cache bulanan dan tahunan berbeda: ' +
       JSON.stringify({ jadwalBulanan: prayerHijri, kalenderTahunan: annualHijri }));
