@@ -5877,6 +5877,7 @@ function writeGithubJsonFile_(path, document, message) {
   return { success: true, path: path };
 }
 
+// Deployment marker 2026-10-15: cache jadwal/Hijriah AlAdhan-only pada main.
 function TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION() {
   var ss = getSpreadsheet();
   var panels = ss.getSheetByName('panels');
