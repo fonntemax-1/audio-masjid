@@ -2,7 +2,7 @@
   "success": true,
   "source": "AlAdhan API / method 20 (Indonesia)",
   "generatedAt": "2026-10-14T21:11:08.812Z",
-  "updatedAt": "2026-10-14T23:46:29.099Z",
+  "updatedAt": "2026-10-15T00:33:41.954Z",
   "monthCount": 1,
   "months": {
     "2026-10": {
@@ -14,7 +14,7 @@
       "method": 20,
       "school": 0,
       "source": "AlAdhan API / method 20 (Indonesia)",
-      "updatedAt": "2026-10-14T23:46:29.099Z",
+      "updatedAt": "2026-10-15T00:33:41.954Z",
       "days": [
         {
           "date": "2026-10-01",
@@ -134,7 +134,7 @@
             "subuh": "04:11",
             "terbit": "05:29",
             "dzuhur": "11:35",
-            "ashar": "14:38",
+            "ashar": "14:37",
             "maghrib": "17:41",
             "isya": "18:51"
           },
@@ -166,7 +166,7 @@
             "subuh": "04:10",
             "terbit": "05:28",
             "dzuhur": "11:35",
-            "ashar": "14:36",
+            "ashar": "14:37",
             "maghrib": "17:41",
             "isya": "18:51"
           },
