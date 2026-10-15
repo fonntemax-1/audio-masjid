@@ -3973,7 +3973,7 @@ function getPrayerScheduleFromMonthlyCache_(dateString, options) {
         else monthlyEntry = null;
       }
       if (!monthlyEntry) {
-        try { monthlyDoc = readGithubJsonFile_(monthlyCachePath); }
+        try { monthlyDoc = readGithubJsonFile_(monthlyCachePath, 'migration-api-indonesia-20261014'); }
         catch (githubReadError) {
           Logger.log('CACHE JADWAL ALADHAN GITHUB TIDAK DAPAT DIBACA: ' +
             String(githubReadError && githubReadError.message || githubReadError));
