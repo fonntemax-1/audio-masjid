@@ -4891,7 +4891,7 @@ function refreshHijriCalendarCacheFromAlAdhan() {
       return { year: year, dayCount: annualResults[String(year)].dayCount };
     }),
     path: 'data/hijri-calendar-cache.json',
-    branch: String(PropertiesService.getScriptProperties().getProperty('GITHUB_CACHE_BRANCH') || 'main').trim()
+    branch: "main"
   };
   Logger.log('REFRESH KALENDER HIJRIAH ALADHAN SELESAI: ' + JSON.stringify(report));
   return report;
@@ -5806,7 +5806,7 @@ function getIndonesianTimezoneByProvince_(province) {
 /** Mengisi panels!C6:C10 sesuai pilihan di panels!C5. */
 
 function readGithubJsonFile_(path) {
-  const targetBranch = String(PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
+  const targetBranch = "main"; // Cache produksi AlAdhan selalu membaca dari dan menulis ke main.
   const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
   if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
   const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
