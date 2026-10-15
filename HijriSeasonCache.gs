@@ -348,7 +348,7 @@ function refreshActiveCityMonthlyPrayerCache_(today) {
   }
   return {
     checked: true,
-    updated: true,
+    updated: String(schedule.cacheSource || "").indexOf("tanpa perubahan") < 0,
     source: schedule.source || "AlAdhan API / method 20 (Indonesia)",
     month: today.slice(0, 7),
     kota: schedule.kota,
