@@ -5057,9 +5057,11 @@ function validateHijriCalendarCacheForZone_(expectedZone) {
 function setupHijriCalendarCacheAutoTriggers() {
   var handlers = [
     'autoRefreshHijriCalendarCachePeriodic_',
+    'runHijriSeasonCacheCheckNow',
     'autoValidateHijriCalendarCacheWIB_',
     'autoValidateHijriCalendarCacheWITA_',
-    'autoValidateHijriCalendarCacheWIT_'
+    'autoValidateHijriCalendarCacheWIT_',
+    'runPrayerMonthlyCacheCheckNow'
   ];
   ScriptApp.getProjectTriggers().forEach(function(trigger) {
     if (handlers.indexOf(trigger.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(trigger);
@@ -5070,8 +5072,11 @@ function setupHijriCalendarCacheAutoTriggers() {
     .timeBased().atHour(0).everyDays(1).inTimezone('Asia/Makassar').create();
   ScriptApp.newTrigger('autoValidateHijriCalendarCacheWIT_')
     .timeBased().atHour(0).everyDays(1).inTimezone('Asia/Jayapura').create();
-  Logger.log('PEMICU KALENDER HIJRIAH AKTIF: validasi harian zona WIB/WITA/WIT mendekati pukul 00.00 lokal.');
-  return { success: true, triggers: 3, handlers: handlers.slice(1) };
+  // Pemeriksaan cache jadwal sholat bulanan tetap dipertahankan terpisah dari audio.
+  ScriptApp.newTrigger('runPrayerMonthlyCacheCheckNow')
+    .timeBased().atHour(3).everyDays(1).inTimezone('Asia/Makassar').create();
+  Logger.log('PEMICU KALENDER HIJRIAH AKTIF: WIB/WITA/WIT mendekati 00.00 lokal; validasi cache jadwal bulanan sekitar 03.00 WITA.');
+  return { success: true, triggers: 4, handlers: ['autoValidateHijriCalendarCacheWIB_', 'autoValidateHijriCalendarCacheWITA_', 'autoValidateHijriCalendarCacheWIT_', 'runPrayerMonthlyCacheCheckNow'] };
 }
 
 /** Membersihkan berkas tahun yang bukan tahun berjalan setelah cache baru tervalidasi. */
