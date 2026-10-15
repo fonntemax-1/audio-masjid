@@ -1,7 +1,7 @@
 {
   "success": true,
   "source": "AlAdhan / Kalender Hijriah",
-  "updatedAt": "2026-10-14T23:25:09.808Z",
+  "updatedAt": "2026-10-15T00:18:58.876Z",
   "yearCount": 2,
   "years": {
     "2026": {
@@ -2310,9 +2310,9 @@
           "source": "AlAdhan / Kalender Hijriah"
         },
         "2026-10-15": {
+          "gregorian_date": "2026-10-15",
           "hijri_day": "4",
           "hijri_month_name": "Jumādá al-ūlá",
-          "hijri_month_number": 5,
           "hijri_year": "1448",
           "hijri_formatted": "4 Jumādá al-ūlá 1448 H",
           "source": "AlAdhan / Kalender Hijriah"
@@ -2933,7 +2933,8 @@
           "hijri_formatted": "22 Rajab 1448 H",
           "source": "AlAdhan / Kalender Hijriah"
         }
-      }
+      },
+      "updatedAt": "2026-10-15T00:18:58.875Z"
     },
     "2027": {
       "source": "AlAdhan / Kalender Hijriah",
