@@ -5003,7 +5003,7 @@ function setupPanelKegiatan() {
  */
 /**
  * Memuat daftar 514 kabupaten/kota dari data/daftar-kota.json di branch pengujian GitHub.
- * GitHub menjadi sumber utama; dropdown panels!C5 menggunakan daftar langsung tanpa sheet perantara.
+ * GitHub menjadi sumber utama; dropdown memakai sheet helper tersembunyi karena batas 500 item pada validasi langsung.
  * Nama dropdown memakai label administratif lengkap agar nama yang sama tidak ambigu.
  * Fungsi lama dipertahankan sebagai alias agar pemanggilan manual tidak rusak.
  */
@@ -5049,10 +5049,18 @@ function refreshDaftarKotaDariGithub() {
     return a.province.localeCompare(b.province, "id") || a.displayName.localeCompare(b.displayName, "id");
   });
 
-  // Dropdown memakai daftar langsung dari JSON; tidak memerlukan sheet "daftar-kota".
-  const cityNames = rows.map(function(city) { return city.displayName; });
+  // Google Sheets membatasi requireValueInList menjadi 500 item.
+  // Gunakan sheet helper tersembunyi sebagai sumber rentang untuk seluruh 514 kota.
+  const cityNames = rows.map(function(city) { return [city.displayName]; });
+  let helperSheet = ss.getSheetByName("_dropdown-kota");
+  if (!helperSheet) helperSheet = ss.insertSheet("_dropdown-kota");
+  helperSheet.clearContents();
+  helperSheet.getRange(1, 1, cityNames.length, 1).setValues(cityNames);
+  helperSheet.hideSheet();
+
+  const validationRange = helperSheet.getRange(1, 1, cityNames.length, 1);
   const rule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(cityNames, true)
+    .requireValueInRange(validationRange, true)
     .setAllowInvalid(false)
     .build();
   panels.getRange("C5").setDataValidation(rule);
@@ -5070,7 +5078,7 @@ function refreshDaftarKotaDariGithub() {
     }
   }
 
-  // Hapus sheet salinan lama jika ada; dropdown sudah tidak bergantung padanya.
+  // Hapus sheet salinan lama; dropdown kini memakai helper tersembunyi _dropdown-kota.
   const oldListSheet = ss.getSheetByName("daftar-kota");
   if (oldListSheet) {
     if (ss.getSheets().length <= 1) throw new Error("Sheet daftar-kota tidak dapat dihapus karena merupakan satu-satunya sheet.");
@@ -5082,7 +5090,7 @@ function refreshDaftarKotaDariGithub() {
   Logger.log("DAFTAR KOTA DISINKRONKAN DARI GITHUB: " + rows.length +
     " kabupaten/kota, versi data " + String(document.version || "?") +
     "; dropdown langsung dari JSON; sheet daftar-kota tidak digunakan.");
-  return { success: true, count: rows.length, source: "GitHub data/daftar-kota.json", dropdown: "panels!C5", sheet: null };
+  return { success: true, count: rows.length, source: "GitHub data/daftar-kota.json", dropdown: "panels!C5", helperSheet: "_dropdown-kota", visibleCityListSheet: false };
 }
 
 /** Alias kompatibilitas; tidak lagi memanggil AlAdhan untuk daftar kota. */
