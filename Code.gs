@@ -3895,18 +3895,19 @@ function processKeyValue(
           normalizedDays.length + ', seharusnya ' + expectedDays + ' tanggal.');
       }
 
-      monthlyEntry = {
-        tahun: year,
-        bulan: month,
-        kota: kota,
-        provinsi: provinsi,
-        timezone: timezone,
-        method: 20,
-        school: 0,
-        source: sourceName,
-        updatedAt: new Date().toISOString(),
-        days: normalizedDays
-      };
+      var existingMonthlyEntry = monthlyDoc && monthlyDoc.months &&
+        monthlyDoc.months[monthId] ? monthlyDoc.months[monthId] : null;
+      var sameMonthlyData = !!existingMonthlyEntry &&
+        String(existingMonthlyEntry.source || '') === sourceName &&
+        String(existingMonthlyEntry.kota || '') === kota &&
+        String(existingMonthlyEntry.provinsi || '') === provinsi &&
+        String(existingMonthlyEntry.timezone || '') === timezone &&
+        Number(existingMonthlyEntry.tahun) === year &&
+        Number(existingMonthlyEntry.bulan) === month &&
+        Number(existingMonthlyEntry.method) === 20 &&
+        Number(existingMonthlyEntry.school) === 0 &&
+        JSON.stringify(existingMonthlyEntry.days || []) === JSON.stringify(normalizedDays);
+
       monthlyDoc = monthlyDoc && typeof monthlyDoc === 'object' ? monthlyDoc : {};
       if (!monthlyDoc.months || typeof monthlyDoc.months !== 'object') monthlyDoc.months = {};
       Object.keys(monthlyDoc.months).forEach(function(existingMonth) {
@@ -3914,16 +3915,37 @@ function processKeyValue(
           delete monthlyDoc.months[existingMonth];
         }
       });
-      monthlyDoc.success = true;
-      monthlyDoc.kota = kota;
-      monthlyDoc.provinsi = provinsi;
-      monthlyDoc.timezone = timezone;
-      monthlyDoc.source = sourceName;
-      monthlyDoc.updatedAt = monthlyEntry.updatedAt;
-      monthlyDoc.months[monthId] = monthlyEntry;
-      writeGithubJsonFile_(monthlyCachePath, monthlyDoc,
-        'Simpan cache bulanan AlAdhan ' + kota + ' ' + year + '-' + monthText);
-      cacheSourceUsed = 'AlAdhan (refresh tersimpan ke GitHub)';
+
+      if (sameMonthlyData) {
+        // Validasi berhasil, tetapi data identik: jangan membuat commit GitHub.
+        monthlyEntry = existingMonthlyEntry;
+        cacheSourceUsed = 'AlAdhan (validasi tanpa perubahan)';
+        Logger.log('CACHE BULANAN ALADHAN TIDAK BERUBAH: ' + kota + ' ' + monthId +
+          '; tidak menulis GitHub.');
+      } else {
+        monthlyEntry = {
+          tahun: year,
+          bulan: month,
+          kota: kota,
+          provinsi: provinsi,
+          timezone: timezone,
+          method: 20,
+          school: 0,
+          source: sourceName,
+          updatedAt: new Date().toISOString(),
+          days: normalizedDays
+        };
+        monthlyDoc.success = true;
+        monthlyDoc.kota = kota;
+        monthlyDoc.provinsi = provinsi;
+        monthlyDoc.timezone = timezone;
+        monthlyDoc.source = sourceName;
+        monthlyDoc.updatedAt = monthlyEntry.updatedAt;
+        monthlyDoc.months[monthId] = monthlyEntry;
+        writeGithubJsonFile_(monthlyCachePath, monthlyDoc,
+          'Simpan cache bulanan AlAdhan ' + kota + ' ' + year + '-' + monthText);
+        cacheSourceUsed = 'AlAdhan (refresh tersimpan ke GitHub)';
+      }
     }
 
     if (!trustedEntry_(monthlyEntry)) {
