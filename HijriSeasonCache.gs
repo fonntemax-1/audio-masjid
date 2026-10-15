@@ -14,7 +14,7 @@
  */
 
 var HIJRI_SEASON_CACHE_PATH_ = "data/hijri-calendar-cache.json";
-var HIJRI_SEASON_MONTHLY_PATH_ = "data/prayer-monthly-cache.json";
+// Cache jadwal bulanan dikelola oleh getPrayerSchedule() pada Code.gs.
 var HIJRI_SEASON_TZ_ = "Asia/Makassar";
 var HIJRI_SEASON_SPECIAL_MONTHS_ = ["ramadhan", "ramadan", "syawal", "muharam", "muharram"];
 
