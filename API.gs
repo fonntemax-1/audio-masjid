@@ -802,6 +802,7 @@ function resolveCoordinatesCityFromApi_(params) {
     // Cocokkan wilayah hasil reverse geocoding dengan daftar kota pada dropdown C5.
     // Tidak memanggil API jadwal pihak ketiga. Hanya C5 yang ditulis; C6:C10
     // tetap mengikuti mekanisme otomatis spreadsheet.
+    var nearest = findNearestSupportedCityFromGeocoder_(sheet, lat, lng);
     if (nearest) {
       sheet.getRange('C5').setValue(nearest.kota);
       SpreadsheetApp.flush();
