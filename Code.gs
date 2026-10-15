@@ -3763,7 +3763,7 @@ function normalizeHijriMonthNameIndonesia_(value) {
     'jumada al akhira': 'Jumadil Akhir', 'jumada al ukhraa': 'Jumadil Akhir',
     'jumadil akhir': 'Jumadil Akhir',
     'rajab': 'Rajab',
-    'shaban': 'Syaban', 'shaaban': 'Syaban', 'syaban': 'Syaban',
+    'shaban': 'Syaban', 'shaaban': 'Syaban', 'sha ban': 'Syaban', 'syaban': 'Syaban',
     'ramadan': 'Ramadhan', 'ramadhan': 'Ramadhan',
     'shawwal': 'Syawal', 'syawal': 'Syawal',
     'dhu al qidah': 'Dzulkaidah', 'dhul qidah': 'Dzulkaidah',
