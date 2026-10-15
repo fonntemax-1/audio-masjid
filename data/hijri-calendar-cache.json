@@ -1,7 +1,7 @@
 {
   "success": true,
   "source": "AlAdhan / Kalender Hijriah",
-  "updatedAt": "2026-10-15T03:16:10.757Z",
+  "updatedAt": "2026-10-15T04:03:05.218Z",
   "yearCount": 2,
   "years": {
     "2026": {
@@ -10,7 +10,7 @@
       "province": "Kalimantan Timur",
       "timezone": "Asia/Makassar",
       "method": 20,
-      "generatedAt": "2026-10-15T03:16:10.757Z",
+      "generatedAt": "2026-10-15T04:03:05.218Z",
       "dayCount": 365,
       "days": {
         "2026-01-01": {
@@ -2941,7 +2941,7 @@
       "province": "Kalimantan Timur",
       "timezone": "Asia/Makassar",
       "method": 20,
-      "generatedAt": "2026-10-15T03:16:10.757Z",
+      "generatedAt": "2026-10-15T04:03:05.218Z",
       "dayCount": 365,
       "days": {
         "2027-01-01": {
@@ -5867,5 +5867,5 @@
       }
     }
   },
-  "generatedAt": "2026-10-15T03:16:10.757Z"
+  "generatedAt": "2026-10-15T04:03:05.218Z"
 }
