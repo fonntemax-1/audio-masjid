@@ -7006,10 +7006,14 @@ function startRealtimeAudioConfigPolling_() {
           renderKeuanganDateHeader_(currentKeuanganGregorianDate_);
         }
 
-        if (isQurbanStyle) {
-          // Font/layout A2 mengikuti format QURBAN untuk QURBAN/PENGURUS.
+        if (isQurbanStyle || isZakat) {
+          // ZAKAT A2 memakai warna dan tipografi yang sama dengan A1.
+          // Ukuran akhir A1/A2 disamakan oleh fitQurbanHeaderText_().
           finSub.style.color = 'var(--theme-accent)';
           finSub.style.webkitTextFillColor = 'var(--theme-accent)';
+          finSub.style.fontFamily = 'inherit';
+          finSub.style.fontWeight = '900';
+          finSub.style.letterSpacing = '0';
         } else {
           finSub.style.color = '#ffffff';
           finSub.style.webkitTextFillColor = '#ffffff';
@@ -8243,9 +8247,10 @@ function startRealtimeAudioConfigPolling_() {
 
         if (
           keuanganSelector === 'QURBAN' ||
-          keuanganSelector === 'PENGURUS'
+          keuanganSelector === 'PENGURUS' ||
+          keuanganSelector === 'ZAKAT'
         ) {
-          // PENGURUS memakai format heading QUR'BAN.
+          // PENGURUS dan ZAKAT memakai tipografi heading yang sama untuk A1/A2.
           finSub.style.color = 'var(--theme-accent)';
           finSub.style.webkitTextFillColor = 'var(--theme-accent)';
         } else {
@@ -8309,6 +8314,15 @@ function startRealtimeAudioConfigPolling_() {
           keuanganSelector === 'PENGURUS'
         ) {
 }
+      }
+
+      if (keuanganSelector === 'ZAKAT') {
+        // Ukur ulang setelah seluruh teks dan style header selesai diperbarui.
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {
+            fitQurbanHeaderText_();
+          });
+        });
       }
 
       if (keuanganSelector === 'QURBAN') {
