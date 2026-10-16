@@ -18384,5 +18384,25 @@ function setCountdownBlackMode(enabled) {
 })();
 </script>
 
+<script>
+(function(){
+function fitHeaderLogo(){
+var header=document.querySelector('.header'),logo=document.querySelector('.header-logo'),identity=document.querySelector('.header-center');
+if(!header||!logo||!identity)return;
+var hr=header.getBoundingClientRect(),ir=identity.getBoundingClientRect();
+if(!hr.height||!ir.height)return;
+var available=Math.max(12,hr.height*0.88),ih=Math.max(12,ir.height);
+var height=Math.min(available,ih*1.04);
+var vw=Math.max(document.documentElement.clientWidth||0,window.innerWidth||0);
+var aspect=(vw*0.08)/Math.max(1,(window.innerHeight||1)*0.12);
+logo.style.setProperty('height',height+'px','important');
+logo.style.setProperty('width',Math.min(vw*0.12,height*aspect)+'px','important');
+logo.style.setProperty('top',(ir.top-hr.top+ih/2)+'px','important');
+logo.style.setProperty('transform','translateY(-50%)','important');
+}
+function init(){fitHeaderLogo();window.addEventListener('resize',fitHeaderLogo,{passive:true});window.addEventListener('orientationchange',fitHeaderLogo,{passive:true});var e=document.querySelector('.header-center');if(e&&window.ResizeObserver){new ResizeObserver(fitHeaderLogo).observe(e);}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
 </body>
 </html>
