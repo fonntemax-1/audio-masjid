@@ -385,12 +385,18 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   width: auto !important;
   max-width: none !important;
   box-sizing: border-box !important;
-  padding: 0.08em 0.22em !important;
+  padding: 0.08em 0.12em !important;
   text-align: left !important;
   white-space: normal !important;
   overflow-wrap: anywhere !important;
   word-break: normal !important;
   vertical-align: middle !important;
+}
+/* Kolom A dibuat selebar isi saja agar kolom B langsung menyusul di sebelahnya. */
+#fin-panel-box .keuangan-table.zakat-table tr > .zakat-cell:first-child {
+  width: 1% !important;
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
 }
 #fin-panel-box .keuangan-table.zakat-table .zakat-roman-heading {
   padding-left: 0.22em !important;
