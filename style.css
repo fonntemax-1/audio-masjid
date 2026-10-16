@@ -4923,3 +4923,18 @@ body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content img {
   object-fit: contain !important;
   object-position: center bottom !important;
 }
+
+
+/* Logo masjid: dimensi dikendalikan responsif mengikuti blok identitas lengkap. */
+.header-logo {
+  box-sizing: border-box !important;
+  flex: 0 0 auto !important;
+}
+.header-logo img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+}
