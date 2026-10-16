@@ -288,6 +288,48 @@ body.startup-visual-ready .screen-container { visibility:visible !important; }
 #startup-visual-overlay { position:fixed; inset:0; z-index:999999; background:#000; pointer-events:none; opacity:1; transition:opacity .12s ease; }
 body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 </style>
+
+<style id="infaq-title-two-lines-white">
+  /* Judul INFAQ/SHADAQAH dua baris, putih, selebar QRIS masing-masing. */
+  .infaq-left-title {
+    width: min(100%, 7.4vw, 102px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    text-align: center !important;
+    white-space: normal !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    font-size: clamp(9px, 1.05vw, 15px) !important;
+    font-weight: 700 !important;
+    line-height: 1.05 !important;
+    text-shadow: none !important;
+  }
+  .infaq-left-title span { display: block !important; }
+  .petugas-infaq-title {
+    width: min(100%, 9vw, 120px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    text-align: center !important;
+    white-space: normal !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    font-size: clamp(9px, 1.05vw, 15px) !important;
+    font-weight: 700 !important;
+    line-height: 1.05 !important;
+    text-shadow: none !important;
+  }
+  @media screen and (max-width: 700px) {
+    .infaq-left-title {
+      width: min(100%, 20vw, 84px) !important;
+      font-size: clamp(7px, 2.1vw, 12px) !important;
+    }
+    .petugas-infaq-title {
+      width: min(82%, 22vw, 100px) !important;
+      font-size: clamp(7px, 2.1vw, 12px) !important;
+    }
+  }
+</style>
+
 </head>
 
 <body class="startup-visual-hold">
@@ -393,7 +435,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 
       <div class="center-panel">
         <div class="infaq-left-widget" id="infaq-left-widget" style="display:none;">
-          <div class="infaq-left-title"><span>INFAQ&nbsp;&nbsp;&amp;&nbsp;&nbsp;SHADAQAH</span></div>
+          <div class="infaq-left-title"><span>INFAQ<br>SHADAQAH</span></div>
           <div class="infaq-left-text" id="infaq-left-text" aria-live="polite"></div>
           <div class="infaq-left-content" id="infaq-left-content">
             <img src="./image/QRIS.png" alt="QRIS Infaq dan Shadaqah" loading="lazy" decoding="async">
@@ -586,7 +628,7 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
           </div>
 
           <div class="petugas-infaq-display" id="petugas-infaq-display" style="display:none;">
-            <div class="petugas-infaq-title">INFAQ &amp; SHADAQAH</div>
+            <div class="petugas-infaq-title">INFAQ<br>SHADAQAH</div>
             <div class="petugas-infaq-text" id="petugas-infaq-text"></div>
             <div class="petugas-infaq-content">
               <img src="./image/QRIS.png" alt="QRIS Infaq dan Shadaqah" loading="lazy" decoding="async">
