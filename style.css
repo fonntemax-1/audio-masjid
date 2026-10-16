@@ -4867,3 +4867,33 @@ body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content img {
     font-size: clamp(6px, 1.05vw, 9px) !important;
   }
 }
+
+
+/* FIX: judul INFAQ harus selalu terbaca utuh; QRIS yang menyesuaikan ruang. */
+body.advertising-infaq-left-shift #infaq-left-widget {
+  min-width: 118px !important;
+  max-width: min(22vw, 220px) !important;
+  overflow: visible !important;
+}
+body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-title {
+  display: block !important;
+  width: max-content !important;
+  max-width: none !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  font-size: clamp(7px, .68vw, 11px) !important;
+  line-height: 1.1 !important;
+  text-align: center !important;
+  margin-left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content {
+  display: flex !important;
+  justify-content: center !important;
+  overflow: visible !important;
+}
+body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content img {
+  flex: 0 0 auto !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+}
