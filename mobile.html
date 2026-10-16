@@ -6559,7 +6559,9 @@ function startRealtimeAudioConfigPolling_() {
       const title = document.getElementById('fin-title');
       const sub = document.getElementById('fin-sub');
 
-      if (!panel || !title || !sub || !panel.classList.contains('qurban-display')) {
+      const activeSelectorAtStart = String(panel && panel.dataset.panelSelector || '').trim().toUpperCase();
+      if (!panel || !title || !sub ||
+          (!panel.classList.contains('qurban-display') && activeSelectorAtStart !== 'ZAKAT')) {
         return;
       }
 
@@ -6611,7 +6613,7 @@ function startRealtimeAudioConfigPolling_() {
         el.style.setProperty('text-align', 'center', 'important');
         const activeHeaderSelector = String(panel.dataset.panelSelector || '').trim().toUpperCase();
         const isQurbanPanel = activeHeaderSelector === 'QURBAN';
-        const isQurbanOrPengurusPanel = isQurbanPanel || activeHeaderSelector === 'PENGURUS';
+        const isQurbanOrPengurusPanel = isQurbanPanel || activeHeaderSelector === 'PENGURUS' || activeHeaderSelector === 'ZAKAT';
         // Portrait QURBAN: kedua baris judul memakai warna yang sama.
         const headingColor = 'var(--theme-accent)';
         el.style.setProperty('color', headingColor, 'important');
@@ -6669,7 +6671,7 @@ function startRealtimeAudioConfigPolling_() {
       // lalu cari ukuran terbesar yang muat agar tidak melewati batas frame.
       const landscapeQurban =
         window.matchMedia('(max-width: 900px) and (orientation: landscape)').matches &&
-        String(panel.dataset.panelSelector || '').trim().toUpperCase() === 'QURBAN';
+        ['QURBAN', 'ZAKAT'].includes(String(panel.dataset.panelSelector || '').trim().toUpperCase());
       if (landscapeQurban) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -6727,7 +6729,7 @@ function startRealtimeAudioConfigPolling_() {
       // Jangan salin computed style karena callback lain dapat sedang mengubah
       // A1 saat rotasi; nilai berubah itu sebelumnya ikut menular ke A2.
       const headerSelector = String(panel.dataset.panelSelector || '').trim().toUpperCase();
-      if (isPortraitMobile && ['QURBAN', 'PENGURUS'].includes(headerSelector)) {
+      if (isPortraitMobile && ['QURBAN', 'PENGURUS', 'ZAKAT'].includes(headerSelector)) {
         const shared = [
           ['font-family', 'Arial, sans-serif'],
           ['font-size', 'clamp(0.44rem, 1.8vw, 0.62rem)'],
@@ -7667,7 +7669,7 @@ function startRealtimeAudioConfigPolling_() {
       }
       if (isQurbanStyle || isZakat) {
         requestAnimationFrame(function() {
-          if (isQurban && typeof fitQurbanHeaderText_ === 'function') fitQurbanHeaderText_();
+          if ((isQurban || isZakat) && typeof fitQurbanHeaderText_ === 'function') fitQurbanHeaderText_();
           if (isZakat) {
             const titleNow = document.getElementById('fin-title');
             const subNow = document.getElementById('fin-sub');
