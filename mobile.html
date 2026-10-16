@@ -6417,6 +6417,24 @@ function startRealtimeAudioConfigPolling_() {
 
           updateUI(data);
 
+          // Setelah payload utama selesai dirender, sinkronkan panel
+          // KEUANGAN sekali lagi dari endpoint khusus yang membaca panels!C26.
+          // Ini mencegah payload getDataFromSheet yang tertinggal menimpa
+          // ZAKAT dengan judul/baris KEUANGAN. Endpoint ini hanya membaca
+          // panel dan tidak menjalankan atau mengubah scheduler/audio.
+          gasApiCall('getPanelKeuanganSource')
+            .then(function(source) {
+              if (source && String(source.selector || '').trim()) {
+                applyPanelKeuanganSourceFast_(source);
+              }
+            })
+            .catch(function(error) {
+              console.warn(
+                'SINKRONISASI PANEL KEUANGAN GAGAL:',
+                error && error.message ? error.message : error
+              );
+            });
+
           // C18 dan C2 tidak dipanggil lagi dari sini.
           // Keduanya memiliki polling khusus agar refresh getDataFromSheet()
           // tidak membuat beberapa request JSONP Apps Script bersamaan.
