@@ -17734,7 +17734,7 @@ function setCountdownBlackMode(enabled) {
 
   
     // =========================================================
-    // IKLAN MAIN FRAME - panels!B70:E72
+    // IKLAN MAIN FRAME - panels!B71:E75
     // Komponen terpisah; tidak mengubah banner atau scheduler audio.
     // =========================================================
     (function initMainFrameAdvertisement_() {
@@ -17742,12 +17742,14 @@ function setCountdownBlackMode(enabled) {
       const image = document.getElementById('main-frame-advertisement-image');
       if (!box || !image) return;
 
-      // Sama seperti kontrol C68:E68: tanggal mulai, tanggal berhenti, dan ON/OFF.
+      // Kontrol iklan: B = nama, C = tanggal mulai, D = tanggal berhenti, E = ON/OFF.
       // Baris B hanya penanda; nomor baris menentukan file gambar.
       const adFilesByRow = {
-        70: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-1.jpg',
-        71: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-2.jpg',
-        72: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-3.jpeg'
+        71: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-1.jpg',
+        72: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-2.jpg',
+        73: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-3.jpeg',
+        74: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-4.jpg',
+        75: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-5.jpg'
       };
 
       function dateKey_(value) {
@@ -17791,7 +17793,7 @@ function setCountdownBlackMode(enabled) {
       }
 
       // Rotasi iklan: setiap iklan yang aktif tampil selama 1 menit.
-      // Daftar aktif disusun berdasarkan nomor baris 70, 71, 72.
+      // Daftar aktif disusun berdasarkan nomor baris 71 sampai 75.
       let rotationSignature = '';
       let rotationStartedAt = Date.now();
 
@@ -17809,7 +17811,7 @@ function setCountdownBlackMode(enabled) {
           const today = todayKey_();
 
           // Geser INFAQ/QRIS ke kiri frame jam digital bila salah satu
-          // status E70:E72 = ON. Perubahan ini hanya mengatur posisi visual.
+          // status E71:E75 = ON. Perubahan ini hanya mengatur posisi visual.
           const anyAdEnabled = rows.some(function(row) {
             const sheetRow = Number(row.row || row.sheetRow || 0);
             return !!adFilesByRow[sheetRow] &&
