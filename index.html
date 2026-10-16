@@ -6878,6 +6878,7 @@ function startRealtimeAudioConfigPolling_() {
       const selector = incomingSelector;
       const isQurban = selector === 'QURBAN';
       const isPengurus = selector === 'PENGURUS';
+      const isZakat = selector === 'ZAKAT';
       const isQurbanStyle = isQurban || isPengurus;
       const title = String(source.title || '');
       const date = String(source.date || '');
@@ -6917,7 +6918,7 @@ function startRealtimeAudioConfigPolling_() {
 
       const finSub = document.getElementById('fin-sub');
       if (finSub) {
-        if (isPengurus) {
+        if (isPengurus || isZakat) {
           currentKeuanganGregorianDate_ = '';
           keuanganDateConversionToken_++;
           finSub.innerText = date.trim();
@@ -6972,6 +6973,9 @@ function startRealtimeAudioConfigPolling_() {
             );
           }
 
+          renderQurbanDateHeader_(currentQurbanGregorianDate_);
+        } else if (isZakat) {
+          currentQurbanGregorianDate_ = a3.trim();
           renderQurbanDateHeader_(currentQurbanGregorianDate_);
         } else {
           finExtra.innerText = '';
@@ -8134,7 +8138,7 @@ function startRealtimeAudioConfigPolling_() {
       }
 
       if (finSub) {
-        if (keuanganSelector === 'PENGURUS') {
+        if (keuanganSelector === 'PENGURUS' || keuanganSelector === 'ZAKAT') {
           currentKeuanganGregorianDate_ = '';
           keuanganDateConversionToken_++;
           finSub.innerText =
@@ -8178,7 +8182,7 @@ function startRealtimeAudioConfigPolling_() {
         const a3 = String(data.KeuanganA3 || '').trim();
 
         currentQurbanGregorianDate_ =
-          keuanganSelector === 'QURBAN'
+          (keuanganSelector === 'QURBAN' || keuanganSelector === 'ZAKAT')
             ? a3
             : '';
 
@@ -8188,7 +8192,7 @@ function startRealtimeAudioConfigPolling_() {
           finExtra.style.setProperty('color', 'var(--theme-accent)', 'important');
           finExtra.style.setProperty('-webkit-text-fill-color', 'var(--theme-accent)', 'important');
           applyQurbanDatePattern_();
-        } else if (keuanganSelector === 'QURBAN' && a3) {
+        } else if ((keuanganSelector === 'QURBAN' || keuanganSelector === 'ZAKAT') && a3) {
           // Bersihkan garis divider tanggal KEUANGAN yang tersisa
           // sebelum render A2/A3 QURBAN.
           finSub.style.setProperty(
@@ -8602,6 +8606,7 @@ function startRealtimeAudioConfigPolling_() {
           .toUpperCase();
       const isQurban =
         selectorKey === 'QURBAN' || selectorKey === 'PENGURUS';
+      const isZakat = selectorKey === 'ZAKAT';
 
       const content =
         document.getElementById(
@@ -8667,6 +8672,18 @@ function startRealtimeAudioConfigPolling_() {
             document.createElement(
               'tr'
             );
+
+          if (isZakat) {
+            // ZAKAT: empat kolom A:D memakai gaya tabel KEUANGAN.
+            for (let column = 0; column < 4; column++) {
+              const td = document.createElement('td');
+              td.className = 'zakat-cell';
+              td.textContent = row[column] == null ? '' : String(row[column]);
+              tr.appendChild(td);
+            }
+            table.appendChild(tr);
+            return;
+          }
 
           if (isQurban) {
             const td = document.createElement('td');
