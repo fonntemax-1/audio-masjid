@@ -938,43 +938,31 @@ function getPanelEventCountdownCustomConfig_() {
     const sheet = ss.getSheetByName('panels');
     if (!sheet) return result;
 
-    const lastRow = Math.max(sheet.getLastRow(), 64);
-    const numRows = lastRow - 63;
-    if (numRows <= 0) return result;
-
-    const range = sheet.getRange(64, 2, numRows, 4); // B:E
-    const values = range.getValues();
-    const displays = range.getDisplayValues();
+    // Custom text menuju hari menggunakan satu baris khusus: B66:E66.
+    // B66 = teks, C66 = tanggal mulai, D66 = tanggal selesai, E66 = ON/OFF.
+    const values = sheet.getRange('B66:E66').getValues()[0] || [];
+    const displays = sheet.getRange('B66:E66').getDisplayValues()[0] || [];
     const spreadsheetTimezone =
       ss.getSpreadsheetTimeZone() ||
       Session.getScriptTimeZone() ||
       'Asia/Makassar';
 
-    values.forEach(function(row, index) {
-      const sheetRow = 64 + index;
+    const event = String(displays[0] || values[0] || '').trim();
+    const start = normalizePanelCountdownDate_(values[1], displays[1], spreadsheetTimezone);
+    const end = normalizePanelCountdownDate_(values[2], displays[2], spreadsheetTimezone);
+    const rawStatus = String(values[3] == null ? displays[3] || '' : values[3]).trim().toUpperCase();
 
-      // B64:E65 dan B68:E72 adalah kontrol/penanda video, bukan teks countdown.
-      // Baris 64-65 mengatur video Idul Fitri/Adha; baris 68-72 untuk video/iklan.
-      if ((sheetRow >= 64 && sheetRow <= 65) || (sheetRow >= 68 && sheetRow <= 72)) return;
-
-      const displayRow = displays[index] || [];
-      const event = String(displayRow[0] || row[0] || '').trim();
-      const start = normalizePanelCountdownDate_(row[1], displayRow[1], spreadsheetTimezone);
-      const end = normalizePanelCountdownDate_(row[2], displayRow[2], spreadsheetTimezone);
-      const status = String(row[3] == null ? displayRow[3] || '' : row[3]).trim().toUpperCase();
-
-      if (!event && !start && !end && !status) return;
-
+    if (event || start || end || rawStatus) {
       result.push({
-        row: sheetRow,
+        row: 66,
         event: event,
         start: start,
         end: end,
-        status: status === 'ON' ? 'ON' : 'OFF'
+        status: rawStatus === 'ON' ? 'ON' : 'OFF'
       });
-    });
+    }
   } catch (error) {
-    Logger.log('PANELS COUNTDOWN CUSTOM B64:E ERROR: ' + (error && error.message ? error.message : error));
+    Logger.log('PANELS CUSTOM TEXT B66:E66 ERROR: ' + (error && error.message ? error.message : error));
   }
   return result;
 }
