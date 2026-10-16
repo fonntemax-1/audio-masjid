@@ -8799,7 +8799,13 @@ function startRealtimeAudioConfigPolling_() {
             const firstZakatText = zakatCells.find(function(value) {
               return value !== '';
             }) || '';
-            const isRomanHeading = /^[IVXLCDM]+[.)]?$/i.test(firstZakatText);
+            // Kenali judul seperti "I", "I. PENERIMA ZAKAT", "II - ...",
+            // dan seterusnya, termasuk jika judul berada di kolom lain.
+            const romanHeadingPattern = /^\s*[IVXLCDM]+(?:\s*[.)\-:]\s*|\s+|$)/i;
+            const romanHeadingCellIndex = zakatCells.findIndex(function(value) {
+              return value !== '' && romanHeadingPattern.test(value);
+            });
+            const isRomanHeading = romanHeadingCellIndex >= 0;
 
             if (isRomanHeading) {
               const td = document.createElement('td');
