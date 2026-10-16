@@ -17816,6 +17816,66 @@ function setCountdownBlackMode(enabled) {
       const image = document.getElementById('main-frame-advertisement-image');
       if (!box || !image) return;
 
+      // Dua lapisan gambar: gambar baru dimuat dahulu, lalu crossfade 800 ms.
+      const secondImage = document.createElement('img');
+      secondImage.id = 'main-frame-advertisement-image-next';
+      secondImage.alt = 'Iklan masjid';
+      secondImage.decoding = 'async';
+      secondImage.setAttribute('aria-hidden', 'true');
+      box.appendChild(secondImage);
+      let visibleImage = image;
+      let standbyImage = secondImage;
+      let transitionToken = 0;
+      let loadingAdRow = 0;
+
+      function loadAndCrossfade_(row, base) {
+        if (loadingAdRow === row || currentAdRow === row) return;
+        loadingAdRow = row;
+        const token = ++transitionToken;
+        let candidateIndex = 0;
+        function tryCandidate_() {
+          if (token !== transitionToken) return;
+          if (candidateIndex >= adExtensions.length) {
+            console.warn('IKLAN MAIN FRAME: semua ekstensi gagal, iklan dilewati', row);
+            failedAdRows[row] = true;
+            loadingAdRow = 0;
+            rotationSignature = '';
+            update_();
+            return;
+          }
+          const candidate = base + '.' + adExtensions[candidateIndex++];
+          const preload = new Image();
+          preload.decoding = 'async';
+          preload.onload = function() {
+            if (token !== transitionToken) return;
+            standbyImage.onload = null;
+            standbyImage.onerror = null;
+            standbyImage.src = candidate;
+            standbyImage.style.opacity = '0';
+            standbyImage.style.display = 'block';
+            // Paksa browser menerapkan opacity awal sebelum animasi dimulai.
+            void standbyImage.offsetWidth;
+            standbyImage.style.opacity = '1';
+            visibleImage.style.opacity = '0';
+            const oldVisible = visibleImage;
+            const newVisible = standbyImage;
+            window.setTimeout(function() {
+              if (token !== transitionToken) return;
+              oldVisible.style.display = 'none';
+              oldVisible.removeAttribute('src');
+              visibleImage = newVisible;
+              standbyImage = oldVisible;
+              currentAdRow = row;
+              loadingAdRow = 0;
+              console.log('IKLAN MAIN FRAME: crossfade selesai', row);
+            }, 850);
+          };
+          preload.onerror = tryCandidate_;
+          preload.src = candidate;
+        }
+        tryCandidate_();
+      }
+
       // Kontrol iklan: B = nama, C = tanggal mulai, D = tanggal berhenti, E = ON/OFF.
       // Nomor baris menentukan nama dasar gambar. Ekstensi dideteksi otomatis.
       const adBaseByRow = {
@@ -17929,7 +17989,11 @@ function setCountdownBlackMode(enabled) {
           if (!active.length) {
             box.style.display = 'none';
             box.setAttribute('aria-hidden', 'true');
+            transitionToken++;
+            loadingAdRow = 0;
+            currentAdRow = 0;
             image.removeAttribute('src');
+            secondImage.removeAttribute('src');
             return;
           }
 
@@ -17944,16 +18008,11 @@ function setCountdownBlackMode(enabled) {
           const chosen = active[elapsedMinutes % active.length];
           const chosenRow = Number(chosen.row || chosen.sheetRow);
           const base = adBaseByRow[chosenRow];
-          if (currentAdRow !== chosenRow || !currentAdCandidates.length) {
-            currentAdRow = chosenRow;
-            currentAdCandidates = adExtensions.map(function(ext) { return base + '.' + ext; });
-            currentAdCandidateIndex = 0;
-            image.src = currentAdCandidates[currentAdCandidateIndex];
-          }
           box.style.display = 'block';
           box.setAttribute('aria-hidden', 'false');
-          console.log('IKLAN MAIN FRAME: aktif', chosenRow,
-            '(rotasi 1 menit; aktif:', active.length, ')');
+          if (currentAdRow !== chosenRow) loadAndCrossfade_(chosenRow, base);
+          console.log('IKLAN MAIN FRAME: jadwal aktif', chosenRow,
+            '(crossfade 800 ms; rotasi 1 menit; aktif:', active.length, ')');
         }).catch(function(err) {
           console.warn('IKLAN MAIN FRAME: konfigurasi gagal dibaca', err);
           box.style.display = 'none';
@@ -17961,21 +18020,7 @@ function setCountdownBlackMode(enabled) {
         });
       }
 
-      image.addEventListener('error', function() {
-        // Fallback otomatis: coba ekstensi lain sebelum melewati iklan.
-        if (currentAdRow && currentAdCandidateIndex + 1 < currentAdCandidates.length) {
-          currentAdCandidateIndex += 1;
-          image.src = currentAdCandidates[currentAdCandidateIndex];
-          return;
-        }
-        if (currentAdRow) {
-          console.warn('IKLAN MAIN FRAME: semua ekstensi gagal, iklan dilewati', currentAdRow);
-          failedAdRows[currentAdRow] = true;
-          currentAdRow = 0;
-          currentAdCandidates = [];
-          currentAdCandidateIndex = 0;
-          rotationSignature = '';
-          update_();
+      update_();
           return;
         }
         console.error('IKLAN MAIN FRAME: gambar gagal dimuat', image.src);
