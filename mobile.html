@@ -7406,6 +7406,7 @@ function startRealtimeAudioConfigPolling_() {
       const selector = incomingSelector;
       const isQurban = selector === 'QURBAN';
       const isPengurus = selector === 'PENGURUS';
+      const isZakat = selector === 'ZAKAT';
       const isQurbanStyle = isQurban || isPengurus;
       const title = String(source.title || '');
       const date = String(source.date || '');
@@ -7445,7 +7446,7 @@ function startRealtimeAudioConfigPolling_() {
 
       const finSub = document.getElementById('fin-sub');
       if (finSub) {
-        if (isPengurus) {
+        if (isPengurus || isZakat) {
           // PENGURUS: baris kedua adalah isi A2, bukan tanggal.
           // Baris kedua mengikuti teks sel A2 apa adanya; tanggal berada di A3.
           currentKeuanganGregorianDate_ = '';
@@ -7601,6 +7602,10 @@ function startRealtimeAudioConfigPolling_() {
             );
           }
 
+          renderQurbanDateHeader_(currentQurbanGregorianDate_);
+        } else if (isZakat) {
+          // ZAKAT memakai tanggal dari A3 dengan satu garis bawah.
+          currentQurbanGregorianDate_ = a3.trim();
           renderQurbanDateHeader_(currentQurbanGregorianDate_);
         } else {
           finExtra.innerText = '';
@@ -8811,7 +8816,7 @@ function startRealtimeAudioConfigPolling_() {
       }
 
       if (finSub) {
-        if (keuanganSelector === 'PENGURUS' || keuanganSelector === 'QURBAN') {
+        if (keuanganSelector === 'PENGURUS' || keuanganSelector === 'QURBAN' || keuanganSelector === 'ZAKAT') {
           // PENGURUS dan QURBAN: A2 adalah teks baris kedua, BUKAN tanggal.
           // Pertahankan isi sel A2 apa adanya; tanggal ditampilkan pada A3.
           currentKeuanganGregorianDate_ = '';
@@ -8864,11 +8869,11 @@ function startRealtimeAudioConfigPolling_() {
         const a3 = String(data.KeuanganA3 || '').trim();
 
         currentQurbanGregorianDate_ =
-          (keuanganSelector === 'QURBAN' || keuanganSelector === 'PENGURUS')
+          (keuanganSelector === 'QURBAN' || keuanganSelector === 'PENGURUS' || keuanganSelector === 'ZAKAT')
             ? a3
             : '';
 
-        if ((keuanganSelector === 'PENGURUS' || keuanganSelector === 'QURBAN') && a3) {
+        if ((keuanganSelector === 'PENGURUS' || keuanganSelector === 'QURBAN' || keuanganSelector === 'ZAKAT') && a3) {
           // A3 PENGURUS dan QURBAN memakai renderer tanggal yang sama:
           // Hijriah | Masehi, satu baris, dengan auto-fit untuk layar portrait.
           if (keuanganSelector === 'QURBAN') {
@@ -9280,6 +9285,7 @@ function startRealtimeAudioConfigPolling_() {
           .toUpperCase();
       const isQurban =
         selectorKey === 'QURBAN' || selectorKey === 'PENGURUS';
+      const isZakat = selectorKey === 'ZAKAT';
 
       const content =
         document.getElementById(
@@ -9345,6 +9351,18 @@ function startRealtimeAudioConfigPolling_() {
             document.createElement(
               'tr'
             );
+
+          if (isZakat) {
+            // ZAKAT: empat kolom A:D memakai gaya tabel KEUANGAN.
+            for (let column = 0; column < 4; column++) {
+              const td = document.createElement('td');
+              td.className = 'zakat-cell';
+              td.textContent = row[column] == null ? '' : String(row[column]);
+              tr.appendChild(td);
+            }
+            table.appendChild(tr);
+            return;
+          }
 
           if (isQurban) {
             const td = document.createElement('td');
