@@ -4708,19 +4708,12 @@ body.advertising-infaq-left-shift #infaq-left-widget {
   pointer-events: none;
   background: transparent;
 }
-#main-frame-advertisement .ad-layer {
-  position: absolute;
-  inset: 0;
+#main-frame-advertisement img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
   object-position: left bottom;
-  opacity: 0;
-  transition: opacity 500ms ease-in-out;
-}
-#main-frame-advertisement .ad-layer-visible {
-  opacity: 1;
 }
 
 
