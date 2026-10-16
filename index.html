@@ -6017,6 +6017,7 @@ function startRealtimeAudioConfigPolling_() {
         // tepat di atas banner agar tidak menutup banner; ukuran tetap sama seperti di samping jam.
         widget.style.removeProperty('height');
         widget.style.setProperty('top', 'auto', 'important');
+        widget.style.setProperty('bottom', 'auto', 'important');
         widget.style.setProperty('right', 'auto', 'important');
         widget.style.setProperty('left', '1%', 'important');
         widget.style.setProperty('width', 'clamp(105px, 12vw, 155px)', 'important');
@@ -6029,8 +6030,11 @@ function startRealtimeAudioConfigPolling_() {
           if (!center || !banner || !widget.offsetParent) return;
           const cr = center.getBoundingClientRect();
           const br = banner.getBoundingClientRect();
+          const wr = widget.getBoundingClientRect();
           const gap = Math.max(4, Math.round(cr.height * 0.008));
-          widget.style.setProperty('bottom', Math.max(0, cr.bottom - br.top + gap) + 'px', 'important');
+          const top = Math.max(0, br.top - cr.top - wr.height - gap);
+          widget.style.setProperty('top', top + 'px', 'important');
+          widget.style.setProperty('bottom', 'auto', 'important');
           widget.style.setProperty('left', '1%', 'important');
           widget.style.setProperty('right', 'auto', 'important');
         };
@@ -6052,9 +6056,11 @@ function startRealtimeAudioConfigPolling_() {
         const br = banner.getBoundingClientRect();
         const kr = clock.getBoundingClientRect();
         const wr = widget.getBoundingClientRect();
-        // Samakan garis bawah widget pada kedua mode: tetap di atas frame BANNER.
+        // Kedua mode memakai garis bawah yang sama, selalu di atas BANNER.
         const bannerGap = Math.max(4, Math.round(cr.height * 0.008));
-        widget.style.setProperty('bottom', Math.max(0, cr.bottom - br.top + bannerGap) + 'px', 'important');
+        const top = Math.max(0, br.top - cr.top - wr.height - bannerGap);
+        widget.style.setProperty('top', top + 'px', 'important');
+        widget.style.setProperty('bottom', 'auto', 'important');
         const clockGap = Math.max(4, Math.round(cr.width * 0.004));
         widget.style.setProperty('left', Math.max(0, kr.left - cr.left - wr.width - clockGap) + 'px', 'important');
         widget.style.setProperty('right', 'auto', 'important');
