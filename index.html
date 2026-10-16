@@ -6200,8 +6200,12 @@ function startRealtimeAudioConfigPolling_() {
         const subWidth = sub.clientWidth;
         if (panelWidth < 20 || titleWidth < 20 || subWidth < 20) return;
 
-        const availableWidth = Math.max(12, Math.min(titleWidth, subWidth) - 4);
+        const availableWidth = Math.max(20, Math.min(titleWidth, subWidth) - 6);
         const fontFamily = window.getComputedStyle(title).fontFamily || 'Arial, sans-serif';
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        const titleText = String(title.innerText || title.textContent || '').trim();
+        const subText = String(sub.innerText || sub.textContent || '').trim();
         const fitElement = function(el) {
           el.style.setProperty('font-family', fontFamily, 'important');
           el.style.setProperty('font-weight', '900', 'important');
@@ -6223,15 +6227,21 @@ function startRealtimeAudioConfigPolling_() {
         };
         [title, sub].forEach(fitElement);
 
-        let low = 5;
-        let high = Math.max(5, Math.min(48, panelWidth * 0.12));
+        // Ukur teks secara langsung dengan canvas. scrollWidth sebelumnya
+        // bisa dipengaruhi clipping/layout sehingga memilih font terlalu kecil.
+        const measureTextWidth = function(text, size) {
+          if (!context || !text) return 0;
+          context.font = '900 ' + size + 'px ' + fontFamily;
+          return context.measureText(text).width;
+        };
+        let low = 12;
+        let high = Math.max(12, Math.min(72, panelWidth * 0.18));
         let fitted = low;
-        for (let attempt = 0; attempt < 18; attempt++) {
+        for (let attempt = 0; attempt < 20; attempt++) {
           const candidate = (low + high) / 2;
-          [title, sub].forEach(function(el) {
-            el.style.setProperty('font-size', candidate.toFixed(2) + 'px', 'important');
-          });
-          const fits = title.scrollWidth <= availableWidth && sub.scrollWidth <= availableWidth;
+          const fits =
+            measureTextWidth(titleText, candidate) <= availableWidth &&
+            measureTextWidth(subText, candidate) <= availableWidth;
           if (fits) {
             fitted = candidate;
             low = candidate;
@@ -6239,7 +6249,8 @@ function startRealtimeAudioConfigPolling_() {
             high = candidate;
           }
         }
-        const finalSize = Math.max(5, fitted * 0.97);
+        // Hindari heading menjadi terlalu kecil di frame lebar.
+        const finalSize = Math.max(12, fitted * 0.98);
         [title, sub].forEach(function(el) {
           el.style.setProperty('font-size', finalSize.toFixed(2) + 'px', 'important');
         });
