@@ -17683,58 +17683,106 @@ function setCountdownBlackMode(enabled) {
       const box = document.getElementById('main-frame-advertisement');
       const image = document.getElementById('main-frame-advertisement-image');
       if (!box || !image) return;
-      // Nomor baris menentukan pasangan gambar; kolom B hanya penanda.
+
+      // Sama seperti kontrol C68:E68: tanggal mulai, tanggal berhenti, dan ON/OFF.
+      // Baris B hanya penanda; nomor baris menentukan file gambar.
       const adFilesByRow = {
         70: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-1.jpg',
         71: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-2.jpg',
         72: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-3.jpeg'
       };
-      function todayLocal_() {
-        try {
-          if (typeof getApiDate === 'function') return String(getApiDate() || '');
-        } catch (e) {}
-        const parts = new Intl.DateTimeFormat('en-CA', {
-          timeZone: 'Asia/Makassar', year: 'numeric', month: '2-digit', day: '2-digit'
-        }).formatToParts(new Date());
-        const p = {};
-        parts.forEach(function(x) { p[x.type] = x.value; });
-        return p.year + '-' + p.month + '-' + p.day;
+
+      function dateKey_(value) {
+        const text = String(value == null ? '' : value).trim();
+        if (!text) return null;
+        let match = text.match(/^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})$/);
+        let year, month, day;
+        if (match) {
+          year = Number(match[1]); month = Number(match[2]); day = Number(match[3]);
+        } else {
+          match = text.match(/^(\\d{1,2})[/.\\-](\\d{1,2})[/.\\-](\\d{4})$/);
+          if (match) {
+            day = Number(match[1]); month = Number(match[2]); year = Number(match[3]);
+          } else {
+            const months = {
+              januari: 1, februari: 2, maret: 3, april: 4, mei: 5, juni: 6,
+              juli: 7, agustus: 8, september: 9, oktober: 10, november: 11, desember: 12
+            };
+            match = text.toLowerCase().match(/^(\\d{1,2})\\s+([a-z]+)\\s+(\\d{4})$/);
+            if (!match || !months[match[2]]) return null;
+            day = Number(match[1]); month = months[match[2]]; year = Number(match[3]);
+          }
+        }
+        const date = new Date(Date.UTC(year, month - 1, day));
+        if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+        return year * 10000 + month * 100 + day;
       }
+
+      function todayKey_() {
+        try {
+          const parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Makassar', year: 'numeric', month: '2-digit', day: '2-digit'
+          }).formatToParts(new Date());
+          const p = {};
+          parts.forEach(function(x) { p[x.type] = x.value; });
+          return Number(p.year) * 10000 + Number(p.month) * 100 + Number(p.day);
+        } catch (e) {
+          const now = new Date();
+          return now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+        }
+      }
+
       function update_() {
         if (document.body.classList.contains('prayer-black-mode')) {
           box.style.display = 'none';
+          box.setAttribute('aria-hidden', 'true');
           return;
         }
-        gasApiCall('getEventAdvertisingConfig').then(function(rows) {
-          if (!Array.isArray(rows)) rows = rows && Array.isArray(rows.data) ? rows.data : [];
-          const today = todayLocal_();
+
+        gasApiCall('getEventAdvertisingConfig').then(function(result) {
+          const rows = Array.isArray(result) ? result :
+            (result && Array.isArray(result.data) ? result.data :
+            (result && Array.isArray(result.rows) ? result.rows : []));
+          const today = todayKey_();
           const active = rows.filter(function(row) {
-            const sheetRow = Number(row.row || 0);
-            return adFilesByRow[sheetRow] &&
+            const sheetRow = Number(row.row || row.sheetRow || 0);
+            const start = dateKey_(row.start || row.startDate || row.start_date);
+            const end = dateKey_(row.end || row.stop || row.stopDate || row.endDate || row.end_date);
+            return !!adFilesByRow[sheetRow] &&
               String(row.status || '').trim().toUpperCase() === 'ON' &&
-              /^\d{4}-\d{2}-\d{2}$/.test(String(row.start || '')) &&
-              /^\d{4}-\d{2}-\d{2}$/.test(String(row.end || '')) &&
-              today >= String(row.start) && today <= String(row.end);
-          }).sort(function(a,b) { return Number(a.row || 0) - Number(b.row || 0); });
+              start !== null && end !== null && start <= end &&
+              today >= start && today <= end;
+          }).sort(function(a, b) {
+            return Number(a.row || a.sheetRow || 0) - Number(b.row || b.sheetRow || 0);
+          });
+
           if (!active.length) {
             box.style.display = 'none';
             box.setAttribute('aria-hidden', 'true');
             image.removeAttribute('src');
             return;
           }
+
           const chosen = active[0];
-          const src = adFilesByRow[Number(chosen.row)];
-          if (image.src !== src) image.src = src;
+          const src = adFilesByRow[Number(chosen.row || chosen.sheetRow)];
+          if (image.getAttribute('src') !== src) image.src = src;
           box.style.display = 'block';
           box.setAttribute('aria-hidden', 'false');
+          console.log('IKLAN MAIN FRAME: aktif', chosen.row || chosen.sheetRow);
         }).catch(function(err) {
-          console.warn('IKLAN MAIN FRAME: konfigurasi belum tersedia', err);
+          console.warn('IKLAN MAIN FRAME: konfigurasi gagal dibaca', err);
           box.style.display = 'none';
+          box.setAttribute('aria-hidden', 'true');
         });
       }
-      image.addEventListener('error', function() { box.style.display = 'none'; });
+
+      image.addEventListener('error', function() {
+        console.error('IKLAN MAIN FRAME: gambar gagal dimuat', image.src);
+        box.style.display = 'none';
+        box.setAttribute('aria-hidden', 'true');
+      });
       update_();
-      setInterval(update_, 60000);
+      setInterval(update_, 30000);
     })();
 
     // =========================================================
