@@ -6040,19 +6040,23 @@ function startRealtimeAudioConfigPolling_() {
 
       widget.style.removeProperty('height');
       widget.style.removeProperty('top');
-      widget.style.setProperty('bottom', '6.2vh', 'important');
       widget.style.setProperty('width', 'clamp(105px, 12vw, 155px)', 'important');
       widget.style.setProperty('height', 'auto', 'important');
       widget.style.setProperty('z-index', '100000', 'important');
       const align = function() {
         const center = document.querySelector('.center-panel');
+        const banner = document.querySelector('.event-banner');
         const clock = document.querySelector('.clock-overlay');
-        if (!center || !clock || !widget.offsetParent) return;
+        if (!center || !banner || !clock || !widget.offsetParent) return;
         const cr = center.getBoundingClientRect();
+        const br = banner.getBoundingClientRect();
         const kr = clock.getBoundingClientRect();
         const wr = widget.getBoundingClientRect();
-        const gap = Math.max(4, Math.round(cr.width * 0.004));
-        widget.style.setProperty('left', Math.max(0, kr.left - cr.left - wr.width - gap) + 'px', 'important');
+        // Samakan garis bawah widget pada kedua mode: tetap di atas frame BANNER.
+        const bannerGap = Math.max(4, Math.round(cr.height * 0.008));
+        widget.style.setProperty('bottom', Math.max(0, cr.bottom - br.top + bannerGap) + 'px', 'important');
+        const clockGap = Math.max(4, Math.round(cr.width * 0.004));
+        widget.style.setProperty('left', Math.max(0, kr.left - cr.left - wr.width - clockGap) + 'px', 'important');
         widget.style.setProperty('right', 'auto', 'important');
       };
       requestAnimationFrame(align);
