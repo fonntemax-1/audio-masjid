@@ -4819,3 +4819,51 @@ body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-title span {
     font-size: clamp(7px, 1.7vw, 11px) !important;
   }
 }
+
+
+/* RESPONSIVE TV: INFAQ/QRIS berada di bawah jam digital dan menyesuaikan
+   ruang vertikal yang tersisa; tidak boleh melapisi jam. */
+body.advertising-infaq-left-shift #infaq-left-widget {
+  min-width: 0 !important;
+  max-width: min(12vw, 155px) !important;
+  height: auto !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-title {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 0 .35vh !important;
+  font-size: clamp(6px, .82vw, 12px) !important;
+  line-height: 1.05 !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+}
+body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-text {
+  max-width: 100% !important;
+  font-size: clamp(6px, .7vw, 10px) !important;
+  line-height: 1.05 !important;
+  overflow-wrap: anywhere !important;
+}
+body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content {
+  margin-top: .25vh !important;
+  min-height: 0 !important;
+}
+body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content img {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: contain !important;
+}
+@media (max-width: 900px) {
+  body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-title {
+    font-size: clamp(6px, 1.35vw, 10px) !important;
+  }
+  body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-text {
+    font-size: clamp(6px, 1.05vw, 9px) !important;
+  }
+}
