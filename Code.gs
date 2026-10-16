@@ -1561,11 +1561,13 @@ function getPanelEventCountdownCustomConfig_() {
         .replace(/[\s’‘'\`]/g, '');
 
       const selectedKey =
-        selectorKey === 'QURBAN'
-          ? 'QURBAN'
-          : selectorKey === 'PENGURUS'
-            ? 'PENGURUS'
-            : 'KEUANGAN';
+        selectorKey === 'ZAKAT'
+          ? 'ZAKAT'
+          : selectorKey === 'QURBAN'
+            ? 'QURBAN'
+            : selectorKey === 'PENGURUS'
+              ? 'PENGURUS'
+              : 'KEUANGAN';
 
       result.KeuanganSelector = selectedKey;
 
@@ -1605,21 +1607,24 @@ function getPanelEventCountdownCustomConfig_() {
               });
           }
         } else if (selectedKey === 'PENGURUS') {
-          // PENGURUS: A1:A4 adalah header tetap; data dimulai dari A5.
-          // Batas bawah dinamis mengikuti getLastRow(), tanpa batas jumlah
-          // baris dari sisi program dan tanpa membaca getMaxRows().
-          const lastPengurusRow = selectedSheet.getLastRow();
-          if (lastPengurusRow >= 5) {
-            const pengurusRows = selectedSheet
-              .getRange(5, 1, lastPengurusRow - 4, 1)
-              .getDisplayValues();
-
-            pengurusRows.forEach(function(displayRow) {
-              const text = String(
-                displayRow[0] == null ? '' : displayRow[0]
-              ).trim();
-              result.Keuangan.push([text, '']);
-            });
+          // PENGURUS: data dimulai dari A19 sesuai struktur sheet.
+          const lastPengurusRow = getLastFilledColumnRow_(selectedSheet, 19, 1);
+          if (lastPengurusRow >= 19) {
+            selectedSheet.getRange(19, 1, lastPengurusRow - 18, 1)
+              .getDisplayValues().forEach(function(displayRow) {
+                result.Keuangan.push([String(displayRow[0] == null ? '' : displayRow[0]).trim(), '']);
+              });
+          }
+        } else if (selectedKey === 'ZAKAT') {
+          // ZAKAT: judul A1:A2, tanggal A3, data tabel A5:D sampai baris terakhir.
+          if (lastRow >= 5) {
+            selectedSheet.getRange(5, 1, lastRow - 4, 4).getDisplayValues()
+              .forEach(function(displayRow) {
+                const row = displayRow.map(function(cell) {
+                  return String(cell == null ? '' : cell).trim();
+                });
+                if (row.some(function(cell) { return cell !== ''; })) result.Keuangan.push(row);
+              });
           }
         } else if (lastRow >= 4) {
           const rows = selectedSheet
@@ -5525,6 +5530,24 @@ const PANEL_KEGIATAN_FIELDS_ = {
  * - IDUL FITRI     : manual.
  * - IDUL ADHA      : manual.
  */
+/**
+ * Jalankan sekali untuk memperbarui dropdown panels!C26 agar ZAKAT
+ * dapat dipilih bersama KEUANGAN, QURBAN, dan PENGURUS.
+ */
+function setupPanelKeuanganSelector() {
+  const ss = getSpreadsheet();
+  const panels = ss.getSheetByName('panels');
+  if (!panels) throw new Error('Sheet panels tidak ditemukan.');
+  const selector = panels.getRange('C26');
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(['KEUANGAN', "QUR'BAN", 'PENGURUS', 'ZAKAT'], true)
+    .setAllowInvalid(false)
+    .build();
+  selector.setDataValidation(rule);
+  if (!String(selector.getDisplayValue() || '').trim()) selector.setValue('KEUANGAN');
+  Logger.log("Dropdown panels!C26 diperbarui: KEUANGAN, QUR'BAN, PENGURUS, ZAKAT.");
+}
+
 function setupPanelKegiatan() {
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName("panels");
@@ -6444,13 +6467,15 @@ function getRealtimePanelsFast() {
     const selectorRaw = String((panelValues[0] || [])[0] || '').trim();
     const selectorKey = selectorRaw.toUpperCase().replace(/[\s’‘']/g, '');
     const selectedKey =
-      selectorKey === 'QURBAN'
-        ? 'QURBAN'
-        : selectorKey === 'PENGURUS'
-          ? 'PENGURUS'
-          : selectorKey === 'KEUANGAN'
-            ? 'KEUANGAN'
-            : '';
+      selectorKey === 'ZAKAT'
+        ? 'ZAKAT'
+        : selectorKey === 'QURBAN'
+          ? 'QURBAN'
+          : selectorKey === 'PENGURUS'
+            ? 'PENGURUS'
+            : selectorKey === 'KEUANGAN'
+              ? 'KEUANGAN'
+              : '';
 
     const jenis = String((panelValues[2] || [])[0] || '').trim().toUpperCase();
     const kegiatanValues = [
@@ -6717,27 +6742,25 @@ function getPanelKeuanganSource() {
         });
     }
   } else if (selectedKey === 'PENGURUS') {
-    // PENGURUS mengikuti format QURBAN.
-    // A1:A4 adalah header; data/scrolling dimulai dari A5.
-    // Batas bawah dinamis mengikuti baris terakhir yang berisi data.
+    // PENGURUS: baris isi mulai dari A19.
     const pengurusStartRow = 19;
     const lastPengurusContentRow = getLastFilledColumnRow_(selectedSheet, pengurusStartRow, 1);
     if (lastPengurusContentRow >= pengurusStartRow) {
-      const pengurusRows = selectedSheet
-        .getRange(
-          pengurusStartRow,
-          1,
-          lastPengurusContentRow - pengurusStartRow + 1,
-          1
-        )
-        .getDisplayValues();
-
-      pengurusRows.forEach(function(displayRow) {
-        rows.push([
-          String(displayRow[0] == null ? '' : displayRow[0]).trim(),
-          ''
-        ]);
-      });
+      selectedSheet.getRange(pengurusStartRow, 1, lastPengurusContentRow - pengurusStartRow + 1, 1)
+        .getDisplayValues().forEach(function(displayRow) {
+          rows.push([String(displayRow[0] == null ? '' : displayRow[0]).trim(), '']);
+        });
+    }
+  } else if (selectedKey === 'ZAKAT') {
+    // ZAKAT: tabel A5:D hingga baris terakhir yang berisi data.
+    if (lastRow >= 5) {
+      selectedSheet.getRange(5, 1, lastRow - 4, 4).getDisplayValues()
+        .forEach(function(displayRow) {
+          const row = displayRow.map(function(cell) {
+            return String(cell == null ? '' : cell).trim();
+          });
+          if (row.some(function(cell) { return cell !== ''; })) rows.push(row);
+        });
     }
   } else if (lastRow >= 4) {
     selectedSheet.getRange(4, 1, lastRow - 3, 2).getDisplayValues()
