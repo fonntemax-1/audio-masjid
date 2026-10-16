@@ -8926,9 +8926,15 @@ function startRealtimeAudioConfigPolling_() {
 
       if (
         keuanganSelector === 'QURBAN' ||
-        keuanganSelector === 'PENGURUS'
+        keuanganSelector === 'PENGURUS' ||
+        keuanganSelector === 'ZAKAT'
       ) {
-        requestAnimationFrame(function() { fitQurbanHeaderText_(); });
+        // Jalankan setelah payload utama mengubah teks dan layout header.
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {
+            fitQurbanHeaderText_();
+          });
+        });
       }
 
       if (finSub) {
