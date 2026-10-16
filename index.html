@@ -7040,7 +7040,7 @@ function startRealtimeAudioConfigPolling_() {
           finSub.style.textAlign = 'center';
           finSub.style.letterSpacing = '';
         }
-        finSub.style.marginBottom = '1.8vh';
+        finSub.style.marginBottom = isZakat ? '0.25em' : '1.8vh';
       }
 
       const finExtra = document.getElementById('fin-extra');
@@ -8279,7 +8279,7 @@ function startRealtimeAudioConfigPolling_() {
           finSub.style.lineHeight = '1.15';
           finSub.style.textAlign = 'center';
         }
-        finSub.style.marginBottom = '1.8vh';
+        finSub.style.marginBottom = keuanganSelector === 'ZAKAT' ? '0.25em' : '1.8vh';
       }
 
       const finExtra =
