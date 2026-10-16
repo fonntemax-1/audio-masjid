@@ -1607,13 +1607,21 @@ function getPanelEventCountdownCustomConfig_() {
               });
           }
         } else if (selectedKey === 'PENGURUS') {
-          // PENGURUS: data dimulai dari A19 sesuai struktur sheet.
-          const lastPengurusRow = getLastFilledColumnRow_(selectedSheet, 19, 1);
-          if (lastPengurusRow >= 19) {
-            selectedSheet.getRange(19, 1, lastPengurusRow - 18, 1)
-              .getDisplayValues().forEach(function(displayRow) {
-                result.Keuangan.push([String(displayRow[0] == null ? '' : displayRow[0]).trim(), '']);
-              });
+          // PENGURUS: A1:A4 adalah header tetap; data dimulai dari A5.
+          // Batas bawah dinamis mengikuti getLastRow(), tanpa batas jumlah
+          // baris dari sisi program dan tanpa membaca getMaxRows().
+          const lastPengurusRow = selectedSheet.getLastRow();
+          if (lastPengurusRow >= 5) {
+            const pengurusRows = selectedSheet
+              .getRange(5, 1, lastPengurusRow - 4, 1)
+              .getDisplayValues();
+
+            pengurusRows.forEach(function(displayRow) {
+              const text = String(
+                displayRow[0] == null ? '' : displayRow[0]
+              ).trim();
+              result.Keuangan.push([text, '']);
+            });
           }
         } else if (selectedKey === 'ZAKAT') {
           // ZAKAT: judul A1:A2, tanggal A3, data tabel A5:D sampai baris terakhir.
