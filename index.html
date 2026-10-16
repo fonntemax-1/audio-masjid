@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Cinzel:wght@500;600;700;800&family=Great+Vibes&family=Montserrat:wght@400;500;600;700;800&family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=20261016-header-logo-responsive">
+  <link rel="stylesheet" href="./style.css?v=20261016-header-logo-no-overlap">
   <script src="./audio.js" defer></script>
   
   <link rel="icon" type="image/png" href="./image/favicon.png">
@@ -18396,7 +18396,7 @@ var height=Math.min(available,ih*1.04);
 var vw=Math.max(document.documentElement.clientWidth||0,window.innerWidth||0);
 var aspect=(vw*0.08)/Math.max(1,(window.innerHeight||1)*0.12);
 logo.style.setProperty('height',height+'px','important');
-logo.style.setProperty('width',Math.min(vw*0.12,height*aspect)+'px','important');
+logo.style.setProperty('width',Math.min(vw*0.08,height*aspect)+'px','important');
 logo.style.setProperty('top',(ir.top-hr.top+ih/2)+'px','important');
 logo.style.setProperty('transform','translateY(-50%)','important');
 }
