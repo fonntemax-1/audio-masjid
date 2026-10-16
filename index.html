@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Cinzel:wght@500;600;700;800&family=Great+Vibes&family=Montserrat:wght@400;500;600;700;800&family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=20261016-qris-bottom-align">
+  <link rel="stylesheet" href="./style.css?v=20261016-header-logo-responsive">
   <script src="./audio.js" defer></script>
   
   <link rel="icon" type="image/png" href="./image/favicon.png">
@@ -18326,6 +18326,63 @@ function setCountdownBlackMode(enabled) {
 
 </script>
 
+
+
+<script>
+/* Logo mengikuti tinggi blok identitas lengkap: nama, alamat, dan slogan. */
+(function () {
+  function syncHeaderLogoToIdentity() {
+    const header = document.querySelector('.header');
+    const logo = document.querySelector('.header-logo');
+    const identity = document.querySelector('.header-center');
+    if (!header || !logo || !identity) return;
+
+    const hr = header.getBoundingClientRect();
+    const ir = identity.getBoundingClientRect();
+    if (hr.height <= 0 || ir.height <= 0) return;
+
+    const styles = window.getComputedStyle(header);
+    const padTop = parseFloat(styles.paddingTop) || 0;
+    const padBottom = parseFloat(styles.paddingBottom) || 0;
+    const availableHeight = Math.max(12, hr.height - padTop - padBottom);
+    const identityHeight = Math.max(12, ir.height);
+    const logoHeight = Math.min(availableHeight * 0.88, identityHeight * 1.04);
+    const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    const baseWidth = Math.max(1, viewportWidth * 0.08);
+    const baseHeight = Math.max(1, (window.innerHeight || 1) * 0.12);
+    const aspect = baseWidth / baseHeight;
+    const logoWidth = Math.min(viewportWidth * 0.12, logoHeight * aspect);
+
+    logo.style.setProperty('height', logoHeight + 'px', 'important');
+    logo.style.setProperty('width', logoWidth + 'px', 'important');
+    logo.style.setProperty('top', (ir.top - hr.top + identityHeight / 2) + 'px', 'important');
+    logo.style.setProperty('transform', 'translateY(-50%)', 'important');
+    logo.style.setProperty('max-height', availableHeight + 'px', 'important');
+  }
+
+  let resizeObserver;
+  function initHeaderLogoResponsive() {
+    syncHeaderLogoToIdentity();
+    const identity = document.querySelector('.header-center');
+    if (identity && 'ResizeObserver' in window) {
+      resizeObserver = new ResizeObserver(syncHeaderLogoToIdentity);
+      resizeObserver.observe(identity);
+    }
+    window.addEventListener('resize', syncHeaderLogoToIdentity, { passive: true });
+    window.addEventListener('orientationchange', syncHeaderLogoToIdentity, { passive: true });
+    const logoImage = document.getElementById('logo_masjid');
+    if (logoImage) logoImage.addEventListener('load', syncHeaderLogoToIdentity, { once: true });
+    setTimeout(syncHeaderLogoToIdentity, 250);
+    setTimeout(syncHeaderLogoToIdentity, 1000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHeaderLogoResponsive, { once: true });
+  } else {
+    initHeaderLogoResponsive();
+  }
+})();
+</script>
 
 </body>
 </html>
