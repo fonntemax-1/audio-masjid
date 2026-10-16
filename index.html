@@ -6036,7 +6036,24 @@ function startRealtimeAudioConfigPolling_() {
         const br = banner.getBoundingClientRect();
         const wr = widget.getBoundingClientRect();
         const gap = Math.max(4, Math.round(cr.height * 0.008));
-        const top = Math.max(0, br.top - cr.top - wr.height - gap);
+        let top;
+        const adBox = document.getElementById('main-frame-advertisement');
+        const qrisImage = widget.querySelector('.infaq-left-content img');
+        const adVisible = showBesideClock && adBox &&
+          window.getComputedStyle(adBox).display !== 'none' &&
+          adBox.getBoundingClientRect().height > 0;
+
+        if (adVisible && qrisImage) {
+          // Sejajarkan tepi bawah gambar QRIS dengan batas bawah area iklan.
+          // Ukuran gambar, posisi horizontal, dan jarak banner tidak diubah.
+          const adRect = adBox.getBoundingClientRect();
+          const qrRect = qrisImage.getBoundingClientRect();
+          const qrisBottomOffset = qrRect.bottom - wr.top;
+          top = Math.max(0, adRect.bottom - cr.top - qrisBottomOffset);
+        } else {
+          // Jika iklan tidak tampil, pertahankan jarak aman widget dari banner.
+          top = Math.max(0, br.top - cr.top - wr.height - gap);
+        }
         widget.style.setProperty('top', top + 'px', 'important');
         widget.style.setProperty('bottom', 'auto', 'important');
 
