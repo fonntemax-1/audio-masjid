@@ -17910,8 +17910,8 @@ function setCountdownBlackMode(enabled) {
     })();
 
     // =========================================================
-    // VIDEO ANIMASI IDUL FITRI - panels!C68:E68
-    // C68 = waktu mulai, D68 = waktu berhenti, E68 = ON/OFF.
+    // VIDEO ANIMASI IDUL FITRI - panels!C64:E64
+    // C64 = tanggal mulai, D64 = tanggal berhenti, E64 = ON/OFF.
     // Satu siklus video, jeda total 20 detik, lalu ulangi.
     // Independen dari YouTube, audio adzan, dan scheduler sholat.
     // =========================================================
@@ -18019,7 +18019,7 @@ function setCountdownBlackMode(enabled) {
         video.muted = true;
         try { video.currentTime = 0; } catch (error) {}
         playEidFitriVideoCycle_(video);
-        console.log('IDUL FITRI VIDEO: mulai sesuai panels!C68:E68');
+        console.log('IDUL FITRI VIDEO: mulai sesuai panels!C64:E64');
       } else {
         clearEidFitriVideoRestartTimer_();
         video.pause();
@@ -18066,8 +18066,8 @@ function setCountdownBlackMode(enabled) {
 
     
     // =========================================================
-    // ANIMASI IDUL ADHA - panels!C69:E69
-    // C69 = tanggal mulai, D69 = tanggal berhenti, E69 = ON/OFF.
+    // ANIMASI IDUL ADHA - panels!C65:E65
+    // C65 = tanggal mulai, D65 = tanggal berhenti, E65 = ON/OFF.
     // Animated WebP berjalan sendiri; fitur ini hanya mengatur tampil/sembunyi.
     // Independen dari animasi Idul Fitri, YouTube, audio, dan scheduler.
     // =========================================================
@@ -18130,7 +18130,7 @@ function setCountdownBlackMode(enabled) {
       if (active) {
         const src = image.getAttribute('src');
         image.setAttribute('src', src);
-        console.log('IDUL ADHA: mulai sesuai panels!C69:E69');
+        console.log('IDUL ADHA: mulai sesuai panels!C65:E65');
       } else {
         console.log('IDUL ADHA: disembunyikan / OFF di luar jadwal');
       }
