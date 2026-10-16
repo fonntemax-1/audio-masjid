@@ -6553,6 +6553,17 @@ function getRealtimePanelsFast() {
             ]);
           });
         }
+      } else if (selectedKey === 'ZAKAT') {
+        // ZAKAT: data A5:D sampai baris terakhir yang berisi data.
+        if (lastRow >= 5) {
+          selectedSheet.getRange(5, 1, lastRow - 4, 4).getDisplayValues()
+            .forEach(function(displayRow) {
+              const row = displayRow.map(function(cell) {
+                return String(cell == null ? '' : cell).trim();
+              });
+              if (row.some(function(cell) { return cell !== ''; })) rows.push(row);
+            });
+        }
       } else if (lastRow >= 4) {
         selectedSheet.getRange(4, 1, lastRow - 3, 2).getDisplayValues()
           .forEach(function(row) {
