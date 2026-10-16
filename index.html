@@ -641,7 +641,8 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
         </div>
 
         <div id="main-frame-advertisement" aria-hidden="true" style="display:none;">
-          <img id="main-frame-advertisement-image" alt="Iklan masjid" decoding="async">
+          <img id="main-frame-advertisement-image" class="ad-layer ad-layer-visible" alt="Iklan masjid" decoding="async">
+          <img id="main-frame-advertisement-image-next" class="ad-layer" alt="" aria-hidden="true" decoding="async">
         </div>
 
         <div class="event-banner">
@@ -17814,7 +17815,8 @@ function setCountdownBlackMode(enabled) {
     (function initMainFrameAdvertisement_() {
       const box = document.getElementById('main-frame-advertisement');
       const image = document.getElementById('main-frame-advertisement-image');
-      if (!box || !image) return;
+      const imageNext = document.getElementById('main-frame-advertisement-image-next');
+      if (!box || !image || !imageNext) return;
 
       // Kontrol iklan: B = nama, C = tanggal mulai, D = tanggal berhenti, E = ON/OFF.
       // Nomor baris menentukan nama dasar gambar. Ekstensi dideteksi otomatis.
@@ -17873,10 +17875,83 @@ function setCountdownBlackMode(enabled) {
         }
       }
 
-      // Rotasi iklan: setiap iklan yang aktif tampil selama 1 menit.
-      // Daftar aktif disusun berdasarkan nomor baris 71 sampai 75.
+      // Rotasi iklan: setiap iklan aktif tampil selama 1 menit.
+      // Crossfade 1 detik menggunakan dua lapisan gambar.
       let rotationSignature = '';
       let rotationStartedAt = Date.now();
+      let currentAdRow = 0;
+      let currentAdCandidates = [];
+      let currentAdCandidateIndex = 0;
+      let failedAdRows = {};
+      let lastActiveSignature = '';
+      let frontImage = image;
+      let backImage = imageNext;
+      let transitionToken = 0;
+
+      function hideAdvertisement_() {
+        box.style.display = 'none';
+        box.setAttribute('aria-hidden', 'true');
+        image.removeAttribute('src');
+        imageNext.removeAttribute('src');
+        currentAdRow = 0;
+        currentAdCandidates = [];
+      }
+
+      function tryNextExtension_(token) {
+        if (token !== transitionToken) return;
+        if (currentAdCandidateIndex + 1 < currentAdCandidates.length) {
+          currentAdCandidateIndex += 1;
+          backImage.src = currentAdCandidates[currentAdCandidateIndex];
+          return;
+        }
+        console.warn('IKLAN MAIN FRAME: semua ekstensi gagal, iklan dilewati', currentAdRow);
+        failedAdRows[currentAdRow] = true;
+        currentAdRow = 0;
+        currentAdCandidates = [];
+        rotationSignature = '';
+        update_();
+      }
+
+      function showAd_(row) {
+        const base = adBaseByRow[row];
+        if (!base) return;
+        currentAdRow = row;
+        currentAdCandidates = adExtensions.map(function(ext) { return base + '.' + ext; });
+        currentAdCandidateIndex = 0;
+        const token = ++transitionToken;
+        backImage.style.transition = 'none';
+        backImage.style.opacity = '0';
+        backImage.src = currentAdCandidates[0];
+        backImage.onload = function() {
+          if (token !== transitionToken) return;
+          backImage.style.transition = 'opacity 500ms ease-in-out';
+          // Kedua lapisan berubah opacity bersamaan untuk crossfade 1 detik.
+          requestAnimationFrame(function() {
+            if (token !== transitionToken) return;
+            backImage.style.opacity = '1';
+            frontImage.style.transition = 'opacity 500ms ease-in-out';
+            frontImage.style.opacity = '0';
+          });
+          window.setTimeout(function() {
+            if (token !== transitionToken) return;
+            frontImage.style.opacity = '0';
+            backImage.style.opacity = '1';
+            const oldFront = frontImage;
+            frontImage = backImage;
+            backImage = oldFront;
+            frontImage.classList.add('ad-layer-visible');
+            backImage.classList.remove('ad-layer-visible');
+            backImage.style.transition = 'none';
+            backImage.style.opacity = '0';
+            backImage.onload = null;
+            backImage.onerror = null;
+          }, 520);
+        };
+        backImage.onerror = function() {
+          if (token !== transitionToken) return;
+          tryNextExtension_(token);
+        };
+      }
 
       function update_() {
         if (document.body.classList.contains('prayer-black-mode')) {
@@ -17891,8 +17966,6 @@ function setCountdownBlackMode(enabled) {
             (result && Array.isArray(result.rows) ? result.rows : []));
           const today = todayKey_();
 
-          // Geser INFAQ/QRIS ke kiri frame jam digital bila salah satu
-          // status E71:E75 = ON. Perubahan ini hanya mengatur posisi visual.
           const anyAdEnabled = rows.some(function(row) {
             const sheetRow = Number(row.row || row.sheetRow || 0);
             return !!adBaseByRow[sheetRow] &&
@@ -17927,9 +18000,7 @@ function setCountdownBlackMode(enabled) {
           });
 
           if (!active.length) {
-            box.style.display = 'none';
-            box.setAttribute('aria-hidden', 'true');
-            image.removeAttribute('src');
+            hideAdvertisement_();
             return;
           }
 
@@ -17941,19 +18012,11 @@ function setCountdownBlackMode(enabled) {
             rotationStartedAt = Date.now();
           }
           const elapsedMinutes = Math.floor((Date.now() - rotationStartedAt) / 60000);
-          const chosen = active[elapsedMinutes % active.length];
-          const chosenRow = Number(chosen.row || chosen.sheetRow);
-          const base = adBaseByRow[chosenRow];
-          if (currentAdRow !== chosenRow || !currentAdCandidates.length) {
-            currentAdRow = chosenRow;
-            currentAdCandidates = adExtensions.map(function(ext) { return base + '.' + ext; });
-            currentAdCandidateIndex = 0;
-            image.src = currentAdCandidates[currentAdCandidateIndex];
-          }
+          const chosenRow = Number(active[elapsedMinutes % active.length].row ||
+            active[elapsedMinutes % active.length].sheetRow);
+          if (currentAdRow !== chosenRow) showAd_(chosenRow);
           box.style.display = 'block';
           box.setAttribute('aria-hidden', 'false');
-          console.log('IKLAN MAIN FRAME: aktif', chosenRow,
-            '(rotasi 1 menit; aktif:', active.length, ')');
         }).catch(function(err) {
           console.warn('IKLAN MAIN FRAME: konfigurasi gagal dibaca', err);
           box.style.display = 'none';
@@ -17961,27 +18024,6 @@ function setCountdownBlackMode(enabled) {
         });
       }
 
-      image.addEventListener('error', function() {
-        // Fallback otomatis: coba ekstensi lain sebelum melewati iklan.
-        if (currentAdRow && currentAdCandidateIndex + 1 < currentAdCandidates.length) {
-          currentAdCandidateIndex += 1;
-          image.src = currentAdCandidates[currentAdCandidateIndex];
-          return;
-        }
-        if (currentAdRow) {
-          console.warn('IKLAN MAIN FRAME: semua ekstensi gagal, iklan dilewati', currentAdRow);
-          failedAdRows[currentAdRow] = true;
-          currentAdRow = 0;
-          currentAdCandidates = [];
-          currentAdCandidateIndex = 0;
-          rotationSignature = '';
-          update_();
-          return;
-        }
-        console.error('IKLAN MAIN FRAME: gambar gagal dimuat', image.src);
-        box.style.display = 'none';
-        box.setAttribute('aria-hidden', 'true');
-      });
       update_();
       setInterval(update_, 30000);
     })();
