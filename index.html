@@ -8791,12 +8791,37 @@ function startRealtimeAudioConfigPolling_() {
             );
 
           if (isZakat) {
-            // ZAKAT: empat kolom A:D memakai gaya tabel KEUANGAN.
-            for (let column = 0; column < 4; column++) {
+            // ZAKAT: judul bagian bernomor Romawi digabung satu baris,
+            // BOLD, mengikuti tema aktif, dan bergaris bawah.
+            const zakatCells = row.slice(0, 4).map(function(value) {
+              return value == null ? '' : String(value).trim();
+            });
+            const firstZakatText = zakatCells.find(function(value) {
+              return value !== '';
+            }) || '';
+            const isRomanHeading = /^[IVXLCDM]+[.)]?$/i.test(firstZakatText);
+
+            if (isRomanHeading) {
               const td = document.createElement('td');
-              td.className = 'zakat-cell';
-              td.textContent = row[column] == null ? '' : String(row[column]);
+              td.className = 'zakat-cell zakat-roman-heading';
+              td.colSpan = 4;
+              td.textContent = zakatCells.filter(Boolean).join(' ');
+              td.style.setProperty('color', 'var(--theme-accent)', 'important');
+              td.style.setProperty('-webkit-text-fill-color', 'var(--theme-accent)', 'important');
+              td.style.setProperty('font-weight', '700', 'important');
+              td.style.setProperty('text-decoration', 'underline', 'important');
+              td.style.setProperty('text-decoration-color', 'var(--theme-accent)', 'important');
+              td.style.setProperty('text-underline-offset', '0.12em', 'important');
+              td.style.setProperty('text-align', 'left', 'important');
               tr.appendChild(td);
+            } else {
+              // Data biasa tetap memakai empat kolom A:D.
+              for (let column = 0; column < 4; column++) {
+                const td = document.createElement('td');
+                td.className = 'zakat-cell';
+                td.textContent = zakatCells[column];
+                tr.appendChild(td);
+              }
             }
             table.appendChild(tr);
             return;
