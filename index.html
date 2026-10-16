@@ -385,12 +385,19 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   width: auto !important;
   max-width: none !important;
   box-sizing: border-box !important;
-  padding: 0.08em 0.22em !important;
+  padding: 0.08em 0.12em !important;
   text-align: left !important;
   white-space: normal !important;
   overflow-wrap: anywhere !important;
   word-break: normal !important;
   vertical-align: middle !important;
+}
+/* Kolom A dan B dibuat rapat; teks tidak dipotong menjadi beberapa baris. */
+#fin-panel-box .keuangan-table.zakat-table tr > .zakat-cell:nth-child(1),
+#fin-panel-box .keuangan-table.zakat-table tr > .zakat-cell:nth-child(2) {
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: keep-all !important;
 }
 #fin-panel-box .keuangan-table.zakat-table .zakat-roman-heading {
   padding-left: 0.22em !important;
