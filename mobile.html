@@ -802,6 +802,26 @@ body.startup-visual-ready #startup-visual-overlay { opacity:0; }
 </style>
 
 
+<style id="mobile-keuangan-date-single-divider-v1">
+/* KEUANGAN: tanggal hanya memiliki satu garis pemisah di bawahnya. */
+#fin-panel-box #fin-sub {
+  border-top: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  position: relative !important;
+}
+#fin-panel-box #fin-sub::before,
+#fin-panel-box #fin-sub::after {
+  content: none !important;
+  display: none !important;
+}
+#fin-panel-box #keuangan-scroll-area {
+  border-top: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+</style>
+
 </head>
 
 <body class="startup-visual-hold">
