@@ -6705,13 +6705,15 @@ function getPanelKeuanganSource() {
     .replace(/[\\s’‘']/g, '');
 
   const selectedKey =
-    selectorKey === 'QURBAN'
-      ? 'QURBAN'
-      : selectorKey === 'PENGURUS'
-        ? 'PENGURUS'
-        : selectorKey === 'KEUANGAN'
-          ? 'KEUANGAN'
-          : '';
+    selectorKey === 'ZAKAT'
+      ? 'ZAKAT'
+      : selectorKey === 'QURBAN'
+        ? 'QURBAN'
+        : selectorKey === 'PENGURUS'
+          ? 'PENGURUS'
+          : selectorKey === 'KEUANGAN'
+            ? 'KEUANGAN'
+            : '';
 
   let selectedSheet = null;
   ss.getSheets().some(function(sheet) {
