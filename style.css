@@ -4724,7 +4724,7 @@ body.advertising-infaq-at-ad-position #infaq-left-widget {
   overflow: visible !important;
 }
 body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-title {
-  font-size: clamp(12px, 2.1vw, 28px) !important;
+  /* Pertahankan ukuran judul INFAQ & SHADAQAH dari CSS utama. */
   line-height: 1.05 !important;
   margin-bottom: .7vh !important;
 }
@@ -4739,9 +4739,6 @@ body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-content img
   height: auto !important;
 }
 @media (max-width: 700px) {
-  body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-title {
-    font-size: clamp(8px, 2.5vw, 16px) !important;
-  }
   body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-text {
     font-size: clamp(6px, 1.7vw, 10px) !important;
   }
