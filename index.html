@@ -6600,13 +6600,18 @@ function startRealtimeAudioConfigPolling_() {
       const elements = ids.map(function(id) {
         return document.getElementById(id);
       }).filter(function(el) {
-        // QUR'BAN: fin-sub adalah A2, bukan tanggal.
-        // Jangan biarkan auto-fit tanggal mengubah ukuran A2.
+        // QUR'BAN dan ZAKAT: fin-sub adalah heading A2, bukan tanggal.
+        // Jangan biarkan auto-fit tanggal mengubah ukuran A2 secara terpisah
+        // setelah ukuran A1/A2 disamakan oleh fitQurbanHeaderText_().
+        const headerPanel = document.getElementById('fin-panel-box');
         if (
           el &&
           el.id === 'fin-sub' &&
-          document.getElementById('fin-panel-box') &&
-          document.getElementById('fin-panel-box').classList.contains('qurban-display')
+          headerPanel &&
+          (
+            headerPanel.classList.contains('qurban-display') ||
+            String(headerPanel.dataset.panelSelector || '').trim().toUpperCase() === 'ZAKAT'
+          )
         ) {
           return false;
         }
