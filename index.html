@@ -17811,6 +17811,48 @@ function setCountdownBlackMode(enabled) {
               String(row.status || '').trim().toUpperCase() === 'ON';
           });
           document.body.classList.toggle('advertising-infaq-left-shift', anyAdEnabled);
+          if (anyAdEnabled) {
+            // Ukur posisi aktual kolom jam digital (bukan perkiraan vw),
+            // lalu letakkan QRIS tepat di sebelah kirinya.
+            const alignInfaqBesideClock = function() {
+              const center = document.querySelector('.center-panel');
+              const widget = document.getElementById('infaq-left-widget');
+              const clock = document.querySelector('.clock-overlay');
+              if (!center || !widget || !clock || !widget.offsetParent) return;
+              const centerRect = center.getBoundingClientRect();
+              const clockRect = clock.getBoundingClientRect();
+              const widgetRect = widget.getBoundingClientRect();
+              const gap = Math.max(4, Math.round(centerRect.width * 0.004));
+              const left = Math.max(0, clockRect.left - centerRect.left - widgetRect.width - gap);
+              widget.style.setProperty('left', left + 'px', 'important');
+              widget.style.setProperty('right', 'auto', 'important');
+            };
+            requestAnimationFrame(alignInfaqBesideClock);
+            if (!window.__infaqClockAlignmentBound) {
+              window.__infaqClockAlignmentBound = true;
+              window.addEventListener('resize', function() {
+                if (!document.body.classList.contains('advertising-infaq-left-shift')) return;
+                requestAnimationFrame(function() {
+                  const center = document.querySelector('.center-panel');
+                  const widget = document.getElementById('infaq-left-widget');
+                  const clock = document.querySelector('.clock-overlay');
+                  if (!center || !widget || !clock) return;
+                  const centerRect = center.getBoundingClientRect();
+                  const clockRect = clock.getBoundingClientRect();
+                  const widgetRect = widget.getBoundingClientRect();
+                  const gap = Math.max(4, Math.round(centerRect.width * 0.004));
+                  widget.style.setProperty('left', Math.max(0, clockRect.left - centerRect.left - widgetRect.width - gap) + 'px', 'important');
+                  widget.style.setProperty('right', 'auto', 'important');
+                });
+              }, { passive: true });
+            }
+          } else {
+            const widget = document.getElementById('infaq-left-widget');
+            if (widget) {
+              widget.style.removeProperty('left');
+              widget.style.removeProperty('right');
+            }
+          }
 
           const active = rows.filter(function(row) {
             const sheetRow = Number(row.row || row.sheetRow || 0);
