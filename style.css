@@ -4787,3 +4787,35 @@ body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-text {
   object-fit: contain !important;
   object-position: left bottom !important;
 }
+
+
+/* INFAQ saat iklan ON: judul satu baris dan QRIS tepat di bawah jam digital.
+   Tidak mengubah ukuran/rotasi iklan, banner, atau scheduler audio. */
+body.advertising-infaq-left-shift #infaq-left-widget {
+  width: clamp(105px, 12vw, 155px) !important;
+  max-width: 155px !important;
+}
+body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-title {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 0 .55vh !important;
+  padding: 0 !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-align: center !important;
+  font-size: clamp(8px, .95vw, 13px) !important;
+  line-height: 1.05 !important;
+}
+body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-title span {
+  display: inline !important;
+  white-space: nowrap !important;
+}
+@media (max-width: 700px) {
+  body.advertising-infaq-left-shift #infaq-left-widget {
+    width: clamp(92px, 24vw, 130px) !important;
+  }
+  body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-title {
+    font-size: clamp(7px, 1.7vw, 11px) !important;
+  }
+}
