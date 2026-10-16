@@ -6014,9 +6014,8 @@ function startRealtimeAudioConfigPolling_() {
       document.body.classList.toggle('advertising-infaq-left-shift', showBesideClock);
       document.body.classList.toggle('advertising-infaq-at-ad-position', !showBesideClock);
 
-      // Pertahankan posisi CSS/posisi terakhir selama pengukuran. Jangan
-      // menyembunyikan widget atau memindahkannya ke top:0 saat reload.
-      widget.style.setProperty('width', 'clamp(105px, 12vw, 155px)', 'important');
+      // Responsif terhadap ukuran frame dan area jam digital; semua pengukuran
+      // dilakukan dari elemen aktual, tanpa menyentuh scheduler/audio.
       widget.style.setProperty('height', 'auto', 'important');
       widget.style.setProperty('padding', '0', 'important');
       widget.style.setProperty('margin', '0', 'important');
@@ -6024,56 +6023,55 @@ function startRealtimeAudioConfigPolling_() {
       widget.style.setProperty('right', 'auto', 'important');
       widget.style.setProperty('z-index', showBesideClock ? '100000' : '5', 'important');
 
-      // Satu perhitungan vertikal untuk kedua mode: tepi bawah widget selalu
-      // berjarak sama dari tepi atas BANNER, sehingga widget tidak menutupinya.
       const alignWidget = function() {
         const center = document.querySelector('.center-panel');
         const banner = document.querySelector('.event-banner');
-        const clock = document.querySelector('.clock-overlay');
+        const digitalClock = document.querySelector('.digital-clock-box');
         if (!center || !banner || !widget.offsetParent) return;
 
         const cr = center.getBoundingClientRect();
         const br = banner.getBoundingClientRect();
-        const wr = widget.getBoundingClientRect();
-        const gap = Math.max(4, Math.round(cr.height * 0.008));
-        let top;
+        const gap = Math.max(5, Math.round(cr.height * 0.012));
         const adBox = document.getElementById('main-frame-advertisement');
         const qrisImage = widget.querySelector('.infaq-left-content img');
         const adVisible = showBesideClock && adBox &&
           window.getComputedStyle(adBox).display !== 'none' &&
           adBox.getBoundingClientRect().height > 0;
+        let top;
+        let maxWidth = Math.min(155, cr.width * 0.12);
 
-        if (adVisible && qrisImage) {
-          // Sejajarkan tepi bawah gambar QRIS dengan batas bawah area iklan.
-          // Ukuran gambar, posisi horizontal, dan jarak banner tidak diubah.
-          const adRect = adBox.getBoundingClientRect();
-          const qrRect = qrisImage.getBoundingClientRect();
-          const qrisBottomOffset = qrRect.bottom - wr.top;
-          top = Math.max(0, adRect.bottom - cr.top - qrisBottomOffset);
-        } else {
-          // Jika iklan tidak tampil, pertahankan jarak aman widget dari banner.
-          top = Math.max(0, br.top - cr.top - wr.height - gap);
-        }
-        widget.style.setProperty('top', top + 'px', 'important');
-        widget.style.setProperty('bottom', 'auto', 'important');
+        if (showBesideClock && digitalClock) {
+          const clockRect = digitalClock.getBoundingClientRect();
+          // Widget dimulai di bawah jam digital, tidak di atas atau di sampingnya.
+          top = clockRect.bottom - cr.top + gap;
+          const bottomLimit = adVisible
+            ? adBox.getBoundingClientRect().bottom - cr.top
+            : br.top - cr.top - gap;
+          const availableHeight = Math.max(28, bottomLimit - top);
+          // Isi QRIS proporsional: batasi lebar berdasarkan tinggi yang tersedia.
+          maxWidth = Math.max(58, Math.min(maxWidth, availableHeight / 1.42));
+          widget.style.setProperty('width', maxWidth + 'px', 'important');
+          widget.style.setProperty('max-height', availableHeight + 'px', 'important');
+          widget.style.setProperty('overflow', 'hidden', 'important');
 
-        if (showBesideClock && clock) {
-          const kr = clock.getBoundingClientRect();
-          // Saat iklan ON, tempatkan INFAQ/QRIS tepat di bawah jam digital,
-          // dengan posisi horizontal terpusat terhadap jam.
-          const clockCenter = (kr.left + kr.right) / 2 - cr.left;
-          const left = Math.max(0, Math.min(
-            cr.width - wr.width,
-            clockCenter - wr.width / 2
-          ));
+          const clockCenter = (clockRect.left + clockRect.right) / 2 - cr.left;
+          const left = Math.max(0, Math.min(cr.width - maxWidth, clockCenter - maxWidth / 2));
           widget.style.setProperty('left', left + 'px', 'important');
         } else {
+          widget.style.setProperty('width', 'clamp(105px, 12vw, 155px)', 'important');
+          widget.style.setProperty('max-height', 'none', 'important');
+          widget.style.setProperty('overflow', 'visible', 'important');
+          const wr = widget.getBoundingClientRect();
+          top = Math.max(0, br.top - cr.top - wr.height - gap);
           widget.style.setProperty('left', '1%', 'important');
         }
+
+        widget.style.setProperty('top', Math.max(0, top) + 'px', 'important');
+        widget.style.setProperty('bottom', 'auto', 'important');
         widget.style.setProperty('right', 'auto', 'important');
       };
 
-      // Tunggu dua frame agar kelas mode, padding, dan ukuran aktual sudah diterapkan.
+      // Dua frame memberi waktu kelas responsif dan ukuran TV untuk diterapkan.
       requestAnimationFrame(() => requestAnimationFrame(alignWidget));
     }
 
