@@ -346,6 +346,34 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 }
 </style>
 
+<style id="petugas-infaq-title-single-line">
+  /* Pada frame PETUGAS SHOLAT, judul INFAQ & SHADAQAH satu baris dan tetap putih. */
+  html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    overflow-wrap: normal !important;
+    word-break: keep-all !important;
+    text-overflow: clip !important;
+    text-align: center !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    font-size: clamp(7px, 1.0vw, 14px) !important;
+    line-height: 1.1 !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+  }
+  @media screen and (max-width: 700px) {
+    html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
+      font-size: clamp(6px, 1.8vw, 11px) !important;
+    }
+  }
+</style>
+
 </head>
 
 <body class="startup-visual-hold">
@@ -644,7 +672,7 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
           </div>
 
           <div class="petugas-infaq-display" id="petugas-infaq-display" style="display:none;">
-            <div class="petugas-infaq-title">INFAQ<br>SHADAQAH</div>
+            <div class="petugas-infaq-title">INFAQ &amp; SHADAQAH</div>
             <div class="petugas-infaq-text" id="petugas-infaq-text"></div>
             <div class="petugas-infaq-content">
               <img src="./image/QRIS.png" alt="QRIS Infaq dan Shadaqah" loading="lazy" decoding="async">
