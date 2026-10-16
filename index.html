@@ -17802,6 +17802,16 @@ function setCountdownBlackMode(enabled) {
             (result && Array.isArray(result.data) ? result.data :
             (result && Array.isArray(result.rows) ? result.rows : []));
           const today = todayKey_();
+
+          // Geser INFAQ/QRIS ke kiri frame jam digital bila salah satu
+          // status E70:E72 = ON. Perubahan ini hanya mengatur posisi visual.
+          const anyAdEnabled = rows.some(function(row) {
+            const sheetRow = Number(row.row || row.sheetRow || 0);
+            return !!adFilesByRow[sheetRow] &&
+              String(row.status || '').trim().toUpperCase() === 'ON';
+          });
+          document.body.classList.toggle('advertising-infaq-left-shift', anyAdEnabled);
+
           const active = rows.filter(function(row) {
             const sheetRow = Number(row.row || row.sheetRow || 0);
             const start = dateKey_(row.start || row.startDate || row.start_date);
