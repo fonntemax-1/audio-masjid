@@ -894,7 +894,7 @@ function getEidFitriVideoConfig() {
 
     // Baca nilai asli agar tanggal tidak bergantung pada format tampilan
     // atau bahasa lokal spreadsheet (mis. 10 Okt 2026 vs 10/10/2026).
-    const values = sheet.getRange('C68:E68').getValues()[0] || [];
+    const values = sheet.getRange('C64:E64').getValues()[0] || [];
     const timeZone = ss.getSpreadsheetTimeZone() || Session.getScriptTimeZone() || 'Asia/Makassar';
     const startDate = normalizeVideoConfigDate_(values[0], timeZone);
     const stopDate = normalizeVideoConfigDate_(values[1], timeZone);
@@ -918,7 +918,7 @@ function getEidAdhaVideoConfig() {
 
     // Baca nilai asli agar tanggal tidak bergantung pada format tampilan
     // atau bahasa lokal spreadsheet (mis. 10 Okt 2026 vs 10/10/2026).
-    const values = sheet.getRange('C69:E69').getValues()[0] || [];
+    const values = sheet.getRange('C65:E65').getValues()[0] || [];
     const timeZone = ss.getSpreadsheetTimeZone() || Session.getScriptTimeZone() || 'Asia/Makassar';
     const startDate = normalizeVideoConfigDate_(values[0], timeZone);
     const stopDate = normalizeVideoConfigDate_(values[1], timeZone);
@@ -953,9 +953,9 @@ function getPanelEventCountdownCustomConfig_() {
     values.forEach(function(row, index) {
       const sheetRow = 64 + index;
 
-      // B68:E72 adalah penanda/konfigurasi animasi video, bukan teks countdown web.
-      // File video idul-fitri.webm ditampilkan oleh index.html; C68:E68 mengatur jadwalnya.
-      if (sheetRow >= 68 && sheetRow <= 72) return;
+      // B64:E65 dan B68:E72 adalah kontrol/penanda video, bukan teks countdown.
+      // Baris 64-65 mengatur video Idul Fitri/Adha; baris 68-72 untuk video/iklan.
+      if ((sheetRow >= 64 && sheetRow <= 65) || (sheetRow >= 68 && sheetRow <= 72)) return;
 
       const displayRow = displays[index] || [];
       const event = String(displayRow[0] || row[0] || '').trim();
