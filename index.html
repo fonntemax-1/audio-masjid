@@ -8823,7 +8823,18 @@ function startRealtimeAudioConfigPolling_() {
         );
 
       table.className = 'keuangan-table';
-      if (isZakat) table.classList.add('zakat-table');
+      if (isZakat) {
+        table.classList.add('zakat-table');
+        // Tetapkan lebar kolom secara eksplisit agar baris judul colSpan=4
+        // tidak membuat browser mengabaikan proporsi kolom data A:D.
+        const colgroup = document.createElement('colgroup');
+        ['6%', '37%', '25%', '32%'].forEach(function(width) {
+          const col = document.createElement('col');
+          col.style.width = width;
+          colgroup.appendChild(col);
+        });
+        table.appendChild(colgroup);
+      }
 
       rows.forEach(
         function(row) {
