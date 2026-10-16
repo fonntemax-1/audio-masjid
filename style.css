@@ -4709,11 +4709,27 @@ body.advertising-infaq-left-shift #infaq-left-widget {
   background: transparent;
 }
 #main-frame-advertisement img {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
   object-position: left bottom;
+  opacity: 0;
+  transition: opacity 800ms ease-in-out;
+  will-change: opacity;
+}
+#main-frame-advertisement #main-frame-advertisement-image {
+  opacity: 0;
+}
+#main-frame-advertisement #main-frame-advertisement-image-next {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  #main-frame-advertisement img {
+    transition-duration: 0ms;
+  }
 }
 
 
