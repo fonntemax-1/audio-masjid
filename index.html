@@ -17790,6 +17790,11 @@ function setCountdownBlackMode(enabled) {
         }
       }
 
+      // Rotasi iklan: setiap iklan yang aktif tampil selama 1 menit.
+      // Daftar aktif disusun berdasarkan nomor baris 70, 71, 72.
+      let rotationSignature = '';
+      let rotationStartedAt = Date.now();
+
       function update_() {
         if (document.body.classList.contains('prayer-black-mode')) {
           box.style.display = 'none';
@@ -17873,12 +17878,21 @@ function setCountdownBlackMode(enabled) {
             return;
           }
 
-          const chosen = active[0];
+          const signature = active.map(function(row) {
+            return Number(row.row || row.sheetRow || 0);
+          }).join(',');
+          if (signature !== rotationSignature) {
+            rotationSignature = signature;
+            rotationStartedAt = Date.now();
+          }
+          const elapsedMinutes = Math.floor((Date.now() - rotationStartedAt) / 60000);
+          const chosen = active[elapsedMinutes % active.length];
           const src = adFilesByRow[Number(chosen.row || chosen.sheetRow)];
           if (image.getAttribute('src') !== src) image.src = src;
           box.style.display = 'block';
           box.setAttribute('aria-hidden', 'false');
-          console.log('IKLAN MAIN FRAME: aktif', chosen.row || chosen.sheetRow);
+          console.log('IKLAN MAIN FRAME: aktif', chosen.row || chosen.sheetRow,
+            '(rotasi 1 menit; aktif:', active.length, ')');
         }).catch(function(err) {
           console.warn('IKLAN MAIN FRAME: konfigurasi gagal dibaca', err);
           box.style.display = 'none';
