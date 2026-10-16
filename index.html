@@ -17924,12 +17924,12 @@ function setCountdownBlackMode(enabled) {
         backImage.src = currentAdCandidates[0];
         backImage.onload = function() {
           if (token !== transitionToken) return;
-          backImage.style.transition = 'opacity 1800ms cubic-bezier(0.22, 1, 0.36, 1)';
-          // Kedua lapisan berubah opacity bersamaan untuk smooth crossfade 1,8 detik.
+          backImage.style.transition = 'opacity 500ms ease-in-out';
+          // Kedua lapisan berubah opacity bersamaan untuk crossfade 1 detik.
           requestAnimationFrame(function() {
             if (token !== transitionToken) return;
             backImage.style.opacity = '1';
-            frontImage.style.transition = 'opacity 1800ms cubic-bezier(0.22, 1, 0.36, 1)';
+            frontImage.style.transition = 'opacity 500ms ease-in-out';
             frontImage.style.opacity = '0';
           });
           window.setTimeout(function() {
@@ -17945,7 +17945,7 @@ function setCountdownBlackMode(enabled) {
             backImage.style.opacity = '0';
             backImage.onload = null;
             backImage.onerror = null;
-          }, 1820);
+          }, 520);
         };
         backImage.onerror = function() {
           if (token !== transitionToken) return;
