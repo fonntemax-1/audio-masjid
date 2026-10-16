@@ -17808,7 +17808,7 @@ function setCountdownBlackMode(enabled) {
 
   
     // =========================================================
-    // IKLAN MAIN FRAME - panels!B71:E75
+    // IKLAN MAIN FRAME - panels!B70:E74
     // Komponen terpisah; tidak mengubah banner atau scheduler audio.
     // =========================================================
     (function initMainFrameAdvertisement_() {
@@ -17819,11 +17819,11 @@ function setCountdownBlackMode(enabled) {
       // Kontrol iklan: B = nama, C = tanggal mulai, D = tanggal berhenti, E = ON/OFF.
       // Nomor baris menentukan nama dasar gambar. Ekstensi dideteksi otomatis.
       const adBaseByRow = {
-        71: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-1',
-        72: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-2',
-        73: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-3',
-        74: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-4',
-        75: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-5'
+        70: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-1',
+        71: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-2',
+        72: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-3',
+        73: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-4',
+        74: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-5'
       };
       // Coba ekstensi umum; jika semua gagal, iklan dilewati otomatis.
       const adExtensions = ['jpg', 'jpeg', 'png', 'webp'];
@@ -17874,7 +17874,7 @@ function setCountdownBlackMode(enabled) {
       }
 
       // Rotasi iklan: setiap iklan yang aktif tampil selama 1 menit.
-      // Daftar aktif disusun berdasarkan nomor baris 71 sampai 75.
+      // Daftar aktif disusun berdasarkan nomor baris 70 sampai 74.
       let rotationSignature = '';
       let rotationStartedAt = Date.now();
 
@@ -17892,7 +17892,7 @@ function setCountdownBlackMode(enabled) {
           const today = todayKey_();
 
           // Geser INFAQ/QRIS ke kiri frame jam digital bila salah satu
-          // status E71:E75 = ON. Perubahan ini hanya mengatur posisi visual.
+          // status E70:E74 = ON. Perubahan ini hanya mengatur posisi visual.
           const anyAdEnabled = rows.some(function(row) {
             const sheetRow = Number(row.row || row.sheetRow || 0);
             return !!adBaseByRow[sheetRow] &&
