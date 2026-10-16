@@ -4938,3 +4938,24 @@ body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content img {
   max-height: 100% !important;
   object-fit: contain !important;
 }
+
+
+/* FIX HEADER: logo dipindah ke sisi kiri dan ruang identitas disisihkan agar
+   alamat serta slogan tidak berada di bawah logo. */
+.header-logo {
+  left: 1vw !important;
+}
+.header-center {
+  box-sizing: border-box !important;
+  padding-left: 10vw !important;
+  padding-right: 1.2vw !important;
+}
+@media screen and (max-width: 700px) {
+  .header-logo {
+    left: 0.8vw !important;
+  }
+  .header-center {
+    padding-left: 10vw !important;
+    padding-right: 0.5vw !important;
+  }
+}
