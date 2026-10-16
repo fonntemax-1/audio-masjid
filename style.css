@@ -4717,7 +4717,7 @@ body.advertising-infaq-left-shift #infaq-left-widget {
   object-fit: contain;
   object-position: left bottom;
   opacity: 0;
-  transition: opacity 1800ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 500ms ease-in-out;
 }
 #main-frame-advertisement .ad-layer-visible {
   opacity: 1;
