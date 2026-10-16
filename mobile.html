@@ -6751,6 +6751,63 @@ function startRealtimeAudioConfigPolling_() {
         });
       }
 
+      // ZAKAT: ukur A1 dan A2 berdasarkan lebar nyata frame dan panjang kedua teks.
+      // Tidak memakai skala viewport tetap; keduanya selalu mendapat ukuran font identik.
+      if (headerSelector === 'ZAKAT') {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          const panelRect = panel.getBoundingClientRect();
+          const titleRect = title.getBoundingClientRect();
+          const subRect = sub.getBoundingClientRect();
+          const availableWidth = Math.max(
+            12,
+            Math.min(
+              panel.clientWidth - 12,
+              titleRect.width || panelRect.width - 12,
+              subRect.width || panelRect.width - 12
+            ) - 4
+          );
+          const textA1 = String(title.textContent || title.innerText || '').replace(/\\s+/g, ' ').trim();
+          const textA2 = String(sub.textContent || sub.innerText || '').replace(/\\s+/g, ' ').trim();
+          const family = window.getComputedStyle(title).fontFamily || 'Arial, sans-serif';
+          let low = 5;
+          let high = Math.max(5, Math.min(48, panel.clientWidth * 0.12));
+          let fittedFontPx = low;
+          for (let attempt = 0; attempt < 22; attempt++) {
+            const candidate = (low + high) / 2;
+            ctx.font = '900 ' + candidate + 'px ' + family;
+            const measured = Math.max(ctx.measureText(textA1).width, ctx.measureText(textA2).width);
+            if (measured <= availableWidth * 0.96) {
+              fittedFontPx = candidate;
+              low = candidate;
+            } else {
+              high = candidate;
+            }
+          }
+          [title, sub].forEach(function(el) {
+            el.style.setProperty('font-family', family, 'important');
+            el.style.setProperty('font-size', fittedFontPx.toFixed(2) + 'px', 'important');
+            el.style.setProperty('font-weight', '900', 'important');
+            el.style.setProperty('font-style', 'normal', 'important');
+            el.style.setProperty('line-height', '1.02', 'important');
+            el.style.setProperty('letter-spacing', '0', 'important');
+            el.style.setProperty('text-align', 'center', 'important');
+            el.style.setProperty('width', '100%', 'important');
+            el.style.setProperty('min-width', '0', 'important');
+            el.style.setProperty('max-width', '100%', 'important');
+            el.style.setProperty('box-sizing', 'border-box', 'important');
+            el.style.setProperty('white-space', 'nowrap', 'important');
+            el.style.setProperty('overflow', 'hidden', 'important');
+            el.style.setProperty('text-overflow', 'clip', 'important');
+            el.style.setProperty('padding-left', '0', 'important');
+            el.style.setProperty('padding-right', '0', 'important');
+            el.style.setProperty('color', 'var(--theme-accent)', 'important');
+            el.style.setProperty('-webkit-text-fill-color', 'var(--theme-accent)', 'important');
+          });
+        }
+      }
+
       // Tanggal tambahan PENGURUS juga mengikuti ukuran tanggal KEUANGAN.
       if (isPortraitMobile) {
         const extra = document.getElementById('fin-extra');
