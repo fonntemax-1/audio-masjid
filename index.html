@@ -5992,15 +5992,54 @@ function startRealtimeAudioConfigPolling_() {
 
     // =========================================================
     // =========================================================
-    // PENEMPATAN INFAQ & SHADAQAH
-    // Hari khusus: INFAQ + QRIS tetap di frame utama, PETUGAS tetap tampil.
-    // Hari biasa + C41=AUTO: INFAQ + QRIS pindah ke frame PETUGAS
-    // dan menggantikan tampilan PETUGAS.
-    // Hari biasa + C41=OFF: INFAQ + QRIS tetap di frame utama,
-    // PETUGAS tetap tampil.
+    // PENEMPATAN INFAQ & SHADAQAH — panels!C41
+    // AUTO: jika ada iklan berstatus ON, INFAQ/QRIS di sebelah jam;
+    //       jika semua iklan OFF, INFAQ/QRIS menempati area iklan.
+    // OFF : INFAQ/QRIS menggantikan PETUGAS di panel kanan.
     // =========================================================
     window.__infaqPlacementReady = false;
     window.__infaqPetugasAllowed = false;
+    window.__infaqModeFromDisplay = '';
+    window.__infaqAnyAdEnabled = false;
+
+    function positionMainInfaqWidget_(anyAdEnabled) {
+      const widget = document.getElementById('infaq-left-widget');
+      if (!widget) return;
+      document.body.classList.toggle('advertising-infaq-left-shift', !!anyAdEnabled);
+      document.body.classList.toggle('advertising-infaq-at-ad-position', !anyAdEnabled);
+      if (String(window.__infaqModeFromDisplay || '').toUpperCase() !== 'AUTO') return;
+
+      if (!anyAdEnabled) {
+        widget.style.setProperty('left', '1%', 'important');
+        widget.style.setProperty('right', 'auto', 'important');
+        widget.style.setProperty('bottom', 'calc(6vh + 0.7vh)', 'important');
+        widget.style.setProperty('top', 'auto', 'important');
+        widget.style.setProperty('width', '50%', 'important');
+        widget.style.setProperty('height', '50%', 'important');
+        widget.style.setProperty('z-index', '5', 'important');
+        widget.style.setProperty('box-sizing', 'border-box', 'important');
+        return;
+      }
+
+      widget.style.removeProperty('height');
+      widget.style.removeProperty('top');
+      widget.style.setProperty('bottom', '6.2vh', 'important');
+      widget.style.setProperty('width', 'clamp(105px, 12vw, 155px)', 'important');
+      widget.style.setProperty('height', 'auto', 'important');
+      widget.style.setProperty('z-index', '100000', 'important');
+      const align = function() {
+        const center = document.querySelector('.center-panel');
+        const clock = document.querySelector('.clock-overlay');
+        if (!center || !clock || !widget.offsetParent) return;
+        const cr = center.getBoundingClientRect();
+        const kr = clock.getBoundingClientRect();
+        const wr = widget.getBoundingClientRect();
+        const gap = Math.max(4, Math.round(cr.width * 0.004));
+        widget.style.setProperty('left', Math.max(0, kr.left - cr.left - wr.width - gap) + 'px', 'important');
+        widget.style.setProperty('right', 'auto', 'important');
+      };
+      requestAnimationFrame(align);
+    }
 
     function applyInfaqFramePlacement_(mode, text1, text2) {
       const left = document.getElementById('infaq-left-widget');
@@ -6008,42 +6047,35 @@ function startRealtimeAudioConfigPolling_() {
       const title = document.getElementById('petugas-title');
       const date = document.getElementById('petugas-tanggal');
       const list = document.getElementById('petugas-sholat-list');
-
       if (!left || !right || !title || !date || !list) return;
 
-      // Jangan izinkan renderer PETUGAS menampilkan frame sesaat sebelum
-      // status C41 diketahui. Ini mencegah flash PETUGAS saat reload.
+      const normalizedMode = String(mode || '').trim().toUpperCase();
+      if (normalizedMode !== 'AUTO' && normalizedMode !== 'OFF') return;
       window.__infaqPlacementReady = true;
+      window.__infaqModeFromDisplay = normalizedMode;
 
-      const auto = String(mode || '').trim().toUpperCase() === 'AUTO';
-      const specialDay = isSpecialInfaqFrameDay_();
-      const moveToPetugas = auto && !specialDay;
-      window.__infaqPetugasAllowed = !moveToPetugas;
-
-      if (moveToPetugas) {
-        // Hari biasa + C41=AUTO:
-        // INFAQ/QRIS pindah ke frame Petugas dan menggantikan Petugas.
+      if (normalizedMode === 'OFF') {
+        // OFF: QRIS + INFAQ tampil di panel PETUGAS; seluruh data petugas disembunyikan.
+        window.__infaqPetugasAllowed = false;
         left.style.display = 'none';
         title.style.display = 'none';
         date.style.display = 'none';
         list.style.display = 'none';
         right.style.display = 'flex';
-
-        applyInfaqTextToElement_(
-          document.getElementById('petugas-infaq-text'),
-          text1,
-          text2
-        );
+        applyInfaqTextToElement_(document.getElementById('petugas-infaq-text'), text1, text2);
+        document.body.classList.remove('advertising-infaq-left-shift', 'advertising-infaq-at-ad-position');
         return;
       }
 
-      // Jumat / 1 Syawal / 10 Dzulhijjah, atau C41=OFF:
-      // INFAQ tetap frame utama, PETUGAS tetap tampil.
-      left.style.display = '';
+      // AUTO: PETUGAS tetap tampil. Penempatan INFAQ/QRIS bergantung pada status iklan.
+      window.__infaqPetugasAllowed = true;
       right.style.display = 'none';
       title.style.display = '';
       date.style.display = '';
       list.style.display = '';
+      left.style.display = '';
+      applyInfaqTextToElement_(document.getElementById('infaq-left-text'), text1, text2);
+      positionMainInfaqWidget_(window.__infaqAnyAdEnabled);
     }
 
     function applyInfaqTextToElement_(el, text1, text2) {
@@ -17845,48 +17877,9 @@ function setCountdownBlackMode(enabled) {
             return !!adFilesByRow[sheetRow] &&
               String(row.status || '').trim().toUpperCase() === 'ON';
           });
-          document.body.classList.toggle('advertising-infaq-left-shift', anyAdEnabled);
-          if (anyAdEnabled) {
-            // Ukur posisi aktual kolom jam digital (bukan perkiraan vw),
-            // lalu letakkan QRIS tepat di sebelah kirinya.
-            const alignInfaqBesideClock = function() {
-              const center = document.querySelector('.center-panel');
-              const widget = document.getElementById('infaq-left-widget');
-              const clock = document.querySelector('.clock-overlay');
-              if (!center || !widget || !clock || !widget.offsetParent) return;
-              const centerRect = center.getBoundingClientRect();
-              const clockRect = clock.getBoundingClientRect();
-              const widgetRect = widget.getBoundingClientRect();
-              const gap = Math.max(4, Math.round(centerRect.width * 0.004));
-              const left = Math.max(0, clockRect.left - centerRect.left - widgetRect.width - gap);
-              widget.style.setProperty('left', left + 'px', 'important');
-              widget.style.setProperty('right', 'auto', 'important');
-            };
-            requestAnimationFrame(alignInfaqBesideClock);
-            if (!window.__infaqClockAlignmentBound) {
-              window.__infaqClockAlignmentBound = true;
-              window.addEventListener('resize', function() {
-                if (!document.body.classList.contains('advertising-infaq-left-shift')) return;
-                requestAnimationFrame(function() {
-                  const center = document.querySelector('.center-panel');
-                  const widget = document.getElementById('infaq-left-widget');
-                  const clock = document.querySelector('.clock-overlay');
-                  if (!center || !widget || !clock) return;
-                  const centerRect = center.getBoundingClientRect();
-                  const clockRect = clock.getBoundingClientRect();
-                  const widgetRect = widget.getBoundingClientRect();
-                  const gap = Math.max(4, Math.round(centerRect.width * 0.004));
-                  widget.style.setProperty('left', Math.max(0, clockRect.left - centerRect.left - widgetRect.width - gap) + 'px', 'important');
-                  widget.style.setProperty('right', 'auto', 'important');
-                });
-              }, { passive: true });
-            }
-          } else {
-            const widget = document.getElementById('infaq-left-widget');
-            if (widget) {
-              widget.style.removeProperty('left');
-              widget.style.removeProperty('right');
-            }
+          window.__infaqAnyAdEnabled = anyAdEnabled;
+          if (String(window.__infaqModeFromDisplay || '').toUpperCase() === 'AUTO') {
+            positionMainInfaqWidget_(anyAdEnabled);
           }
 
           const active = rows.filter(function(row) {
