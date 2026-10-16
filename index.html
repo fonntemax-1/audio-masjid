@@ -374,6 +374,24 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   }
 </style>
 
+<style id="zakat-table-layout-v1">
+#fin-panel-box .keuangan-table.zakat-table {
+  width: 100% !important;
+  max-width: 100% !important;
+  table-layout: fixed !important;
+  border-collapse: collapse !important;
+}
+#fin-panel-box .keuangan-table.zakat-table .zakat-cell {
+  width: 25% !important;
+  max-width: 25% !important;
+  box-sizing: border-box !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  vertical-align: middle !important;
+}
+</style>
+
 </head>
 
 <body class="startup-visual-hold">
@@ -6922,6 +6940,7 @@ function startRealtimeAudioConfigPolling_() {
           currentKeuanganGregorianDate_ = '';
           keuanganDateConversionToken_++;
           finSub.innerText = date.trim();
+          if (isZakat) finSub.style.setProperty('border-bottom', '0', 'important');
         } else if (isQurban) {
           currentKeuanganGregorianDate_ = '';
           keuanganDateConversionToken_++;
@@ -8143,6 +8162,7 @@ function startRealtimeAudioConfigPolling_() {
           keuanganDateConversionToken_++;
           finSub.innerText =
             String(data.KeuanganTanggal || '').trim();
+          if (keuanganSelector === 'ZAKAT') finSub.style.setProperty('border-bottom', '0', 'important');
         } else if (keuanganSelector === 'QURBAN') {
           currentKeuanganGregorianDate_ = '';
           keuanganDateConversionToken_++;
@@ -8657,8 +8677,8 @@ function startRealtimeAudioConfigPolling_() {
           'table'
         );
 
-      table.className =
-        'keuangan-table';
+      table.className = 'keuangan-table';
+      if (isZakat) table.classList.add('zakat-table');
 
       rows.forEach(
         function(row) {
