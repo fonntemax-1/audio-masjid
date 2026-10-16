@@ -4897,3 +4897,29 @@ body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content img {
   max-width: 100% !important;
   object-fit: contain !important;
 }
+
+
+/* QRIS proporsional dan rata bawah dengan area iklan; tetap di atas BANNER. */
+body.advertising-infaq-left-shift #infaq-left-widget {
+  box-sizing: border-box !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-end !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  margin-top: .25vh !important;
+  overflow: visible !important;
+}
+body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content img {
+  display: block !important;
+  flex: 0 0 auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+}
