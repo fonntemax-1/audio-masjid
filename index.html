@@ -398,6 +398,15 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   white-space: nowrap !important;
   overflow-wrap: normal !important;
 }
+/* Rapatkan kolom B ke kolom A hanya untuk baris data.
+   Baris subjudul .zakat-roman-heading tetap tidak terpengaruh. */
+#fin-panel-box .keuangan-table.zakat-table tr > .zakat-cell:not(.zakat-roman-heading):first-child {
+  width: 1% !important;
+  padding-right: 0 !important;
+}
+#fin-panel-box .keuangan-table.zakat-table tr > .zakat-cell:not(.zakat-roman-heading):nth-child(2) {
+  padding-left: 0 !important;
+}
 #fin-panel-box .keuangan-table.zakat-table .zakat-roman-heading {
   padding-left: 0.22em !important;
   text-align: left !important;
