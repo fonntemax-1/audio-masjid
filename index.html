@@ -17683,10 +17683,11 @@ function setCountdownBlackMode(enabled) {
       const box = document.getElementById('main-frame-advertisement');
       const image = document.getElementById('main-frame-advertisement-image');
       if (!box || !image) return;
-      const adFiles = {
-        'IKLAN-1': 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-1.jpg',
-        'IKLAN-2': 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-2.jpg',
-        'IKLAN-3': 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-3.jpeg'
+      // Nomor baris menentukan pasangan gambar; kolom B hanya penanda.
+      const adFilesByRow = {
+        70: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-1.jpg',
+        71: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-2.jpg',
+        72: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-3.jpeg'
       };
       function todayLocal_() {
         try {
@@ -17708,9 +17709,12 @@ function setCountdownBlackMode(enabled) {
           if (!Array.isArray(rows)) rows = rows && Array.isArray(rows.data) ? rows.data : [];
           const today = todayLocal_();
           const active = rows.filter(function(row) {
-            const name = String(row.name || '').trim().toUpperCase();
-            return adFiles[name] && String(row.status || '').toUpperCase() === 'ON' &&
-              row.start && row.end && today >= row.start && today <= row.end;
+            const sheetRow = Number(row.row || 0);
+            return adFilesByRow[sheetRow] &&
+              String(row.status || '').trim().toUpperCase() === 'ON' &&
+              /^\\d{4}-\\d{2}-\\d{2}$/.test(String(row.start || '')) &&
+              /^\\d{4}-\\d{2}-\\d{2}$/.test(String(row.end || '')) &&
+              today >= String(row.start) && today <= String(row.end);
           }).sort(function(a,b) { return Number(a.row || 0) - Number(b.row || 0); });
           if (!active.length) {
             box.style.display = 'none';
@@ -17719,7 +17723,7 @@ function setCountdownBlackMode(enabled) {
             return;
           }
           const chosen = active[0];
-          const src = adFiles[String(chosen.name).trim().toUpperCase()];
+          const src = adFilesByRow[Number(chosen.row)];
           if (image.src !== src) image.src = src;
           box.style.display = 'block';
           box.setAttribute('aria-hidden', 'false');
