@@ -6677,8 +6677,8 @@ function startRealtimeAudioConfigPolling_() {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           const family = window.getComputedStyle(title).fontFamily || 'Arial, sans-serif';
-          const textA1 = String(title.textContent || title.innerText || '').replace(/\\s+/g, ' ').trim();
-          const textA2 = String(sub.textContent || sub.innerText || '').replace(/\\s+/g, ' ').trim();
+          const textA1 = String(title.textContent || title.innerText || '').replace(/\s+/g, ' ').trim();
+          const textA2 = String(sub.textContent || sub.innerText || '').replace(/\s+/g, ' ').trim();
           const titleWidth = title.getBoundingClientRect().width;
           const subWidth = sub.getBoundingClientRect().width;
           const availableWidth = Math.max(
@@ -6768,8 +6768,8 @@ function startRealtimeAudioConfigPolling_() {
               subRect.width || panelRect.width - 12
             ) - 4
           );
-          const textA1 = String(title.textContent || title.innerText || '').replace(/\\s+/g, ' ').trim();
-          const textA2 = String(sub.textContent || sub.innerText || '').replace(/\\s+/g, ' ').trim();
+          const textA1 = String(title.textContent || title.innerText || '').replace(/\s+/g, ' ').trim();
+          const textA2 = String(sub.textContent || sub.innerText || '').replace(/\s+/g, ' ').trim();
           const family = window.getComputedStyle(title).fontFamily || 'Arial, sans-serif';
           let low = 5;
           let high = Math.max(5, Math.min(48, panel.clientWidth * 0.12));
@@ -16705,7 +16705,7 @@ function setCountdownBlackMode(enabled) {
     // wajib ditampilkan sebagai "WAKTU BERBUKA PUASA".
     function normalizeCountdownDisplayTitle_(value) {
       let title = String(value || '')
-        .replace(/\\s+/g, ' ')
+        .replace(/\s+/g, ' ')
         .trim()
         .toUpperCase();
 
@@ -18137,7 +18137,7 @@ function setCountdownBlackMode(enabled) {
 
         // Khusus Imsak/Berbuka, gunakan jenis waktu dari state.
         const activeTitleUpper =
-          String(activeState.title || '').replace(/\\s+/g, ' ').trim().toUpperCase();
+          String(activeState.title || '').replace(/\s+/g, ' ').trim().toUpperCase();
 
         if (activeTitleUpper.indexOf('WAKTU IMSAK') !== -1) {
           panelBlackPrayerName = 'IMSAK';
