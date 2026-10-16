@@ -479,7 +479,7 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 
       <div class="center-panel">
         <div class="infaq-left-widget" id="infaq-left-widget" style="display:none;">
-          <div class="infaq-left-title"><span>INFAQ<br>SHADAQAH</span></div>
+          <div class="infaq-left-title"><span>INFAQ &amp; SHADAQAH</span></div>
           <div class="infaq-left-text" id="infaq-left-text" aria-live="polite"></div>
           <div class="infaq-left-content" id="infaq-left-content">
             <img src="./image/QRIS.png" alt="QRIS Infaq dan Shadaqah" loading="lazy" decoding="async">
@@ -6059,8 +6059,13 @@ function startRealtimeAudioConfigPolling_() {
 
         if (showBesideClock && clock) {
           const kr = clock.getBoundingClientRect();
-          const clockGap = Math.max(4, Math.round(cr.width * 0.004));
-          const left = Math.max(0, kr.left - cr.left - wr.width - clockGap);
+          // Saat iklan ON, tempatkan INFAQ/QRIS tepat di bawah jam digital,
+          // dengan posisi horizontal terpusat terhadap jam.
+          const clockCenter = (kr.left + kr.right) / 2 - cr.left;
+          const left = Math.max(0, Math.min(
+            cr.width - wr.width,
+            clockCenter - wr.width / 2
+          ));
           widget.style.setProperty('left', left + 'px', 'important');
         } else {
           widget.style.setProperty('left', '1%', 'important');
