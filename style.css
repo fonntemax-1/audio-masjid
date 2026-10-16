@@ -4682,15 +4682,15 @@ body.panel-countdown-auto .clock-overlay .panel-black-message .panel-black-notic
    ke sebelah kiri kolom jam digital agar area iklan kiri bawah tetap lapang.
    Posisi normal dipulihkan otomatis saat ketiga status OFF. */
 body.advertising-infaq-left-shift #infaq-left-widget {
-  left: auto !important;
-  right: calc(1.5vw + clamp(150px, 16vw, 220px) + 1vw) !important;
+  /* left/right ditetapkan berdasarkan ukuran aktual clock-overlay oleh JS. */
+  left: auto;
+  right: auto;
   bottom: 6.2vh !important;
   width: clamp(105px, 12vw, 155px) !important;
   z-index: 100000 !important;
 }
 @media (max-width: 700px) {
   body.advertising-infaq-left-shift #infaq-left-widget {
-    right: calc(1vw + max(16vw, 150px) + .5vw) !important;
     width: clamp(76px, 18vw, 110px) !important;
   }
 }
