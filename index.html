@@ -6047,15 +6047,25 @@ function startRealtimeAudioConfigPolling_() {
           const bottomLimit = adVisible
             ? adBox.getBoundingClientRect().bottom - cr.top
             : br.top - cr.top - gap;
-          const availableHeight = Math.max(28, bottomLimit - minimumTop);
-          // Lebar mengikuti tinggi yang tersedia, agar widget muat di antara jam dan iklan.
-          maxWidth = Math.max(42, Math.min(maxWidth, availableHeight / 1.42));
+          const availableHeight = Math.max(24, bottomLimit - minimumTop);
+          const title = widget.querySelector('.infaq-left-title');
+          const titleHeight = title ? title.getBoundingClientRect().height : 14;
+          // Lebar widget memiliki batas minimum agar judul lengkap; QRIS yang
+          // diperkecil lebih dahulu jika ruang vertikal antara jam dan iklan sempit.
+          maxWidth = Math.max(118, Math.min(220, cr.width * 0.20));
           widget.style.setProperty('width', maxWidth + 'px', 'important');
-          widget.style.setProperty('max-height', availableHeight + 'px', 'important');
-          widget.style.setProperty('overflow', 'hidden', 'important');
+          widget.style.setProperty('max-height', 'none', 'important');
+          widget.style.setProperty('overflow', 'visible', 'important');
+          if (qrisImage) {
+            const imageSpace = Math.max(24, availableHeight - titleHeight - gap);
+            const imageWidth = Math.max(24, Math.min(maxWidth * 0.72, imageSpace));
+            qrisImage.style.setProperty('width', imageWidth + 'px', 'important');
+            qrisImage.style.setProperty('max-width', '100%', 'important');
+            qrisImage.style.setProperty('height', 'auto', 'important');
+          }
 
-          // QRIS tetap sejajar dengan bawah area iklan bila ruang cukup.
-          // Jika sempit, lebar diperkecil agar batas atas tidak masuk area jam.
+          // Judul tidak dipotong; tepi bawah QRIS tetap sejajar dengan area iklan
+          // bila tinggi yang tersedia mencukupi.
           const measuredHeight = widget.getBoundingClientRect().height;
           top = Math.max(minimumTop, bottomLimit - measuredHeight);
           const clockCenter = (clockRect.left + clockRect.right) / 2 - cr.left;
