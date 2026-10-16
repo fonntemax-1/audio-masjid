@@ -8815,9 +8815,9 @@ function startRealtimeAudioConfigPolling_() {
               td.style.setProperty('color', 'var(--theme-accent)', 'important');
               td.style.setProperty('-webkit-text-fill-color', 'var(--theme-accent)', 'important');
               td.style.setProperty('font-weight', '700', 'important');
-              td.style.setProperty('text-decoration', 'underline', 'important');
-              td.style.setProperty('text-decoration-color', 'var(--theme-accent)', 'important');
-              td.style.setProperty('text-underline-offset', '0.12em', 'important');
+              // Garis pembatas penuh selebar tabel, bukan underline pada huruf.
+              td.style.setProperty('text-decoration', 'none', 'important');
+              td.style.setProperty('border-bottom', '2px solid var(--theme-accent)', 'important');
               td.style.setProperty('text-align', 'left', 'important');
               tr.appendChild(td);
             } else {
