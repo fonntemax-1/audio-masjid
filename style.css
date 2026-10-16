@@ -4959,3 +4959,33 @@ body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content img {
     padding-right: 0.5vw !important;
   }
 }
+
+
+/* FIX FINAL POSISI LOGO: kunci logo di kiri header, bukan sudut kanan/atas.
+   Identitas tetap memiliki ruang sendiri agar alamat dan slogan tidak tertutup. */
+.header { position: relative !important; }
+.header .header-logo {
+  position: absolute !important;
+  left: 1vw !important;
+  right: auto !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+  z-index: 2 !important;
+}
+.header .header-center {
+  position: relative !important;
+  margin-left: 0 !important;
+  padding-left: 10vw !important;
+  padding-right: 1.2vw !important;
+  min-width: 0 !important;
+}
+@media screen and (max-width: 700px) {
+  .header .header-logo {
+    left: 0.8vw !important;
+  }
+  .header .header-center {
+    padding-left: 10vw !important;
+    padding-right: 0.5vw !important;
+  }
+}
