@@ -1079,7 +1079,7 @@ function getEidFitriVideoConfigFromApi_() {
       };
     }
 
-    var values = sheet.getRange('C68:E68').getValues()[0] || [];
+    var values = sheet.getRange('C64:E64').getValues()[0] || [];
     var timeZone = ss.getSpreadsheetTimeZone() ||
       Session.getScriptTimeZone() || 'Asia/Makassar';
 
@@ -1143,7 +1143,7 @@ function getEidAdhaVideoConfigFromApi_() {
       };
     }
 
-    var values = sheet.getRange('C69:E69').getValues()[0] || [];
+    var values = sheet.getRange('C65:E65').getValues()[0] || [];
     var timeZone = ss.getSpreadsheetTimeZone() ||
       Session.getScriptTimeZone() || 'Asia/Makassar';
 
