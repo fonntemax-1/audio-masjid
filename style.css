@@ -4728,21 +4728,5 @@ body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-title {
   line-height: 1.05 !important;
   margin-bottom: .7vh !important;
 }
-body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-text {
-  font-size: clamp(8px, 1vw, 15px) !important;
-  line-height: 1.15 !important;
-  margin-bottom: .7vh !important;
-}
-body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-content img {
-  width: clamp(72px, 18vw, 240px) !important;
-  max-width: 90% !important;
-  height: auto !important;
-}
-@media (max-width: 700px) {
-  body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-text {
-    font-size: clamp(6px, 1.7vw, 10px) !important;
-  }
-  body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-content img {
-    width: min(24vw, 110px) !important;
-  }
-}
+/* Ukuran teks, judul, dan QRIS mengikuti CSS utama yang sama
+   dengan posisi INFAQ di sebelah jam digital. */
