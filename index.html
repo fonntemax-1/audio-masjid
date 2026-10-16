@@ -17817,14 +17817,21 @@ function setCountdownBlackMode(enabled) {
       if (!box || !image) return;
 
       // Kontrol iklan: B = nama, C = tanggal mulai, D = tanggal berhenti, E = ON/OFF.
-      // Baris B hanya penanda; nomor baris menentukan file gambar.
-      const adFilesByRow = {
-        71: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-1.jpg',
-        72: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-2.jpg',
-        73: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-3.jpeg',
-        74: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-4.jpeg',
-        75: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-5.jpeg'
+      // Nomor baris menentukan nama dasar gambar. Ekstensi dideteksi otomatis.
+      const adBaseByRow = {
+        71: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-1',
+        72: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-2',
+        73: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-3',
+        74: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-4',
+        75: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-5'
       };
+      // Coba ekstensi umum; jika semua gagal, iklan dilewati otomatis.
+      const adExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+      let currentAdRow = 0;
+      let currentAdCandidates = [];
+      let currentAdCandidateIndex = 0;
+      let failedAdRows = {};
+      let lastActiveSignature = '';
 
       function dateKey_(value) {
         const text = String(value == null ? '' : value).trim();
@@ -17888,7 +17895,7 @@ function setCountdownBlackMode(enabled) {
           // status E71:E75 = ON. Perubahan ini hanya mengatur posisi visual.
           const anyAdEnabled = rows.some(function(row) {
             const sheetRow = Number(row.row || row.sheetRow || 0);
-            return !!adFilesByRow[sheetRow] &&
+            return !!adBaseByRow[sheetRow] &&
               String(row.status || '').trim().toUpperCase() === 'ON';
           });
           window.__infaqAnyAdEnabled = anyAdEnabled;
@@ -17896,16 +17903,27 @@ function setCountdownBlackMode(enabled) {
             positionMainInfaqWidget_(anyAdEnabled);
           }
 
-          const active = rows.filter(function(row) {
+          const rawActive = rows.filter(function(row) {
             const sheetRow = Number(row.row || row.sheetRow || 0);
             const start = dateKey_(row.start || row.startDate || row.start_date);
             const end = dateKey_(row.end || row.stop || row.stopDate || row.endDate || row.end_date);
-            return !!adFilesByRow[sheetRow] &&
+            return !!adBaseByRow[sheetRow] &&
               String(row.status || '').trim().toUpperCase() === 'ON' &&
               start !== null && end !== null && start <= end &&
               today >= start && today <= end;
           }).sort(function(a, b) {
             return Number(a.row || a.sheetRow || 0) - Number(b.row || b.sheetRow || 0);
+          });
+          const rawSignature = rawActive.map(function(row) {
+            return Number(row.row || row.sheetRow || 0);
+          }).join(',');
+          if (rawSignature !== lastActiveSignature) {
+            lastActiveSignature = rawSignature;
+            failedAdRows = {};
+            rotationSignature = '';
+          }
+          const active = rawActive.filter(function(row) {
+            return !failedAdRows[Number(row.row || row.sheetRow || 0)];
           });
 
           if (!active.length) {
@@ -17924,11 +17942,17 @@ function setCountdownBlackMode(enabled) {
           }
           const elapsedMinutes = Math.floor((Date.now() - rotationStartedAt) / 60000);
           const chosen = active[elapsedMinutes % active.length];
-          const src = adFilesByRow[Number(chosen.row || chosen.sheetRow)];
-          if (image.getAttribute('src') !== src) image.src = src;
+          const chosenRow = Number(chosen.row || chosen.sheetRow);
+          const base = adBaseByRow[chosenRow];
+          if (currentAdRow !== chosenRow || !currentAdCandidates.length) {
+            currentAdRow = chosenRow;
+            currentAdCandidates = adExtensions.map(function(ext) { return base + '.' + ext; });
+            currentAdCandidateIndex = 0;
+            image.src = currentAdCandidates[currentAdCandidateIndex];
+          }
           box.style.display = 'block';
           box.setAttribute('aria-hidden', 'false');
-          console.log('IKLAN MAIN FRAME: aktif', chosen.row || chosen.sheetRow,
+          console.log('IKLAN MAIN FRAME: aktif', chosenRow,
             '(rotasi 1 menit; aktif:', active.length, ')');
         }).catch(function(err) {
           console.warn('IKLAN MAIN FRAME: konfigurasi gagal dibaca', err);
@@ -17938,6 +17962,22 @@ function setCountdownBlackMode(enabled) {
       }
 
       image.addEventListener('error', function() {
+        // Fallback otomatis: coba ekstensi lain sebelum melewati iklan.
+        if (currentAdRow && currentAdCandidateIndex + 1 < currentAdCandidates.length) {
+          currentAdCandidateIndex += 1;
+          image.src = currentAdCandidates[currentAdCandidateIndex];
+          return;
+        }
+        if (currentAdRow) {
+          console.warn('IKLAN MAIN FRAME: semua ekstensi gagal, iklan dilewati', currentAdRow);
+          failedAdRows[currentAdRow] = true;
+          currentAdRow = 0;
+          currentAdCandidates = [];
+          currentAdCandidateIndex = 0;
+          rotationSignature = '';
+          update_();
+          return;
+        }
         console.error('IKLAN MAIN FRAME: gambar gagal dimuat', image.src);
         box.style.display = 'none';
         box.setAttribute('aria-hidden', 'true');
