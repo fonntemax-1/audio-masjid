@@ -1012,7 +1012,7 @@ function setRemoteCellsFromApi_(params) {
    var allowed = new Set([
      'C2','C5','C6','C7','C8','C9','C10','C12','C13','C14','C15','C27','C16','C18','C20','F20','C22','C26','C28','C29','C30','C31','C32','C41','C42','C43','C57','G57',
      'B35','B36','B37','B38','B39','C60','D60','E60','C61','D61','E61','C62','D62','E62',
-     'C63','D63','E63','B64','C64','D64','E64','C68','D68','E68','C69','D69','E69','B70','C70','D70','E70','B71','C71','D71','E71','B72','C72','D72','E72'
+     'C63','D63','E63','B64','C64','D64','E64','C68','D68','E68','C69','D69','E69','B70','C70','D70','E70','B71','C71','D71','E71','B72','C72','D72','E72','B73','C73','D73','E73','B74','C74','D74','E74','B75','C75','D75','E75'
    ]);
    return allowed.has(String(cell || '').toUpperCase());
  }
@@ -1023,8 +1023,8 @@ function getEventAdvertisingConfigFromApi_() {
     var sheet = ss.getSheetByName('panels');
     if (!sheet) throw new Error('Sheet panels tidak ditemukan.');
     // B:E agar nama iklan di kolom B ikut dikirim bersama jadwal C:E.
-    var values = sheet.getRange('B68:E72').getValues();
-    var displays = sheet.getRange('B68:E72').getDisplayValues();
+    var values = sheet.getRange('B71:E75').getValues();
+    var displays = sheet.getRange('B71:E75').getDisplayValues();
     var timeZone = ss.getSpreadsheetTimeZone() || Session.getScriptTimeZone() || 'Asia/Makassar';
     function normalizeDate(value, display) {
       if (value instanceof Date && !isNaN(value.getTime())) {
@@ -1048,7 +1048,7 @@ function getEventAdvertisingConfigFromApi_() {
     }
     return values.map(function(row, index) {
       var display = displays[index] || [];
-      var sheetRow = index + 68;
+      var sheetRow = index + 71;
       var name = String(row[0] == null ? display[0] || '' : row[0]).trim();
       var status = String(row[3] == null ? display[3] || '' : row[3]).trim().toUpperCase();
       return {
@@ -1058,7 +1058,7 @@ function getEventAdvertisingConfigFromApi_() {
         end: normalizeDate(row[2], display[2]),
         status: status === 'ON' ? 'ON' : 'OFF'
       };
-    }).filter(function(item) { return item.row >= 70; });
+    }).filter(function(item) { return item.row >= 71 && item.row <= 75; });
   } catch (error) {
     Logger.log('EVENT ADVERTISING CONFIG ERROR: ' + (error && error.message ? error.message : error));
     return [];
