@@ -6043,17 +6043,21 @@ function startRealtimeAudioConfigPolling_() {
         if (showBesideClock && digitalClock) {
           const clockRect = digitalClock.getBoundingClientRect();
           // Widget dimulai di bawah jam digital, tidak di atas atau di sampingnya.
-          top = clockRect.bottom - cr.top + gap;
+          const minimumTop = clockRect.bottom - cr.top + gap;
           const bottomLimit = adVisible
             ? adBox.getBoundingClientRect().bottom - cr.top
             : br.top - cr.top - gap;
-          const availableHeight = Math.max(28, bottomLimit - top);
-          // Isi QRIS proporsional: batasi lebar berdasarkan tinggi yang tersedia.
-          maxWidth = Math.max(58, Math.min(maxWidth, availableHeight / 1.42));
+          const availableHeight = Math.max(28, bottomLimit - minimumTop);
+          // Lebar mengikuti tinggi yang tersedia, agar widget muat di antara jam dan iklan.
+          maxWidth = Math.max(42, Math.min(maxWidth, availableHeight / 1.42));
           widget.style.setProperty('width', maxWidth + 'px', 'important');
           widget.style.setProperty('max-height', availableHeight + 'px', 'important');
           widget.style.setProperty('overflow', 'hidden', 'important');
 
+          // QRIS tetap sejajar dengan bawah area iklan bila ruang cukup.
+          // Jika sempit, lebar diperkecil agar batas atas tidak masuk area jam.
+          const measuredHeight = widget.getBoundingClientRect().height;
+          top = Math.max(minimumTop, bottomLimit - measuredHeight);
           const clockCenter = (clockRect.left + clockRect.right) / 2 - cr.left;
           const left = Math.max(0, Math.min(cr.width - maxWidth, clockCenter - maxWidth / 2));
           widget.style.setProperty('left', left + 'px', 'important');
