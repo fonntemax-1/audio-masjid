@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Cinzel:wght@500;600;700;800&family=Great+Vibes&family=Montserrat:wght@400;500;600;700;800&family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=20261010-idulfitri-black-screen">
+  <link rel="stylesheet" href="./style.css?v=20261016-infaq-c41-ad-placement">
   <script src="./audio.js" defer></script>
   
   <link rel="icon" type="image/png" href="./image/favicon.png">
@@ -6005,9 +6005,12 @@ function startRealtimeAudioConfigPolling_() {
     function positionMainInfaqWidget_(anyAdEnabled) {
       const widget = document.getElementById('infaq-left-widget');
       if (!widget) return;
+      if (String(window.__infaqModeFromDisplay || '').toUpperCase() !== 'AUTO') {
+        document.body.classList.remove('advertising-infaq-left-shift', 'advertising-infaq-at-ad-position');
+        return;
+      }
       document.body.classList.toggle('advertising-infaq-left-shift', !!anyAdEnabled);
       document.body.classList.toggle('advertising-infaq-at-ad-position', !anyAdEnabled);
-      if (String(window.__infaqModeFromDisplay || '').toUpperCase() !== 'AUTO') return;
 
       if (!anyAdEnabled) {
         widget.style.setProperty('left', '1%', 'important');
