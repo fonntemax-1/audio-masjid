@@ -4730,3 +4730,22 @@ body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-title {
 }
 /* Ukuran teks, judul, dan QRIS mengikuti CSS utama yang sama
    dengan posisi INFAQ di sebelah jam digital. */
+
+
+/* FINAL FIX: bayangan hitam untuk SEMUA teks INFAQ di frame utama,
+   termasuk setiap baris teks C42:C43; setara efek shadow pada QRIS.
+   Hanya visual teks INFAQ, tanpa mengubah posisi atau mekanisme refresh. */
+#infaq-left-widget .infaq-left-title,
+#infaq-left-widget .infaq-left-title *,
+#infaq-left-widget .infaq-left-text,
+#infaq-left-widget .infaq-left-text *,
+body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-title,
+body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-text,
+body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-title,
+body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-text {
+  -webkit-text-stroke: 0 !important;
+  text-shadow:
+    0 0.18vh 0 rgba(0,0,0,0.98),
+    0 0.38vh 0.45vh rgba(0,0,0,0.92),
+    0 0.75vh 1.10vh rgba(0,0,0,0.72) !important;
+}
