@@ -6014,21 +6014,13 @@ function startRealtimeAudioConfigPolling_() {
       document.body.classList.toggle('advertising-infaq-left-shift', showBesideClock);
       document.body.classList.toggle('advertising-infaq-at-ad-position', !showBesideClock);
 
-      // Normalisasi box model agar tinggi widget terukur sama di kedua posisi.
-      const firstPlacement = widget.dataset.infaqPositioned !== 'true';
-      // Sembunyikan hanya pada pengukuran pertama saat reload, agar posisi
-      // sementara (top:0) tidak sempat terlihat. Pemanggilan berikutnya tidak
-      // mengatur ulang top ke nol sehingga tidak menimbulkan flicker berulang.
-      if (firstPlacement) {
-        widget.style.setProperty('visibility', 'hidden', 'important');
-        widget.style.setProperty('top', '0px', 'important');
-      }
+      // Pertahankan posisi CSS/posisi terakhir selama pengukuran. Jangan
+      // menyembunyikan widget atau memindahkannya ke top:0 saat reload.
       widget.style.setProperty('width', 'clamp(105px, 12vw, 155px)', 'important');
       widget.style.setProperty('height', 'auto', 'important');
       widget.style.setProperty('padding', '0', 'important');
       widget.style.setProperty('margin', '0', 'important');
       widget.style.setProperty('box-sizing', 'border-box', 'important');
-      widget.style.setProperty('bottom', 'auto', 'important');
       widget.style.setProperty('right', 'auto', 'important');
       widget.style.setProperty('z-index', showBesideClock ? '100000' : '5', 'important');
 
@@ -6057,10 +6049,6 @@ function startRealtimeAudioConfigPolling_() {
           widget.style.setProperty('left', '1%', 'important');
         }
         widget.style.setProperty('right', 'auto', 'important');
-        if (firstPlacement) {
-          widget.dataset.infaqPositioned = 'true';
-          widget.style.removeProperty('visibility');
-        }
       };
 
       // Tunggu dua frame agar kelas mode, padding, dan ukuran aktual sudah diterapkan.
