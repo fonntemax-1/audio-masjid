@@ -1,0 +1,7141 @@
+
+// =========================================================
+// TV MASJID DISPLAY SIGNAGE 
+// CODE.GS
+// =========================================================
+
+
+// =========================================================
+// WEB APP
+// =========================================================
+
+function doPost(e) {
+  var params = e && e.parameter ? e.parameter : {};
+  var action = String(params.action || '');
+  var isLogo = action === 'uploadLogo';
+  if (action !== 'uploadQris' && !isLogo) {
+    return qrisUploadResultPage_(false, 'Permintaan upload tidak dikenal.');
+  }
+  var resultType = isLogo ? 'logoUploadResult' : 'qrisUploadResult';
+  var label = isLogo ? 'Logo' : 'QRIS';
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var expectedPin = String(props.getProperty('REMOTE_CONTROL_PIN') || '');
+    var suppliedPin = String(params.pin || '');
+    if (!expectedPin || expectedPin.length < 6 || suppliedPin !== expectedPin) {
+      throw new Error('PIN remote tidak valid.');
+    }
+    var token = String(props.getProperty('GITHUB_UPLOAD_TOKEN') || '').trim();
+    if (!token) {
+      throw new Error('Token GitHub belum dikonfigurasi pada Script Properties.');
+    }
+    var mimeType = String(params.mimeType || '').trim().toLowerCase();
+    var base64 = String(params.imageBase64 || '').replace(/\\s/g, '');
+    if (mimeType !== 'image/png') throw new Error('Format gambar harus PNG.');
+    if (!base64 || base64.length > 1400000 || !/^[A-Za-z0-9+/]+=*$/.test(base64)) {
+      throw new Error('Data gambar kosong atau melebihi batas 1 MB.');
+    }
+    var bytes = Utilities.base64Decode(base64);
+    if (!bytes || !bytes.length || bytes.length > 1024 * 1024) {
+      throw new Error('Ukuran gambar maksimal 1 MB.');
+    }
+    if (bytes.length < 8 || (bytes[0] & 255) !== 137 || (bytes[1] & 255) !== 80 ||
+        (bytes[2] & 255) !== 78 || (bytes[3] & 255) !== 71) {
+      throw new Error('Isi file bukan gambar PNG yang valid.');
+    }
+
+    var filePath = isLogo ? 'image/logo.png' : 'image/QRIS.png';
+    var apiUrl = 'https://api.github.com/repos/fonntemax-1/audio-masjid/contents/' + filePath + '?ref=main';
+    var headers = {
+      Authorization: 'Bearer ' + token,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+    var getResponse = UrlFetchApp.fetch(apiUrl, {
+      method: 'get', headers: headers, muteHttpExceptions: true
+    });
+    var getCode = getResponse.getResponseCode();
+    if (getCode !== 200) {
+      throw new Error('Tidak dapat membaca ' + filePath + ' di GitHub (HTTP ' + getCode + '). Pastikan file sudah ada dan token memiliki izin Contents.');
+    }
+    var existing = JSON.parse(getResponse.getContentText());
+    var payload = {
+      message: 'Update ' + label + ' signage via remote control',
+      content: base64,
+      sha: existing.sha,
+      branch: 'main'
+    };
+    var putResponse = UrlFetchApp.fetch(apiUrl, {
+      method: 'put',
+      contentType: 'application/json',
+      headers: headers,
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    var putCode = putResponse.getResponseCode();
+    if (putCode < 200 || putCode >= 300) {
+      var detail = '';
+      try { detail = JSON.parse(putResponse.getContentText()).message || ''; } catch (ignore) {}
+      throw new Error('GitHub menolak upload ' + label + ' (HTTP ' + putCode + ')' +
+        (detail ? ': ' + detail : '') + '.');
+    }
+    var version = String(new Date().getTime());
+    props.setProperty(isLogo ? 'LOGO_IMAGE_VERSION' : 'QRIS_IMAGE_VERSION', version);
+    return qrisUploadResultPage_(true, label + ' berhasil diunggah.', version, resultType);
+  } catch (error) {
+    return qrisUploadResultPage_(false, error && error.message ? error.message : String(error), '', resultType);
+  }
+}
+
+function qrisUploadResultPage_(success, message, version, resultType) {
+  var result = {
+    type: String(resultType || 'qrisUploadResult'),
+    success: success === true,
+    message: String(message || ''),
+    version: String(version || '')
+  };
+  var encoded = JSON.stringify(result).replace(/</g, '\\u003c');
+  var html = '<!doctype html><html><head><meta charset="utf-8"></head><body><script>window.top.postMessage(' +
+    encoded + ', "https://fonntemax-1.github.io");</script>Upload selesai.</body></html>';
+  return HtmlService.createHtmlOutput(html)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function doGet(e) {
+  // API GitHub Pages ditangani oleh API.gs.
+  const params = e && e.parameter ? e.parameter : {};
+
+  // =====================================================
+  // THEME DISPLAY - panels!C18
+  // Ditangani langsung di Code.gs agar tidak bergantung pada
+  // router API.gs terpisah. Tidak menyentuh audio/scheduler.
+  // =====================================================
+  if (String(params.action || '').trim() === 'getDisplayThemeSetting') {
+    return createDisplayThemeJsonpResponse_(params.callback, getDisplayThemeSetting());
+  }
+
+  // =====================================================
+  // PANEL C22 - FALLBACK ROUTE LANGSUNG DI CODE.GS
+  // =====================================================
+  // API.gs juga memiliki action ini. Route langsung di doGet
+  // memastikan deployment yang masih memakai router Code.gs lama
+  // tetap dapat membaca panels!C22 tanpa mengganggu audio/scheduler.
+  if (String(params.action || '').trim() === 'getPanelIqomahBlackMode') {
+    return createPanelIqomahBlackModeJsonpResponse_(
+      params.callback,
+      getPanelIqomahBlackMode()
+    );
+  }
+
+  // Jalur realtime khusus KEUANGAN / QURBAN / PETUGAS SHOLAT.
+  if (String(params.action || '').trim() === 'getRealtimePanelsFast') {
+    return createRealtimePanelsFastJsonpResponse_(
+      params.callback,
+      getRealtimePanelsFast()
+    );
+  }
+
+  if (String(params.api || '') === '1' || params.action) {
+    return handleGithubApiRequest_(params);
+  }
+
+  // =====================================================
+  // GITHUB PAGES ONLY
+  // =====================================================
+  // Code.gs tidak lagi menyajikan Index.html.
+  // Tampilan/signage dijalankan dari GitHub Pages.
+  //
+  // Request tanpa parameter API hanya mengembalikan
+  // respons informasi dan TIDAK menjalankan UI Apps Script.
+  // Jalur API di atas tetap dipertahankan.
+  // =====================================================
+  return ContentService
+    .createTextOutput('Digital Signage API - GitHub Pages')
+    .setMimeType(ContentService.MimeType.TEXT);
+}
+
+
+// =========================================================
+// JSONP KHUSUS REALTIME PANEL CEPAT
+// =========================================================
+function createRealtimePanelsFastJsonpResponse_(callback, data) {
+  const cb = String(callback || '').trim();
+
+  if (!/^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$/.test(cb)) {
+    return ContentService
+      .createTextOutput('Invalid JSONP callback.')
+      .setMimeType(ContentService.MimeType.TEXT);
+  }
+
+  return ContentService
+    .createTextOutput(
+      cb + '(' + JSON.stringify(data || { success: false, error: 'Data kosong.' }) + ');'
+    )
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+// =========================================================
+// JSONP KHUSUS THEME DISPLAY
+// =========================================================
+// Dipakai oleh index.html untuk membaca panels!C18 secara langsung.
+// Callback divalidasi agar tetap aman. Tidak mengubah fungsi API lain.
+// =========================================================
+function createDisplayThemeJsonpResponse_(callback, theme) {
+  const cb = String(callback || '').trim();
+
+  if (!/^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$/.test(cb)) {
+    return ContentService
+      .createTextOutput('Invalid JSONP callback.')
+      .setMimeType(ContentService.MimeType.TEXT);
+  }
+
+  return ContentService
+    .createTextOutput(
+      cb + '(' + JSON.stringify({
+        success: true,
+        data: theme
+      }) + ');'
+    )
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+
+// =========================================================
+// KONFIGURASI
+// =========================================================
+
+function getServerTime() {
+
+  const now = new Date();
+
+  const epochMs = now.getTime();
+
+  return {
+    success: true,
+    epochMs: epochMs,
+    iso: now.toISOString(),
+    source: 'Google Apps Script server'
+  };
+}
+
+
+
+function getSpreadsheet() {
+  // SINGLE MASJID MODE
+  // Spreadsheet utama selalu menggunakan ID original.
+  // Sistem tenant/master/license/routing sudah dihapus.
+  const spreadsheetId =
+    '1NIWXjwnImmjAwXtnIDHa1quFEQyoQC7vOwH4t3vnucs';
+
+  return SpreadsheetApp.openById(spreadsheetId);
+}
+
+function getLokasiPanels() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('panels');
+
+    if (!sheet) {
+      return {
+        success: false,
+        error: 'Sheet panels tidak ditemukan.',
+        kota: '', provinsi: '', zona: '', timezone: '', gmt: '', slug: ''
+      };
+    }
+
+    const values = sheet.getRange('C5:C10').getDisplayValues().map(function(row) {
+      return String(row[0] || '').trim();
+    });
+
+    return {
+      success: true,
+      kota: values[0] || '',
+      provinsi: values[1] || '',
+      zona: values[2] || '',
+      timezone: values[3] || '',
+      gmt: values[4] || '',
+      slug: values[5] || ''
+    };
+  } catch (error) {
+    Logger.log('LOKASI PANELS ERROR: ' + error.message);
+    return {
+      success: false,
+      error: error.message,
+      kota: '', provinsi: '', zona: '', timezone: '', gmt: '', slug: ''
+    };
+  }
+}
+
+// =========================================================
+// AMBIL DATA SHEET
+// =========================================================
+
+// Script Property:
+// RAMADAN_DISPLAY = TRUE   -> tampilkan mode Ramadan
+// RAMADAN_DISPLAY = FALSE  -> tampilkan mode normal
+function getRamadanDisplaySetting() {
+  const raw =
+    PropertiesService
+      .getScriptProperties()
+      .getProperty('RAMADAN_DISPLAY');
+
+  const value =
+    String(raw === null || raw === undefined ? '' : raw)
+      .trim()
+      .toLowerCase();
+
+  const enabled =
+    value === 'true' ||
+    value === '1' ||
+    value === 'yes' ||
+    value === 'ya' ||
+    value === 'on' ||
+    value === 'aktif';
+
+  Logger.log(
+    'RAMADAN_DISPLAY Script Property = [' +
+    value +
+    '] => ' +
+    enabled
+  );
+
+  return enabled;
+}
+
+
+// =========================================================
+// PANEL DISPLAY MODE - API TERPISAH UNTUK GITHUB PAGES
+// =========================================================
+// Hanya membaca panels!C2.
+// AUTO = layar hitam saat countdown aktif.
+// OFF  = tampilan normal.
+// TIDAK menyentuh audio, YouTube, scheduler, Ramadan,
+// Event, keuangan, Jumat, khutbah, atau data display lain.
+// =========================================================
+// UPDATED: panels!C18 menjadi sumber tema tampilan (HIJAU/MERAH/KUNING).
+function getDisplayThemeSetting() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('panels');
+
+  if (!sheet) {
+    Logger.log('THEME: sheet panels tidak ditemukan => HIJAU');
+    return 'HIJAU';
+  }
+
+  const raw = String(
+    sheet.getRange('C18').getDisplayValue() || ''
+  ).trim().toUpperCase();
+
+  const theme =
+    raw === 'MERAH' ? 'MERAH' :
+    raw === 'KUNING' ? 'KUNING' :
+    'HIJAU';
+
+  Logger.log(
+    'PANELS THEME C18 = [' + raw + '] => theme = [' + theme + ']'
+  );
+
+  return theme;
+}
+
+
+function getPanelDisplayMode() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('panels');
+
+  if (!sheet) {
+    Logger.log('PANELS: sheet panels tidak ditemukan => OFF');
+    return {
+      success: true,
+      mode: 'OFF'
+    };
+  }
+
+  const raw = String(
+    sheet.getRange('C2').getDisplayValue() || ''
+  ).trim().toUpperCase();
+
+  const mode = raw === 'AUTO' ? 'AUTO' : 'OFF';
+
+  Logger.log(
+    'PANELS API TERPISAH C2 = [' +
+    raw +
+    '] => mode = [' +
+    mode +
+    ']'
+  );
+
+  return {
+    success: true,
+    mode: mode
+  };
+}
+
+
+function createPanelIqomahBlackModeJsonpResponse_(callback, data) {
+  const cb = String(callback || '').trim();
+
+  if (!/^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$/.test(cb)) {
+    return ContentService
+      .createTextOutput('Invalid JSONP callback.')
+      .setMimeType(ContentService.MimeType.TEXT);
+  }
+
+  return ContentService
+    .createTextOutput(
+      cb + '(' + JSON.stringify({
+        success: true,
+        data: data
+      }) + ');'
+    )
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+
+/**
+ * Jalankan SATU KALI dari Apps Script editor untuk menyelaraskan
+ * validasi dropdown panels!C22 ke AUTO / OFF saja.
+ * Nilai lama yang tidak valid (termasuk SLEEP, ON, dan STOP) diubah menjadi OFF.
+ */
+function repairPanelC22ValidationModes() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('panels');
+  if (!sheet) throw new Error('Sheet panels tidak ditemukan.');
+
+  const cell = sheet.getRange('C22');
+  const previous = String(cell.getDisplayValue() || '').trim().toUpperCase();
+  const allowedModes = ['AUTO', 'OFF'];
+
+  if (allowedModes.indexOf(previous) < 0) {
+    cell.setValue('OFF');
+  }
+
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(allowedModes, true)
+    .setAllowInvalid(false)
+    .build();
+
+  cell.setDataValidation(rule);
+  SpreadsheetApp.flush();
+
+  const current = String(cell.getDisplayValue() || '').trim().toUpperCase();
+  Logger.log('PANELS C22 VALIDATION: previous=[' + previous + '] current=[' + current + '] options=' + allowedModes.join(','));
+
+  return {
+    success: true,
+    previous: previous,
+    current: current,
+    options: allowedModes
+  };
+}
+
+function getPanelIqomahBlackMode() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('panels');
+
+    if (!sheet) {
+      return { success: true, mode: 'OFF' };
+    }
+
+    const raw = String(
+      sheet.getRange('C22').getDisplayValue() || ''
+    ).trim().toUpperCase();
+
+    const mode = raw === 'AUTO' || raw === 'OFF' ? raw : 'OFF';
+
+    Logger.log(
+      'PANELS API C22 = [' +
+      raw + '] => mode = [' + mode + ']'
+    );
+
+    return {
+      success: true,
+      mode: mode
+    };
+
+  } catch (error) {
+    Logger.log(
+      'PANELS C22 IQOMAH BLACK ERROR: ' +
+      error.message
+    );
+
+    return {
+      success: false,
+      error: error.message,
+      mode: 'NORMAL'
+    };
+  }
+}
+
+
+function getYoutubeControl() {
+  // Kontrak tunggal kontrol YouTube untuk GitHub Pages.
+  // URL di panels!C20; mode di panels!F20.
+  // Tidak membaca/menulis konfigurasi audio dan tidak menjalankan scheduler.
+  const muteBeforeQiroahSeconds = 120;
+  const muteAfterIqomahMinutes = 20;
+
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('panels');
+
+    if (!sheet) {
+      return {
+        success: true,
+        Youtube: '',
+        YoutubeStatus: 'AUTO',
+        YoutubeMuteBeforeQiroahSeconds: muteBeforeQiroahSeconds,
+        YoutubeMuteAfterIqomahMinutes: muteAfterIqomahMinutes
+      };
+    }
+
+    const url = String(
+      sheet.getRange('C20').getDisplayValue() || ''
+    ).trim();
+
+    const rawStatus = String(
+      sheet.getRange('F20').getDisplayValue() || ''
+    ).trim().toUpperCase();
+
+    const status =
+      ['ON', 'OFF', 'AUTO', 'STOP'].indexOf(rawStatus) >= 0
+        ? rawStatus
+        : 'AUTO';
+
+    Logger.log(
+      'YOUTUBE CONTROL C20/F20: mode=[' + status +
+      '], muteBeforeQiroahSeconds=' + muteBeforeQiroahSeconds +
+      ', muteAfterIqomahMinutes=' + muteAfterIqomahMinutes
+    );
+
+    return {
+      success: true,
+      Youtube: url,
+      YoutubeStatus: status,
+      YoutubeMuteBeforeQiroahSeconds: muteBeforeQiroahSeconds,
+      YoutubeMuteAfterIqomahMinutes: muteAfterIqomahMinutes
+    };
+
+  } catch (error) {
+    Logger.log(
+      'YOUTUBE CONTROL CEPAT ERROR: ' + error.message
+    );
+
+    return {
+      success: false,
+      error: error.message,
+      Youtube: '',
+      YoutubeStatus: 'AUTO',
+      YoutubeMuteBeforeQiroahSeconds: muteBeforeQiroahSeconds,
+      YoutubeMuteAfterIqomahMinutes: muteAfterIqomahMinutes
+    };
+  }
+}
+
+
+// =========================================================
+// LOOKUP SHEET CASE-INSENSITIVE
+// =========================================================
+// Google Sheets mempertahankan nama tab persis seperti dibuat di
+// Spreadsheet tenant. Template M0002 menggunakan beberapa nama tab
+// huruf kecil (mis. keuangan, adzan, running_text), sedangkan API lama
+// memakai kapitalisasi berbeda (Keuangan, Adzan, Running_Text).
+// Lookup ini membuat API tidak bergantung pada kapitalisasi nama tab.
+// Tidak mengubah nama tab dan tidak menulis data.
+function getSheetCaseInsensitive_(ss, sheetName) {
+  if (!ss) return null;
+
+  const wanted = String(sheetName || '').trim().toLowerCase();
+  if (!wanted) return null;
+
+  const sheets = ss.getSheets();
+
+  for (let i = 0; i < sheets.length; i++) {
+    const actualName = String(sheets[i].getName() || '').trim().toLowerCase();
+
+    if (actualName === wanted) {
+      return sheets[i];
+    }
+  }
+
+  return null;
+}
+
+
+function getDataFromSheet() {
+  try {
+    const ss = getSpreadsheet();
+    const result = {};
+
+    // Audio sekarang sepenuhnya berasal dari panels!B46:Q55.
+    const panelAudioConfig = buildAudioScheduleFromPanels_(ss);
+    result.Audio = {};
+    result.AudioSchedule = panelAudioConfig.schedule;
+    result.AudioFriday = panelAudioConfig.friday;
+    result.AudioScheduleJSON = JSON.stringify(panelAudioConfig.schedule);
+    result.AudioFridayJSON = JSON.stringify(panelAudioConfig.friday);
+    result.AudioDurations = {};
+
+    // =====================================================
+    // KONTROL TAMPILAN RAMADAN
+    // Dibaca dari Script Properties:
+    // RAMADAN_DISPLAY = true / false
+    //
+    // Pengaturan ini hanya memengaruhi DISPLAY Ramadan.
+    // Tidak mengubah schedule, durasi, urutan, atau proses AUDIO.
+    // =====================================================
+
+    result.RamadanDisplay = getRamadanDisplaySetting();
+
+    // Tema tampilan global dari panels!C18. Tidak memengaruhi audio/scheduler.
+    result.DisplayTheme = getDisplayThemeSetting();
+
+    // Lokasi aktif dari panels!C5:C10 untuk timezone/date di GitHub Pages.
+    // Tidak mengubah scheduler audio.
+    result.Lokasi = getLokasiPanels();
+
+    Logger.log('LOKASI API = ' + JSON.stringify(result.Lokasi));
+
+    // =====================================================
+    // HEADER MASJID - SUMBER LANGSUNG SPREADSHEET
+    // Field dikenali berdasarkan label kolom B pada sheet panels.
+    // Nilai kosong selalu dikembalikan sebagai ''.
+    // Tidak menyentuh scheduler/audio.
+    // =====================================================
+    const headerSheet = ss.getSheetByName('panels');
+    if (headerSheet) {
+      const headerValues = headerSheet.getRange('B12:C30').getDisplayValues();
+      const headerData = {};
+
+      headerValues.forEach(function(row) {
+        const key = String(row[0] || '').trim().toUpperCase();
+        const value = String(row[1] || '').trim();
+
+        if (
+          key === 'NAMA' ||
+          key === 'ALAMAT' ||
+          key === 'KOTA' ||
+          key === 'NO HP' ||
+          key === 'SLOGAN' ||
+          key === 'WEBSITE' ||
+          key === 'INFO LAINNYA'
+        ) {
+          headerData[key] = value;
+        }
+      });
+
+      // Nama header MASJID selalu langsung dari panels!C12.
+      // Tidak menggunakan label B12 agar C12 menjadi single source of truth.
+      result.Nama = String(
+        headerSheet.getRange('C12').getDisplayValue() || ''
+      ).trim();
+
+      // Header utama selalu mengambil langsung dari panels!C13:C15.
+      result.Alamat = String(headerSheet.getRange('C13').getDisplayValue() || '').trim();
+      result.Kota = String(headerSheet.getRange('C14').getDisplayValue() || '').trim();
+      result['No. Telp'] = String(headerSheet.getRange('C15').getDisplayValue() || '').trim();
+      result.Slogan = headerData.SLOGAN || '';
+      result.Website = headerData.WEBSITE || '';
+      result.InfoLainnya = headerData['INFO LAINNYA'] || '';
+
+      Logger.log('PANELS HEADER = ' + JSON.stringify({
+        Nama: result.Nama,
+        Alamat: result.Alamat,
+        Kota: result.Kota,
+        NoTelp: result['No. Telp'],
+        Website: result.Website,
+        InfoLainnya: result.InfoLainnya,
+        Slogan: result.Slogan
+      }));
+    }
+
+    // =====================================================
+    // KONTROL MODE DISPLAY COUNTDOWN
+    // Sumber: sheet "panels"!C2
+    // AUTO   = layar hitam saat countdown sholat aktif
+    //          sampai 15 menit setelah IQOMAH selesai.
+    // NORMAL = tampilan display tetap normal.
+    // =====================================================
+    // ============================================================
+  // MODE DISPLAY COUNTDOWN - panels!C2
+  // Dibaca langsung, terpisah dari RAMADAN_DISPLAY.
+  // AUTO/NORMAL hanya mengatur tampilan layar; audio tidak berubah.
+  // ============================================================
+  const panelsSheetDirect = ss.getSheetByName('panels');
+  if (panelsSheetDirect) {
+    const panelModeDirect = String(
+      panelsSheetDirect.getRange('C2').getDisplayValue() || ''
+    ).trim().toUpperCase();
+
+    result.PanelMode =
+      panelModeDirect === 'AUTO'
+        ? 'AUTO'
+        : 'OFF';
+
+    Logger.log(
+      'PANELS DIRECT C2 = [' +
+      panelModeDirect +
+      '] => PanelMode = [' +
+      result.PanelMode +
+      ']'
+    );
+  } else {
+    result.PanelMode = 'OFF';
+    Logger.log('PANELS: sheet panels tidak ditemukan => OFF');
+  }
+
+    // =====================================================
+    // KONFIGURASI YOUTUBE - PANELS
+    // panels!C20 = LINK YOUTUBE
+    // panels!F20 = SELECTOR: ON / OFF / AUTO / STOP
+    //
+    // ON   = video berjalan, suara aktif
+    // OFF  = video berjalan, suara mute
+    // AUTO = mute mulai 120 detik sebelum Qiroah-1 s.d. Qiroah-5,
+    //        tetap mute sampai 20 menit setelah waktu iqomah,
+    //        lalu suara mengikuti aturan AUTO kembali
+    // STOP = pemutaran video dihentikan (bukan sekadar mute)
+    // =====================================================
+
+    result.Youtube = '';
+    result.YoutubeStatus = 'AUTO';
+    result.YoutubeMute = false;
+    result.YoutubeMuteBeforeQiroahSeconds = 120;
+    result.YoutubeControlLocked = false;
+
+    const youtubePanelsSheet = ss.getSheetByName('panels');
+    if (youtubePanelsSheet) {
+      result.Youtube = String(
+        youtubePanelsSheet.getRange('C20').getDisplayValue() || ''
+      ).trim();
+
+      const youtubeSelector = String(
+        youtubePanelsSheet.getRange('F20').getDisplayValue() || ''
+      ).trim().toUpperCase();
+
+      result.YoutubeStatus =
+        ['ON', 'OFF', 'AUTO', 'STOP'].indexOf(youtubeSelector) >= 0
+          ? youtubeSelector
+          : 'AUTO';
+
+      Logger.log(
+        'YOUTUBE PANELS C20/F20 = LINK=[' +
+        result.Youtube +
+        '] SELECTOR=[' +
+        youtubeSelector +
+        '] => STATUS=[' +
+        result.YoutubeStatus +
+        ']'
+      );
+    } else {
+      Logger.log('YOUTUBE: sheet panels tidak ditemukan => AUTO');
+    }
+
+    // =====================================================
+    // DEFAULT AUDIO ADZAN SUBUH LAMA
+    // =====================================================
+
+    result.AdzanSubuh = '';
+
+    // =====================================================
+    // AUDIO ADZAN
+    // =====================================================
+
+    result.Audio = {
+      'beep': '',
+      'adzan-subuh': '',
+      'adzan-biasa': '',
+      'tarhim-subuh': '',
+      'tarhim-biasa': '',
+      'iqomah': '',
+      'doa': '',
+      'sirine': ''
+    };
+
+    // =====================================================
+    // KONFIGURASI URUTAN + DURASI AUDIO DARI SHEET ADZAN
+    // 0 = AUDIO/GAP DILEWATI
+    // =====================================================
+
+    result.AudioSchedule = {
+      SUBUH_RAMADHAN: [],
+      SUBUH_BIASA: [],
+      DZUHUR: [],
+      ASHAR: [],
+      MAGHRIB_RAMADHAN: [],
+      MAGHRIB_BIASA: [],
+      ISYA: []
+    };
+
+    result.AudioDurations = {};
+    result.AudioFriday = [];
+    // Jalur string untuk JSONP/bridge GitHub Pages.
+    result.AudioScheduleJSON = '';
+    result.AudioFridayJSON = '';
+
+    // =====================================================
+    // STATUS SUARA AUDIO DARI SHEET ADZAN T/U
+    // ON  = audio tetap berjalan + terdengar (UNMUTE)
+    // OFF = audio tetap berjalan sesuai durasi + HENING (MUTE)
+    // Status T/U TIDAK mengubah urutan maupun durasi.
+    // =====================================================
+    result.AudioStatus = {
+      qiroah: 'ON',
+      tarhim: 'ON',
+      beep: 'ON',
+      adzan: 'ON',
+      doa: 'ON',
+      iqomah: 'ON',
+      sirine: 'ON'
+    };
+
+
+    // =====================================================
+    // PASTIKAN KEUANGAN SELALU ADA
+    // =====================================================
+
+    result.Keuangan = [];
+    result.KeuanganTanggal = '';
+    result.KeuanganJudul = '';
+
+    // =====================================================
+    // INFAQ & SHADAQAH
+    // Sumber: sheet "infaq", range B1:B3
+    // =====================================================
+    result.Infaq = [];
+    
+function normalizePanelCountdownDate_(raw, display, spreadsheetTimezone) {
+  if (raw instanceof Date && !isNaN(raw.getTime())) {
+    return Utilities.formatDate(raw, spreadsheetTimezone, 'yyyy-MM-dd');
+  }
+
+  const text = String(display || raw || '').trim();
+  if (!text) return '';
+
+  let m = text.match(/^(\d{1,2})[\\/.-](\d{1,2})[\\/.-](\d{4})$/);
+  if (m) {
+    return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
+  }
+
+  m = text.match(/^(\d{4})[\\/.-](\d{1,2})[\\/.-](\d{1,2})$/);
+  if (m) {
+    return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
+  }
+
+  return '';
+}
+
+function getPanelEventCountdownConfig_() {
+  const result = [];
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('panels');
+    if (!sheet) return result;
+
+    const range = sheet.getRange('C60:E63');
+    const values = range.getValues();
+    const displays = range.getDisplayValues();
+    const spreadsheetTimezone =
+      ss.getSpreadsheetTimeZone() ||
+      Session.getScriptTimeZone() ||
+      'Asia/Makassar';
+
+    values.forEach(function(row, index) {
+      const sheetRow = 60 + index;
+      const displayRow = displays[index] || [];
+      const start = normalizePanelCountdownDate_(row[0], displayRow[0], spreadsheetTimezone);
+      const end = normalizePanelCountdownDate_(row[1], displayRow[1], spreadsheetTimezone);
+      const status = String(row[2] == null ? displayRow[2] || '' : row[2]).trim().toUpperCase();
+
+      result.push({
+        row: sheetRow,
+        start: start,
+        end: end,
+        status: status === 'ON' ? 'ON' : 'OFF'
+      });
+    });
+  } catch (error) {
+    Logger.log('PANELS COUNTDOWN C60:E63 ERROR: ' + (error && error.message ? error.message : error));
+  }
+  return result;
+}
+
+
+/**
+ * Normalisasi tanggal untuk konfigurasi video hari raya.
+ * Dipakai bersama oleh konfigurasi Idul Fitri dan Idul Adha.
+ */
+function normalizeVideoConfigDate_(value, timeZone) {
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, timeZone, 'yyyy-MM-dd');
+  }
+  const text = String(value == null ? '' : value).trim();
+  if (!text) return '';
+  let m = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
+  m = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (m) return m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
+  return text;
+}
+
+/**
+ * Membaca rentang tanggal animasi Idul Fitri dari panels!C68:E68.
+ * C68 = tanggal mulai, D68 = tanggal berhenti, E68 = ON/OFF.
+ * Tidak mengubah atau membaca ulang konfigurasi audio/scheduler.
+ */
+function getEidFitriVideoConfig() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('panels');
+    if (!sheet) {
+      return { success: false, error: 'Sheet panels tidak ditemukan.', startDate: '', stopDate: '', status: 'OFF' };
+    }
+
+    // Baca nilai asli agar tanggal tidak bergantung pada format tampilan
+    // atau bahasa lokal spreadsheet (mis. 10 Okt 2026 vs 10/10/2026).
+    const values = sheet.getRange('C64:E64').getValues()[0] || [];
+    const timeZone = ss.getSpreadsheetTimeZone() || Session.getScriptTimeZone() || 'Asia/Makassar';
+    const startDate = normalizeVideoConfigDate_(values[0], timeZone);
+    const stopDate = normalizeVideoConfigDate_(values[1], timeZone);
+    const rawStatus = String(values[2] == null ? '' : values[2]).trim().toUpperCase();
+    const status = rawStatus === 'ON' ? 'ON' : 'OFF';
+    return { success: true, startDate: startDate, stopDate: stopDate, status: status };
+  } catch (error) {
+    Logger.log('IDUL FITRI VIDEO CONFIG ERROR: ' + (error && error.message ? error.message : error));
+    return { success: false, error: String(error && error.message ? error.message : error), startDate: '', stopDate: '', status: 'OFF' };
+  }
+}
+
+
+function getEidAdhaVideoConfig() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('panels');
+    if (!sheet) {
+      return { success: false, error: 'Sheet panels tidak ditemukan.', startDate: '', stopDate: '', status: 'OFF' };
+    }
+
+    // Baca nilai asli agar tanggal tidak bergantung pada format tampilan
+    // atau bahasa lokal spreadsheet (mis. 10 Okt 2026 vs 10/10/2026).
+    const values = sheet.getRange('C65:E65').getValues()[0] || [];
+    const timeZone = ss.getSpreadsheetTimeZone() || Session.getScriptTimeZone() || 'Asia/Makassar';
+    const startDate = normalizeVideoConfigDate_(values[0], timeZone);
+    const stopDate = normalizeVideoConfigDate_(values[1], timeZone);
+    const rawStatus = String(values[2] == null ? '' : values[2]).trim().toUpperCase();
+    const status = rawStatus === 'ON' ? 'ON' : 'OFF';
+    return { success: true, startDate: startDate, stopDate: stopDate, status: status };
+  } catch (error) {
+    Logger.log('IDUL ADHA VIDEO CONFIG ERROR: ' + (error && error.message ? error.message : error));
+    return { success: false, error: String(error && error.message ? error.message : error), startDate: '', stopDate: '', status: 'OFF' };
+  }
+}
+
+function getPanelEventCountdownCustomConfig_() {
+  const result = [];
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('panels');
+    if (!sheet) return result;
+
+    // Custom text menuju hari menggunakan satu baris khusus: B66:E66.
+    // B66 = teks, C66 = tanggal mulai, D66 = tanggal selesai, E66 = ON/OFF.
+    const values = sheet.getRange('B66:E66').getValues()[0] || [];
+    const displays = sheet.getRange('B66:E66').getDisplayValues()[0] || [];
+    const spreadsheetTimezone =
+      ss.getSpreadsheetTimeZone() ||
+      Session.getScriptTimeZone() ||
+      'Asia/Makassar';
+
+    const event = String(displays[0] || values[0] || '').trim();
+    const start = normalizePanelCountdownDate_(values[1], displays[1], spreadsheetTimezone);
+    const end = normalizePanelCountdownDate_(values[2], displays[2], spreadsheetTimezone);
+    const rawStatus = String(values[3] == null ? displays[3] || '' : values[3]).trim().toUpperCase();
+
+    if (event || start || end || rawStatus) {
+      result.push({
+        row: 66,
+        event: event,
+        start: start,
+        end: end,
+        status: rawStatus === 'ON' ? 'ON' : 'OFF'
+      });
+    }
+  } catch (error) {
+    Logger.log('PANELS CUSTOM TEXT B66:E66 ERROR: ' + (error && error.message ? error.message : error));
+  }
+  return result;
+}
+
+// Event: A=EVENT, B=ANGKA DURASI HITUNGAN HARI, C=STATUS, D=KETERANGAN.
+    // Kolom B adalah angka konfigurasi; kolom D hanya keterangan.
+    result.Event = [];
+
+    // Countdown baru: panels!C60:E63 adalah satu-satunya sumber konfigurasi.
+    result.EventCountdown = getPanelEventCountdownConfig_();
+    result.EventCountdownCustom = getPanelEventCountdownCustomConfig_();
+
+    const targetSheets = [
+      'Nama_Mesjid',
+      'Keuangan',
+      'infaq',
+      "Jum'at",
+      'Event',
+      'Running_Text',
+      'Adzan',
+      'panels'
+    ];
+
+    // -------------------------------------------------------
+    // BACA SHEET YANG DIBUTUHKAN
+    // -------------------------------------------------------
+
+    targetSheets.forEach(
+      function(sheetName) {
+
+        const sheet =
+          getSheetCaseInsensitive_(
+            ss,
+            sheetName
+          );
+
+        if (!sheet) {
+
+          Logger.log(
+            'Sheet tidak ditemukan: ' +
+            sheetName
+          );
+
+          return;
+        }
+
+        // Event dan panels mempunyai pembacaan khusus.
+        // Hindari getDataRange() untuk keduanya agar startup lebih ringan.
+        if (sheetName === 'Event') {
+          result.Event = getEventSheetData_(ss);
+          return;
+        }
+
+        if (sheetName === 'panels') {
+          const panelMode = String(
+            sheet.getRange('C2').getDisplayValue() || ''
+          ).trim().toUpperCase();
+
+          result.PanelMode = panelMode === 'AUTO' ? 'AUTO' : 'OFF';
+
+          Logger.log(
+            'PANELS!C2 = [' + panelMode + '] => PanelMode = [' +
+            result.PanelMode + ']'
+          );
+
+          return;
+        }
+
+        // =====================================================
+        // SHEET KHUSUS: proses langsung tanpa getDataRange()
+        // getDataRange() sebelumnya membuat startup sangat lambat,
+        // terutama jika sheet memiliki banyak baris/kolom kosong terformat.
+        // =====================================================
+
+        if (sheetName === 'infaq') {
+          const infaqResult = [];
+
+          const textValues = sheet
+            .getRange('B1:B2')
+            .getDisplayValues();
+
+          textValues.forEach(function(row) {
+            const value = row && row.length > 0
+              ? String(row[0] || '').trim()
+              : '';
+
+            if (value !== '') {
+              infaqResult.push(value);
+            }
+          });
+
+          const imageCell = sheet.getRange('B3');
+          let imageUrl = '';
+
+          try {
+            const imageValue = imageCell.getValue();
+
+            if (
+              imageValue &&
+              typeof imageValue.getContentUrl === 'function'
+            ) {
+              imageUrl = String(
+                imageValue.getContentUrl() || ''
+              ).trim();
+            }
+          } catch (imageError) {
+            Logger.log(
+              'INFAQ B3 CellImage URL gagal dibaca: ' +
+              imageError.message
+            );
+          }
+
+          if (!imageUrl) {
+            try {
+              const displayValue = imageCell.getDisplayValue();
+
+              if (
+                displayValue &&
+                /^https?:\/\//i.test(displayValue.trim())
+              ) {
+                imageUrl = displayValue.trim();
+              }
+            } catch (displayError) {
+              Logger.log(
+                'INFAQ B3 display value gagal dibaca: ' +
+                displayError.message
+              );
+            }
+          }
+
+          if (imageUrl) {
+            infaqResult.push(imageUrl);
+          }
+
+          result.Infaq = infaqResult.map(function(value) {
+            return String(value == null ? '' : value);
+          });
+
+          return;
+        }
+
+        if (sheetName === 'Keuangan') {
+          result.Keuangan = [];
+
+          result.KeuanganJudul = String(
+            sheet.getRange('A1').getDisplayValue() || ''
+          ).trim();
+
+          const keuanganTanggalDisplay = String(
+            sheet.getRange('A2').getDisplayValue() || ''
+          );
+
+          result.KeuanganTanggal =
+            keuanganTanggalDisplay.replace(
+              /^(0)(\d)(\\s)/,
+              '$2$3'
+            );
+
+          const keuanganLastRow = sheet.getLastRow();
+
+          if (keuanganLastRow >= 4) {
+            const keuanganRows = sheet
+              .getRange(4, 1, keuanganLastRow - 3, 2)
+              .getDisplayValues();
+
+            keuanganRows.forEach(function(displayRow) {
+              const row = [
+                String(displayRow[0] == null ? '' : displayRow[0]).trim(),
+                String(displayRow[1] == null ? '' : displayRow[1]).trim()
+              ];
+
+              if (row[0] !== '' || row[1] !== '') {
+                result.Keuangan.push(row);
+              }
+            });
+          }
+
+          return;
+        }
+
+        if (sheetName === "Jum'at") {
+          // Jum'at tetap memakai parser lama karena struktur key/value.
+          // Namun hanya sheet ini yang masih membutuhkan getDataRange().
+          const data = sheet.getDataRange().getValues();
+
+          if (!data || data.length === 0) {
+            Logger.log('Sheet kosong: ' + sheetName);
+            return;
+          }
+
+          processJumatSheet(data, result);
+          return;
+        }
+
+        if (sheetName === 'Running_Text') {
+          processRunningTextSheet(sheet, result);
+          return;
+        }
+
+        if (sheetName === 'Adzan') {
+          // Sheet Adzan hanya dibaca untuk key/URL kompatibilitas.
+          // Urutan + ON/OFF audio aktif berasal dari panels!B46:Q55.
+          Logger.log('SHEET ADZAN: URL kompatibilitas dibaca; SCHEDULE AKTIF = PANELS B46:Q55.');
+        }
+
+        // Hanya sheet yang benar-benar memakai parser generik
+        // yang menggunakan getDataRange().
+        const data = sheet.getDataRange().getValues();
+
+        if (!data || data.length === 0) {
+          Logger.log('Sheet kosong: ' + sheetName);
+          return;
+        }
+
+
+        // =====================================================
+        // KHUSUS SHEET INFAQ
+        // Sumber: B1:B3
+        //
+        // HASIL AKHIR SELALU ARRAY STRING:
+        // [ B1, B2, URL_GAMBAR_B3 ]
+        // =====================================================
+
+        if (
+          sheetName === 'infaq'
+        ) {
+
+          const infaqResult = [];
+
+          // B1 dan B2 selalu diambil sebagai teks tampilan.
+          const textValues =
+            sheet
+              .getRange('B1:B2')
+              .getDisplayValues();
+
+          textValues.forEach(function(row) {
+
+            const value =
+              row && row.length > 0
+                ? String(row[0] || '').trim()
+                : '';
+
+            if (value !== '') {
+              infaqResult.push(value);
+            }
+          });
+
+          // B3 = gambar.
+          // Prioritas: CellImage.getContentUrl().
+          // Jika bukan CellImage, coba URL teks/formula.
+          const imageCell =
+            sheet.getRange('B3');
+
+          let imageUrl = '';
+
+          try {
+            const imageValue =
+              imageCell.getValue();
+
+            if (
+              imageValue &&
+              typeof imageValue.getContentUrl === 'function'
+            ) {
+              imageUrl =
+                String(imageValue.getContentUrl() || '').trim();
+            }
+          } catch (imageError) {
+            Logger.log(
+              'INFAQ B3 CellImage URL gagal dibaca: ' +
+              imageError.message
+            );
+          }
+
+          if (!imageUrl) {
+            try {
+              const displayValue =
+                imageCell.getDisplayValue();
+
+              if (
+                displayValue &&
+                /^https?:\/\//i.test(displayValue.trim())
+              ) {
+                imageUrl =
+                  displayValue.trim();
+              }
+            } catch (displayError) {
+              Logger.log(
+                'INFAQ B3 display value gagal dibaca: ' +
+                displayError.message
+              );
+            }
+          }
+
+          if (imageUrl) {
+            infaqResult.push(imageUrl);
+          }
+
+          // PENTING: hanya kirim primitive string ke browser.
+          result.Infaq =
+            infaqResult.map(function(value) {
+              return String(value == null ? '' : value);
+            });
+
+          return;
+        }
+
+        // =====================================================
+        // KHUSUS SHEET KEUANGAN
+        // =====================================================
+
+        if (
+          sheetName === 'Keuangan'
+        ) {
+
+          // RESET DATA KEUANGAN
+          result.Keuangan = [];
+
+          // Judul laporan langsung dari Keuangan!A1, tanpa hardcode.
+          result.KeuanganJudul =
+            String(
+              sheet.getRange('A1').getDisplayValue() || ''
+            ).trim();
+
+          // ---------------------------------------------------
+          // JUDUL + TANGGAL LAPORAN LANGSUNG DARI SHEET KEUANGAN
+          // ---------------------------------------------------
+
+          // Keuangan!A2 adalah sumber tanggal laporan.
+          // Jika API Sheets mengembalikan nol di depan hari (mis. 02 Oktober
+          // 2026) padahal tampilan Spreadsheet adalah 2 Oktober 2026,
+          // hilangkan HANYA nol di depan angka hari. Bagian tanggal lainnya
+          // tidak diubah. Tidak menyentuh scheduler/audio.
+          const keuanganTanggalDisplay =
+            String(
+              sheet.getRange('A2').getDisplayValue() || ''
+            );
+
+          result.KeuanganTanggal =
+            keuanganTanggalDisplay.replace(
+              /^(0)(\d)(\\s)/,
+              '$2$3'
+            );
+
+
+          // DATA SCROLL LAPORAN KEUANGAN: HANYA Keuangan!A4:B∞.
+          // Ambil langsung mulai baris 4 agar A1:B3 MUSTAHIL masuk payload.
+          // A1 = judul, A2 = tanggal, A3 = header/pemisah.
+          // Hanya kolom A dan B yang dikirim ke website.
+          // Tidak mengubah sumber judul/tanggal maupun scheduler/audio.
+          const keuanganLastRow = sheet.getLastRow();
+
+          if (keuanganLastRow >= 4) {
+            const keuanganRows = sheet
+              .getRange(4, 1, keuanganLastRow - 3, 2)
+              .getDisplayValues();
+
+            keuanganRows.forEach(function(displayRow) {
+              const row = [
+                String(displayRow[0] == null ? '' : displayRow[0]).trim(),
+                String(displayRow[1] == null ? '' : displayRow[1]).trim()
+              ];
+
+              const hasContent = row.some(function(cell) {
+                return cell !== '';
+              });
+
+              if (hasContent) {
+                result.Keuangan.push(row);
+              }
+            });
+          }
+
+          return;
+        }
+
+
+        // =====================================================
+        // KHUSUS SHEET JUM'AT
+        // =====================================================
+
+        if (
+          sheetName === "Jum'at"
+        ) {
+
+          processJumatSheet(
+            data,
+            result
+          );
+
+          return;
+        }
+
+
+        // =====================================================
+        // KHUSUS SHEET RUNNING TEXT
+        // =====================================================
+
+        if (
+          sheetName === 'Running_Text'
+        ) {
+
+          processRunningTextSheet(
+            sheet,
+            result
+          );
+
+          return;
+        }
+
+
+        // =====================================================
+        // KHUSUS SHEET PANELS
+        // C2 = MODE DISPLAY: AUTO / NORMAL
+        // =====================================================
+
+        if (
+          sheetName === 'panels'
+        ) {
+
+          const panelMode =
+            String(
+              sheet
+                .getRange('C2')
+                .getDisplayValue() || ''
+            )
+            .trim()
+            .toUpperCase();
+
+          result.PanelMode =
+            panelMode === 'AUTO'
+              ? 'AUTO'
+              : 'OFF';
+
+          Logger.log(
+            'PANELS!C2 = [' +
+            panelMode +
+            '] => PanelMode = [' +
+            result.PanelMode +
+            ']'
+          );
+
+          return;
+        }
+
+
+        // =====================================================
+        // KHUSUS SHEET ADZAN
+        // FORMAT:
+        // KOLOM A = KEY
+        // KOLOM B = URL AUDIO
+        // =====================================================
+
+        if (
+          sheetName === 'Adzan'
+        ) {
+
+          // URL/key audio dari Adzan hanya untuk kompatibilitas.
+          processKeyAudioSheet(
+            sheet,
+            result
+          );
+
+          // JADWAL AKTIF TIDAK dibaca dari kolom sequence Sheet Adzan.
+          // Satu-satunya sumber urutan + ON/OFF adalah panels!B46:Q55.
+          // Ini penting karena frontend memerlukan array schedule yang
+          // tidak kosong untuk membangun timeline audio harian.
+          const panelAudioFinal = buildAudioScheduleFromPanels_(ss);
+          result.AudioSchedule = panelAudioFinal.schedule;
+          result.AudioFriday = panelAudioFinal.friday;
+          result.AudioScheduleJSON = JSON.stringify(panelAudioFinal.schedule);
+          result.AudioFridayJSON = JSON.stringify(panelAudioFinal.friday);
+          result.AudioDurations = {};
+
+          Logger.log(
+            'AUDIO FINAL: SCHEDULE=' +
+            Object.keys(result.AudioSchedule).map(function(k) {
+              return k + '=' + (result.AudioSchedule[k] || []).length;
+            }).join(', ') +
+            ' | SOURCE=PANELS B46:Q55'
+          );
+
+          // Bangun ulang ringkasan AudioStatus berdasarkan status final
+          // dari panels, bukan dari Adzan!T:U.
+          result.AudioStatus = {
+            qiroah: 'ON',
+            tarhim: 'ON',
+            beep: 'ON',
+            adzan: 'ON',
+            doa: 'ON',
+            iqomah: 'ON',
+            sirine: 'ON'
+          };
+
+          const applyAudioStatusSummary_ = function(items) {
+            (Array.isArray(items) ? items : []).forEach(function(item) {
+              const event = String(item && item.event || '').toLowerCase();
+              const status = String(item && item.status || 'ON').toUpperCase();
+              if (status !== 'OFF') return;
+
+              const category =
+                /^qiroah/.test(event) ? 'qiroah' :
+                event === 'tarhim' ? 'tarhim' :
+                event === 'beep' ? 'beep' :
+                /^adzan/.test(event) ? 'adzan' :
+                /^doa/.test(event) ? 'doa' :
+                event === 'iqomah' ? 'iqomah' :
+                event === 'sirine' ? 'sirine' : '';
+
+              if (category) result.AudioStatus[category] = 'OFF';
+            });
+          };
+
+          Object.keys(result.AudioSchedule || {}).forEach(function(sequenceName) {
+            applyAudioStatusSummary_(result.AudioSchedule[sequenceName]);
+          });
+          applyAudioStatusSummary_(result.AudioFriday);
+
+          Logger.log(
+            'AUDIO FINAL SOURCE = PANELS B46:Q55; ' +
+            'DURASI/URL = ADZAN; STATUS = PANELS'
+          );
+
+          return;
+        }
+
+
+        // =====================================================
+        // SHEET LAIN
+        // =====================================================
+
+        if (
+          data[0] &&
+          data[0].length === 2 &&
+          data.length > 1 &&
+          data[0][0] !== ''
+        ) {
+
+          for (
+            let i = 0;
+            i < data.length;
+            i++
+          ) {
+
+            processKeyValue(
+              data[i][0],
+              data[i][1],
+              result
+            );
+          }
+
+        } else if (
+          data.length >= 2
+        ) {
+
+          const headers =
+            data[0];
+
+          const values =
+            data[1];
+
+          for (
+            let j = 0;
+            j < headers.length;
+            j++
+          ) {
+
+            processKeyValue(
+              headers[j],
+              values[j],
+              result
+            );
+          }
+        }
+      }
+    );
+
+
+    // =====================================================
+    // SUMBER PANEL KEUANGAN DARI PANELS!C26
+    // C26 = KEUANGAN -> sheet Keuangan
+    // C26 = QUR'BAN -> sheet Qurb'an
+    // Hanya mengganti sumber data panel kanan.
+    // Tidak menyentuh scheduler, audio, YouTube, atau data sholat.
+    // KEUANGAN: data detail A4:B sampai baris terakhir.
+    // QUR'BAN: A1 header, A2 nama masjid, A3 header, A4 kosong,
+    // scrolling A5:A sampai baris terakhir.
+    // =====================================================
+    try {
+      const panelsSelectorSheet = ss.getSheetByName('panels');
+      const rawSelector = panelsSelectorSheet
+        ? String(panelsSelectorSheet.getRange('C26').getDisplayValue() || '').trim()
+        : 'KEUANGAN';
+
+      const selectorKey = rawSelector
+        .toUpperCase()
+        .replace(/[\s’‘'\`]/g, '');
+
+      const selectedKey =
+        selectorKey === 'QURBAN'
+          ? 'QURBAN'
+          : selectorKey === 'PENGURUS'
+            ? 'PENGURUS'
+            : 'KEUANGAN';
+
+      result.KeuanganSelector = selectedKey;
+
+      const selectedSheet = ss.getSheets().find(function(candidate) {
+        const key = String(candidate.getName() || '')
+          .toUpperCase()
+          .replace(/[\s’‘'\`]/g, '');
+        return key === selectedKey;
+      });
+
+      if (selectedSheet) {
+        result.Keuangan = [];
+        result.KeuanganJudul = String(
+          selectedSheet.getRange('A1').getDisplayValue() || ''
+        ).trim();
+        result.KeuanganTanggal = String(
+          selectedSheet.getRange('A2').getDisplayValue() || ''
+        ).replace(/^(0)(\d)(\s)/, '$2$3');
+        result.KeuanganA3 = String(
+          selectedSheet.getRange('A3').getDisplayValue() || ''
+        ).trim();
+
+        const lastRow = selectedSheet.getLastRow();
+
+        if (selectedKey === 'QURBAN') {
+          // QUR'BAN: A1, A2, A3 adalah header tetap. A4 dilewati.
+          // Scrolling dimulai dari A5.
+          if (lastRow >= 5) {
+            selectedSheet
+              .getRange(5, 1, lastRow - 4, 1)
+              .getDisplayValues()
+              .forEach(function(displayRow) {
+                const text = String(
+                  displayRow[0] == null ? '' : displayRow[0]
+                ).trim();
+                result.Keuangan.push([text, '']);
+              });
+          }
+        } else if (selectedKey === 'PENGURUS') {
+          // PENGURUS: A1:A4 adalah header tetap; data dimulai dari A5.
+          // Batas bawah dinamis mengikuti getLastRow(), tanpa batas jumlah
+          // baris dari sisi program dan tanpa membaca getMaxRows().
+          const lastPengurusRow = selectedSheet.getLastRow();
+          if (lastPengurusRow >= 5) {
+            const pengurusRows = selectedSheet
+              .getRange(5, 1, lastPengurusRow - 4, 1)
+              .getDisplayValues();
+
+            pengurusRows.forEach(function(displayRow) {
+              const text = String(
+                displayRow[0] == null ? '' : displayRow[0]
+              ).trim();
+              result.Keuangan.push([text, '']);
+            });
+          }
+        } else if (lastRow >= 4) {
+          const rows = selectedSheet
+            .getRange(4, 1, lastRow - 3, 2)
+            .getDisplayValues();
+
+          rows.forEach(function(displayRow) {
+            const row = [
+              String(displayRow[0] == null ? '' : displayRow[0]).trim(),
+              String(displayRow[1] == null ? '' : displayRow[1]).trim()
+            ];
+
+            if (row[0] !== '' || row[1] !== '') {
+              result.Keuangan.push(row);
+            }
+          });
+        }
+
+        Logger.log(
+          'PANEL KEUANGAN C26 = [' + rawSelector +
+          '] => SHEET [' + selectedSheet.getName() +
+          '] => ROWS [' + result.Keuangan.length + ']'
+        );
+      } else {
+        result.Keuangan = [];
+        result.KeuanganJudul = '';
+        result.KeuanganTanggal = '';
+        result.KeuanganA3 = '';
+        Logger.log(
+          'PANEL KEUANGAN: sheet untuk selector [' + rawSelector + '] tidak ditemukan.'
+        );
+      }
+    } catch (selectorError) {
+      Logger.log(
+        'PANEL KEUANGAN C26 ERROR: ' + selectorError.message
+      );
+    }
+
+
+    // =====================================================
+    // FINALISASI MODE PANEL DISPLAY
+    // =====================================================
+    // panels!C2 adalah sumber tunggal kontrol layar hitam.
+    // Normalisasi ulang setelah seluruh pembacaan sheet agar
+    // PanelMode tidak pernah hilang/tertindih oleh parser lain.
+    // AUTO = layar hitam saat countdown aktif.
+    // Selain AUTO = OFF.
+    // Tidak menyentuh audio, YouTube, scheduler, atau durasi.
+    // =====================================================
+    try {
+      const panelsFinal = ss.getSheetByName('panels');
+      const panelFinalRaw = panelsFinal
+        ? String(panelsFinal.getRange('C2').getDisplayValue() || '')
+            .trim()
+            .toUpperCase()
+        : '';
+
+      result.PanelMode =
+        panelFinalRaw === 'AUTO'
+          ? 'AUTO'
+          : 'OFF';
+
+      Logger.log(
+        'PANELS FINAL C2 = [' +
+        panelFinalRaw +
+        '] => PanelMode = [' +
+        result.PanelMode +
+        ']'
+      );
+    } catch (panelFinalError) {
+      result.PanelMode = 'OFF';
+      Logger.log(
+        'PANELS FINAL ERROR => OFF: ' +
+        panelFinalError.message
+      );
+    }
+
+
+    // =====================================================
+    // PASTIKAN KEUANGAN TIDAK HILANG
+    // =====================================================
+
+    if (
+      !Array.isArray(
+        result.Keuangan
+      )
+    ) {
+
+      result.Keuangan = [];
+    }
+
+    if (
+      result.KeuanganTanggal ===
+      undefined
+    ) {
+
+      result.KeuanganTanggal =
+        '';
+    }
+
+
+    // =====================================================
+    // EVENT
+    // =====================================================
+    // Sudah dibaca sekali secara dinamis di loop targetSheets.
+    // Jangan baca ulang karena akan menambah latency Spreadsheet.
+
+    // =====================================================
+    // PASTIKAN EVENT SELALU ADA
+    // =====================================================
+
+    if (!Array.isArray(result.Event)) {
+      result.Event = [];
+    }
+
+
+    // =====================================================
+    // PASTIKAN STATUS YOUTUBE MUTE SELALU ADA
+    // =====================================================
+
+    if (
+      result.YoutubeMute ===
+      undefined
+    ) {
+
+      result.YoutubeMute =
+        false;
+    }
+
+
+    // =====================================================
+    // PASTIKAN AUDIO SELALU ADA
+    // =====================================================
+
+    if (
+      !result.Audio ||
+      typeof result.Audio !== 'object'
+    ) {
+
+      result.Audio = {};
+    }
+
+    const audioKeys = [
+      'beep',
+      'adzan-subuh',
+      'adzan-biasa',
+      'tarhim-subuh',
+      'tarhim-biasa',
+      'iqomah',
+      'doa',
+      'sirine'
+    ];
+
+    audioKeys.forEach(
+      function(key) {
+
+        if (
+          result.Audio[key] ===
+          undefined
+        ) {
+
+          result.Audio[key] =
+            '';
+        }
+      }
+    );
+
+
+    if (
+      result.AdzanSubuh ===
+      undefined
+    ) {
+
+      result.AdzanSubuh =
+        '';
+    }
+
+
+    // =====================================================
+    // PETUGAS SHOLAT - panels!C28 + C29:C32
+    // =====================================================
+    try {
+      const kegiatanSheet = ss.getSheetByName('panels');
+      if (kegiatanSheet) {
+        result.PanelKegiatan = getPanelKegiatan();
+      } else {
+        result.PanelKegiatan = { success: false, jenis: '', fields: {} };
+      }
+    } catch (kegiatanError) {
+      Logger.log('PANEL KEGIATAN GET DATA ERROR: ' + kegiatanError.message);
+      result.PanelKegiatan = { success: false, jenis: '', fields: {} };
+    }
+
+    // =====================================================
+    // DEBUG HASIL AKHIR
+    // =====================================================
+
+    // =====================================================
+    // HEADER MASJID FINAL - panels!B12:C16
+    // WAJIB dilakukan sebelum logging dan return result.
+    // panels!B12:C16 adalah sumber tunggal header web.
+    // =====================================================
+    try {
+      const headerSheetFinal = ss.getSheetByName('panels');
+
+      if (headerSheetFinal) {
+        const headerValuesFinal =
+          headerSheetFinal.getRange('B12:C30').getDisplayValues();
+
+        const headerFinal = {};
+
+        headerValuesFinal.forEach(function(row) {
+          const key = String(row[0] || '').trim().toUpperCase();
+          const value = String(row[1] || '').trim();
+
+          if (
+            key === 'NAMA' ||
+            key === 'ALAMAT' ||
+            key === 'KOTA' ||
+            key === 'NO HP' ||
+            key === 'SLOGAN' ||
+            key === 'WEBSITE' ||
+            key === 'INFO LAINNYA'
+          ) {
+            headerFinal[key] = value;
+          }
+        });
+
+        result.Nama = headerFinal.NAMA || result.Nama || '';
+        result.Alamat = headerFinal.ALAMAT || '';
+        result.Kota = headerFinal.KOTA || '';
+        result['No. Telp'] = headerFinal['NO HP'] || '';
+        result.Website = headerFinal.WEBSITE || '';
+        result.InfoLainnya = headerFinal['INFO LAINNYA'] || '';
+        result.Slogan = headerFinal.SLOGAN || '';
+
+        Logger.log(
+          'PANELS HEADER FINAL = ' +
+          JSON.stringify({
+            Nama: result.Nama,
+            Alamat: result.Alamat,
+            Kota: result.Kota,
+            NoTelp: result['No. Telp'],
+            Slogan: result.Slogan
+          })
+        );
+      }
+    } catch (headerFinalError) {
+      Logger.log(
+        'PANELS HEADER FINAL ERROR: ' +
+        headerFinalError.message
+      );
+    }
+
+    // =====================================================
+    // DEBUG HASIL AKHIR
+    // =====================================================
+    Logger.log(
+      '=== GET DATA SHEET SELESAI ==='
+    );
+
+    Logger.log(
+      'Data result FINAL: ' +
+      JSON.stringify({
+        Nama: result.Nama,
+        Alamat: result.Alamat,
+        Kota: result.Kota,
+        'No. Telp': result['No. Telp'],
+        Website: result.Website,
+        InfoLainnya: result.InfoLainnya,
+        Slogan: result.Slogan
+      })
+    );
+
+    return result;
+
+  } catch (error) {
+
+    Logger.log(
+      'Error pada getDataFromSheet: ' +
+      error.message
+    );
+
+    return {
+      error: error.message,
+      Keuangan: [],
+      KeuanganTanggal: '',
+      Event: [],
+      Youtube: '',
+      YoutubeMute: false,
+      PanelMode: 'OFF',
+      YoutubeMuteBeforeQiroahSeconds: 0,
+      YoutubeControlLocked: false,
+      AdzanSubuh: '',
+      Audio: {
+        'beep': '',
+        'adzan-subuh': '',
+        'adzan-biasa': '',
+        'tarhim-subuh': '',
+        'tarhim-biasa': '',
+        'iqomah': '',
+        'doa': ''
+      },
+      AudioStatus: {
+        qiroah: 'ON',
+        tarhim: 'ON',
+        beep: 'ON',
+        adzan: 'ON',
+        doa: 'ON',
+        iqomah: 'ON'
+      },
+      Running_Text: ''
+    };
+  }
+}
+
+
+
+// =========================================================
+// DIAGNOSTIC: TEST GET DATA M0002 TANPA JSONP
+// =========================================================
+// Fungsi ini hanya untuk diagnosis backend. Tidak mengubah Spreadsheet,
+// tidak mengubah Script Properties, dan tidak mengubah scheduler/audio.
+
+// =========================================================
+// EVENT - PEMBACAAN EKSPLISIT UNTUK GITHUB API
+// =========================================================
+// A = EVENT
+// B = ANGKA DURASI HITUNGAN HARI
+// C = STATUS
+// D = KETERANGAN
+//
+// Dibaca terpisah dari loop targetSheets agar result.Event
+// selalu tersedia untuk getDataFromSheet().
+// =========================================================
+function getEventSheetData_(ss) {
+  const output = [];
+  const sheet = getSheetCaseInsensitive_(ss, 'Event');
+
+  if (!sheet) {
+    Logger.log('EVENT: Sheet Event tidak ditemukan.');
+    return output;
+  }
+
+  // Baca seluruh kolom yang dipakai, bukan hanya A:D. Ini membuat
+  // pembacaan tetap bekerja bila kolom Event bergeser atau ada kolom
+  // tambahan di Spreadsheet. Tidak melakukan penulisan ke Spreadsheet.
+  const lastRow = sheet.getLastRow();
+  const lastColumn = Math.max(sheet.getLastColumn(), 4);
+  if (lastRow < 1) {
+    Logger.log('EVENT: sheet kosong.');
+    return output;
+  }
+
+  const values = sheet.getRange(1, 1, lastRow, lastColumn).getValues();
+  const displays = sheet.getRange(1, 1, lastRow, lastColumn).getDisplayValues();
+  const normalizeHeader = function(value) {
+    return String(value == null ? '' : value)
+      .trim()
+      .toUpperCase()
+      .replace(/[\s_./-]+/g, ' ');
+  };
+
+  // Default format lama tetap dipertahankan: A=EVENT, B=HARI, C=STATUS, D=KETERANGAN.
+  let eventCol = 0;
+  let daysCol = 1;
+  let statusCol = 2;
+  let descriptionCol = 3;
+  let headerRow = -1;
+
+  // Cari baris header pada 10 baris pertama supaya nama kolom tidak
+  // harus selalu berada di baris pertama atau di kolom A.
+  const eventHeaders = ['EVENT', 'NAMA EVENT', 'NAMA EVENT KEGIATAN', 'KEGIATAN', 'NAMA KEGIATAN'];
+  const dayHeaders = ['HARI', 'DURASI HARI', 'JUMLAH HARI', 'ANGKA DURASI HITUNGAN HARI', 'DURASI', 'DAYS'];
+  const statusHeaders = ['STATUS', 'AKTIF', 'ON OFF', 'ON/OFF'];
+  const descriptionHeaders = ['KETERANGAN', 'DESKRIPSI', 'CATATAN', 'INFO'];
+
+  for (let r = 0; r < Math.min(values.length, 10); r++) {
+    const headers = (displays[r] || []).map(normalizeHeader);
+    const e = headers.findIndex(function(v) { return eventHeaders.indexOf(v) >= 0; });
+    const d = headers.findIndex(function(v) { return dayHeaders.indexOf(v) >= 0; });
+    const st = headers.findIndex(function(v) { return statusHeaders.indexOf(v) >= 0; });
+    const desc = headers.findIndex(function(v) { return descriptionHeaders.indexOf(v) >= 0; });
+    if (e >= 0 && (d >= 0 || st >= 0 || desc >= 0)) {
+      eventCol = e;
+      if (d >= 0) daysCol = d;
+      if (st >= 0) statusCol = st;
+      if (desc >= 0) descriptionCol = desc;
+      headerRow = r;
+      break;
+    }
+  }
+
+  for (let r = 0; r < values.length; r++) {
+    if (r === headerRow) continue;
+    const row = values[r] || [];
+    const displayRow = displays[r] || [];
+    let eventValue = row[eventCol];
+    let eventName = String(eventValue == null ? '' : eventValue).trim();
+
+    // Kompatibilitas untuk sheet tanpa header: jika kolom A kosong,
+    // temukan nama event teks pada baris tersebut. Kolom durasi/status
+    // tetap dikenali dari nilai yang tersisa.
+    let rowDays = row[daysCol];
+    let rowStatus = row[statusCol];
+    let rowDescription = row[descriptionCol];
+    if (!eventName && headerRow < 0) {
+      const nonEmpty = [];
+      for (let c = 0; c < row.length; c++) {
+        const shown = String(displayRow[c] == null ? '' : displayRow[c]).trim();
+        if (shown !== '') nonEmpty.push({ index: c, raw: row[c], shown: shown });
+      }
+      const candidate = nonEmpty.find(function(item) {
+        const text = item.shown.toUpperCase();
+        return !/^[-+]?\d+(?:[.,]\d+)?$/.test(item.shown) &&
+          ['ON', 'OFF', 'AKTIF', 'NONAKTIF', 'STATUS', 'EVENT', 'NAMA EVENT'].indexOf(text) < 0;
+      });
+      if (candidate) {
+        eventName = candidate.shown;
+        const rest = nonEmpty.filter(function(item) { return item.index !== candidate.index; });
+        const duration = rest.find(function(item) {
+          return /^[-+]?\d+(?:[.,]\d+)?$/.test(item.shown);
+        });
+        const status = rest.find(function(item) {
+          return ['ON', 'OFF', 'AKTIF', 'NONAKTIF'].indexOf(item.shown.toUpperCase()) >= 0;
+        });
+        const descriptions = rest.filter(function(item) {
+          return (!duration || item.index !== duration.index) &&
+            (!status || item.index !== status.index);
+        });
+        if (duration) rowDays = duration.raw;
+        if (status) rowStatus = status.shown;
+        if (descriptions.length) rowDescription = descriptions.map(function(item) { return item.shown; }).join(' ');
+      }
+    }
+
+    if (!eventName) continue;
+    const headerKey = normalizeHeader(eventName);
+    if (eventHeaders.indexOf(headerKey) >= 0) continue;
+
+    const daysRaw = rowDays == null ? '' : rowDays;
+    const status = String(rowStatus == null ? '' : rowStatus).trim().toUpperCase();
+    const description = String(rowDescription == null ? '' : rowDescription).trim();
+    let days = Number(String(daysRaw).replace(',', '.').trim());
+    if (!Number.isFinite(days)) days = 0;
+
+    output.push({
+      row: r + 1,
+      event: eventName,
+      days: days,
+      status: status,
+      description: description
+    });
+  }
+
+  Logger.log(
+    'EVENT DINAMIS READ: sheet=' + sheet.getName() +
+    ' lastRow=' + lastRow +
+    ' lastColumn=' + lastColumn +
+    ' headerRow=' + (headerRow >= 0 ? headerRow + 1 : 'tidak ditemukan') +
+    ' rows=' + output.length +
+    ' data=' + JSON.stringify(output)
+  );
+
+  if (output.length === 0) {
+    Logger.log(
+      'EVENT DIAGNOSTIK: contoh isi 5 baris pertama=' +
+      JSON.stringify(displays.slice(0, 5))
+    );
+  }
+
+  return output;
+}
+
+// =========================================================
+// PROSES SHEET ADZAN
+//
+// FORMAT SHEET ADZAN:
+//
+// A1 = beep
+// B1 = URL beep
+//
+// A2 = adzan-subuh
+// B2 = URL adzan subuh
+//
+// A3 = adzan-biasa
+// B3 = URL adzan biasa
+//
+// A4 = tarhim-subuh
+// B4 = URL tarhim subuh
+//
+// A5 = tarhim-biasa
+// B5 = URL tarhim biasa
+//
+// A6 = iqomah
+// B6 = URL iqomah
+//
+// A7 = doa
+// B7 = URL doa
+// =========================================================
+
+function processKeyAudioSheet(
+  sheet,
+  resultObj
+) {
+
+  if (!sheet) {
+
+    Logger.log(
+      'ERROR: Sheet Adzan tidak ditemukan.'
+    );
+
+    return;
+  }
+
+  Logger.log(
+    '=== PROCESS AUDIO SHEET ADZAN ==='
+  );
+
+  const lastRow =
+    sheet.getLastRow();
+
+  if (
+    lastRow < 1
+  ) {
+
+    Logger.log(
+      'Sheet Adzan kosong.'
+    );
+
+    return;
+  }
+
+  const data =
+    sheet
+      .getRange(
+        1,
+        1,
+        lastRow,
+        2
+      )
+      .getDisplayValues();
+
+
+  for (
+    let r = 0;
+    r < data.length;
+    r++
+  ) {
+
+    const key =
+      data[r][0]
+        ? data[r][0]
+            .toString()
+            .trim()
+            .toLowerCase()
+        : '';
+
+    const value =
+      data[r][1]
+        ? data[r][1]
+            .toString()
+            .trim()
+        : '';
+
+    if (!key) {
+      continue;
+    }
+
+    resultObj.Audio[key] =
+      value;
+
+    Logger.log(
+      'Audio[' +
+      key +
+      '] = [' +
+      value +
+      ']'
+    );
+  }
+
+
+  Logger.log(
+    'AUDIO RESULT = ' +
+    JSON.stringify(
+      resultObj.Audio
+    )
+  );
+}
+
+
+// =========================================================
+// PROSES URUTAN + DURASI AUDIO SHEET ADZAN
+//
+// Struktur yang dibaca:
+// D = No
+// E:F = Subuh / detik
+// G:H = Dzuhur / detik
+// I:J = Ashar / detik
+// K:L = Maghrib / detik
+// M:N = Isya / detik
+// P = No Jumat
+// Q:R = Jum'at / detik
+//
+// Contoh:
+// qiroah | 1800
+// gap    | 3
+// tarhim | 315
+// ...
+// iqomah | 45
+//
+// DURASI TIDAK MENGGUNAKAN FALLBACK.
+// 0 = event/gap dilewati.
+// kosong = 0 (dilewati).
+// =========================================================
+
+// =========================================================
+// PARSER SHEET ADZAN V7 - DETEKSI STRUKTUR OTOMATIS
+// =========================================================
+// Tujuan:
+// - Tidak mengunci Sheet pada satu susunan kolom tertentu.
+// - Mendukung blok EVENT|DURASI maupun EVENT|DURASI|STATUS.
+// - Hanya nama event audio yang sah yang boleh masuk sequence.
+// - Nilai ON/OFF/angka tidak pernah dianggap sebagai nama event.
+// - getDataFromSheet() dan getRealtimeAudioConfig() memakai parser sama.
+// =========================================================
+
+function parseAdzanSheetV7(data) {
+  // Sheet Adzan saat ini memakai:
+  // EVENT | STATUS
+  // URL audio TIDAK berada di blok sequence; URL diambil dari A:B.
+  //
+  // Struktur:
+  // E:F  SUBUH RAMADHAN
+  // H:I  SUBUH BIASA
+  // J:K  DZUHUR
+  // M:N  ASHAR
+  // P:Q  MAGRIB RAMADHAN
+  // S:T  MAGRIB BIASA
+  // V:W  ISYA
+  // Y:Z  JUM'AT
+  //
+  // Durasi TIDAK dibaca dari Sheet sequence.
+  // Frontend membaca durasi asli file melalui HTMLAudioElement.metadata.
+  const result = {
+    schedule: {
+      SUBUH_RAMADHAN: [],
+      SUBUH_BIASA: [],
+      DZUHUR: [],
+      ASHAR: [],
+      MAGHRIB_RAMADHAN: [],
+      MAGHRIB_BIASA: [],
+      ISYA: []
+    },
+    friday: [],
+    detected: {},
+    warnings: []
+  };
+
+  if (!Array.isArray(data) || data.length === 0) return result;
+
+  function cell(r,c) {
+    const row=data[r]||[];
+    return c>=0 && c<row.length ? row[c] : '';
+  }
+  function normalize(v) {
+    return String(v==null?'':v).trim().toLowerCase()
+      .replace(/[’`]/g,"'").replace(/\s+/g,' ');
+  }
+  function normalizeEvent(v) {
+    let x=normalize(v);
+    if (!x || x==='on' || x==='off') return '';
+    x=x.replace(/_/g,'-').replace(/\s+/g,'-');
+    if (/^qiroah-?\d+$/.test(x)) return x.replace(/^qiroah-?(\d+)$/,'qiroah-$1');
+    if (/^qiraah-?\d+$/.test(x)) return x.replace(/^qiraah-?(\d+)$/,'qiroah-$1');
+    if (x==='qiraah') return 'qiroah';
+    if (x==='shalawat-tarhim'||x==='sholawat-tarhim') return 'tarhim';
+    if (x==='azan-subuh') return 'adzan-subuh';
+    if (x==='azan-biasa'||x==='azan') return x==='azan'?'adzan':'adzan-biasa';
+    if (x==="do'a") return 'doa';
+    if (x==='iqamah') return 'iqomah';
+    if (x==='siren') return 'sirine';
+    return x;
+  }
+  function isStatus(v) {
+    const x=normalize(v).toUpperCase();
+    return x==='ON'||x==='OFF';
+  }
+  function buildPair(eventCol,statusCol,name) {
+    const items=[];
+    const knownEvents = {
+      'qiroah':1, 'qiroah-1':1, 'qiroah-2':1, 'qiroah-3':1,
+      'qiroah-4':1, 'qiroah-5':1, 'tarhim':1, 'beep':1,
+      'adzan':1, 'adzan-subuh':1, 'adzan-biasa':1, 'doa':1,
+      'doa-adzan':1, 'doa-puasa':1, 'doa-buka':1, 'iqomah':1,
+      'sirine':1
+    };
+
+    for(let r=0;r<data.length;r++){
+      let event = normalizeEvent(cell(r,eventCol));
+      let statusValue = cell(r,statusCol);
+
+      // Toleransi jika EVENT/STATUS pada blok tertukar.
+      if(!knownEvents[event]){
+        const reverseEvent = normalizeEvent(cell(r,statusCol));
+        if(knownEvents[reverseEvent]){
+          event = reverseEvent;
+          statusValue = cell(r,eventCol);
+        }
+      }
+
+      // Abaikan header/baris lain yang bukan nama audio.
+      if(!knownEvents[event]) continue;
+
+      const status = isStatus(statusValue)
+        ? (normalize(statusValue).toUpperCase()==='OFF'?'OFF':'ON')
+        : 'ON';
+
+      items.push({event:event,duration:0,status:status});
+    }
+
+    result.detected[name]={
+      event:eventCol,
+      status:statusCol,
+      startRow:0,
+      count:items.length
+    };
+    return items;
+  }
+
+  // Posisi kolom final Sheet Adzan:
+  // E:F = SUBUH RAMADHAN
+  // H:I = SUBUH BIASA
+  // J:K = DZUHUR
+  // M:N = ASHAR
+  // P:Q = MAGHRIB RAMADHAN
+  // S:T = MAGHRIB BIASA
+  // V:W = ISYA
+  // Y:Z = JUM'AT
+  result.schedule.SUBUH_RAMADHAN = buildPair(4,5,'SUBUH_RAMADHAN');
+  result.schedule.SUBUH_BIASA    = buildPair(7,8,'SUBUH_BIASA');
+  result.schedule.DZUHUR         = buildPair(9,10,'DZUHUR');
+  result.schedule.ASHAR          = buildPair(12,13,'ASHAR');
+  result.schedule.MAGHRIB_RAMADHAN = buildPair(15,16,'MAGHRIB_RAMADHAN');
+  result.schedule.MAGHRIB_BIASA    = buildPair(18,19,'MAGHRIB_BIASA');
+  result.schedule.ISYA           = buildPair(21,22,'ISYA');
+  result.friday = buildPair(24,25,'JUMAT');
+
+  Object.keys(result.schedule).forEach(function(name){
+    Logger.log('AUDIO SCHEDULE '+name+': '+JSON.stringify(result.schedule[name]));
+  });
+  Logger.log("AUDIO JUM'AT: "+JSON.stringify(result.friday));
+  return result;
+}
+
+
+// =========================================================
+// PROSES URUTAN + DURASI AUDIO SHEET ADZAN
+// =========================================================
+function processAdzanScheduleSheet(sheet, resultObj) {
+  if (!sheet) return;
+
+  const lastRow = Math.max(sheet.getLastRow(), 1);
+  const data = sheet
+    .getRange(1, 1, lastRow, 27)
+    .getValues();
+
+  const parsed = parseAdzanSheetV7(data);
+
+  resultObj.AudioSchedule = parsed.schedule;
+  resultObj.AudioFriday = parsed.friday;
+  resultObj.AudioScheduleJSON = JSON.stringify(parsed.schedule);
+  resultObj.AudioFridayJSON = JSON.stringify(parsed.friday);
+
+  const genericDurations = {};
+
+  Object.keys(parsed.schedule).forEach(function(prayerName) {
+    parsed.schedule[prayerName].forEach(function(item) {
+      let type = item.event;
+
+      if (/^qiroah-\d+$/.test(String(type || '').toLowerCase())) type = 'qiroah';
+      else if (type === 'adzan-subuh') type = 'adzanSubuh';
+      else if (type === 'adzan-biasa' || type === 'adzan') type = 'adzanBiasa';
+      else if (type === 'tarhim') {
+        type = /^SUBUH/.test(prayerName) ? 'tarhimSubuh' : 'tarhimBiasa';
+      }
+
+      if (genericDurations[type] === undefined) {
+        genericDurations[type] = item.duration;
+      }
+    });
+  });
+
+  resultObj.AudioDurations = genericDurations;
+
+  Object.keys(parsed.schedule).forEach(function(prayerName) {
+    const d = parsed.detected[prayerName];
+    Logger.log(
+      'AUDIO SCHEDULE ' + prayerName + ': ' +
+      JSON.stringify(parsed.schedule[prayerName])
+    );
+    Logger.log(
+      'AUDIO MAPPING FIX ' + prayerName + ': ' +
+      (d
+        ? 'event=' + (d.event + 1) +
+          ', duration=' + (d.duration + 1) +
+          ', status=' + (d.status >= 0 ? (d.status + 1) : '-')
+        : 'TIDAK TERDETEKSI')
+    );
+  });
+
+  Logger.log("AUDIO JUM'AT: " + JSON.stringify(parsed.friday));
+}
+
+// =========================================================
+// PROSES STATUS SUARA AUDIO SHEET ADZAN
+//
+// FORMAT KONTROL:
+// T = NAMA AUDIO / EVENT
+// U = ON / OFF
+//
+// ON  = audio diputar normal (UNMUTE)
+// OFF = audio tetap diputar sesuai durasi, tetapi MUTE
+// GAP tidak mempunyai kontrol suara dan tidak dipengaruhi status ini.
+// =========================================================
+
+function processAdzanAudioStatusSheet(sheet, resultObj) {
+  if (!sheet) return;
+  // Status per-event berasal dari kolom STATUS setiap blok.
+  // AudioStatus hanya ringkasan kompatibilitas.
+  const status = {
+    qiroah: 'ON', tarhim: 'ON', beep: 'ON', adzan: 'ON',
+    doa: 'ON', iqomah: 'ON', sirine: 'ON'
+  };
+  function categoryForEvent(event) {
+    const e = String(event || '').trim().toLowerCase();
+    if (/^qiroah-\d+$/.test(e) || e === 'qiroah') return 'qiroah';
+    if (e === 'tarhim') return 'tarhim';
+    if (e === 'beep') return 'beep';
+    if (e === 'adzan' || e === 'adzan-subuh' || e === 'adzan-biasa') return 'adzan';
+    if (e === 'doa') return 'doa';
+    if (e === 'iqomah') return 'iqomah';
+    if (e === 'sirine') return 'sirine';
+    return '';
+  }
+  Object.keys(resultObj.AudioSchedule || {}).forEach(function(prayerName) {
+    (resultObj.AudioSchedule[prayerName] || []).forEach(function(item) {
+      const category = categoryForEvent(item && item.event);
+      if (category && String(item.status || 'ON').toUpperCase() === 'OFF') status[category] = 'OFF';
+    });
+  });
+  (Array.isArray(resultObj.AudioFriday) ? resultObj.AudioFriday : []).forEach(function(item) {
+    const category = categoryForEvent(item && item.event);
+    if (category && String(item.status || 'ON').toUpperCase() === 'OFF') status[category] = 'OFF';
+  });
+  resultObj.AudioStatus = status;
+  Logger.log('AUDIO STATUS DARI BLOK SHEET = ' + JSON.stringify(status));
+}
+
+
+
+// =========================================================
+// OVERLAY STATUS AUDIO REALTIME DARI PANELS!B45:Q
+//
+// panels:
+// B/C = SUBUH RAMADHAN
+// D/E = SUBUH BIASA
+// F/G = DZUHUR
+// H/I = ASHAR
+// J/K = MAGHRIB RAMADHAN
+// L/M = MAGHRIB BIASA
+// N/O = ISYA
+// P/Q = JUM'AT
+//
+// HANYA status ON/OFF yang dioverlay ke schedule dari Sheet Adzan.
+// Urutan event, durasi, anchor, dan timing scheduler TIDAK diubah.
+// =========================================================
+function applyPanelAudioStatusRealtime_(ss, audioSchedule, audioFriday) {
+  if (!ss || !audioSchedule) return;
+
+  const panels = ss.getSheetByName('panels');
+  if (!panels) {
+    Logger.log('REALTIME AUDIO PANELS: sheet panels tidak ditemukan, status Adzan dipertahankan.');
+    return;
+  }
+
+  // =========================================================
+  // STRUKTUR FINAL PANELS — JANGAN DIUBAH
+  //
+  // B:C  = SUBUH RAMADHAN
+  // D:E  = SUBUH BIASA
+  // F:G  = DZUHUR
+  // H:I  = ASHAR
+  // J:K  = MAGHRIB RAMADHAN
+  // L:M  = MAGHRIB BIASA
+  // N:O  = ISYA
+  // P:Q  = JUM'AT
+  //
+  // Data audio panels HANYA berada pada baris 46 s/d 55.
+  // Baris 45 dan baris di bawah 55 TIDAK BOLEH ikut terbaca
+  // sebagai konfigurasi audio.
+  // =========================================================
+  const values = panels.getRange('B46:Q55').getDisplayValues();
+
+  const canonicalSelector = function(raw, sequenceName) {
+    const e = String(raw == null ? '' : raw).trim().toLowerCase();
+    const seq = String(sequenceName || '').trim().toUpperCase();
+
+    if (!e || e === 'gap') return '';
+
+    if (/^qiroah-[1-5]$/.test(e)) return e;
+    if (e === 'qiroah') return 'qiroah';
+
+    if (
+      e === 'tarhim' ||
+      e === 'tarhim-subuh' ||
+      e === 'tarhim-biasa'
+    ) return 'tarhim';
+
+    if (e === 'beep') return 'beep';
+    if (e === 'iqomah') return 'iqomah';
+    if (e === 'sirine') return 'sirine';
+
+    if (e === 'doa-adzan') return 'doa-adzan';
+    if (e === 'doa-puasa') return 'doa-puasa';
+    if (e === 'doa-buka') return 'doa-buka';
+
+    // "doa" generik = doa-adzan saja.
+    if (e === 'doa') return 'doa-adzan';
+
+    if (e === 'adzan-subuh') return 'adzan-subuh';
+    if (e === 'adzan-biasa') return 'adzan-biasa';
+
+    if (e === 'adzan') {
+      return /^SUBUH(?:_|$)/i.test(seq)
+        ? 'adzan-subuh'
+        : 'adzan-biasa';
+    }
+
+    return e;
+  };
+
+  // Ambil SATU blok panels lengkap, mempertahankan nomor baris asli.
+  const getPanelItems = function(colOffset) {
+    const items = [];
+
+    for (let i = 0; i < values.length; i++) {
+      const event = String(
+        values[i][colOffset] == null ? '' : values[i][colOffset]
+      ).trim();
+
+      const status = String(
+        values[i][colOffset + 1] == null ? '' : values[i][colOffset + 1]
+      ).trim().toUpperCase();
+
+      if (!event) continue;
+      if (status !== 'ON' && status !== 'OFF') continue;
+
+      items.push({
+        event: event,
+        status: status,
+        row: 46 + i
+      });
+    }
+
+    return items;
+  };
+
+  // =========================================================
+  // PASANG PANEL -> SCHEDULE BERDASARKAN:
+  //   1. sequence
+  //   2. selector canonical
+  //   3. occurrence/urutan kemunculan
+  //
+  // Jadi:
+  //   B47 tarhim ON
+  //   B50 tarhim OFF
+  //
+  // tidak pernah dianggap sebagai satu "tarhim" yang sama.
+  //
+  // Contoh paling penting:
+  //   B52 = adzan-subuh
+  //   C52 = OFF
+  //
+  // hanya mengontrol ADZAN SUBUH pada SUBUH RAMADHAN.
+  // =========================================================
+  const applyBlock = function(sequenceName, colOffset) {
+    const target = Array.isArray(audioSchedule[sequenceName])
+      ? audioSchedule[sequenceName]
+      : [];
+
+    const panelItems = getPanelItems(colOffset);
+
+    if (!target.length || !panelItems.length) {
+      Logger.log(
+        'REALTIME AUDIO BLOK KOSONG: ' +
+        sequenceName +
+        ' target=' + target.length +
+        ' panel=' + panelItems.length
+      );
+      return;
+    }
+
+    const usedTarget = {};
+
+    panelItems.forEach(function(panelItem, panelIndex) {
+      const wanted = canonicalSelector(
+        panelItem.event,
+        sequenceName
+      );
+
+      if (!wanted) return;
+
+      // Occurrence selector di PANELS.
+      let occurrence = 0;
+
+      for (let p = 0; p < panelIndex; p++) {
+        if (
+          canonicalSelector(
+            panelItems[p].event,
+            sequenceName
+          ) === wanted
+        ) {
+          occurrence++;
+        }
+      }
+
+      // Occurrence selector di SCHEDULE.
+      let seen = 0;
+      let match = -1;
+
+      for (let i = 0; i < target.length; i++) {
+        if (usedTarget[i]) continue;
+
+        const targetKey = canonicalSelector(
+          target[i] && target[i].event,
+          sequenceName
+        );
+
+        if (targetKey !== wanted) continue;
+
+        if (seen === occurrence) {
+          match = i;
+          break;
+        }
+
+        seen++;
+      }
+
+      if (match < 0) {
+        Logger.log(
+          'REALTIME AUDIO MAP GAGAL: ' +
+          sequenceName +
+          ' row=' + panelItem.row +
+          ' selector=' + panelItem.event +
+          ' canonical=' + wanted +
+          ' occurrence=' + occurrence
+        );
+        return;
+      }
+
+      usedTarget[match] = true;
+
+      target[match].status = panelItem.status;
+
+      Logger.log(
+        'REALTIME AUDIO PANEL MAP: ' +
+        sequenceName +
+        ' row=' + panelItem.row +
+        ' ' + panelItem.event +
+        ' -> schedule[' + match + ']' +
+        ' canonical=' + wanted +
+        ' status=' + panelItem.status
+      );
+    });
+
+    // =======================================================
+    // PENGAMAN KHUSUS: jika SEMUA selector audio pada blok
+    // yang terisi memang OFF, seluruh event schedule juga OFF.
+    //
+    // Ini mencegah event yang gagal dipasangkan karena variasi
+    // nama selector tetap kembali ON.
+    // =======================================================
+    const allPanelItemsOff =
+      panelItems.length > 0 &&
+      panelItems.every(function(item) {
+        return item.status === 'OFF';
+      });
+
+    if (allPanelItemsOff) {
+      target.forEach(function(item) {
+        if (
+          item &&
+          canonicalSelector(item.event, sequenceName)
+        ) {
+          item.status = 'OFF';
+        }
+      });
+
+      Logger.log(
+        'REALTIME AUDIO BLOK FULL OFF: ' +
+        sequenceName +
+        ' — SEMUA EVENT AUDIO DIPAKSA OFF'
+      );
+    }
+  };
+
+  const blocks = [
+    ['SUBUH_RAMADHAN', 0], // B:C
+    ['SUBUH_BIASA', 2],    // D:E
+    ['DZUHUR', 4],         // F:G
+    ['ASHAR', 6],          // H:I
+    ['MAGHRIB_RAMADHAN', 8], // J:K
+    ['MAGHRIB_BIASA', 10],   // L:M
+    ['ISYA', 12]           // N:O
+  ];
+
+  blocks.forEach(function(block) {
+    applyBlock(block[0], block[1]);
+  });
+
+  // =========================================================
+  // JUM'AT — P:Q
+  // =========================================================
+  if (Array.isArray(audioFriday) && audioFriday.length) {
+    const panelItems = getPanelItems(14); // P:Q
+    const usedTarget = {};
+
+    panelItems.forEach(function(panelItem, panelIndex) {
+      const wanted = canonicalSelector(
+        panelItem.event,
+        'JUMAT'
+      );
+
+      if (!wanted) return;
+
+      let occurrence = 0;
+
+      for (let p = 0; p < panelIndex; p++) {
+        if (
+          canonicalSelector(
+            panelItems[p].event,
+            'JUMAT'
+          ) === wanted
+        ) {
+          occurrence++;
+        }
+      }
+
+      let seen = 0;
+      let match = -1;
+
+      for (let i = 0; i < audioFriday.length; i++) {
+        if (usedTarget[i]) continue;
+
+        const targetKey = canonicalSelector(
+          audioFriday[i] && audioFriday[i].event,
+          'JUMAT'
+        );
+
+        if (targetKey !== wanted) continue;
+
+        if (seen === occurrence) {
+          match = i;
+          break;
+        }
+
+        seen++;
+      }
+
+      if (match < 0) {
+        Logger.log(
+          'REALTIME AUDIO MAP JUMAT GAGAL: ' +
+          'row=' + panelItem.row +
+          ' selector=' + panelItem.event +
+          ' canonical=' + wanted +
+          ' occurrence=' + occurrence
+        );
+        return;
+      }
+
+      usedTarget[match] = true;
+      audioFriday[match].status = panelItem.status;
+
+      Logger.log(
+        "REALTIME AUDIO PANEL MAP JUM'AT: " +
+        'row=' + panelItem.row +
+        ' ' + panelItem.event +
+        ' -> schedule[' + match + ']' +
+        ' status=' + panelItem.status
+      );
+    });
+
+    if (
+      panelItems.length > 0 &&
+      panelItems.every(function(item) {
+        return item.status === 'OFF';
+      })
+    ) {
+      audioFriday.forEach(function(item) {
+        if (
+          item &&
+          canonicalSelector(item.event, 'JUMAT')
+        ) {
+          item.status = 'OFF';
+        }
+      });
+
+      Logger.log(
+        "REALTIME AUDIO BLOK FULL OFF: JUM'AT — SEMUA EVENT AUDIO DIPAKSA OFF"
+      );
+    }
+  }
+}
+
+function buildAudioScheduleFromPanels_(ss) {
+  const out = {schedule:{SUBUH_RAMADHAN:[],SUBUH_BIASA:[],DZUHUR:[],ASHAR:[],MAGHRIB_RAMADHAN:[],MAGHRIB_BIASA:[],ISYA:[]},friday:[]};
+  const panels = getSheetCaseInsensitive_(ss, 'panels');
+  if (!panels) return out;
+  // Struktur panel audio final:
+  // B45:Q55 = header + 10 baris audio.
+  // Baris audio dimulai dari 46 sehingga C52 tetap pasangan
+  // B52=event dan C52=status ON/OFF.
+  const v = panels.getRange('B46:Q55').getDisplayValues();
+
+  // Baca status dengan getDisplayValue langsung sebagai sumber realtime.
+  // Ini sengaja dipisahkan dari parser agar perubahan ON/OFF di Sheet
+  // tidak tergantung cache/object schedule lama.
+  const directStatus = {
+    SUBUH_RAMADHAN: panels.getRange('C46:C55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    SUBUH_BIASA: panels.getRange('E46:E55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    DZUHUR: panels.getRange('G46:G55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    ASHAR: panels.getRange('I46:I55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    MAGHRIB_RAMADHAN: panels.getRange('K46:K55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    MAGHRIB_BIASA: panels.getRange('M46:M55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    ISYA: panels.getRange('O46:O55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    }),
+    JUMAT: panels.getRange('Q46:Q55').getDisplayValues().map(function(r){
+      return String(r[0] == null ? '' : r[0]).trim().toUpperCase();
+    })
+  };
+  Logger.log('AUDIO DIRECT STATUS PANELS: ' + JSON.stringify(directStatus));
+  // Simpan nilai mentah supaya bila event tidak dikenali, log Apps Script
+  // memperlihatkan pasangan kolom yang benar-benar dibaca. Tidak mengubah sel.
+  Logger.log('AUDIO PANEL RAW B46:Q55: ' + JSON.stringify(v));
+  const norm = function(raw, seq) {
+    let e = String(raw == null ? '' : raw).trim().toLowerCase();
+    if (!e || e === 'on' || e === 'off' || e === 'gap') return '';
+    e = e.replace(/[’`]/g, "'").replace(/_/g,'-').replace(/\s+/g,'-');
+    if (/^qiroah-?\d+$/.test(e)) return e.replace(/^qiroah-?(\d+)$/,'qiroah-$1');
+    if (e === 'qiraah') return 'qiroah';
+    if (e === 'shalawat-tarhim' || e === 'sholawat-tarhim' || e === 'tarhim-subuh' || e === 'tarhim-biasa') return 'tarhim';
+    if (e === 'azan-subuh' || /^adzan-subuh-(ramadhan|ramadan|biasa)$/.test(e)) return 'adzan-subuh';
+    if (e === 'azan-biasa' || /^adzan-(dzuhur|zuhur|ashar|maghrib|isya|jumat|jum'at)(-(ramadhan|ramadan|biasa))?$/.test(e)) return 'adzan-biasa';
+    if (e === 'azan' || e === 'adzan') return /^SUBUH/i.test(String(seq||'')) ? 'adzan-subuh' : 'adzan-biasa';
+    if (e === "do'a") return 'doa';
+    if (e === 'iqamah') return 'iqomah';
+    if (e === 'siren') return 'sirine';
+    const allowed = {'qiroah':1,'qiroah-1':1,'qiroah-2':1,'qiroah-3':1,'qiroah-4':1,'qiroah-5':1,'tarhim':1,'beep':1,'adzan-subuh':1,'adzan-biasa':1,'doa':1,'doa-adzan':1,'doa-puasa':1,'doa-buka':1,'iqomah':1,'sirine':1};
+    return allowed[e] ? e : '';
+  };
+  const block = function(offset, seq) {
+    const a=[];
+    for(let i=0;i<v.length;i++){
+      const event=norm(v[i][offset],seq);
+      if(!event) continue;
+      const raw=String(v[i][offset+1] == null ? '' : v[i][offset+1]).trim().toUpperCase();
+      a.push({event:event,duration:0,status:raw==='OFF'?'OFF':'ON'});
+    }
+    return a;
+  };
+  [['SUBUH_RAMADHAN',0],['SUBUH_BIASA',2],['DZUHUR',4],['ASHAR',6],['MAGHRIB_RAMADHAN',8],['MAGHRIB_BIASA',10],['ISYA',12]].forEach(function(x){out.schedule[x[0]]=block(x[1],x[0]);});
+  out.friday=block(14,'JUMAT');
+  out.directStatus = directStatus;
+  Logger.log('AUDIO PANEL EVENT COUNTS: ' + JSON.stringify(Object.keys(out.schedule).reduce(function(acc, key) { acc[key] = out.schedule[key].length; return acc; }, {JUMAT: out.friday.length})));
+  Logger.log('AUDIO SOURCE PANELS SAJA: '+JSON.stringify(out));
+  return out;
+}
+
+// ============================================================
+// AUDIO STATUS CEPAT - pola terpisah seperti getYoutubeControl()
+// Hanya membaca status event pada panels!B46:Q55.
+// Tidak membaca durasi, tidak menyusun ulang jadwal, dan tidak
+// mengubah scheduler. Dipakai khusus untuk mute/unmute realtime.
+// ============================================================
+function getRealtimeAudioStatus() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = getSheetCaseInsensitive_(ss, 'panels');
+    if (!sheet) {
+      return { success: false, error: 'Sheet panels tidak ditemukan.' };
+    }
+
+    SpreadsheetApp.flush();
+    const takbiranSetting = String(sheet.getRange('C57').getDisplayValue() || '').trim().toUpperCase();
+    const masterAudioSetting = String(sheet.getRange('G57').getDisplayValue() || '').trim().toUpperCase();
+    const values = sheet.getRange('B46:Q55').getDisplayValues();
+    const build = function(offset) {
+      const list = [];
+      values.forEach(function(row) {
+        const event = String(row[offset] == null ? '' : row[offset]).trim();
+        if (!event || /^(ON|OFF|GAP)$/i.test(event)) return;
+        const rawStatus = String(row[offset + 1] == null ? '' : row[offset + 1])
+          .trim().toUpperCase();
+        if (rawStatus !== 'ON' && rawStatus !== 'OFF') return;
+        list.push({ event: event, status: rawStatus });
+      });
+      return list;
+    };
+
+    return {
+      success: true,
+      TakbiranEnabled: takbiranSetting === 'ON',
+      MasterAudioMuted: masterAudioSetting === 'MUTED',
+      AudioSchedule: {
+        SUBUH_RAMADHAN: build(0),
+        SUBUH_BIASA: build(2),
+        DZUHUR: build(4),
+        ASHAR: build(6),
+        MAGHRIB_RAMADHAN: build(8),
+        MAGHRIB_BIASA: build(10),
+        ISYA: build(12)
+      },
+      AudioFriday: build(14),
+      source: 'panels!B46:Q55',
+      timestamp: new Date().getTime()
+    };
+  } catch (error) {
+    Logger.log('AUDIO STATUS CEPAT ERROR: ' + (error && error.message ? error.message : error));
+    return { success: false, error: error && error.message ? error.message : String(error) };
+  }
+}
+
+function getRealtimeAudioConfig() {
+  try {
+    const ss = getSpreadsheet();
+    SpreadsheetApp.flush();
+
+    // SUMBER FINAL JADWAL AUDIO:
+    //   EVENT + ON/OFF = panels!B46:Q55
+    //   URL AUDIO      = lokal ./audio/... (frontend)
+    //
+    // Sheet Adzan TIDAK dipakai untuk menentukan urutan schedule.
+    // Parser lama Adzan pernah mengembalikan schedule=0 karena struktur
+    // kolom sequence di Sheet Adzan berbeda dari struktur panels terbaru.
+    // Durasi juga memang dibaca browser dari metadata MP3.
+    const panelAudio = buildAudioScheduleFromPanels_(ss);
+
+    const audioResult = {
+      Audio: {},
+      AudioSchedule: panelAudio.schedule || {},
+      AudioDurations: {},
+      AudioFriday: panelAudio.friday || []
+    };
+
+    const adzanSheet = getSheetCaseInsensitive_(ss, 'Adzan');
+    if (adzanSheet) {
+      // Hanya baca key/URL sebagai kompatibilitas API.
+      // Frontend tetap memprioritaskan URL lokal ./audio/...
+      processKeyAudioSheet(adzanSheet, audioResult);
+    } else {
+      Logger.log('REALTIME AUDIO: Sheet Adzan tidak ditemukan; memakai URL lokal frontend.');
+    }
+
+    const panelsSheet = ss.getSheetByName('panels');
+    const takbiranSetting = panelsSheet
+      ? String(panelsSheet.getRange('C57').getDisplayValue() || '').trim().toUpperCase()
+      : 'OFF';
+    const masterAudioSetting = panelsSheet
+      ? String(panelsSheet.getRange('G57').getDisplayValue() || '').trim().toUpperCase()
+      : 'UNMUTED';
+
+    const result = {
+      success: true,
+      RamadanDisplay: getRamadanDisplaySetting(),
+      TakbiranEnabled: takbiranSetting === 'ON',
+      MasterAudioMuted: masterAudioSetting === 'MUTED',
+      Audio: audioResult.Audio || {},
+      AudioSchedule: audioResult.AudioSchedule || {},
+      AudioDurations: audioResult.AudioDurations || {},
+      AudioFriday: audioResult.AudioFriday || [],
+      AudioStatus: {
+        qiroah:'ON',
+        tarhim:'ON',
+        beep:'ON',
+        adzan:'ON',
+        doa:'ON',
+        iqomah:'ON',
+        sirine:'ON'
+      }
+    };
+    Object.keys(result.AudioSchedule).forEach(function(k){(result.AudioSchedule[k]||[]).forEach(function(x){
+      const e=String(x.event||'').toLowerCase(); const s=String(x.status||'ON').toUpperCase();
+      const cat=/^qiroah/.test(e)?'qiroah':e==='tarhim'?'tarhim':e==='beep'?'beep':/^adzan/.test(e)?'adzan':/^doa/.test(e)?'doa':e==='iqomah'?'iqomah':e==='sirine'?'sirine':'';
+      if(cat && s==='OFF') result.AudioStatus[cat]='OFF';
+    });});
+    (result.AudioFriday||[]).forEach(function(x){if(String(x.status||'ON').toUpperCase()==='OFF'){const e=String(x.event||'').toLowerCase();const cat=/^qiroah/.test(e)?'qiroah':e==='tarhim'?'tarhim':e==='beep'?'beep':/^adzan/.test(e)?'adzan':/^doa/.test(e)?'doa':e==='iqomah'?'iqomah':e==='sirine'?'sirine':'';if(cat)result.AudioStatus[cat]='OFF';}});
+    result.PanelAudioFinal={};
+    Object.keys(result.AudioSchedule || {}).forEach(function(seq){
+      result.PanelAudioFinal[seq]=(result.AudioSchedule[seq]||[]).map(function(x,i){
+        return {index:i,event:x.event||'',status:String(x.status||'ON').toUpperCase()};
+      });
+    });
+    result.PanelAudioDirectStatus = panelAudio.directStatus || {};
+    return result;
+  } catch(error) {
+    Logger.log('ERROR getRealtimeAudioConfig PANELS: '+error);
+    return {success:false,error:error&&error.message?error.message:String(error)};
+  }
+}
+// =========================================================
+// PROSES SHEET RUNNING TEXT
+// =========================================================
+
+function processRunningTextSheet(
+  sheet,
+  resultObj
+) {
+
+  resultObj.Running_Text =
+    '';
+
+  if (!sheet) {
+    return;
+  }
+
+  const lastRow =
+    sheet.getLastRow();
+
+  if (lastRow < 1) {
+    return;
+  }
+
+  const range =
+    sheet.getRange(
+      1,
+      2,
+      lastRow,
+      1
+    );
+
+  const displayValues =
+    range.getDisplayValues();
+
+  const richTextValues =
+    range.getRichTextValues();
+
+  const runningTexts = [];
+
+  for (
+    let r = 0;
+    r < displayValues.length;
+    r++
+  ) {
+
+    const displayText =
+      displayValues[r][0];
+
+    if (
+      displayText === null ||
+      displayText === undefined ||
+      displayText
+        .toString()
+        .trim() === ''
+    ) {
+      continue;
+    }
+
+    const richText =
+      richTextValues[r][0];
+
+    if (!richText) {
+
+      runningTexts.push(
+        escapeHtml(
+          displayText.toString()
+        ).replace(
+          /\r?\n/g,
+          '<br>'
+        )
+      );
+
+      continue;
+    }
+
+    const runs =
+      richText.getRuns();
+
+    if (
+      !runs ||
+      runs.length === 0
+    ) {
+
+      runningTexts.push(
+        escapeHtml(
+          displayText.toString()
+        ).replace(
+          /\r?\n/g,
+          '<br>'
+        )
+      );
+
+      continue;
+    }
+
+    let htmlText =
+      '';
+
+    for (
+      let i = 0;
+      i < runs.length;
+      i++
+    ) {
+
+      const run =
+        runs[i];
+
+      if (!run) {
+        continue;
+      }
+
+      let text =
+        run.getText();
+
+      if (!text) {
+        continue;
+      }
+
+      text =
+        escapeHtml(
+          text
+        );
+
+      text =
+        text.replace(
+          /\r?\n/g,
+          '<br>'
+        );
+
+      const style =
+        run.getTextStyle();
+
+      let bold =
+        false;
+
+      let italic =
+        false;
+
+      let underline =
+        false;
+
+      let strike =
+        false;
+
+      if (style) {
+
+        try {
+          bold =
+            style.isBold() === true;
+        } catch (e) {
+          bold = false;
+        }
+
+        try {
+          italic =
+            style.isItalic() === true;
+        } catch (e) {
+          italic = false;
+        }
+
+        try {
+          underline =
+            style.isUnderline() === true;
+        } catch (e) {
+          underline = false;
+        }
+
+        try {
+          strike =
+            style.isStrikethrough() === true;
+        } catch (e) {
+          strike = false;
+        }
+      }
+
+      if (bold) {
+        text =
+          '<strong>' +
+          text +
+          '</strong>';
+      }
+
+      if (italic) {
+        text =
+          '<em>' +
+          text +
+          '</em>';
+      }
+
+      if (underline) {
+        text =
+          '<u>' +
+          text +
+          '</u>';
+      }
+
+      if (strike) {
+        text =
+          '<s>' +
+          text +
+          '</s>';
+      }
+
+      htmlText +=
+        text;
+    }
+
+    const plainText =
+      htmlText
+        .replace(
+          /<[^>]*>/g,
+          ''
+        )
+        .trim();
+
+    if (
+      plainText !== ''
+    ) {
+      runningTexts.push(
+        htmlText
+      );
+    }
+  }
+
+  resultObj.Running_Text =
+    runningTexts.join(
+      ' ❖ '
+    );
+}
+
+
+// =========================================================
+// ESCAPE HTML
+// =========================================================
+
+function escapeHtml(
+  text
+) {
+
+  if (
+    text === null ||
+    text === undefined
+  ) {
+    return '';
+  }
+
+  return text
+    .toString()
+    .replace(
+      /&/g,
+      '&amp;'
+    )
+    .replace(
+      /</g,
+      '&lt;'
+    )
+    .replace(
+      />/g,
+      '&gt;'
+    )
+    .replace(
+      /"/g,
+      '&quot;'
+    );
+}
+
+
+// =========================================================
+// PROSES SHEET YOUTUBE
+// =========================================================
+
+function processYoutubeSheet(
+  data,
+  resultObj
+) {
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+    return;
+  }
+
+  // =====================================================
+  // STRUKTUR FINAL SHEET YOUTUBE
+  // B1 = LINK YOUTUBE
+  // C1 = STATUS
+  //
+  // STATUS:
+  // ON   = YouTube berjalan + UNMUTE; 5 menit sebelum Qiroah
+  //        sistem mengubah C1 ON -> OFF sehingga YouTube MUTE.
+  // OFF  = YouTube tetap berjalan tetapi MUTE.
+  // AUTO = MUTE 5 menit sebelum Qiroah, tetap MUTE sampai
+  //        30 menit setelah IQOMAH selesai, lalu UNMUTE.
+  // STOP = YouTube benar-benar dihentikan.
+  // =====================================================
+
+  let youtubeUrl = '';
+
+  if (
+    data[0] &&
+    data[0].length > 1
+  ) {
+    youtubeUrl =
+      data[0][1] !== null &&
+      data[0][1] !== undefined
+        ? data[0][1].toString().trim()
+        : '';
+  }
+
+  resultObj.Youtube = youtubeUrl;
+
+  let youtubeStatus = 'AUTO';
+
+  if (
+    data[0] &&
+    data[0].length > 2
+  ) {
+    youtubeStatus =
+      data[0][2] !== null &&
+      data[0][2] !== undefined
+        ? data[0][2].toString().trim().toUpperCase()
+        : '';
+  }
+
+  if (
+    youtubeStatus !== 'AUTO' &&
+    youtubeStatus !== 'ON' &&
+    youtubeStatus !== 'OFF' &&
+    youtubeStatus !== 'STOP'
+  ) {
+    youtubeStatus = 'AUTO';
+  }
+
+  resultObj.YoutubeStatus =
+    youtubeStatus;
+
+  // Kompatibilitas data lama:
+  // AUTO dihitung oleh frontend berdasarkan jadwal.
+  // OFF = tetap berjalan tetapi MUTE.
+  // STOP = benar-benar dihentikan oleh frontend.
+  resultObj.YoutubeMute =
+    youtubeStatus === 'OFF';
+
+  resultObj.YoutubeStopped =
+    youtubeStatus === 'STOP';
+
+  // AUTO: mute dimulai 2 menit sebelum Qiroah-1 s.d. Qiroah-5.
+  // Akhir mute (20 menit setelah waktu iqomah) dihitung frontend dari jadwal.
+  resultObj.YoutubeMuteBeforeQiroahSeconds =
+    120;
+
+  resultObj.YoutubeControlLocked =
+    false;
+
+  Logger.log(
+    'YOUTUBE: URL=' + youtubeUrl +
+    ' | STATUS=' + youtubeStatus +
+    ' | AUTO_MUTE_BEFORE_QIROAH=120 detik'
+  );
+}
+
+
+// =========================================================
+// SET STATUS YOUTUBE KE OFF OLEH SISTEM
+//
+// Dipakai HANYA untuk mode C1=ON ketika sistem masuk
+// 5 menit sebelum Qiroah.
+//
+// C1=OFF berarti YouTube tetap berjalan tetapi MUTE.
+// Operator dapat mengubah C1 kembali ke ON untuk UNMUTE manual.
+// Tidak membuat protection/lock.
+// =========================================================
+
+function setYoutubeStatusOff() {
+
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('youtube');
+
+  if (!sheet) {
+    throw new Error('Sheet youtube tidak ditemukan.');
+  }
+
+  const range = sheet.getRange('C1');
+  const current =
+    range.getDisplayValue()
+      .toString()
+      .trim()
+      .toUpperCase();
+
+  // Jangan menimpa AUTO atau OFF.
+  // Hanya ON yang boleh diubah otomatis menjadi OFF.
+  if (current === 'ON') {
+    range.setValue('OFF');
+    SpreadsheetApp.flush();
+
+    Logger.log(
+      'YOUTUBE STATUS AUTO-OFF: C1 ON -> OFF'
+    );
+
+    return {
+      changed: true,
+      status: 'OFF'
+    };
+  }
+
+  return {
+    changed: false,
+    status: current || 'AUTO'
+  };
+}
+
+
+function getYoutubeStatus() {
+
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('youtube');
+
+  if (!sheet) {
+    return {
+      status: 'AUTO'
+    };
+  }
+
+  let status =
+    sheet.getRange('C1')
+      .getDisplayValue()
+      .toString()
+      .trim()
+      .toUpperCase();
+
+  if (
+    status !== 'AUTO' &&
+    status !== 'ON' &&
+    status !== 'OFF' &&
+    status !== 'STOP'
+  ) {
+    status = 'AUTO';
+  }
+
+  return {
+    status: status
+  };
+}
+
+
+// =========================================================
+// PROSES SHEET JUM'AT
+// =========================================================
+
+function processJumatSheet(
+  data,
+  resultObj
+) {
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+    return;
+  }
+
+  for (
+    let r = 0;
+    r < data.length;
+    r++
+  ) {
+
+    if (
+      data[r].length < 2
+    ) {
+      continue;
+    }
+
+    let key =
+      data[r][0];
+
+    let value =
+      data[r][1];
+
+    if (
+      !key
+    ) {
+      continue;
+    }
+
+    key =
+      key
+        .toString()
+        .trim()
+        .toLowerCase();
+
+    if (
+      [
+        'tanggal',
+        'tgl',
+        'tgl khotbah',
+        'tgl_khotbah',
+        'tanggal khotbah'
+      ].includes(key)
+    ) {
+
+      if (
+        value instanceof Date
+      ) {
+        value =
+          formatTanggalIndonesia(
+            value
+          );
+      } else {
+        value =
+          value !== null &&
+          value !== undefined
+            ? value
+                .toString()
+                .trim()
+            : '';
+      }
+
+      resultObj.Tgl_Khotbah =
+        value;
+
+    } else if (
+      [
+        'khatib',
+        'khotib'
+      ].includes(key)
+    ) {
+
+      resultObj.Khotib =
+        value !== null &&
+        value !== undefined
+          ? value
+              .toString()
+              .trim()
+          : '';
+
+    } else if (
+      key === 'imam'
+    ) {
+
+      resultObj.Imam =
+        value !== null &&
+        value !== undefined
+          ? value
+              .toString()
+              .trim()
+          : '';
+
+    } else if (
+      [
+        'muadzin',
+        'muazin'
+      ].includes(key)
+    ) {
+
+      resultObj.Muadzin =
+        value !== null &&
+        value !== undefined
+          ? value
+              .toString()
+              .trim()
+          : '';
+    }
+  }
+}
+
+
+// =========================================================
+// FORMAT TANGGAL INDONESIA
+// =========================================================
+
+function formatTanggalIndonesia(
+  date
+) {
+
+  const timezone =
+    'Asia/Makassar';
+
+  const bulan = [
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember'
+  ];
+
+  const tanggal =
+    String(
+      parseInt(
+        Utilities.formatDate(
+          date,
+          timezone,
+          'dd'
+        ),
+        10
+      )
+    );
+
+  const bulanIndex =
+    parseInt(
+      Utilities.formatDate(
+        date,
+        timezone,
+        'MM'
+      ),
+      10
+    ) - 1;
+
+  const tahun =
+    Utilities.formatDate(
+      date,
+      timezone,
+      'yyyy'
+    );
+
+  return (
+    tanggal +
+    ' ' +
+    bulan[bulanIndex] +
+    ' ' +
+    tahun
+  );
+}
+
+
+// =========================================================
+// PROSES KEY VALUE
+// =========================================================
+
+function processKeyValue(
+  key,
+  value,
+  resultObj
+) {
+
+  if (
+    key !== '' &&
+    key !== null &&
+    key !== undefined
+  ) {
+
+    key =
+      key
+        .toString()
+        .trim();
+
+    if (
+      value instanceof Date
+    ) {
+
+      value =
+        Utilities.formatDate(
+          value,
+          Session.getScriptTimeZone(),
+          'dd MMM yyyy'
+        );
+    }
+
+    resultObj[key] =
+      value !== undefined
+        ? value
+        : '';
+  }
+}
+
+
+// ============================================================
+// JADWAL SHOLAT — CACHE GITHUB SEBAGAI SUMBER OPERASIONAL
+// Refresh eksplisit menggunakan AlAdhan; operasi normal hanya membaca cache.
+// Operasi normal membaca cache GitHub; cache tidak tersedia = error.
+// ============================================================
+ /**
+ * Normalisasi nama bulan Hijriah AlAdhan menjadi ejaan Bahasa Indonesia.
+ * Sumber data tetap AlAdhan; fungsi ini hanya mengubah label tampilannya.
+ */
+function normalizeHijriMonthNameIndonesia_(value) {
+  var raw = String(value == null ? '' : value).trim();
+  if (!raw) return '';
+  var key = raw.toLowerCase();
+  try {
+    key = key.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  } catch (ignoreUnicodeNormalize) {}
+  key = key
+    .replace(/[ʿʻ‘’'`-]/g, ' ')
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  var monthMap = {
+    'muharram': 'Muharam', 'muharam': 'Muharam',
+    'safar': 'Safar',
+    'rabi al awwal': 'Rabiul Awal', 'rabiul awal': 'Rabiul Awal',
+    'rabi al thani': 'Rabiul Akhir', 'rabi al akhir': 'Rabiul Akhir',
+    'rabiul akhir': 'Rabiul Akhir',
+    'jumada al awwal': 'Jumadil Awal', 'jumada al ula': 'Jumadil Awal',
+    'jumadil awal': 'Jumadil Awal',
+    'jumada al thani': 'Jumadil Akhir', 'jumada al akhirah': 'Jumadil Akhir',
+    'jumada al akhira': 'Jumadil Akhir', 'jumada al ukhraa': 'Jumadil Akhir',
+    'jumadil akhir': 'Jumadil Akhir',
+    'rajab': 'Rajab',
+    'shaban': 'Syaban', 'shaaban': 'Syaban', 'sha ban': 'Syaban', 'syaban': 'Syaban',
+    'ramadan': 'Ramadhan', 'ramadhan': 'Ramadhan',
+    'shawwal': 'Syawal', 'syawal': 'Syawal',
+    'dhu al qidah': 'Dzulkaidah', 'dhu al qa dah': 'Dzulkaidah', 'dhu al qaidah': 'Dzulkaidah', 'dhul qidah': 'Dzulkaidah',
+    'dzulkaidah': 'Dzulkaidah',
+    'dhu al hijjah': 'Dzulhijjah', 'dhul hijjah': 'Dzulhijjah',
+    'dzulhijjah': 'Dzulhijjah'
+  };
+  return monthMap[key] || raw;
+}
+
+/**
+ * Sumber utama harian: AlAdhan timingsByCity untuk tanggal aktif.
+ * Cache bulanan AlAdhan hanya dipakai bila permintaan harian gagal.
+ * forceRefresh=true khusus layanan latar belakang untuk memperbarui cache bulanan.
+ */
+function getPrayerSchedule(dateString, options) {
+  options = options || {};
+  if (options.forceRefresh === true) {
+    return getPrayerScheduleFromMonthlyCache_(dateString, options);
+  }
+
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) return { success: false, error: 'Sheet panels tidak ditemukan.' };
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var kota = loc[0] || '';
+  var provinsi = loc[1] || '';
+  var timezone = loc[3] || 'Asia/Makassar';
+  if (!kota) return { success: false, error: 'panels!C5 (kota) kosong.' };
+  if (!dateString) dateString = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
+  dateString = String(dateString).trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return { success: false, error: 'Format tanggal harus YYYY-MM-DD.' };
+  }
+
+  var parts = dateString.split('-');
+  var day = parts[2], month = parts[1], year = parts[0];
+  var apiCity = normalizePrayerLocationName_(kota) || kota;
+  var url = 'https://api.aladhan.com/v1/timingsByCity/' +
+    day + '-' + month + '-' + year +
+    '?city=' + encodeURIComponent(apiCity) +
+    '&country=' + encodeURIComponent('Indonesia') +
+    (provinsi ? '&state=' + encodeURIComponent(provinsi) : '') +
+    '&method=20&school=0&timezonestring=' + encodeURIComponent(timezone);
+
+  var alAdhanError = '';
+  try {
+    if (options._testForceAlAdhanFailure === true) {
+      throw new Error('Simulasi kegagalan API AlAdhan untuk pengujian fallback.');
+    }
+    var response = UrlFetchApp.fetch(url, {
+      method: 'get', muteHttpExceptions: true,
+      headers: { 'Accept': 'application/json' }
+    });
+    var http = response.getResponseCode();
+    if (http < 200 || http >= 300) {
+      throw new Error('AlAdhan HTTP ' + http + ': ' + String(response.getContentText() || '').slice(0, 300));
+    }
+    var payload = JSON.parse(response.getContentText() || '{}');
+    var data = payload && payload.data || {};
+    var gDate = data.date && data.date.gregorian || {};
+    var rawDate = String(gDate.date || '').trim();
+    var apiDate = rawDate;
+    if (/^\d{2}-\d{2}-\d{4}$/.test(rawDate)) {
+      apiDate = rawDate.slice(6, 10) + '-' + rawDate.slice(3, 5) + '-' + rawDate.slice(0, 2);
+    } else if (gDate.iso) {
+      apiDate = String(gDate.iso).slice(0, 10);
+    }
+    if (apiDate !== dateString) {
+      throw new Error('Tanggal respons AlAdhan tidak cocok: diminta ' + dateString + ', diterima ' + apiDate);
+    }
+    var t = data.timings || {};
+    function normTime(value) {
+      var m = String(value == null ? '' : value).trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(?:\([^)]*\))?$/);
+      if (!m) return '';
+      var h = Number(m[1]), mi = Number(m[2]);
+      if (h > 23 || mi > 59) return '';
+      return ('0' + h).slice(-2) + ':' + ('0' + mi).slice(-2);
+    }
+    var jadwal = {
+      subuh: normTime(t.Fajr), terbit: normTime(t.Sunrise),
+      dzuhur: normTime(t.Dhuhr), ashar: normTime(t.Asr),
+      maghrib: normTime(t.Maghrib), isya: normTime(t.Isha)
+    };
+    if (!isCompletePrayerScheduleSafe_(jadwal)) {
+      throw new Error('Respons jadwal harian AlAdhan tidak lengkap.');
+    }
+    var hijri = data.date && data.date.hijri || {};
+    var hijriMonth = normalizeHijriMonthNameIndonesia_(hijri.month && hijri.month.en || '');
+    var hijriText = hijri.day && hijriMonth && hijri.year
+      ? String(hijri.day) + ' ' + hijriMonth + ' ' + String(hijri.year) + ' H' : '';
+    var geo = getIndonesianTimezoneByProvince_(provinsi);
+    var result = {
+      success: true, tanggal: dateString, kota: kota, provinsi: provinsi,
+      timezone: timezone, zona: geo.zona, gmt: geo.gmt,
+      jadwal: jadwal, hijri: hijriText,
+      hijri_day: String(hijri.day || ''),
+      hijri_month_name: String(hijriMonth || ''),
+      hijri_year: String(hijri.year || ''),
+      source: 'AlAdhan API / method 20 (Indonesia)',
+      cacheSource: 'AlAdhan (validasi harian langsung)'
+    };
+    Logger.log('VALIDASI HARIAN ALADHAN BERHASIL: ' + kota + ' ' + dateString +
+      '; kalender Hijriah dan jadwal sholat langsung dari AlAdhan.');
+    return result;
+  } catch (error) {
+    alAdhanError = String(error && error.message || error);
+    Logger.log('ALADHAN HARIAN GAGAL; mencoba cache bulanan yang cocok: ' + alAdhanError);
+  }
+
+  var fallback = getPrayerScheduleFromMonthlyCache_(dateString, { forceRefresh: false });
+  if (fallback && fallback.success === true &&
+      String(fallback.tanggal || '') === dateString &&
+      String(fallback.kota || '') === kota &&
+      String(fallback.timezone || '') === timezone &&
+      fallback.jadwal && isCompletePrayerScheduleSafe_(fallback.jadwal) &&
+      String(fallback.hijri || '').trim()) {
+    fallback.cacheSource = 'Cache bulanan AlAdhan (fallback setelah API harian gagal)';
+    fallback.alAdhanError = alAdhanError;
+    Logger.log('FALLBACK CACHE BULANAN ALADHAN DIGUNAKAN: ' + kota + ' ' + dateString);
+    return fallback;
+  }
+  return {
+    success: false, source: 'AlAdhan API / method 20 (Indonesia)',
+    kota: kota, provinsi: provinsi, timezone: timezone, tanggal: dateString,
+    error: 'AlAdhan gagal dan cache bulanan AlAdhan tidak tersedia atau tidak cocok.',
+    alAdhanError: alAdhanError,
+    fallbackReason: fallback && (fallback.alAdhanError || fallback.error) || 'Cache bulanan tidak valid.'
+  };
+}
+
+function getPrayerScheduleFromMonthlyCache_(dateString, options) {
+  options = options || {};
+  var forceRefresh = options.forceRefresh === true;
+  var timezoneDefault = 'Asia/Makassar';
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) return { success: false, error: 'Sheet panels tidak ditemukan.' };
+
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var kota = loc[0] || '';
+  var provinsi = loc[1] || '';
+  var timezone = loc[3] || timezoneDefault;
+  if (!kota) return { success: false, error: 'panels!C5 (kota) kosong.' };
+  if (!dateString) dateString = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
+  dateString = String(dateString).trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return { success: false, error: 'Format tanggal harus YYYY-MM-DD.' };
+  }
+
+  var year = Number(dateString.slice(0, 4));
+  var month = Number(dateString.slice(5, 7));
+  var monthText = ('0' + month).slice(-2);
+  var sourceName = 'AlAdhan API / method 20 (Indonesia)';
+  var citySlug = normalizePrayerCitySlug_(kota);
+  var locationKey = normalizePrayerLocationName_(kota).toLowerCase().replace(/\s+/g, '-') +
+    '-' + normalizePrayerLocationName_(provinsi || 'Indonesia').toLowerCase().replace(/\s+/g, '-');
+  var cacheKey = 'PRAYER_ALADHAN_MONTH_V1_' + locationKey + '_' +
+    String(timezone).replace(/[^A-Za-z0-9]/g, '_') + '_' + year + monthText;
+  var monthlyCachePath = 'data/prayer-monthly-cache-' + citySlug + '.json';
+  var monthId = year + '-' + monthText;
+  var scriptCache = CacheService.getScriptCache();
+  var monthlyEntry = null;
+  var monthlyDoc = null;
+  var cacheSourceUsed = '';
+
+  function normalizeTime_(value) {
+    var m = String(value == null ? '' : value).trim()
+      .match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(?:\([^)]*\))?$/);
+    if (!m) return '';
+    var h = Number(m[1]), min = Number(m[2]);
+    if (h < 0 || h > 23 || min < 0 || min > 59) return '';
+    return ('0' + h).slice(-2) + ':' + ('0' + min).slice(-2);
+  }
+  function trustedEntry_(entry) {
+    if (!entry || String(entry.source || '') !== sourceName ||
+        String(entry.kota || '') !== kota ||
+        String(entry.provinsi || '') !== provinsi ||
+        String(entry.timezone || '') !== timezone ||
+        Number(entry.tahun) !== year || Number(entry.bulan) !== month ||
+        Number(entry.method) !== 20 || Number(entry.school) !== 0 ||
+        !Array.isArray(entry.days)) return false;
+    var expected = new Date(year, month, 0).getDate();
+    if (entry.days.length !== expected) return false;
+    var seen = {};
+    for (var i = 0; i < entry.days.length; i++) {
+      var day = entry.days[i] || {};
+      var date = String(day.date || '');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+          date.slice(0, 7) !== year + '-' + monthText || seen[date] ||
+          !isCompletePrayerScheduleSafe_(day.jadwal)) return false;
+      seen[date] = true;
+    }
+    return Object.keys(seen).length === expected;
+  }
+
+  try {
+    if (forceRefresh) {
+      try { monthlyDoc = readGithubJsonFile_(monthlyCachePath, 'main'); } catch (ignoreExistingMonthlyDoc) { monthlyDoc = null; }
+    }
+    if (!forceRefresh) {
+      var cachedText = scriptCache.get(cacheKey);
+      if (cachedText) {
+        try { monthlyEntry = JSON.parse(cachedText); } catch (ignoreCacheJson) { monthlyEntry = null; }
+        if (trustedEntry_(monthlyEntry)) cacheSourceUsed = 'CacheService';
+        else monthlyEntry = null;
+      }
+      if (!monthlyEntry) {
+        try { monthlyDoc = readGithubJsonFile_(monthlyCachePath, 'main'); }
+        catch (githubReadError) {
+          Logger.log('CACHE JADWAL ALADHAN GITHUB TIDAK DAPAT DIBACA: ' +
+            String(githubReadError && githubReadError.message || githubReadError));
+        }
+        if (monthlyDoc && monthlyDoc.months && trustedEntry_(monthlyDoc.months[monthId])) {
+          monthlyEntry = monthlyDoc.months[monthId];
+          cacheSourceUsed = 'GitHub';
+        }
+      }
+      if (!monthlyEntry) {
+        throw new Error('Cache jadwal AlAdhan tidak tersedia/tidak valid untuk ' +
+          kota + ' bulan ' + year + '-' + monthText +
+          '. Jalankan refreshPrayerCacheForCurrentCity(true) untuk memperbarui cache dari AlAdhan.');
+      }
+    }
+
+    if (!monthlyEntry) {
+      var apiCity = normalizePrayerLocationName_(kota) || kota;
+      var url = 'https://api.aladhan.com/v1/calendarByCity/' + year + '/' + month +
+        '?city=' + encodeURIComponent(apiCity) +
+        '&country=' + encodeURIComponent('Indonesia') +
+        (provinsi ? '&state=' + encodeURIComponent(provinsi) : '') +
+        '&method=20&school=0&timezonestring=' + encodeURIComponent(timezone);
+      var response = UrlFetchApp.fetch(url, {
+        method: 'get',
+        muteHttpExceptions: true,
+        headers: { 'Accept': 'application/json' }
+      });
+      var http = response.getResponseCode();
+      var body = response.getContentText() || '';
+      if (http < 200 || http >= 300) {
+        throw new Error('AlAdhan HTTP ' + http + ': ' + body.slice(0, 350));
+      }
+      var payload = JSON.parse(body);
+      var rows = payload && Array.isArray(payload.data) ? payload.data : [];
+      if (!rows.length) throw new Error('AlAdhan tidak mengembalikan data kalender bulanan untuk ' + apiCity + '.');
+
+      var expectedDays = new Date(year, month, 0).getDate();
+      var seenDates = {};
+      var normalizedDays = rows.map(function(row) {
+        row = row || {};
+        var gregorian = row.date && row.date.gregorian || {};
+        var rawDate = String(gregorian.date || '').trim();
+        var parts = rawDate.split('-');
+        var date = parts.length === 3
+          ? parts[2] + '-' + parts[1] + '-' + parts[0]
+          : String(gregorian.iso || '').slice(0, 10);
+        var timings = row.timings || {};
+        var jadwal = {
+          subuh: normalizeTime_(timings.Fajr),
+          terbit: normalizeTime_(timings.Sunrise),
+          dzuhur: normalizeTime_(timings.Dhuhr),
+          ashar: normalizeTime_(timings.Asr),
+          maghrib: normalizeTime_(timings.Maghrib),
+          isya: normalizeTime_(timings.Isha)
+        };
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date.slice(0, 7) !== year + '-' + monthText) {
+          throw new Error('Tanggal Gregorian tidak valid pada respons AlAdhan: ' + rawDate);
+        }
+        if (seenDates[date]) throw new Error('Tanggal duplikat pada respons AlAdhan: ' + date);
+        if (!isCompletePrayerScheduleSafe_(jadwal)) {
+          throw new Error('Waktu sholat AlAdhan tidak lengkap pada tanggal ' + date + '.');
+        }
+        var hijri = row.date && row.date.hijri || {};
+        var hijriMonth = normalizeHijriMonthNameIndonesia_(hijri.month && hijri.month.en || '');
+        seenDates[date] = true;
+        return {
+          date: date,
+          jadwal: jadwal,
+          hijri_day: String(hijri.day || ''),
+          hijri_month_name: String(hijriMonth),
+          hijri_year: String(hijri.year || ''),
+          hijri_formatted: hijri.day && hijriMonth && hijri.year
+            ? String(hijri.day) + ' ' + String(hijriMonth) + ' ' + String(hijri.year) + ' H' : '',
+          source: sourceName
+        };
+      });
+      if (normalizedDays.length !== expectedDays || Object.keys(seenDates).length !== expectedDays) {
+        throw new Error('Kalender bulanan AlAdhan tidak lengkap: diterima ' +
+          normalizedDays.length + ', seharusnya ' + expectedDays + ' tanggal.');
+      }
+
+      var existingMonthlyEntry = monthlyDoc && monthlyDoc.months &&
+        monthlyDoc.months[monthId] ? monthlyDoc.months[monthId] : null;
+      var sameMonthlyData = !!existingMonthlyEntry &&
+        String(existingMonthlyEntry.source || '') === sourceName &&
+        String(existingMonthlyEntry.kota || '') === kota &&
+        String(existingMonthlyEntry.provinsi || '') === provinsi &&
+        String(existingMonthlyEntry.timezone || '') === timezone &&
+        Number(existingMonthlyEntry.tahun) === year &&
+        Number(existingMonthlyEntry.bulan) === month &&
+        Number(existingMonthlyEntry.method) === 20 &&
+        Number(existingMonthlyEntry.school) === 0 &&
+        JSON.stringify(existingMonthlyEntry.days || []) === JSON.stringify(normalizedDays);
+
+      monthlyDoc = monthlyDoc && typeof monthlyDoc === 'object' ? monthlyDoc : {};
+      if (!monthlyDoc.months || typeof monthlyDoc.months !== 'object') monthlyDoc.months = {};
+      Object.keys(monthlyDoc.months).forEach(function(existingMonth) {
+        if (String(monthlyDoc.months[existingMonth] && monthlyDoc.months[existingMonth].source || '') !== sourceName) {
+          delete monthlyDoc.months[existingMonth];
+        }
+      });
+
+      if (sameMonthlyData) {
+        // Validasi berhasil, tetapi data identik: jangan membuat commit GitHub.
+        monthlyEntry = existingMonthlyEntry;
+        cacheSourceUsed = 'AlAdhan (validasi tanpa perubahan)';
+        Logger.log('CACHE BULANAN ALADHAN TIDAK BERUBAH: ' + kota + ' ' + monthId +
+          '; tidak menulis GitHub.');
+      } else {
+        monthlyEntry = {
+          tahun: year,
+          bulan: month,
+          kota: kota,
+          provinsi: provinsi,
+          timezone: timezone,
+          method: 20,
+          school: 0,
+          source: sourceName,
+          updatedAt: new Date().toISOString(),
+          days: normalizedDays
+        };
+        monthlyDoc.success = true;
+        monthlyDoc.kota = kota;
+        monthlyDoc.provinsi = provinsi;
+        monthlyDoc.timezone = timezone;
+        monthlyDoc.source = sourceName;
+        monthlyDoc.updatedAt = monthlyEntry.updatedAt;
+        monthlyDoc.months[monthId] = monthlyEntry;
+        writeGithubJsonFile_(monthlyCachePath, monthlyDoc,
+          'Simpan cache bulanan AlAdhan ' + kota + ' ' + year + '-' + monthText,
+          'main');
+        cacheSourceUsed = 'AlAdhan (refresh tersimpan ke GitHub)';
+      }
+    }
+
+    if (!trustedEntry_(monthlyEntry)) {
+      throw new Error('Validasi cache bulanan AlAdhan gagal; cache tidak digunakan.');
+    }
+    try { scriptCache.put(cacheKey, JSON.stringify(monthlyEntry), 21600); } catch (ignoreMonthPut) {}
+    var dayEntry = monthlyEntry.days.filter(function(day) { return day.date === dateString; })[0];
+    if (!dayEntry) throw new Error('Tanggal ' + dateString + ' tidak ditemukan dalam cache bulanan AlAdhan.');
+    var geo = getIndonesianTimezoneByProvince_(provinsi);
+    var result = {
+      success: true,
+      tanggal: dateString,
+      kota: kota,
+      provinsi: provinsi,
+      timezone: timezone,
+      zona: geo.zona,
+      gmt: geo.gmt,
+      jadwal: dayEntry.jadwal,
+      hijri: dayEntry.hijri_formatted || '',
+      hijri_day: dayEntry.hijri_day || '',
+      hijri_month_name: dayEntry.hijri_month_name || '',
+      hijri_year: dayEntry.hijri_year || '',
+      source: sourceName,
+      cacheSource: cacheSourceUsed || 'CacheService'
+    };
+    try { scriptCache.put('PRAYER_ALADHAN_DAY_' + dateString.replace(/-/g, '') + '_' + citySlug,
+      JSON.stringify(result), 21600); } catch (ignoreDayPut) {}
+    Logger.log('JADWAL SHOLAT SUMBER UTAMA: AlAdhan, kota=' + kota +
+      ', tanggal=' + dateString + ', cache=' + result.cacheSource);
+    return result;
+  } catch (error) {
+    var message = String(error && error.message || error);
+    Logger.log((forceRefresh ? 'REFRESH ALADHAN JADWAL GAGAL: ' : 'CACHE ALADHAN JADWAL GAGAL: ') + message);
+    return {
+      success: false, source: sourceName, kota: kota, provinsi: provinsi, tanggal: dateString,
+      error: forceRefresh ? 'Refresh jadwal sholat dari AlAdhan gagal.' :
+        'Cache jadwal AlAdhan GitHub tidak tersedia atau tidak valid. Tidak ada sumber alternatif yang digunakan.',
+      alAdhanError: message
+    };
+  }
+}
+
+
+/**
+ * UJI JALUR FALLBACK OTOMATIS TANPA MEMATIKAN API ATAU MENGUBAH DATA.
+ * Flag simulasi hanya diteruskan oleh fungsi pengujian ini.
+ */
+function TEST_ALADHAN_FALLBACK_OTOMATIS(dateString) {
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) throw new Error('Sheet panels tidak ditemukan.');
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var city = loc[0] || '';
+  var timezone = loc[3] || 'Asia/Makassar';
+  if (!city) throw new Error('panels!C5 (kota) kosong.');
+  var date = String(dateString || Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd')).trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Format tanggal harus YYYY-MM-DD.');
+
+  var simulated = { _testForceAlAdhanFailure: true };
+  var prayer = getPrayerSchedule(date, simulated);
+  var hijri = getHijriDateFromApi(date, simulated);
+  var issues = [];
+  if (!prayer || prayer.success !== true ||
+      String(prayer.tanggal || '') !== date ||
+      String(prayer.kota || '') !== city ||
+      String(prayer.timezone || '') !== timezone ||
+      !prayer.jadwal || !isCompletePrayerScheduleSafe_(prayer.jadwal) ||
+      String(prayer.cacheSource || '').indexOf('fallback setelah API harian gagal') < 0) {
+    issues.push('Fallback jadwal sholat otomatis tidak berhasil: ' +
+      String(prayer && (prayer.error || prayer.fallbackReason || prayer.alAdhanError) || 'respons tidak valid'));
+  }
+  if (!hijri || hijri.success !== true || hijri.found !== true ||
+      String(hijri.date || '') !== date || !String(hijri.hijri || '').trim() ||
+      String(hijri.cacheSource || '').indexOf('fallback setelah API harian gagal') < 0) {
+    issues.push('Fallback kalender Hijriah otomatis tidak berhasil: ' +
+      String(hijri && (hijri.error || hijri.fallbackReason || hijri.alAdhanError) || 'respons tidak valid'));
+  }
+  var report = {
+    success: issues.length === 0,
+    pengujian: 'Simulasi kegagalan API harian; verifikasi fallback otomatis',
+    apiBenarBenarDipanggil: false,
+    kota: city,
+    tanggal: date,
+    timezone: timezone,
+    jadwalFallback: prayer && prayer.cacheSource || '',
+    jadwalCacheSource: prayer && prayer.cacheSource || '',
+    hijriFallback: hijri && hijri.cacheSource || '',
+    hijri: hijri && hijri.hijri || '',
+    jadwalLengkap: !!(prayer && prayer.success === true && isCompletePrayerScheduleSafe_(prayer.jadwal)),
+    issues: issues
+  };
+  Logger.log('TEST_ALADHAN_FALLBACK_OTOMATIS: ' + JSON.stringify(report, null, 2));
+  if (!report.success) throw new Error('TEST_ALADHAN_FALLBACK_OTOMATIS GAGAL: ' + JSON.stringify(issues));
+  Logger.log('TEST_ALADHAN_FALLBACK_OTOMATIS LULUS');
+  return report;
+}
+
+// ============================================================
+// VALIDASI JADWAL SHOLAT LENGKAP
+// ============================================================
+function isValidPrayerTimeSafe_(value) {
+  const time = String(value == null ? '' : value).trim();
+  const parts = time.split(':');
+
+  if (parts.length !== 2) return false;
+
+  const hour = Number(parts[0]);
+  const minute = Number(parts[1]);
+
+  return Number.isInteger(hour) &&
+    Number.isInteger(minute) &&
+    hour >= 0 && hour <= 23 &&
+    minute >= 0 && minute <= 59 &&
+    parts[0] !== '' &&
+    parts[1] !== '';
+}
+
+function isCompletePrayerScheduleSafe_(jadwal) {
+  if (!jadwal || typeof jadwal !== 'object') return false;
+
+  const fields = [
+    'subuh',
+    'terbit',
+    'dzuhur',
+    'ashar',
+    'maghrib',
+    'isya'
+  ];
+
+  return fields.every(function(field) {
+    return isValidPrayerTimeSafe_(jadwal[field]);
+  });
+}
+
+function isCompletePrayerSchedule_(jadwal) {
+
+  if (!jadwal || typeof jadwal !== 'object') {
+    return false;
+  }
+
+  const fields = [
+    'subuh',
+    'terbit',
+    'dzuhur',
+    'ashar',
+    'maghrib',
+    'isya'
+  ];
+
+  for (let i = 0; i < fields.length; i++) {
+    const value = String(jadwal[fields[i]] || '').trim();
+
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+// =========================================================
+// JADWAL SHOLAT - WRAPPER JSON AMAN UNTUK google.script.run
+// =========================================================
+// Wrapper ini sengaja memakai nama fungsi unik dan mengembalikan
+// STRING JSON agar hasil dari server selalu dapat diterima frontend.
+// =========================================================
+
+
+// =========================================================
+// NORMALISASI WAKTU SHOLAT
+// =========================================================
+
+function normalizePrayerTime(
+  value
+) {
+
+  if (
+    value === null ||
+    value === undefined ||
+    value === ''
+  ) {
+    return '';
+  }
+
+  if (
+    Object.prototype.toString.call(
+      value
+    ) ===
+    '[object Date]'
+  ) {
+
+    if (
+      isNaN(
+        value.getTime()
+      )
+    ) {
+      return '';
+    }
+
+    return Utilities.formatDate(
+      value,
+      'Asia/Makassar',
+      'HH:mm'
+    );
+  }
+
+  let time =
+    value
+      .toString()
+      .trim();
+
+  if (!time) {
+    return '';
+  }
+
+  const dotMatch =
+    time.match(
+      /^(\d{1,2})\.(\d{2})(?::(\d{2}))?$/
+    );
+
+  if (dotMatch) {
+
+    const hour =
+      parseInt(
+        dotMatch[1],
+        10
+      );
+
+    const minute =
+      parseInt(
+        dotMatch[2],
+        10
+      );
+
+    if (
+      hour < 0 ||
+      hour > 23 ||
+      minute < 0 ||
+      minute > 59
+    ) {
+      return '';
+    }
+
+    return (
+      ('0' + hour).slice(-2) +
+      ':' +
+      ('0' + minute).slice(-2)
+    );
+  }
+
+  const match =
+    time.match(
+      /^(\d{1,2}):(\d{2})(?::\d{2})?$/
+    );
+
+  if (match) {
+
+    const hour =
+      parseInt(
+        match[1],
+        10
+      );
+
+    const minute =
+      parseInt(
+        match[2],
+        10
+      );
+
+    if (
+      hour < 0 ||
+      hour > 23 ||
+      minute < 0 ||
+      minute > 59
+    ) {
+      return '';
+    }
+
+    return (
+      ('0' + hour).slice(-2) +
+      ':' +
+      ('0' + minute).slice(-2)
+    );
+  }
+
+  return '';
+}
+
+
+// =========================================================
+// EVENT RUNNING TEXT
+// =========================================================
+
+function getEventRunningText() {
+
+  const ss =
+    getSpreadsheet();
+
+  const sheet =
+    ss.getSheetByName(
+      'panels'
+    );
+
+  if (!sheet) {
+    return '';
+  }
+
+  // =========================================================
+  // SUMBER EVENT RUNNING TEXT
+  // panels!B35:B39
+  //
+  // B35 = Event 1
+  // B36 = Event 2
+  // B37 = Event 3
+  // B38 = Event 4
+  // B39 = Event 5
+  //
+  // Baris kosong otomatis dilewati.
+  // Urutan mengikuti B33 -> B37.
+  // =========================================================
+
+  const values =
+    sheet
+      .getRange('B35:B39')
+      .getDisplayValues();
+
+  const result = [];
+
+  values.forEach(
+    function(row) {
+
+      const value =
+        row[0]
+          ? row[0]
+              .toString()
+              .trim()
+          : '';
+
+      if (!value) {
+        return;
+      }
+
+      result.push(value);
+    }
+  );
+
+  return result.join(
+    ' • '
+  );
+}
+
+// =========================================================
+// TEST AUDIO ADZAN
+// =========================================================
+
+function testSpreadsheetKeyAudio() {
+
+  Logger.log(
+    '===================================='
+  );
+
+  Logger.log(
+    'TEST SPREADSHEET & ADZAN'
+  );
+
+  Logger.log(
+    '===================================='
+  );
+
+  const spreadsheetId =
+    PropertiesService
+      .getScriptProperties()
+      .getProperty(
+        'SPREADSHEET_ID'
+      );
+
+  Logger.log(
+    'SPREADSHEET_ID = [' +
+    spreadsheetId +
+    ']'
+  );
+
+  if (!spreadsheetId) {
+
+    Logger.log(
+      'ERROR: SPREADSHEET_ID tidak ditemukan di Script Properties.'
+    );
+
+    return;
+  }
+
+  const ss =
+    SpreadsheetApp
+      .openById(
+        spreadsheetId
+      );
+
+  Logger.log(
+    'Spreadsheet Name = [' +
+    ss.getName() +
+    ']'
+  );
+
+  Logger.log(
+    'Spreadsheet ID   = [' +
+    ss.getId() +
+    ']'
+  );
+
+  const sheets =
+    ss.getSheets();
+
+  Logger.log(
+    '------------------------------------'
+  );
+
+  Logger.log(
+    'DAFTAR SEMUA SHEET'
+  );
+
+  Logger.log(
+    '------------------------------------'
+  );
+
+  for (
+    let i = 0;
+    i < sheets.length;
+    i++
+  ) {
+
+    Logger.log(
+      (i + 1) +
+      '. [' +
+      sheets[i].getName() +
+      ']'
+    );
+  }
+
+  Logger.log(
+    '------------------------------------'
+  );
+
+
+  const sheet =
+    ss.getSheetByName(
+      'Adzan'
+    );
+
+  if (!sheet) {
+
+    Logger.log(
+      'ERROR: Sheet [Adzan] TIDAK DITEMUKAN.'
+    );
+
+    Logger.log(
+      'Pastikan nama tab adalah persis: Adzan'
+    );
+
+    return;
+  }
+
+  Logger.log(
+    'SUCCESS: Sheet [Adzan] ditemukan.'
+  );
+
+
+  const lastRow =
+    sheet.getLastRow();
+
+  if (lastRow < 1) {
+
+    Logger.log(
+      'Sheet Adzan kosong.'
+    );
+
+    return;
+  }
+
+
+  const values =
+    sheet
+      .getRange(
+        1,
+        1,
+        lastRow,
+        2
+      )
+      .getDisplayValues();
+
+
+  Logger.log(
+    '------------------------------------'
+  );
+
+  Logger.log(
+    'ISI SHEET ADZAN'
+  );
+
+  Logger.log(
+    '------------------------------------'
+  );
+
+
+  for (
+    let i = 0;
+    i < values.length;
+    i++
+  ) {
+
+    const key =
+      values[i][0]
+        ? values[i][0]
+            .toString()
+            .trim()
+        : '';
+
+    const value =
+      values[i][1]
+        ? values[i][1]
+            .toString()
+            .trim()
+        : '';
+
+    Logger.log(
+      'ROW ' +
+      (i + 1) +
+      ' | ' +
+      key +
+      ' -> [' +
+      value +
+      ']'
+    );
+  }
+
+
+  Logger.log(
+    '===================================='
+  );
+
+  Logger.log(
+    'TEST SELESAI'
+  );
+
+  Logger.log(
+    '===================================='
+  );
+}
+
+
+function testAdzanSheet() {
+
+  const ss =
+    getSpreadsheet();
+
+  const sheet =
+    ss.getSheetByName(
+      'Adzan'
+    );
+
+  Logger.log(
+    '===================================='
+  );
+
+  Logger.log(
+    'TEST SHEET ADZAN'
+  );
+
+  Logger.log(
+    '===================================='
+  );
+
+  if (!sheet) {
+
+    Logger.log(
+      'ERROR: Sheet Adzan tidak ditemukan.'
+    );
+
+    return;
+  }
+
+  Logger.log(
+    'Sheet ditemukan: [' +
+    sheet.getName() +
+    ']'
+  );
+
+  const lastRow =
+    sheet.getLastRow();
+
+  const lastColumn =
+    sheet.getLastColumn();
+
+  Logger.log(
+    'Last Row    = ' +
+    lastRow
+  );
+
+  Logger.log(
+    'Last Column = ' +
+    lastColumn
+  );
+
+  Logger.log(
+    '------------------------------------'
+  );
+
+  Logger.log(
+    'ISI SHEET ADZAN'
+  );
+
+  Logger.log(
+    '------------------------------------'
+  );
+
+  const values =
+    sheet
+      .getRange(
+        1,
+        1,
+        Math.max(
+          lastRow,
+          1
+        ),
+        Math.max(
+          lastColumn,
+          1
+        )
+      )
+      .getDisplayValues();
+
+  for (
+    let r = 0;
+    r < values.length;
+    r++
+  ) {
+
+    Logger.log(
+      'ROW ' +
+      (r + 1) +
+      ' = ' +
+      JSON.stringify(
+        values[r]
+      )
+    );
+
+  }
+
+  Logger.log(
+    '===================================='
+  );
+
+  Logger.log(
+    'TEST SELESAI'
+  );
+
+  Logger.log(
+    '===================================='
+  );
+}
+
+
+/**
+ * Memastikan cache kalender Hijriah berisi setiap tanggal pada satu tahun penuh.
+ * Menggunakan UTC agar hasil tidak bergeser karena zona waktu proyek Apps Script.
+ */
+function hijriAnnualDaysComplete_(days, year) {
+  if (!days || typeof days !== 'object') return false;
+
+  var y = Number(year);
+  if (!Number.isInteger(y) || y < 1900 || y > 2200) return false;
+
+  var date = new Date(Date.UTC(y, 0, 1));
+  var end = new Date(Date.UTC(y + 1, 0, 1));
+
+  while (date < end) {
+    var key = Utilities.formatDate(date, 'UTC', 'yyyy-MM-dd');
+    var row = days[key];
+    if (!row || typeof row !== 'object') return false;
+
+    var hasHijri = String(row.hijri_formatted || '').trim() ||
+      (row.hijri_day && row.hijri_month_name && row.hijri_year);
+    if (!hasHijri) return false;
+
+    date.setUTCDate(date.getUTCDate() + 1);
+  }
+  return true;
+}
+
+/**
+ * Refresh kalender Hijriah tahunan dari AlAdhan saja.
+ * Memperbarui tahun 2026 dan 2027 dalam satu eksekusi agar fungsi dapat
+ * dijalankan langsung dari dropdown Apps Script tanpa argumen.
+ * Seluruh bulan/tanggal divalidasi sebelum cache GitHub ditulis.
+ * Tidak memakai API Indonesia dan tidak menyentuh scheduler/audio.
+ */
+/**
+ * Menentukan folder cache berdasarkan zona waktu lokasi aktif.
+ * Nama folder sengaja hanya WIB, WITA, atau WIT; lokasi dibedakan pada nama berkas.
+ */
+function getHijriCalendarZoneFolder_(location) {
+  location = location || getLokasiPanels();
+  var timezone = String(location && location.timezone || '').trim();
+  var zone = String(location && location.zona || '').trim().toUpperCase();
+  // Zona waktu IANA menjadi sumber utama agar folder mengikuti lokasi sebenarnya.
+  if (timezone === 'Asia/Jakarta' || timezone === 'Asia/Pontianak') return 'WIB';
+  if (timezone === 'Asia/Makassar' || timezone === 'Asia/Ujung_Pandang' || timezone === 'Asia/Palu') return 'WITA';
+  if (timezone === 'Asia/Jayapura' || timezone === 'Asia/Ambon' || timezone === 'Asia/Manokwari') return 'WIT';
+  if (zone === 'WIB' || zone === 'WITA' || zone === 'WIT') return zone;
+  throw new Error('Zona waktu lokasi tidak dapat dipetakan ke WIB/WITA/WIT: ' + timezone);
+}
+
+/** Membuat slug unik dari kota dan provinsi untuk memisahkan cache antarwilayah. */
+function getHijriCalendarLocationSlug_(location) {
+  location = location || getLokasiPanels();
+  var raw = [location && location.kota || '', location && location.provinsi || ''].join('-');
+  var slug = raw.toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-+/g, '-');
+  if (!slug) throw new Error('Kota/provinsi kosong; slug cache kalender tidak dapat dibuat.');
+  return slug;
+}
+
+function getHijriCalendarCachePath_(location, year) {
+  // Satu cache tahunan per zona: kota aktif tidak harus sama dengan kota perwakilan.
+  var zone = getHijriCalendarZoneFolder_(location);
+  var seeds = getHijriCalendarSeedLocations_();
+  var seed = null;
+  for (var i = 0; i < seeds.length; i++) {
+    if (String(seeds[i].zona || '').toUpperCase() === zone) { seed = seeds[i]; break; }
+  }
+  if (!seed) throw new Error('Lokasi perwakilan cache tidak ditemukan untuk zona ' + zone);
+  return 'data/hijri-calendar-cache/' + zone + '/' +
+    getHijriCalendarLocationSlug_(seed) + '-' + String(year) + '.json';
+}
+
+/** Mengambil dan memvalidasi satu bulan kalender Hijriah dari AlAdhan. */
+function fetchHijriCalendarMonthFromAlAdhan_(location, year, month) {
+  var city = String(location && location.kota || '').trim();
+  var province = String(location && location.provinsi || '').trim();
+  var timezone = String(location && location.timezone || '').trim();
+  if (!city || !timezone) throw new Error('Kota dan zona waktu lokasi wajib tersedia.');
+  var apiCity = normalizePrayerLocationName_(city) || city;
+  var url = 'https://api.aladhan.com/v1/calendarByCity/' + year + '/' + month +
+    '?city=' + encodeURIComponent(apiCity) +
+    '&country=' + encodeURIComponent('Indonesia') +
+    (province ? '&state=' + encodeURIComponent(province) : '') +
+    '&method=20&school=0&timezonestring=' + encodeURIComponent(timezone);
+  var response = UrlFetchApp.fetch(url, {
+    method: 'get',
+    muteHttpExceptions: true,
+    headers: { 'Accept': 'application/json' }
+  });
+  var status = response.getResponseCode();
+  if (status < 200 || status >= 300) {
+    throw new Error('AlAdhan gagal untuk ' + year + '-' + ('0' + month).slice(-2) +
+      ' (HTTP ' + status + ', kota API: ' + apiCity + '): ' +
+      String(response.getContentText() || '').slice(0, 250));
+  }
+  var payload = JSON.parse(response.getContentText() || '{}');
+  var rows = payload && Array.isArray(payload.data) ? payload.data : [];
+  var expectedCount = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  if (rows.length !== expectedCount) {
+    throw new Error('AlAdhan mengembalikan ' + rows.length + ' hari untuk ' +
+      year + '-' + ('0' + month).slice(-2) + ', seharusnya ' + expectedCount + '.');
+  }
+  var days = {};
+  rows.forEach(function(item) {
+    var gregorian = item && item.date && item.date.gregorian;
+    var hijriDate = item && item.date && item.date.hijri;
+    var rawDate = String(gregorian && gregorian.date || '');
+    var match = rawDate.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+    if (!match) throw new Error('Format tanggal Gregorian AlAdhan tidak valid: ' + rawDate);
+    var iso = match[3] + '-' + match[2] + '-' + match[1];
+    if (iso.slice(0, 7) !== year + '-' + ('0' + month).slice(-2)) {
+      throw new Error('Tanggal AlAdhan di luar bulan yang diminta: ' + iso);
+    }
+    if (days[iso]) throw new Error('Tanggal duplikat dari AlAdhan: ' + iso);
+    var hijriDay = String(hijriDate && hijriDate.day || '').trim();
+    var hijriMonth = normalizeHijriMonthNameIndonesia_(hijriDate && hijriDate.month && hijriDate.month.en || '');
+    var hijriYear = String(hijriDate && hijriDate.year || '').trim();
+    if (!hijriDay || !hijriMonth || !hijriYear) {
+      throw new Error('Data Hijriah kosong pada ' + iso + '.');
+    }
+    days[iso] = {
+      hijri_day: hijriDay,
+      hijri_month_name: hijriMonth,
+      hijri_month_number: Number(hijriDate.month.number || 0),
+      hijri_year: hijriYear,
+      hijri_formatted: hijriDay + ' ' + hijriMonth + ' ' + hijriYear + ' H',
+      source: 'AlAdhan / Kalender Hijriah'
+    };
+  });
+  if (Object.keys(days).length !== expectedCount) {
+    throw new Error('Jumlah tanggal unik tidak sesuai untuk ' + year + '-' + month + '.');
+  }
+  return days;
+}
+
+/**
+ * Unduhan manual kalender Hijriah SATU tahun untuk lokasi aktif.
+ * File baru divalidasi dan disimpan lebih dahulu sebelum cache tahun lama dibersihkan.
+ */
+/**
+ * Mengunduh kalender tahunan AlAdhan untuk tiga lokasi perwakilan sekaligus:
+ * WIB=Jakarta, WITA=Balikpapan, WIT=Jayapura.
+ * Berkas cache lama baru dibersihkan setelah ketiga cache tahun berjalan
+ * berhasil diunduh, divalidasi, dan ditulis.
+ */
+function refreshHijriCalendarCacheFromAlAdhan() {
+  return refreshHijriCalendarCachesAllZonesFromAlAdhan();
+}
+
+/** Lokasi tetap untuk cache kalender bersama per zona waktu Indonesia. */
+function getHijriCalendarSeedLocations_() {
+  return [
+    { zona: 'WIB', kota: 'Kota Jakarta', provinsi: 'DKI Jakarta', timezone: 'Asia/Jakarta', gmt: 'GMT+7' },
+    { zona: 'WITA', kota: 'Kota Balikpapan', provinsi: 'Kalimantan Timur', timezone: 'Asia/Makassar', gmt: 'GMT+8' },
+    { zona: 'WIT', kota: 'Kota Jayapura', provinsi: 'Papua', timezone: 'Asia/Jayapura', gmt: 'GMT+9' }
+  ];
+}
+
+/** Unduh dan simpan satu tahun untuk lokasi tertentu; tidak menghapus cache lama. */
+function refreshHijriCalendarAnnualForLocation_(loc) {
+  var timezone = String(loc.timezone || '').trim();
+  var currentYear = Number(Utilities.formatDate(new Date(), timezone, 'yyyy'));
+  var days = {};
+  for (var month = 1; month <= 12; month++) {
+    var monthDays = fetchHijriCalendarMonthFromAlAdhan_(loc, currentYear, month);
+    Object.keys(monthDays).forEach(function(date) {
+      if (days[date]) throw new Error('Tanggal kalender duplikat: ' + date + ' (' + loc.kota + ')');
+      days[date] = monthDays[date];
+    });
+  }
+  if (!hijriAnnualDaysComplete_(days, currentYear)) {
+    throw new Error('Validasi kalender Hijriah ' + currentYear + ' gagal untuk ' + loc.kota + '. Cache lama tidak diubah.');
+  }
+  var generatedAt = new Date().toISOString();
+  var document = {
+    source: 'AlAdhan / Kalender Hijriah',
+    generatedAt: generatedAt,
+    updatedAt: generatedAt,
+    year: currentYear,
+    zoneFolder: getHijriCalendarZoneFolder_(loc),
+    city: loc.kota,
+    province: loc.provinsi || '',
+    timezone: timezone,
+    method: 20,
+    dayCount: Object.keys(days).length,
+    days: days
+  };
+  var path = getHijriCalendarCachePath_(loc, currentYear);
+  writeGithubJsonFile_(path, document,
+    'Refresh kalender Hijriah AlAdhan ' + currentYear + ' (' + document.zoneFolder + ' - ' + loc.kota + ')', 'main');
+  clearHijriCalendarRuntimeCacheForLocation_(loc, Object.keys(days));
+  return {
+    success: true,
+    zona: document.zoneFolder,
+    kota: loc.kota,
+    provinsi: loc.provinsi,
+    timezone: timezone,
+    year: currentYear,
+    dayCount: Object.keys(days).length,
+    path: path
+  };
+}
+
+/** Hapus entri runtime agar pembacaan berikutnya memakai versi GitHub terbaru. */
+function clearHijriCalendarRuntimeCacheForLocation_(loc, dates) {
+  try {
+    var zoneKey = getHijriCalendarZoneFolder_(loc);
+    var prefix = 'HIJRI_ALADHAN_ZONE_V3_' + zoneKey + '_';
+    var keys = (dates || []).map(function(date) { return prefix + String(date).replace(/-/g, ''); });
+    var cache = CacheService.getScriptCache();
+    for (var i = 0; i < keys.length; i += 100) cache.removeAll(keys.slice(i, i + 100));
+  } catch (ignoreCacheClear) {}
+}
+
+/** Fungsi manual: unduh WIB, WITA, dan WIT sekaligus dari AlAdhan. */
+function refreshHijriCalendarCachesAllZonesFromAlAdhan() {
+  var locations = getHijriCalendarSeedLocations_();
+  var results = [];
+  // Berkas cache lama tidak dihapus selama ada satu zona yang gagal.
+  locations.forEach(function(loc) {
+    results.push(refreshHijriCalendarAnnualForLocation_(loc));
+  });
+  var years = {};
+  results.forEach(function(item) { years[item.year] = true; });
+  var yearList = Object.keys(years);
+  if (yearList.length !== 1) {
+    throw new Error('Tahun kalender zona tidak seragam; cache lama dipertahankan. Tahun: ' + yearList.join(', '));
+  }
+  var cleanup = cleanupOldHijriCalendarCaches_(Number(yearList[0]), true);
+  var report = {
+    success: true,
+    source: 'AlAdhan / Kalender Hijriah',
+    year: Number(yearList[0]),
+    zonesDownloaded: results.length,
+    results: results,
+    cleanup: cleanup,
+    branch: 'main'
+  };
+  Logger.log('REFRESH KALENDER HIJRIAH WIB/WITA/WIT SELESAI: ' + JSON.stringify(report));
+  return report;
+}
+
+/**
+ * Validasi harian: unduh ulang bulan berjalan saja, bandingkan seluruh tanggal bulan itu,
+ * dan tulis cache hanya jika ada perubahan. Bila cache tahun ini belum ada/lengkap,
+ * lakukan unduhan tahunan tervalidasi terlebih dahulu.
+ */
+function validateHijriCalendarCacheDaily() {
+  var loc = getLokasiPanels();
+  if (!loc || loc.success !== true || !loc.kota) throw new Error('Lokasi panels!C5:C10 belum lengkap.');
+  loc.timezone = loc.timezone || 'Asia/Makassar';
+  var now = new Date();
+  var year = Number(Utilities.formatDate(now, loc.timezone, 'yyyy'));
+  var month = Number(Utilities.formatDate(now, loc.timezone, 'M'));
+  var path = getHijriCalendarCachePath_(loc, year);
+  var doc = readGithubJsonFile_(path, 'main');
+  if (!doc || String(doc.source || '') !== 'AlAdhan / Kalender Hijriah' ||
+      Number(doc.year) !== year || !hijriAnnualDaysComplete_(doc.days, year) ||
+      String(doc.zoneFolder || '').trim().toUpperCase() !== getHijriCalendarZoneFolder_(loc)) {
+    return refreshHijriCalendarCacheFromAlAdhan();
+  }
+
+  // Satu permintaan kalender bulanan per hari cukup untuk mendeteksi koreksi
+  // AlAdhan pada bulan aktif tanpa mengunduh 12 bulan setiap tengah malam.
+  var latestMonth = fetchHijriCalendarMonthFromAlAdhan_(loc, year, month);
+  var changedDates = [];
+  Object.keys(latestMonth).forEach(function(date) {
+    if (JSON.stringify(doc.days[date]) !== JSON.stringify(latestMonth[date])) {
+      doc.days[date] = latestMonth[date];
+      changedDates.push(date);
+    }
+  });
+  var generatedAt = new Date().toISOString();
+  if (changedDates.length) {
+    doc.generatedAt = generatedAt;
+    doc.updatedAt = generatedAt;
+    doc.dayCount = Object.keys(doc.days).length;
+    writeGithubJsonFile_(path, doc,
+      'Validasi kalender Hijriah AlAdhan ' + year + '-' + ('0' + month).slice(-2) +
+      ' (' + changedDates.length + ' tanggal berubah)', 'main');
+    try {
+      var zoneKey = getHijriCalendarZoneFolder_(loc);
+      var prefix = 'HIJRI_ALADHAN_ZONE_V3_' + zoneKey + '_';
+      var keys = changedDates.map(function(date) { return prefix + date.replace(/-/g, ''); });
+      var cache = CacheService.getScriptCache();
+      for (var i = 0; i < keys.length; i += 100) cache.removeAll(keys.slice(i, i + 100));
+    } catch (ignoreCacheClear) {}
+  }
+  var cleanup = cleanupOldHijriCalendarCaches_(year, true);
+  var report = {
+    success: true,
+    source: 'AlAdhan / Kalender Hijriah',
+    year: year,
+    month: month,
+    zoneFolder: getHijriCalendarZoneFolder_(loc),
+    path: path,
+    changedDates: changedDates,
+    cleanup: cleanup
+  };
+  Logger.log('VALIDASI HARIAN KALENDER HIJRIAH ALADHAN: ' + JSON.stringify(report));
+  return report;
+}
+
+/** Wrapper pemicu: hanya menjalankan validasi bila zona lokasi aktif cocok. */
+function autoValidateHijriCalendarCacheWIB_() { return validateHijriCalendarCacheForZone_('WIB'); }
+function autoValidateHijriCalendarCacheWITA_() { return validateHijriCalendarCacheForZone_('WITA'); }
+function autoValidateHijriCalendarCacheWIT_() { return validateHijriCalendarCacheForZone_('WIT'); }
+
+function validateHijriCalendarCacheForZone_(expectedZone) {
+  var locations = getHijriCalendarSeedLocations_();
+  var loc = null;
+  for (var i = 0; i < locations.length; i++) {
+    if (locations[i].zona === expectedZone) { loc = locations[i]; break; }
+  }
+  if (!loc) throw new Error('Zona kalender tidak dikenal: ' + expectedZone);
+  return validateHijriCalendarCacheForLocation_(loc);
+}
+
+/** Validasi cache tahunan lokasi perwakilan: unduh hanya bulan aktif dari AlAdhan. */
+function validateHijriCalendarCacheForLocation_(loc) {
+  var timezone = String(loc.timezone || '').trim();
+  var now = new Date();
+  var year = Number(Utilities.formatDate(now, timezone, 'yyyy'));
+  var month = Number(Utilities.formatDate(now, timezone, 'M'));
+  var path = getHijriCalendarCachePath_(loc, year);
+  var doc = readGithubJsonFile_(path, 'main');
+  if (!doc || String(doc.source || '') !== 'AlAdhan / Kalender Hijriah' ||
+      Number(doc.year) !== year || !hijriAnnualDaysComplete_(doc.days, year) ||
+      String(doc.zoneFolder || '').trim().toUpperCase() !== getHijriCalendarZoneFolder_(loc)) {
+    var full = refreshHijriCalendarAnnualForLocation_(loc);
+    var cleanup = cleanupOldHijriCalendarCaches_(year, false);
+    full.cleanup = cleanup;
+    Logger.log('VALIDASI HIJRIAH ' + loc.zona + ': cache dibuat ulang karena belum ada/tidak cocok: ' + JSON.stringify(full));
+    return full;
+  }
+  var latestMonth = fetchHijriCalendarMonthFromAlAdhan_(loc, year, month);
+  var changedDates = [];
+  Object.keys(latestMonth).forEach(function(date) {
+    if (JSON.stringify(doc.days[date]) !== JSON.stringify(latestMonth[date])) {
+      doc.days[date] = latestMonth[date];
+      changedDates.push(date);
+    }
+  });
+  if (changedDates.length) {
+    var stamp = new Date().toISOString();
+    doc.generatedAt = stamp;
+    doc.updatedAt = stamp;
+    doc.dayCount = Object.keys(doc.days).length;
+    writeGithubJsonFile_(path, doc,
+      'Validasi kalender Hijriah AlAdhan ' + year + '-' + ('0' + month).slice(-2) +
+      ' (' + loc.zona + ', ' + changedDates.length + ' tanggal berubah)', 'main');
+    clearHijriCalendarRuntimeCacheForLocation_(loc, changedDates);
+  }
+  var report = {
+    success: true,
+    source: 'AlAdhan / Kalender Hijriah',
+    zona: loc.zona,
+    kota: loc.kota,
+    provinsi: loc.provinsi,
+    year: year,
+    month: month,
+    path: path,
+    changedDates: changedDates
+  };
+  Logger.log('VALIDASI HARIAN KALENDER HIJRIAH ' + loc.zona + ': ' + JSON.stringify(report));
+  return report;
+}
+
+/**
+ * Pasang tiga pemicu harian mendekati pukul 00.00 lokal masing-masing zona.
+ * Apps Script menjalankan pemicu dalam rentang waktu, bukan menjamin tepat menit 00.
+ * Fungsi ini hanya mengelola pemicu kalender Hijriah; pemicu audio tidak disentuh.
+ */
+function setupHijriCalendarCacheAutoTriggers() {
+  var handlers = [
+    'autoRefreshHijriCalendarCachePeriodic_',
+    'runHijriSeasonCacheCheckNow',
+    'autoValidateHijriCalendarCacheWIB_',
+    'autoValidateHijriCalendarCacheWITA_',
+    'autoValidateHijriCalendarCacheWIT_',
+    'runPrayerMonthlyCacheCheckNow'
+  ];
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    if (handlers.indexOf(trigger.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(trigger);
+  });
+  ScriptApp.newTrigger('autoValidateHijriCalendarCacheWIB_')
+    .timeBased().atHour(0).everyDays(1).inTimezone('Asia/Jakarta').create();
+  ScriptApp.newTrigger('autoValidateHijriCalendarCacheWITA_')
+    .timeBased().atHour(0).everyDays(1).inTimezone('Asia/Makassar').create();
+  ScriptApp.newTrigger('autoValidateHijriCalendarCacheWIT_')
+    .timeBased().atHour(0).everyDays(1).inTimezone('Asia/Jayapura').create();
+  // Pemeriksaan cache jadwal sholat bulanan tetap dipertahankan terpisah dari audio.
+  ScriptApp.newTrigger('runPrayerMonthlyCacheCheckNow')
+    .timeBased().atHour(3).everyDays(1).inTimezone('Asia/Makassar').create();
+  Logger.log('PEMICU KALENDER HIJRIAH AKTIF: WIB/WITA/WIT mendekati 00.00 lokal; validasi cache jadwal bulanan sekitar 03.00 WITA.');
+  return { success: true, triggers: 4, handlers: ['autoValidateHijriCalendarCacheWIB_', 'autoValidateHijriCalendarCacheWITA_', 'autoValidateHijriCalendarCacheWIT_', 'runPrayerMonthlyCacheCheckNow'] };
+}
+
+/** Membersihkan berkas tahun yang bukan tahun berjalan setelah cache baru tervalidasi. */
+function cleanupOldHijriCalendarCaches_(currentYear, removeLegacyFile) {
+  var report = { deleted: [], errors: [] };
+  ['WIB', 'WITA', 'WIT'].forEach(function(zone) {
+    var folderPath = 'data/hijri-calendar-cache/' + zone;
+    var files = listGithubDirectoryFiles_(folderPath, 'main');
+    files.forEach(function(file) {
+      if (!file || file.type !== 'file' || !/\.json$/i.test(String(file.name || ''))) return;
+      var match = String(file.name).match(/-(\d{4})\.json$/i);
+      if (!match || Number(match[1]) === Number(currentYear)) return;
+      try {
+        deleteGithubFile_(folderPath + '/' + file.name, 'main',
+          'Hapus cache kalender Hijriah tahun lama ' + match[1]);
+        report.deleted.push(folderPath + '/' + file.name);
+      } catch (error) {
+        report.errors.push(folderPath + '/' + file.name + ': ' + String(error && error.message || error));
+      }
+    });
+  });
+  if (removeLegacyFile === true) {
+    try {
+      deleteGithubFile_('data/hijri-calendar-cache.json', 'main',
+        'Hapus cache kalender Hijriah lama setelah migrasi ke folder zona');
+      report.deleted.push('data/hijri-calendar-cache.json');
+    } catch (error) {
+      report.errors.push('data/hijri-calendar-cache.json: ' + String(error && error.message || error));
+    }
+  }
+  if (report.errors.length) Logger.log('PERINGATAN PEMBERSIHAN CACHE HIJRIAH: ' + JSON.stringify(report.errors));
+  return report;
+}
+
+/** Membaca daftar berkas dalam direktori GitHub; 404 berarti direktori belum ada. */
+function listGithubDirectoryFiles_(path, branch) {
+  var token = String(PropertiesService.getScriptProperties().getProperty('GITHUB_UPLOAD_TOKEN') || '').trim();
+  if (!token) throw new Error('Script Property GITHUB_UPLOAD_TOKEN belum diisi.');
+  var url = 'https://api.github.com/repos/fonntemax-1/audio-masjid/contents/' +
+    path.split('/').map(encodeURIComponent).join('/') + '?ref=' + encodeURIComponent(branch || 'main');
+  var response = UrlFetchApp.fetch(url, {
+    method: 'get', muteHttpExceptions: true,
+    headers: {
+      Authorization: 'Bearer ' + token,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  });
+  if (response.getResponseCode() === 404) return [];
+  if (response.getResponseCode() !== 200) {
+    throw new Error('Gagal membaca direktori GitHub ' + path + ' (HTTP ' + response.getResponseCode() + ').');
+  }
+  var parsed = JSON.parse(response.getContentText() || '[]');
+  return Array.isArray(parsed) ? parsed : [];
+}
+
+/** Menghapus satu berkas GitHub berdasarkan SHA terkini; dipanggil setelah cache baru tersimpan. */
+function deleteGithubFile_(path, branch, message) {
+  var token = String(PropertiesService.getScriptProperties().getProperty('GITHUB_UPLOAD_TOKEN') || '').trim();
+  if (!token) throw new Error('Script Property GITHUB_UPLOAD_TOKEN belum diisi.');
+  var baseUrl = 'https://api.github.com/repos/fonntemax-1/audio-masjid/contents/' +
+    path.split('/').map(encodeURIComponent).join('/');
+  var headers = {
+    Authorization: 'Bearer ' + token,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+  var getResponse = UrlFetchApp.fetch(baseUrl + '?ref=' + encodeURIComponent(branch || 'main'), {
+    method: 'get', muteHttpExceptions: true, headers: headers
+  });
+  if (getResponse.getResponseCode() === 404) return { success: true, skipped: true, reason: 'not_found' };
+  if (getResponse.getResponseCode() !== 200) {
+    throw new Error('Gagal membaca SHA berkas ' + path + ' (HTTP ' + getResponse.getResponseCode() + ').');
+  }
+  var file = JSON.parse(getResponse.getContentText() || '{}');
+  var response = UrlFetchApp.fetch(baseUrl, {
+    method: 'delete', contentType: 'application/json', headers: headers,
+    payload: JSON.stringify({ message: message || 'Hapus cache kalender Hijriah lama', sha: file.sha, branch: branch || 'main' }),
+    muteHttpExceptions: true
+  });
+  var status = response.getResponseCode();
+  if (status < 200 || status >= 300) {
+    throw new Error('Gagal menghapus berkas ' + path + ' (HTTP ' + status + '): ' +
+      String(response.getContentText() || '').slice(0, 200));
+  }
+  return { success: true, path: path };
+}
+
+/**
+ * Kalender Hijriah: AlAdhan harian selalu divalidasi terlebih dahulu.
+ * Kalender tahunan AlAdhan hanya menjadi fallback saat permintaan harian gagal.
+ */
+function getHijriDateFromApi(dateString, options) {
+  options = options || {};
+  var date = String(dateString || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan', error: 'Tanggal Masehi tidak valid.' };
+  }
+  var loc = getLokasiPanels();
+  if (!loc || loc.success !== true || !loc.kota) {
+    return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan', error: 'Lokasi panels!C5 belum tersedia.' };
+  }
+  var parts = date.split('-');
+  var apiCity = normalizePrayerLocationName_(loc.kota) || loc.kota;
+  var url = 'https://api.aladhan.com/v1/timingsByCity/' +
+    parts[2] + '-' + parts[1] + '-' + parts[0] +
+    '?city=' + encodeURIComponent(apiCity) +
+    '&country=' + encodeURIComponent('Indonesia') +
+    (loc.provinsi ? '&state=' + encodeURIComponent(loc.provinsi) : '') +
+    '&method=20&school=0&timezonestring=' + encodeURIComponent(loc.timezone || 'Asia/Makassar');
+  var apiError = '';
+  try {
+    if (options._testForceAlAdhanFailure === true) {
+      throw new Error('Simulasi kegagalan API AlAdhan untuk pengujian fallback.');
+    }
+    var response = UrlFetchApp.fetch(url, { method: 'get', muteHttpExceptions: true, headers: { 'Accept': 'application/json' } });
+    var http = response.getResponseCode();
+    if (http < 200 || http >= 300) throw new Error('AlAdhan HTTP ' + http);
+    var payload = JSON.parse(response.getContentText() || '{}');
+    var data = payload && payload.data || {};
+    var gd = data.date && data.date.gregorian || {};
+    var rawDate = String(gd.date || '').trim();
+    var apiDate = /^\d{2}-\d{2}-\d{4}$/.test(rawDate)
+      ? rawDate.slice(6,10) + '-' + rawDate.slice(3,5) + '-' + rawDate.slice(0,2)
+      : String(gd.iso || '').slice(0,10);
+    if (apiDate !== date) throw new Error('Tanggal respons AlAdhan tidak cocok.');
+    var h = data.date && data.date.hijri || {};
+    var monthName = normalizeHijriMonthNameIndonesia_(h.month && h.month.en || '');
+    var hijri = h.day && monthName && h.year
+      ? String(h.day) + ' ' + monthName + ' ' + String(h.year) + ' H' : '';
+    if (!hijri) throw new Error('Tanggal Hijriah tidak lengkap pada respons AlAdhan.');
+    var result = { success: true, found: true, date: date, hijri: hijri, source: 'AlAdhan API / method 20 (Indonesia)', cached: false };
+    Logger.log('KALENDER HIJRIAH VALIDASI LANGSUNG ALADHAN: ' + date + ' => ' + hijri + ' (' + loc.kota + ')');
+    return result;
+  } catch (error) {
+    apiError = String(error && error.message || error);
+    Logger.log('ALADHAN HIJRIAH HARIAN GAGAL; mencoba cache tahunan: ' + apiError);
+  }
+  var fallback = getHijriDateFromAnnualCache_(date);
+  if (fallback && fallback.success === true && fallback.found === true &&
+      String(fallback.date || '') === date && String(fallback.hijri || '').trim()) {
+    fallback.cached = true;
+    fallback.cacheSource = 'Cache tahunan AlAdhan (fallback setelah API harian gagal)';
+    fallback.alAdhanError = apiError;
+    return fallback;
+  }
+  return {
+    success: false, found: false, hijri: '', date: date,
+    source: 'AlAdhan API / method 20 (Indonesia)',
+    error: 'AlAdhan gagal dan cache kalender Hijriah AlAdhan tidak tersedia atau tidak cocok.',
+    alAdhanError: apiError,
+    fallbackReason: fallback && fallback.error || 'Cache tahunan tidak valid.'
+  };
+}
+
+function getHijriDateFromAnnualCache_(dateString) {
+  const date = String(dateString || '').trim();
+  if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date)) {
+    return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache', error: 'Tanggal Masehi tidak valid.' };
+  }
+  const cache = CacheService.getScriptCache();
+  const activeLocation = getLokasiPanels();
+  if (!activeLocation || activeLocation.success !== true || !activeLocation.kota) {
+    return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache', error: 'Lokasi panels!C5 belum tersedia.' };
+  }
+  activeLocation.timezone = activeLocation.timezone || 'Asia/Makassar';
+  const activeZone = getHijriCalendarZoneFolder_(activeLocation);
+  const cacheKey = 'HIJRI_ALADHAN_ZONE_V3_' + activeZone + '_' + date.replace(/-/g, '');
+  try {
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && parsed.success === true &&
+          String(parsed.source || '') === 'AlAdhan Hijri cache' &&
+          String(parsed.date || '') === date && String(parsed.hijri || '').trim()) {
+        parsed.cached = true;
+        return parsed;
+      }
+    }
+  } catch (ignoreCache) {}
+
+  const year = Number(date.slice(0, 4));
+  const currentYear = Number(Utilities.formatDate(new Date(), activeLocation.timezone, 'yyyy'));
+  if (year !== currentYear) {
+    return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache',
+      error: 'Cache hanya menyimpan tahun berjalan (' + currentYear + '); tanggal yang diminta berada di tahun ' + year + '.' };
+  }
+  try {
+    const path = getHijriCalendarCachePath_(activeLocation, year);
+    const doc = readGithubJsonFile_(path, 'main');
+    if (String(doc && doc.source || '') !== 'AlAdhan / Kalender Hijriah' ||
+        Number(doc && doc.year) !== year) {
+      return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache',
+        error: 'Cache kalender Hijriah AlAdhan belum tersedia di ' + path + '. Jalankan refreshHijriCalendarCacheFromAlAdhan().' };
+    }
+    const sameZone = String(doc.zoneFolder || '').trim().toUpperCase() === activeZone;
+    if (!sameZone) {
+      return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache',
+        error: 'Zona cache kalender Hijriah tidak cocok dengan zona lokasi aktif (' + activeZone + '). Jalankan refreshHijriCalendarCacheFromAlAdhan().' };
+    }
+    const days = doc.days;
+    if (!days || !hijriAnnualDaysComplete_(days, year) || !days[date]) {
+      return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache',
+        error: 'Cache kalender Hijriah AlAdhan tidak lengkap untuk tahun ' + year + '.' };
+    }
+    const row = days[date];
+    const hijri = String(row.hijri_formatted || '').trim() ||
+      (row.hijri_day && row.hijri_month_name && row.hijri_year
+        ? String(row.hijri_day) + ' ' + String(row.hijri_month_name).trim() + ' ' + String(row.hijri_year) + ' H' : '');
+    if (!hijri) return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache', error: 'Tanggal Hijriah pada cache kosong.' };
+    const result = { success: true, found: true, date: date, hijri: hijri, source: 'AlAdhan Hijri cache', cached: true };
+    try { cache.put(cacheKey, JSON.stringify(result), HIJRI_CACHE_SECONDS); } catch (ignorePut) {}
+    return result;
+  } catch (error) {
+    return { success: false, found: false, hijri: '', date: date, source: 'AlAdhan Hijri cache',
+      error: 'Gagal membaca cache kalender Hijriah GitHub: ' + String(error && error.message || error) };
+  }
+}
+
+function DIAGNOSTIK_RAW_AUDIO_SHEET() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('Adzan');
+
+  Logger.log('======================================');
+  Logger.log('DIAGNOSTIK RAW SHEET ADZAN - FORMAT FINAL');
+  Logger.log('======================================');
+
+  if (!sheet) {
+    Logger.log('ERROR: Sheet Adzan tidak ditemukan.');
+    return;
+  }
+
+  const lastRow = Math.max(sheet.getLastRow(), 1);
+  const lastColumn = Math.max(sheet.getLastColumn(), 26);
+  const values = sheet
+    .getRange(1, 1, lastRow, lastColumn)
+    .getDisplayValues();
+
+  const blocks = [
+    ['E:F SUBUH RAMADHAN', 4, 5],
+    ['H:I SUBUH BIASA', 7, 8],
+    ['J:K DZUHUR', 9, 10],
+    ['M:N ASHAR', 12, 13],
+    ['P:Q MAGRIB RAMADHAN', 15, 16],
+    ['S:T MAGRIB BIASA', 18, 19],
+    ['V:W ISYA', 21, 22],
+    ["Y:Z JUM'AT", 24, 25]
+  ];
+
+  blocks.forEach(function(block) {
+    Logger.log('--- ' + block[0] + ' ---');
+    for (let r = 0; r < values.length; r++) {
+      const event = String(values[r][block[1]] == null ? '' : values[r][block[1]]).trim();
+      const status = String(values[r][block[2]] == null ? '' : values[r][block[2]]).trim();
+      if (event || status) {
+        Logger.log(
+          'ROW ' + (r + 1) +
+          ' | EVENT=[' + event + ']' +
+          ' | STATUS=[' + status + ']'
+        );
+      }
+    }
+  });
+
+  const rawData = sheet
+    .getRange(1, 1, lastRow, Math.max(lastColumn, 26))
+    .getValues();
+
+  const parsed = parseAdzanSheetV7(rawData);
+
+  Logger.log('======================================');
+  Logger.log('HASIL PARSER FORMAT FINAL');
+  Logger.log('======================================');
+  Object.keys(parsed.schedule).forEach(function(name) {
+    Logger.log(name + ' = ' + JSON.stringify(parsed.schedule[name]));
+  });
+  Logger.log("JUM'AT = " + JSON.stringify(parsed.friday));
+  Logger.log('======================================');
+  Logger.log('DIAGNOSTIK SELESAI');
+  Logger.log('======================================');
+
+  return {
+    success: true,
+    spreadsheetId: ss.getId(),
+    spreadsheetName: ss.getName(),
+    sheetName: sheet.getName(),
+    lastRow: lastRow,
+    lastColumn: lastColumn,
+    parsed: parsed
+  };
+}
+
+// ============================================================
+// TEST AUDIO SHEET - VERIFIKASI MAPPING PER SHOLAT
+// ============================================================
+function TEST_AUDIO_SHEET_CONFIG() {
+  const result = getRealtimeAudioConfig();
+
+  Logger.log('======================================');
+  Logger.log('TEST AUDIO SHEET CONFIG');
+  Logger.log('======================================');
+
+  if (!result || !result.success) {
+    Logger.log('GAGAL: ' + JSON.stringify(result));
+    return result;
+  }
+
+  const names = [
+    'SUBUH_RAMADHAN',
+    'SUBUH_BIASA',
+    'DZUHUR',
+    'ASHAR',
+    'MAGHRIB_RAMADHAN',
+    'MAGHRIB_BIASA',
+    'ISYA'
+  ];
+
+  names.forEach(function(name) {
+    Logger.log(
+      name + ' = ' +
+      JSON.stringify(result.AudioSchedule[name] || [])
+    );
+  });
+
+  Logger.log(
+    "JUM'AT = " +
+    JSON.stringify(result.AudioFriday || [])
+  );
+
+  return result;
+}
+
+// ============================================================
+// FORM KEGIATAN MASJID - PANELS!C28
+// ============================================================
+// C28 = dropdown JENIS KEGIATAN.
+// B29:B32 = label field.
+// C29:C32 = data kegiatan.
+// ============================================================
+
+const PANEL_KEGIATAN_OPTIONS_ = [
+  "SHOLAT JUM'AT",
+  "SHOLAT TARAWIH",
+  "SHOLAT IDUL FITRI",
+  "SHOLAT IDUL ADHA"
+];
+
+const PANEL_KEGIATAN_FIELDS_ = {
+  "SHOLAT JUM'AT": ["Tanggal", "Khatib", "Imam", "Bilal"],
+  "SHOLAT TARAWIH": ["Tanggal", "Imam", "Bilal", "Kultum"],
+  "SHOLAT IDUL FITRI": ["Tanggal", "Khatib", "Imam", "Bilal"],
+  "SHOLAT IDUL ADHA": ["Tanggal", "Khatib", "Imam", "Bilal"]
+};
+
+/**
+ * Jalankan sekali dari Apps Script Editor untuk memasang
+ * dropdown panels!C28 dan struktur field kegiatan.
+ *
+ * Aturan tanggal:
+ * - SHOLAT JUM'AT  : otomatis Jumat pada minggu berjalan.
+ * - TARAWIH        : manual.
+ * - IDUL FITRI     : manual.
+ * - IDUL ADHA      : manual.
+ */
+function setupPanelKegiatan() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName("panels");
+
+  if (!sheet) {
+    throw new Error("Sheet panels tidak ditemukan.");
+  }
+
+  const selector = sheet.getRange("C28");
+
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(PANEL_KEGIATAN_OPTIONS_, true)
+    .setAllowInvalid(false)
+    .build();
+
+  selector.setDataValidation(rule);
+
+  if (!String(selector.getDisplayValue() || "").trim()) {
+    selector.setValue(PANEL_KEGIATAN_OPTIONS_[0]);
+  }
+
+  formatPanelKegiatanSelector_(selector);
+  updatePanelKegiatanFields_(sheet, selector.getDisplayValue(), true);
+
+  Logger.log("FORM KEGIATAN PANELS!C28 berhasil disiapkan.");
+}
+
+/**
+ * Trigger saat panels!C28 diubah.
+ * onEdit memang dipanggil ketika pengguna mengubah nilai sel di Sheets.
+ */
+/**
+ * Memuat daftar 514 kabupaten/kota dari data/daftar-kota.json di branch pengujian GitHub.
+ * GitHub menjadi sumber utama; dropdown memakai sheet helper tersembunyi karena batas 500 item pada validasi langsung.
+ * Nama dropdown memakai label administratif lengkap agar nama yang sama tidak ambigu.
+ * Fungsi lama dipertahankan sebagai alias agar pemanggilan manual tidak rusak.
+ */
+function refreshDaftarKotaDariGithub() {
+  const document = readGithubJsonFile_("data/daftar-kota.json", "main");
+  if (!document || !Array.isArray(document.cities) || document.cities.length < 500) {
+    throw new Error("data/daftar-kota.json tidak ditemukan atau jumlah wilayah tidak valid.");
+  }
+
+  const ss = getSpreadsheet();
+  const panels = ss.getSheetByName("panels");
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+
+  const currentCityBeforeSync = String(panels.getRange("C5").getDisplayValue() || "").trim();
+  const ids = {};
+  const rows = document.cities.map(function(city) {
+    const displayName = String(city.display_name || "").trim();
+    const provinceName = String(city.province || "").trim();
+    const regencyId = String(city.regency_id || "").trim();
+    const zone = String(city.zone || "").trim();
+    const timezone = String(city.timezone || "").trim();
+    const gmt = String(city.gmt || "").trim();
+    const slug = String(city.slug || "").trim();
+    if (!displayName || !provinceName || !regencyId || !timezone || !slug) return null;
+    if (ids[regencyId]) throw new Error("Kode wilayah duplikat pada data/daftar-kota.json: " + regencyId);
+    ids[regencyId] = true;
+    return {
+      name: String(city.name || "").trim(),
+      displayName: displayName,
+      province: provinceName,
+      regencyId: regencyId,
+      zone: zone,
+      timezone: timezone,
+      gmt: gmt,
+      slug: slug
+    };
+  }).filter(function(city) { return city !== null; });
+
+  if (rows.length !== 514 || Object.keys(ids).length !== 514) {
+    throw new Error("Validasi daftar wilayah gagal. Ditemukan " + rows.length + " baris valid, seharusnya 514.");
+  }
+  rows.sort(function(a, b) {
+    return a.province.localeCompare(b.province, "id") || a.displayName.localeCompare(b.displayName, "id");
+  });
+
+  // Google Sheets membatasi requireValueInList menjadi 500 item.
+  // Gunakan sheet helper tersembunyi sebagai sumber rentang untuk seluruh 514 kota.
+  const cityNames = rows.map(function(city) { return [city.displayName]; });
+  let helperSheet = ss.getSheetByName("_dropdown-kota");
+  if (!helperSheet) helperSheet = ss.insertSheet("_dropdown-kota");
+  helperSheet.clearContents();
+  helperSheet.getRange(1, 1, cityNames.length, 1).setValues(cityNames);
+  helperSheet.hideSheet();
+
+  const validationRange = helperSheet.getRange(1, 1, cityNames.length, 1);
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInRange(validationRange, true)
+    .setAllowInvalid(false)
+    .build();
+  panels.getRange("C5").setDataValidation(rule);
+
+  // Pertahankan kota terpilih bila masih cocok dengan label administratif.
+  if (currentCityBeforeSync) {
+    const wanted = normalizePrayerDropdownName_(currentCityBeforeSync);
+    const selected = rows.filter(function(city) {
+      return normalizePrayerDropdownName_(city.displayName) === wanted ||
+        normalizePrayerDropdownName_(city.name) === wanted;
+    });
+    if (selected.length === 1) {
+      panels.getRange("C5").setValue(selected[0].displayName);
+      syncPrayerPanelLocationFromCity_(selected[0].displayName, false);
+    }
+  }
+
+  // Hapus sheet salinan lama; dropdown kini memakai helper tersembunyi _dropdown-kota.
+  const oldListSheet = ss.getSheetByName("daftar-kota");
+  if (oldListSheet) {
+    if (ss.getSheets().length <= 1) throw new Error("Sheet daftar-kota tidak dapat dihapus karena merupakan satu-satunya sheet.");
+    ss.deleteSheet(oldListSheet);
+  }
+
+  const now = new Date().toISOString();
+  PropertiesService.getScriptProperties().setProperty("GITHUB_CITY_LIST_SYNCED_AT", now);
+  Logger.log("DAFTAR KOTA DISINKRONKAN DARI GITHUB: " + rows.length +
+    " kabupaten/kota, versi data " + String(document.version || "?") +
+    "; dropdown langsung dari JSON; sheet daftar-kota tidak digunakan.");
+  return { success: true, count: rows.length, source: "GitHub data/daftar-kota.json", dropdown: "panels!C5", helperSheet: "_dropdown-kota", visibleCityListSheet: false };
+}
+
+/** Alias kompatibilitas; tidak lagi memanggil AlAdhan untuk daftar kota. */
+function refreshDaftarKotaAPIIndonesia() {
+  return refreshDaftarKotaDariGithub();
+}
+
+/**
+ * Setup sinkronisasi daftar wilayah dari GitHub dan refresh cache jadwal kota aktif.
+ * Jalankan manual sekali dari Apps Script Editor dan selesaikan otorisasi.
+ */
+function setupDropdownKotaAPIIndonesia() {
+  const result = refreshDaftarKotaDariGithub();
+  const handlers = [
+    "refreshDaftarKotaAPIIndonesia",
+    "refreshDaftarKotaDariGithub",
+    "refreshPrayerCacheForCurrentCity"
+  ];
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    if (handlers.indexOf(trigger.getHandlerFunction()) >= 0) {
+      // Hapus hanya pemicu lama milik sinkron daftar kota/cache jadwal.
+      // Cache jadwal kini ditangani oleh autoRefreshPrayerCachePeriodic_ setiap 6 jam.
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+
+  ScriptApp.newTrigger("refreshDaftarKotaDariGithub")
+    .timeBased()
+    .atHour(3)
+    .everyDays(1)
+    .inTimezone("Asia/Makassar")
+    .create();
+
+  Logger.log("Auto-update disiapkan: sinkron daftar kota dari GitHub harian 03.00 WITA; cache jadwal ditangani pemicu AlAdhan setiap 6 jam.");
+  return result;
+}
+
+/**
+ * Uji baca jadwal sholat untuk tanggal dan kota aktif.
+ * Aman: hanya membaca Spreadsheet/API dan menulis hasil ke log; tidak mengubah cache,
+ * tidak membuat trigger, dan tidak mengubah scheduler audio.
+ */
+/**
+ * Uji baca cache jadwal sholat tanpa memaksa refresh dan tanpa sumber alternatif.
+ * Lulus hanya bila jadwal lengkap berasal dari AlAdhan.
+ */
+function TEST_CACHE_GITHUB_JADWAL_SHOLAT() {
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName("panels");
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+  var loc = panels.getRange("C5:C10").getDisplayValues().map(function(row) {
+    return String(row[0] || "").trim();
+  });
+  var city = loc[0];
+  var timezone = loc[3] || "Asia/Makassar";
+  if (!city) throw new Error("Kota pada panels!C5 kosong.");
+  var date = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd");
+  var result = getPrayerSchedule(date);
+  Logger.log("TEST_CACHE_GITHUB_JADWAL_SHOLAT: " + JSON.stringify({
+    kota: city, tanggal: date, source: result && result.source,
+    cacheSource: result && result.cacheSource, success: result && result.success,
+    jadwal: result && result.jadwal, error: result && result.error,
+    alAdhanError: result && result.alAdhanError
+  }));
+  if (!result || result.success !== true) {
+    throw new Error("Cache AlAdhan gagal dibaca. Tidak ada fallback yang digunakan. " +
+      String(result && (result.error || result.alAdhanError) || ""));
+  }
+  if (String(result.source || "").indexOf("AlAdhan") < 0) {
+    throw new Error("Sumber cache bukan AlAdhan.");
+  }
+  if (String(result.tanggal || "") !== date ||
+      !isCompletePrayerScheduleSafe_(result.jadwal)) {
+    throw new Error("Cache AlAdhan tidak lengkap atau tanggalnya tidak cocok.");
+  }
+  Logger.log("TEST_CACHE_GITHUB_JADWAL_SHOLAT LULUS: sumber AlAdhan, cache=" + result.cacheSource);
+  return result;
+}
+
+function TEST_JADWAL_AMAN() {
+  const ss = getSpreadsheet();
+  const panels = ss.getSheetByName("panels");
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+
+  const loc = panels.getRange("C5:C10").getDisplayValues().map(function(row) {
+    return String(row[0] || "").trim();
+  });
+  const city = loc[0];
+  const province = loc[1];
+  const timezone = loc[3] || "Asia/Makassar";
+  if (!city) throw new Error("Kota pada panels!C5 kosong.");
+
+  const date = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd");
+  const result = getPrayerSchedule(date);
+  const report = {
+    tanggalUji: date,
+    kotaSheet: city,
+    provinsiSheet: province,
+    timezoneSheet: timezone,
+    hasilJadwal: result
+  };
+
+  Logger.log("TEST_JADWAL_AMAN: " + JSON.stringify(report));
+  if (!result || result.success !== true) {
+    throw new Error("Uji jadwal gagal: " +
+      String(result && (result.error || result.alAdhanError || result.fallbackReason) || "respons tidak sukses"));
+  }
+  if (String(result.tanggal || "") !== date) {
+    throw new Error("Tanggal respons tidak cocok. Diminta " + date +
+      ", diterima " + String(result.tanggal || "(kosong)") + ".");
+  }
+  if (String(result.source || "").indexOf("AlAdhan") < 0) {
+    throw new Error("Sumber jadwal bukan AlAdhan: " + String(result.source || "(kosong)"));
+  }
+  if (!result.jadwal || !isCompletePrayerScheduleSafe_(result.jadwal)) {
+    throw new Error("Jadwal tidak lengkap untuk " + city + " tanggal " + date + ".");
+  }
+  Logger.log("TEST_JADWAL_AMAN LULUS: " + city + " " + date);
+  return report;
+}
+
+/**
+ * Memperbarui cache GitHub untuk kota yang sedang dipilih pada panels!C5.
+ * Hanya menyimpan respons sukses, lengkap, untuk kota dan tanggal yang tepat.
+ * Tidak pernah mengganti jadwal dengan data kota lain.
+ */
+/**
+ * Mengambil regency_id dari sumber utama data/daftar-kota.json.
+ * Nama dan provinsi harus cocok; tidak menebak wilayah lain.
+ */
+function getPrayerRegencyIdFromGithub_(cityName, provinceName) {
+  try {
+    const doc = readGithubJsonFile_("data/daftar-kota.json");
+    if (!doc || !Array.isArray(doc.cities)) return "";
+    const norm = function(v) {
+      return String(v || "").trim().toLowerCase()
+        .normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, " ").trim();
+    };
+    const matches = doc.cities.filter(function(city) {
+      return norm(city.display_name) === norm(cityName) &&
+        norm(city.province) === norm(provinceName);
+    });
+    return matches.length === 1 ? String(matches[0].regency_id || "") : "";
+  } catch (error) {
+    Logger.log("REGISTRY ID JSON TIDAK TERBACA: " + (error && error.message ? error.message : error));
+    return "";
+  }
+}
+
+/**
+ * Hapus seluruh cache jadwal lama di dua file JSON, lalu isi ulang cache
+ * kota aktif langsung dari AlAdhan. Jalankan manual satu kali di branch uji.
+ * CacheService lama ditinggalkan dengan prefix lama; kode baru memakai key V2.
+ * Tidak mengubah scheduler atau audio.
+ */
+/**
+ * Refresh eksplisit cache jadwal sholat untuk kota aktif.
+ * Tidak lagi menulis ulang file cache global lama yang sudah dihapus.
+ * Hanya dipanggil manual; tidak mengubah scheduler atau audio.
+ */
+function resetAllPrayerCachesAndRefreshAlAdhan() { // Alias nama lama dipertahankan agar pemanggil yang sudah ada tetap kompatibel.
+  var result = refreshPrayerCacheForCurrentCity(true);
+  if (!result || result.success !== true) {
+    throw new Error(
+      "Refresh cache kota aktif gagal. Cache lama tidak diubah. Periksa log dan coba lagi setelah memperbaiki penyebabnya."
+    );
+  }
+  Logger.log(
+    "REFRESH CACHE KOTA AKTIF SELESAI: " + JSON.stringify(result)
+  );
+  return {
+    success: true,
+    refreshed: true,
+    refreshedFrom: "AlAdhan API / method 20 (Indonesia)",
+    result: result
+  };
+}
+
+/**
+ * Refresh layanan latar belakang: memperbarui cache BULANAN AlAdhan saja.
+ * Tidak membuat atau menulis cache harian GitHub.
+ */
+function refreshPrayerCacheForCurrentCity(forceRefresh) {
+  const ss = getSpreadsheet();
+  const panels = ss.getSheetByName("panels");
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+  const loc = panels.getRange("C5:C10").getDisplayValues().map(function(row) {
+    return String(row[0] || "").trim();
+  });
+  const city = loc[0];
+  const timezone = loc[3] || "Asia/Makassar";
+  if (!city) throw new Error("panels!C5 (kota) kosong.");
+  const date = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd");
+
+  // forceRefresh=true membuat getPrayerSchedule memperbarui dokumen cache bulanan
+  // dari calendarByCity AlAdhan. Jalur ini tidak menulis data harian.
+  const schedule = getPrayerSchedule(date, { forceRefresh: forceRefresh === true });
+  if (!schedule || schedule.success !== true ||
+      String(schedule.tanggal || "") !== date ||
+      !schedule.jadwal || !isCompletePrayerScheduleSafe_(schedule.jadwal) ||
+      !String(schedule.hijri || "").trim()) {
+    const reason = schedule && (schedule.error || schedule.alAdhanError || schedule.fallbackReason);
+    Logger.log("REFRESH CACHE BULANAN DILEWATI; data AlAdhan belum valid untuk " + city + " " + date +
+      (reason ? ": " + reason : ""));
+    return { success: false, skipped: true, kota: city, tanggal: date, error: reason || "Data AlAdhan belum lengkap." };
+  }
+
+  const cacheSource = String(schedule.cacheSource || "Cache bulanan AlAdhan tervalidasi");
+  // "changed" hanya true jika dokumen bulanan benar-benar ditulis ke GitHub.
+  // Validasi data identik tidak dihitung sebagai perubahan.
+  const changed = cacheSource.indexOf("refresh tersimpan ke GitHub") >= 0;
+  Logger.log("CACHE BULANAN ALADHAN VALID: " + city + " " + date +
+    "; status=" + cacheSource + "; changed=" + changed +
+    "; tidak ada cache harian GitHub yang dibuat.");
+  return {
+    success: true, changed: changed, kota: city, tanggal: date,
+    timezone: timezone, source: schedule.source,
+    cacheSource: cacheSource
+  };
+}
+
+/**
+ * Pemicu installable saat panels!C5 berubah.
+ * Menyelaraskan metadata lokasi dahulu, lalu memperbarui cache jadwal GitHub.
+ * Terpisah dari onEdit(e) agar tidak mengubah alur panel atau scheduler audio.
+ */
+function handlePrayerCacheCityEdit_(e) {
+  if (!e || !e.range) return;
+  const range = e.range;
+  const sheet = range.getSheet();
+  if (sheet.getName() !== "panels" || range.getA1Notation() !== "C5") return;
+
+  try {
+    syncPrayerPanelLocationFromCity_(range.getDisplayValue(), false);
+    // Saat kota berubah, refresh cache bulanan dan tahunan dari AlAdhan.
+    // Cache tahunan harus mengikuti lokasi baru agar fallback Hijriah tersedia.
+    runPrayerCacheAutoRefresh_("pergantian kota", true);
+    try {
+      var hijriRefresh = refreshHijriCalendarCacheFromAlAdhan();
+      Logger.log("AUTO CACHE HIJRIAH SAAT KOTA BERUBAH: " + JSON.stringify(hijriRefresh));
+    } catch (hijriError) {
+      // Kegagalan cache Hijriah tidak membatalkan hasil cache sholat yang sudah berhasil.
+      Logger.log("AUTO CACHE HIJRIAH SAAT KOTA BERUBAH GAGAL: " +
+        (hijriError && hijriError.stack ? hijriError.stack : hijriError));
+    }
+  } catch (error) {
+    Logger.log("AUTO CACHE JADWAL SAAT KOTA BERUBAH GAGAL: " +
+      (error && error.stack ? error.stack : error));
+    throw error;
+  }
+}
+
+/**
+ * Pemicu berkala untuk menangani pergantian tanggal lokal dan menjaga cache
+ * tetap baru meski kota tidak berubah. Tidak membuat commit jika data sama.
+ */
+function autoRefreshPrayerCachePeriodic_() {
+  // Refresh cache jadwal sholat bulanan dari AlAdhan; tidak membuat cache harian.
+  runPrayerCacheAutoRefresh_("pemeriksaan berkala", true);
+}
+
+/**
+ * Pembungkus publik agar pemeriksaan cache dapat dijalankan manual dari editor.
+ * Pemicu otomatis tetap menggunakan autoRefreshPrayerCachePeriodic_.
+ */
+function testAutoRefreshPrayerCachePeriodic() {
+  return autoRefreshPrayerCachePeriodic_();
+}
+
+/**
+ * Kompatibilitas pemicu lama: validasi harian, bukan unduhan ulang satu tahun.
+ */
+function autoRefreshHijriCalendarCachePeriodic_() {
+  return validateHijriCalendarCacheDaily();
+}
+
+/** Menjalankan pembaruan dengan lock agar edit kota dan pemicu berkala tidak bertabrakan. */
+function runPrayerCacheAutoRefresh_(reason, forceRefresh) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) {
+    Logger.log("AUTO CACHE JADWAL DILEWATI: proses lain masih berjalan (" + reason + ").");
+    return { success: false, skipped: true, reason: "lock_busy" };
+  }
+  try {
+    const result = refreshPrayerCacheForCurrentCity(forceRefresh === true);
+    Logger.log("AUTO CACHE JADWAL (" + reason + ", forceRefresh=" + (forceRefresh === true) + "): " + JSON.stringify(result));
+    return result;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * Jalankan SATU KALI secara manual setelah kode ini tersedia di Apps Script.
+ * Memasang pemicu edit khusus untuk panels!C5 dan pemeriksaan berkala 6 jam.
+ * Hanya mengganti pemicu milik fitur cache ini; pemicu audio dan pemicu lain
+ * tidak dihapus atau diubah.
+ */
+function setupPrayerCacheAutoTriggers() {
+  const handlers = [
+    "handlePrayerCacheCityEdit_",
+    "autoRefreshPrayerCachePeriodic_",
+    "autoRefreshHijriCalendarCachePeriodic_",
+    // Pemicu lama ini digantikan oleh autoRefreshPrayerCachePeriodic_ setiap 6 jam.
+    "refreshPrayerCacheForCurrentCity"
+  ];
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    if (handlers.indexOf(trigger.getHandlerFunction()) >= 0) {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+
+  const spreadsheetId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+  if (!spreadsheetId) {
+    throw new Error("SPREADSHEET_ID belum diisi pada Script Properties.");
+  }
+
+  ScriptApp.newTrigger("handlePrayerCacheCityEdit_")
+    .forSpreadsheet(spreadsheetId)
+    .onEdit()
+    .create();
+
+  ScriptApp.newTrigger("autoRefreshPrayerCachePeriodic_")
+    .timeBased()
+    .everyHours(6)
+    .create();
+
+  // Kalender Hijriah kini memakai pemicu harian per zona; tidak lagi pemicu mingguan.
+  setupHijriCalendarCacheAutoTriggers();
+
+  Logger.log("PEMICU CACHE AKTIF: saat panels!C5 berubah, jadwal sholat tiap 6 jam, kalender Hijriah harian WIB/WITA/WIT.");
+}
+
+/** Membaca JSON dari branch migration; null hanya jika file memang belum ada (HTTP 404). */
+function readGithubJsonFile_(path, branchOverride) {
+  const targetBranch = String(branchOverride || PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
+  const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
+  if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
+  const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
+    path.split("/").map(encodeURIComponent).join("/") + "?ref=" + encodeURIComponent(targetBranch);
+  const response = UrlFetchApp.fetch(url, {
+    method: "get",
+    muteHttpExceptions: true,
+    headers: {
+      Authorization: "Bearer " + token,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28"
+    }
+  });
+  if (response.getResponseCode() === 404) return null;
+  if (response.getResponseCode() !== 200) {
+    throw new Error("Gagal membaca GitHub " + path + " (HTTP " + response.getResponseCode() + ").");
+  }
+  const file = JSON.parse(response.getContentText() || "{}");
+  const raw = Utilities.base64Decode(String(file.content || "").replace(/\s/g, ""));
+  return JSON.parse(Utilities.newBlob(raw).getDataAsString("UTF-8"));
+}
+
+/** Membuat atau memperbarui JSON di branch migration dengan token di Script Properties. */
+function writeGithubJsonFile_(path, document, message, branchOverride) {
+  const targetBranch = String(branchOverride || PropertiesService.getScriptProperties().getProperty("GITHUB_CACHE_BRANCH") || "main").trim();
+  const token = String(PropertiesService.getScriptProperties().getProperty("GITHUB_UPLOAD_TOKEN") || "").trim();
+  if (!token) throw new Error("Script Property GITHUB_UPLOAD_TOKEN belum diisi.");
+  const url = "https://api.github.com/repos/fonntemax-1/audio-masjid/contents/" +
+    path.split("/").map(encodeURIComponent).join("/");
+  const headers = {
+    Authorization: "Bearer " + token,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+  const getResponse = UrlFetchApp.fetch(url + "?ref=" + encodeURIComponent(targetBranch), {
+    method: "get", muteHttpExceptions: true, headers: headers
+  });
+  let sha = "";
+  if (getResponse.getResponseCode() === 200) {
+    sha = String(JSON.parse(getResponse.getContentText() || "{}").sha || "");
+  } else if (getResponse.getResponseCode() !== 404) {
+    throw new Error("Gagal memeriksa GitHub " + path + " (HTTP " + getResponse.getResponseCode() + ").");
+  }
+  const content = JSON.stringify(document, null, 2) + "\n";
+  const payload = {
+    message: message,
+    content: Utilities.base64Encode(Utilities.newBlob(content, "application/json").getBytes()),
+    branch: targetBranch
+  };
+  if (sha) payload.sha = sha;
+  const putResponse = UrlFetchApp.fetch(url, {
+    method: "put",
+    contentType: "application/json",
+    headers: headers,
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+  const code = putResponse.getResponseCode();
+  if (code < 200 || code >= 300) {
+    let detail = "";
+    try { detail = JSON.parse(putResponse.getContentText()).message || ""; } catch (ignore) {}
+    throw new Error("GitHub gagal menyimpan " + path + " (HTTP " + code + ")" +
+      (detail ? ": " + detail : "") + ".");
+  }
+  return { success: true, path: path };
+}
+
+function titleCaseLocation_(value) {
+  return String(value || "").toLowerCase().replace(/\b([a-zà-ÿ])/g, function(letter) {
+    return letter.toUpperCase();
+  }).trim();
+}
+
+function normalizePrayerLocationName_(value) {
+  return String(value || "").toUpperCase()
+    .replace(/^(KOTA\s+ADM\.?\s*|KOTA\s+|KABUPATEN\s+|KABUP\.?\s+|KAB\.?\s+)/, "")
+    .replace(/[^A-Z0-9]+/g, " ").trim().replace(/\s+/g, " ");
+}
+
+function normalizePrayerDropdownName_(value) {
+  return String(value || "").toUpperCase()
+    .replace(/[^A-Z0-9]+/g, " ").trim().replace(/\s+/g, " ");
+}
+
+function normalizePrayerCitySlug_(value) {
+  return normalizePrayerLocationName_(value).toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+/** Zona waktu ditentukan dari provinsi administratif, bukan tebakan koordinat. */
+function getIndonesianTimezoneByProvince_(province) {
+  const p = normalizePrayerLocationName_(province);
+  const wit = [
+    "MALUKU", "MALUKU UTARA", "PAPUA", "PAPUA BARAT", "PAPUA BARAT DAYA",
+    "PAPUA TENGAH", "PAPUA PEGUNUNGAN", "PAPUA SELATAN"
+  ];
+  const wita = [
+    "BALI", "NUSA TENGGARA BARAT", "NUSA TENGGARA TIMUR",
+    "KALIMANTAN SELATAN", "KALIMANTAN TIMUR", "KALIMANTAN UTARA",
+    "SULAWESI UTARA", "SULAWESI TENGAH", "SULAWESI SELATAN",
+    "SULAWESI TENGGARA", "SULAWESI BARAT", "GORONTALO"
+  ];
+  if (wit.indexOf(p) >= 0) return { zona: "WIT", timezone: "Asia/Jayapura", gmt: "GMT+9" };
+  if (wita.indexOf(p) >= 0) return { zona: "WITA", timezone: "Asia/Makassar", gmt: "GMT+8" };
+  return { zona: "WIB", timezone: "Asia/Jakarta", gmt: "GMT+7" };
+}
+
+/** Mengisi panels!C6:C10 sesuai pilihan di panels!C5. */
+function syncPrayerPanelLocationFromCity_(cityValue, showToast) {
+  const ss = getSpreadsheet();
+  const panels = ss.getSheetByName("panels");
+  if (!panels) throw new Error('Sheet "panels" tidak ditemukan.');
+
+  const city = String(cityValue || "").trim();
+  if (!city) return false;
+
+  // Sumber utama metadata wilayah adalah JSON di branch pengujian, bukan sheet daftar-kota.
+  const document = readGithubJsonFile_("data/daftar-kota.json", "main");
+  if (!document || !Array.isArray(document.cities) || document.cities.length !== 514) {
+    throw new Error("data/daftar-kota.json tidak tersedia atau jumlah wilayah tidak valid.");
+  }
+
+  const wanted = normalizePrayerDropdownName_(city);
+  const matches = document.cities.filter(function(item) {
+    return normalizePrayerDropdownName_(item.display_name || "") === wanted ||
+      normalizePrayerDropdownName_(item.name || "") === wanted;
+  });
+  if (!matches.length) throw new Error('Kota "' + city + '" tidak ditemukan pada data/daftar-kota.json.');
+  if (matches.length > 1) throw new Error('Nama kota "' + city + '" tidak unik pada data/daftar-kota.json.');
+
+  const item = matches[0];
+  const province = String(item.province || "").trim();
+  const zone = String(item.zone || "").trim();
+  const timezone = String(item.timezone || "").trim();
+  const gmt = String(item.gmt || "").trim();
+  const slug = String(item.slug || "").trim();
+  if (!province || !zone || !timezone || !gmt || !slug) {
+    throw new Error('Metadata wilayah "' + city + '" tidak lengkap pada data/daftar-kota.json.');
+  }
+
+  // C6 Provinsi, C7 Zona, C8 Timezone, C9 GMT, C10 slug kota.
+  panels.getRange("C6:C10").setValues([[province], [zone], [timezone], [gmt], [slug]]);
+  SpreadsheetApp.flush();
+  const written = panels.getRange("C6:C10").getDisplayValues().map(function(row) {
+    return String(row[0] || "").trim();
+  });
+  if (written[0] !== province || written[1] !== zone || written[2] !== timezone ||
+      written[3] !== gmt || written[4] !== slug) {
+    throw new Error('Verifikasi C6:C10 gagal untuk kota "' + city + '".');
+  }
+  if (showToast) ss.toast("Lokasi diperbarui dari GitHub JSON: " + item.display_name + " · " + item.province, "Daftar Kota", 3);
+  return true;
+}
+
+function onEdit(e) {
+  if (!e || !e.range) return;
+
+  const range = e.range;
+  const sheet = range.getSheet();
+  if (sheet.getName() !== "panels") return;
+
+  if (range.getA1Notation() === "C3") {
+    const mapsUrl = String(range.getDisplayValue() || "").trim();
+    const panels = sheet;
+    if (!mapsUrl) {
+      panels.getRange("C4").clearContent();
+      return;
+    }
+    try {
+      const remotePin = String(PropertiesService.getScriptProperties().getProperty("REMOTE_CONTROL_PIN") || "").trim();
+      if (!remotePin) throw new Error("Script Property REMOTE_CONTROL_PIN belum diisi.");
+      const result = resolveGoogleMapsLinkCityFromApi_({ mapsUrl: mapsUrl, pin: remotePin });
+      if (!result || result.success === false) throw new Error(result && result.error ? result.error : "Lokasi Google Maps gagal dikenali.");
+
+      // C5 diisi oleh script saat C3 Google Maps diproses, sehingga onEdit(C5)
+      // tidak berjalan. Panggil pembaruan cache secara eksplisit setelah lokasi selesai.
+      const activeCity = String(panels.getRange("C5").getDisplayValue() || "").trim();
+      if (activeCity) {
+        try {
+          const cacheResult = runPrayerCacheAutoRefresh_("lokasi Google Maps dari C3", true);
+          Logger.log("CACHE JADWAL SETELAH GOOGLE MAPS: " + JSON.stringify(cacheResult));
+        } catch (cacheError) {
+          Logger.log("CACHE JADWAL SETELAH GOOGLE MAPS GAGAL: " +
+            (cacheError && cacheError.stack ? cacheError.stack : cacheError));
+          try {
+            getSpreadsheet().toast(
+              "Lokasi berhasil dikenali, tetapi cache jadwal gagal diperbarui. Periksa Executions.",
+              "Cache Jadwal Sholat",
+              8
+            );
+          } catch (ignoreCacheToast) {}
+        }
+      }
+
+      try {
+        getSpreadsheet().toast(
+          "Lokasi dikenali: " + String(result.city || panels.getRange("C4").getDisplayValue()) +
+          (result.nearestCity ? " · Acuan jadwal: " + result.nearestCity : " · Kota acuan belum cocok"),
+          "Google Maps",
+          6
+        );
+      } catch (ignoreToast) {}
+    } catch (error) {
+      Logger.log("RESOLVE GOOGLE MAPS DARI C3 GAGAL: " + (error && error.stack ? error.stack : error));
+      try {
+        getSpreadsheet().toast("Link Google Maps gagal diproses: " + (error && error.message ? error.message : error), "Google Maps", 8);
+      } catch (ignoreToast) {}
+    }
+    return;
+  }
+
+  if (range.getA1Notation() === "C5") {
+    try {
+      syncPrayerPanelLocationFromCity_(range.getDisplayValue(), true);
+    } catch (error) {
+      Logger.log("UPDATE LOKASI DARI C5 GAGAL: " + (error && error.message ? error.message : error));
+      try { getSpreadsheet().toast("Lokasi belum diperbarui. Periksa sheet daftar-kota.", "Daftar Kota", 5); } catch (ignoreToast) {}
+    }
+    return;
+  }
+
+  if (range.getA1Notation() !== "C28") return;
+  formatPanelKegiatanSelector_(range);
+  updatePanelKegiatanFields_(sheet, range.getDisplayValue(), false);
+}
+
+/**
+ * Buat installable edit trigger untuk panels!C28.
+ * Code.gs ini memakai SPREADSHEET_ID/openById(), sehingga simple
+ * onEdit tidak cukup untuk spreadsheet yang tidak terikat langsung.
+ * Jalankan fungsi ini SEKALI dari Apps Script Editor dan izinkan akses.
+ */
+function setupPanelKegiatanEditTrigger() {
+  const spreadsheetId = PropertiesService
+    .getScriptProperties()
+    .getProperty("SPREADSHEET_ID");
+
+  if (!spreadsheetId) {
+    throw new Error("SPREADSHEET_ID belum diisi pada Script Properties.");
+  }
+
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    if (trigger.getHandlerFunction() === "onEdit") {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+
+  ScriptApp.newTrigger("onEdit")
+    .forSpreadsheet(spreadsheetId)
+    .onEdit()
+    .create();
+
+  Logger.log("TRIGGER PANEL KEGIATAN berhasil dibuat.");
+}
+
+/**
+ * Warna C26 mengikuti jenis kegiatan yang dipilih.
+ */
+function formatPanelKegiatanSelector_(selector) {
+  const key = String(selector.getDisplayValue() || "").trim().toUpperCase();
+
+  const colors = {
+    "SHOLAT JUM'AT": ["#b6d7a8", "#1b4332"],
+    "SHOLAT TARAWIH": ["#d9d2e9", "#351c75"],
+    "SHOLAT IDUL FITRI": ["#ffe599", "#7f6000"],
+    "SHOLAT IDUL ADHA": ["#9fc5e8", "#073763"]
+  };
+
+  const color = colors[key] || ["#ffffff", "#000000"];
+
+  selector
+    .setBackground(color[0])
+    .setFontColor(color[1])
+    .setFontWeight("bold")
+    .setHorizontalAlignment("center")
+    .setWrap(false);
+}
+
+/**
+ * Mengisi tanggal Jumat pada minggu berjalan.
+ * Contoh jika hari ini Senin-Sabtu, yang dipilih adalah Jumat
+ * pada minggu kalender yang sedang berjalan; jika hari ini Jumat,
+ * tanggal hari ini yang digunakan.
+ */
+
+/**
+ * Membentuk B29:B32 sesuai C28 dan mengatur C29:C32.
+ *
+ * resetValues=true dipakai saat setup awal.
+ * Saat C28 berubah melalui onEdit, data lama selalu dibersihkan
+ * agar Khatib/Imam/Muadzin/Bilal/Kultum tidak tertukar.
+ */
+function updatePanelKegiatanFields_(sheet, kegiatan, resetValues) {
+  const key = String(kegiatan || "").trim().toUpperCase();
+  const fields = PANEL_KEGIATAN_FIELDS_[key] || [];
+
+  const labelRange = sheet.getRange("B29:B32");
+  const valueRange = sheet.getRange("C29:C32");
+
+  // Label B29:B32 berubah otomatis berdasarkan C28.
+  // Menggunakan formula Sheet sehingga TIDAK membutuhkan onEdit trigger.
+  const formulaRows = [
+    ['=IF($C$28="SHOLAT JUM\'AT";"Tanggal";IF($C$28="SHOLAT TARAWIH";"Tanggal";IF($C$28="SHOLAT IDUL FITRI";"Tanggal";IF($C$28="SHOLAT IDUL ADHA";"Tanggal";""))))'],
+    ['=IF($C$28="SHOLAT JUM\'AT";"Khatib";IF($C$28="SHOLAT TARAWIH";"Imam";IF($C$28="SHOLAT IDUL FITRI";"Khatib";IF($C$28="SHOLAT IDUL ADHA";"Khatib";""))))'],
+    ['=IF($C$28="SHOLAT JUM\'AT";"Imam";IF($C$28="SHOLAT TARAWIH";"Bilal";IF($C$28="SHOLAT IDUL FITRI";"Imam";IF($C$28="SHOLAT IDUL ADHA";"Imam";""))))'],
+    ['=IF($C$28="SHOLAT JUM\'AT";"Bilal";IF($C$28="SHOLAT TARAWIH";"Kultum";IF($C$28="SHOLAT IDUL FITRI";"Bilal";IF($C$28="SHOLAT IDUL ADHA";"Bilal";""))))']
+  ];
+
+  labelRange.setFormulas(formulaRows);
+
+  // SEMUA data kegiatan, termasuk tanggal C29, MANUAL.
+  // C29:C32 tidak diisi/dihapus ketika C28 berubah.
+  valueRange.clearDataValidations();
+
+  if (fields.length > 0 && fields[0] === "Tanggal") {
+    valueRange.getCell(1, 1).setNumberFormat("dd/MM/yyyy");
+  }
+}
+/**
+ * Kompatibilitas nama fungsi lama.
+ * Tidak lagi menggunakan formula Sheets/custom function.
+ */
+
+/**
+ * API data kegiatan untuk GitHub Pages.
+ *
+ * Label selalu diambil dari konfigurasi PANEL_KEGIATAN_FIELDS_
+ * sehingga tidak pernah bergantung pada formula/error di B27:B30.
+ */
+// =====================================================
+// REALTIME DISPLAY CONFIG - konfigurasi ringan FRONT-END
+// Tidak membaca scheduler/audio/jadwal sholat.
+// =====================================================
+
+function getRealtimeDisplayConfig() {
+  try {
+    const ss = getSpreadsheet();
+    const panels = ss.getSheetByName('panels');
+    if (!panels) return { success: false, error: 'Sheet panels tidak ditemukan.' };
+
+    // Satu pembacaan blok untuk seluruh kontrol realtime.
+    // Menghindari banyak getRange() terpisah yang membuat Apps Script lambat.
+    const grid = panels.getRange('B2:G43').getDisplayValues();
+
+    const cell = function(row, col) {
+      return String((grid[row - 2] || [])[col - 2] || '').trim();
+    };
+
+    const location = [
+      cell(5,3),
+      cell(6,3),
+      cell(7,3),
+      cell(8,3),
+      cell(9,3),
+      cell(10,3)
+    ];
+    const c18 = cell(18,3);
+    const youtube = cell(20,3);
+    const youtubeStatusRaw = cell(20,6).toUpperCase();
+    const c22Raw = cell(22,3).toUpperCase();
+    const c2Raw = cell(2,3).toUpperCase();
+
+    // Header di B12:C37.
+    const header = {};
+    for (let r = 12; r <= 37; r++) {
+      const key = cell(r,2).toUpperCase();
+      const value = cell(r,3);
+      if (['NAMA','ALAMAT','KOTA','NO HP','SLOGAN','WEBSITE','INFO LAINNYA'].indexOf(key) >= 0) {
+        header[key] = value;
+      }
+    }
+
+    const kegiatan = [cell(29,3), cell(30,3), cell(31,3), cell(32,3)];
+    const event = [];
+    for (let r = 35; r <= 39; r++) {
+      const value = cell(r,2);
+      if (value) event.push(value);
+    }
+
+    const infaqModeRealtime = cell(41,3).toUpperCase() === 'AUTO' ? 'AUTO' : 'OFF';
+    const infaqText1Realtime = cell(42,3);
+    const infaqText2Realtime = cell(43,3);
+
+    Logger.log(
+      'REALTIME INFAQ C41/C42/C43 = [' +
+      infaqModeRealtime + '] [' +
+      infaqText1Realtime + '] [' +
+      infaqText2Realtime + ']'
+    );
+
+    let theme = String(c18 || '').trim().toUpperCase();
+    if (theme !== 'HIJAU' && theme !== 'MERAH' && theme !== 'KUNING') theme = 'KUNING';
+
+    return {
+      success: true,
+      PanelMode: c2Raw === 'AUTO' ? 'AUTO' : 'OFF',
+      Lokasi: {
+        kota: location[0], provinsi: location[1], zona: location[2],
+        timezone: location[3], gmt: location[4], slug: location[5]
+      },
+      DisplayTheme: theme,
+      Youtube: youtube,
+      YoutubeStatus: ['ON','OFF','AUTO','STOP'].indexOf(youtubeStatusRaw) >= 0 ? youtubeStatusRaw : 'AUTO',
+      IqomahMode: c22Raw === 'AUTO' || c22Raw === 'OFF' ? c22Raw : 'OFF',
+      // SINGLE MASJID MODE: seluruh identitas langsung dari Spreadsheet ORIGINAL.
+      Nama: cell(12,3),
+      Alamat: header.ALAMAT || '',
+      Kota: header.KOTA || '',
+      'No. Telp': header['NO HP'] || '',
+      Slogan: header.SLOGAN || '',
+      Website: header.WEBSITE || '',
+      InfoLainnya: header['INFO LAINNYA'] || '',
+
+      // INFAQ & SHADAQAH realtime: panels!C41:C43.
+      // Dibaca dalam snapshot ringan yang sama agar perubahan C41/C42/C43
+      // tetap tampil walaupun endpoint panel cepat sedang terlambat.
+      InfaqMode: cell(41,3).toUpperCase() === 'AUTO' ? 'AUTO' : 'OFF',
+      Infaq: {
+        text1: cell(42,3),
+        text2: cell(43,3)
+      },
+
+      Kegiatan: {
+        jenis: cell(28,3).toUpperCase(),
+        values: kegiatan
+      },
+      EventRunningText: event.join(' • ')
+    };
+  } catch (error) {
+    Logger.log('REALTIME DISPLAY CONFIG ERROR: ' + error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+// =====================================================
+// REALTIME KHUSUS PANEL - KEUANGAN / QUR'BAN / PETUGAS SHOLAT
+// Satu endpoint untuk frontend agar tidak melakukan beberapa
+// request Apps Script terpisah.
+// =====================================================
+function getRealtimePanelsFast() {
+  try {
+    const ss = getSpreadsheet();
+    const panels = ss.getSheetByName('panels');
+    if (!panels) return { success: false, error: 'Sheet panels tidak ditemukan.' };
+
+    // INFAQ & SHADAQAH: panels!C42:C43
+    const infaqValues = panels.getRange('C42:C43').getDisplayValues();
+    const infaqText1 = String((infaqValues[0] || [])[0] || '').trim();
+    const infaqText2 = String((infaqValues[1] || [])[0] || '').trim();
+
+    const infaqMode = String(panels.getRange('C41').getDisplayValue() || '').trim().toUpperCase();
+
+    Logger.log(
+      'REALTIME PANELS INFAQ C41/C42/C43 = [' +
+      infaqMode + '] [' + infaqText1 + '] [' + infaqText2 + ']'
+    );
+
+    const panelValues = panels.getRange('C26:C32').getDisplayValues();
+    const selectorRaw = String((panelValues[0] || [])[0] || '').trim();
+    const selectorKey = selectorRaw.toUpperCase().replace(/[\s’‘']/g, '');
+    const selectedKey =
+      selectorKey === 'QURBAN'
+        ? 'QURBAN'
+        : selectorKey === 'PENGURUS'
+          ? 'PENGURUS'
+          : selectorKey === 'KEUANGAN'
+            ? 'KEUANGAN'
+            : '';
+
+    const jenis = String((panelValues[2] || [])[0] || '').trim().toUpperCase();
+    const kegiatanValues = [
+      String((panelValues[3] || [])[0] || '').trim(),
+      String((panelValues[4] || [])[0] || '').trim(),
+      String((panelValues[5] || [])[0] || '').trim(),
+      String((panelValues[6] || [])[0] || '').trim()
+    ];
+
+    const configuredFields = PANEL_KEGIATAN_FIELDS_[jenis] || [];
+    const fields = {};
+    configuredFields.forEach(function(label, index) {
+      fields[label] = kegiatanValues[index] || '';
+    });
+
+    let selectedSheet = null;
+    ss.getSheets().some(function(sheet) {
+      const key = String(sheet.getName() || '')
+        .toUpperCase()
+        .replace(/[\s’‘']/g, '');
+      if (key === selectedKey) {
+        selectedSheet = sheet;
+        return true;
+      }
+      return false;
+    });
+
+    let title = '', date = '', a3 = '', rows = [], headerStyles = null;
+    if (selectedSheet) {
+      title = String(selectedSheet.getRange('A1').getDisplayValue() || '').trim();
+      date = String(selectedSheet.getRange('A2').getDisplayValue() || '')
+        .replace(/^(0)(\d)(\s)/, '$2$3');
+      a3 = String(selectedSheet.getRange('A3').getDisplayValue() || '').trim();
+      headerStyles =
+        (selectedKey === 'QURBAN' || selectedKey === 'PENGURUS')
+          ? getQurbanHeaderStyles_(selectedSheet)
+          : null;
+
+      const lastRow = selectedSheet.getLastRow();
+      if (selectedKey === 'QURBAN') {
+        if (lastRow >= 5) {
+          selectedSheet.getRange(5, 1, lastRow - 4, 1).getDisplayValues()
+            .forEach(function(row) {
+              rows.push([String(row[0] == null ? '' : row[0]).trim(), '']);
+            });
+        }
+      } else if (selectedKey === 'PENGURUS') {
+        // PENGURUS realtime: baca A5 sampai baris terakhir yang
+        // benar-benar berisi data. getLastRow() menjadi batas dinamis,
+        // sehingga tidak ada batas jumlah baris dari sisi program.
+        const pengurusStartRow = 19;
+        const lastPengurusContentRow = getLastFilledColumnRow_(selectedSheet, pengurusStartRow, 1);
+        if (lastPengurusContentRow >= pengurusStartRow) {
+          const pengurusRows = selectedSheet
+            .getRange(
+              pengurusStartRow,
+              1,
+              lastPengurusContentRow - pengurusStartRow + 1,
+              1
+            )
+            .getDisplayValues();
+
+          pengurusRows.forEach(function(displayRow) {
+            rows.push([
+              String(displayRow[0] == null ? '' : displayRow[0]).trim(),
+              ''
+            ]);
+          });
+        }
+      } else if (lastRow >= 4) {
+        selectedSheet.getRange(4, 1, lastRow - 3, 2).getDisplayValues()
+          .forEach(function(row) {
+            rows.push([
+              String(row[0] == null ? '' : row[0]).trim(),
+              String(row[1] == null ? '' : row[1]).trim()
+            ]);
+          });
+      }
+    }
+
+    const panelKeuangan = {
+      selector: selectedKey,
+      title: title,
+      date: date,
+      a3: a3,
+      rows: rows,
+      headerStyles: headerStyles
+    };
+
+    return {
+      success: true,
+      signature: JSON.stringify([selectedKey, title, date, a3, rows, headerStyles, jenis, kegiatanValues, infaqText1, infaqText2, infaqMode]),
+      Infaq: { text1: infaqText1, text2: infaqText2 },
+      InfaqMode: infaqMode === 'AUTO' ? 'AUTO' : 'OFF',
+      Kegiatan: { success: true, jenis: jenis, fields: fields },
+      PanelKeuangan: panelKeuangan
+    };
+  } catch (error) {
+    Logger.log('REALTIME PANELS FAST ERROR: ' + error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+
+function getPanelKegiatan() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName("panels");
+
+    if (!sheet) {
+      return {
+        success: false,
+        error: "Sheet panels tidak ditemukan.",
+        jenis: "",
+        fields: {}
+      };
+    }
+
+    const jenis = String(
+      sheet.getRange("C28").getDisplayValue() || ""
+    ).trim().toUpperCase();
+
+    const configuredFields = PANEL_KEGIATAN_FIELDS_[jenis] || [];
+    const values = sheet.getRange("C29:C32").getDisplayValues();
+
+    const fields = {};
+
+    configuredFields.forEach(function(label, index) {
+      fields[label] = String(
+        values[index] && values[index][0] != null
+          ? values[index][0]
+          : ""
+      ).trim();
+    });
+
+    return {
+      success: true,
+      jenis: jenis,
+      fields: fields
+    };
+
+  } catch (error) {
+    Logger.log("PANEL KEGIATAN ERROR: " + error.message);
+
+    return {
+      success: false,
+      error: error.message,
+      jenis: "",
+      fields: {}
+    };
+  }
+}
+
+
+
+// =====================================================
+// FORMAT QUR'BAN A1:A3 DARI SPREADSHEET
+// Membaca format sel langsung agar frontend mudah diubah
+// hanya dari Google Sheets.
+// =====================================================
+function getQurbanHeaderStyles_(sheet) {
+  if (!sheet) return null;
+
+  const styles = {};
+  ['A1', 'A2', 'A3'].forEach(function(a1) {
+    const range = sheet.getRange(a1);
+    const row = range.getRow();
+
+    styles[a1] = {
+      fontFamily: range.getFontFamily() || '',
+      fontSizePt: range.getFontSize(),
+      fontWeight: range.getFontWeight() || '',
+      fontStyle: range.getFontStyle() || '',
+      horizontalAlignment: range.getHorizontalAlignment() || '',
+      verticalAlignment: range.getVerticalAlignment() || '',
+      wrap: range.getWrap(),
+      rowHeightPx: sheet.getRowHeight(row)
+    };
+  });
+
+  return styles;
+}
+
+// =====================================================
+// HELPER: BARIS TERAKHIR YANG BENAR-BENAR TERISI
+// Dipakai PENGURUS agar data berhenti tepat pada field terakhir.
+// =====================================================
+function getLastFilledColumnRow_(sheet, startRow, column) {
+  const sheetLastRow = sheet.getLastRow();
+  if (sheetLastRow < startRow) return startRow - 1;
+
+  const values = sheet
+    .getRange(startRow, column, sheetLastRow - startRow + 1, 1)
+    .getDisplayValues();
+
+  for (let i = values.length - 1; i >= 0; i--) {
+    if (String(values[i][0] == null ? '' : values[i][0]).trim() !== '') {
+      return startRow + i;
+    }
+  }
+
+  return startRow - 1;
+}
+
+// =====================================================
+// PANEL KEUANGAN / QUR'BAN CEPAT - panels!C26
+// Hanya membaca selector + data panel. Tidak menjalankan
+// getDataFromSheet(), scheduler, audio, atau jadwal sholat.
+// =====================================================
+function getPanelKeuanganSource() {
+  const ss = getSpreadsheet();
+  const panels = ss.getSheetByName('panels');
+  const rawSelector = panels
+    ? String(panels.getRange('C26').getDisplayValue() || '').trim()
+    : '';
+
+  const selectorKey = rawSelector
+    .toUpperCase()
+    .replace(/[\\s’‘']/g, '');
+
+  const selectedKey =
+    selectorKey === 'QURBAN'
+      ? 'QURBAN'
+      : selectorKey === 'PENGURUS'
+        ? 'PENGURUS'
+        : selectorKey === 'KEUANGAN'
+          ? 'KEUANGAN'
+          : '';
+
+  let selectedSheet = null;
+  ss.getSheets().some(function(sheet) {
+    const key = String(sheet.getName() || '')
+      .toUpperCase()
+      .replace(/[\\s’‘']/g, '');
+    if (key === selectedKey) {
+      selectedSheet = sheet;
+      return true;
+    }
+    return false;
+  });
+
+  if (!selectedSheet) {
+    return { selector: selectedKey, title: '', date: '', a3: '', rows: [], headerStyles: null };
+  }
+
+  const title = String(selectedSheet.getRange('A1').getDisplayValue() || '').trim();
+  const date = String(selectedSheet.getRange('A2').getDisplayValue() || '')
+    .replace(/^(0)(\d)(\\s)/, '$2$3');
+  const a3 = String(selectedSheet.getRange('A3').getDisplayValue() || '').trim();
+  const headerStyles =
+    (selectedKey === 'QURBAN' || selectedKey === 'PENGURUS')
+      ? getQurbanHeaderStyles_(selectedSheet)
+      : null;
+  const rows = [];
+  const lastRow = selectedSheet.getLastRow();
+
+  if (selectedKey === 'QURBAN') {
+    // A1 judul, A2 masjid/tanggal, A3 header, A4 dilewati, A5:A scrolling.
+    // Baris kosong dipertahankan agar spasi mengikuti spreadsheet.
+    if (lastRow >= 5) {
+      selectedSheet.getRange(5, 1, lastRow - 4, 1).getDisplayValues()
+        .forEach(function(displayRow) {
+          rows.push([String(displayRow[0] == null ? '' : displayRow[0]).trim(), '']);
+        });
+    }
+  } else if (selectedKey === 'PENGURUS') {
+    // PENGURUS mengikuti format QURBAN.
+    // A1:A4 adalah header; data/scrolling dimulai dari A5.
+    // Batas bawah dinamis mengikuti baris terakhir yang berisi data.
+    const pengurusStartRow = 19;
+    const lastPengurusContentRow = getLastFilledColumnRow_(selectedSheet, pengurusStartRow, 1);
+    if (lastPengurusContentRow >= pengurusStartRow) {
+      const pengurusRows = selectedSheet
+        .getRange(
+          pengurusStartRow,
+          1,
+          lastPengurusContentRow - pengurusStartRow + 1,
+          1
+        )
+        .getDisplayValues();
+
+      pengurusRows.forEach(function(displayRow) {
+        rows.push([
+          String(displayRow[0] == null ? '' : displayRow[0]).trim(),
+          ''
+        ]);
+      });
+    }
+  } else if (lastRow >= 4) {
+    selectedSheet.getRange(4, 1, lastRow - 3, 2).getDisplayValues()
+      .forEach(function(displayRow) {
+        const row = [
+          String(displayRow[0] == null ? '' : displayRow[0]).trim(),
+          String(displayRow[1] == null ? '' : displayRow[1]).trim()
+        ];
+        if (row[0] !== '' || row[1] !== '') rows.push(row);
+      });
+  }
+
+  return { selector: selectedKey, title: title, date: date, a3: a3, rows: rows, headerStyles: headerStyles };
+}
+
+
+/**
+ * UJI LANGSUNG ALADHAN TANPA CACHE APLIKASI.
+ * Membaca lokasi dari panels!C5:C6 dan menguji method 20 (Kemenag Indonesia).
+ * Hanya GET API dan menulis log; tidak mengubah sheet, cache, atau scheduler.
+ */
+
+/**
+ * Uji nama wilayah AlAdhan lintas WIB, WITA, dan WIT.
+ * Hanya memanggil API dan menulis log; tidak mengubah panels, cache, trigger, atau audio.
+ * Jalankan manual dari Apps Script Editor dan periksa hasil tiap wilayah.
+ */
+function TEST_ALADHAN_CROSS_TIMEZONE() {
+  const samples = [
+    { city: "Kabupaten Sumedang", province: "Jawa Barat", timezone: "Asia/Jakarta", zone: "WIB" },
+    { city: "Kota Balikpapan", province: "Kalimantan Timur", timezone: "Asia/Makassar", zone: "WITA" },
+    { city: "Kota Administrasi Jakarta Pusat", province: "Daerah Khusus Ibukota Jakarta", timezone: "Asia/Jakarta", zone: "WIB" },
+    { city: "Kabupaten Jayapura", province: "Papua", timezone: "Asia/Jayapura", zone: "WIT" }
+  ];
+  const now = new Date();
+  const year = Number(Utilities.formatDate(now, "Asia/Makassar", "yyyy"));
+  const month = Number(Utilities.formatDate(now, "Asia/Makassar", "M"));
+  const expectedDays = new Date(year, month, 0).getDate();
+  const results = [];
+
+  samples.forEach(function(sample) {
+    const url = "https://api.aladhan.com/v1/calendarByCity/" + year + "/" + month +
+      "?city=" + encodeURIComponent(sample.city) +
+      "&country=" + encodeURIComponent("Indonesia") +
+      "&state=" + encodeURIComponent(sample.province) +
+      "&method=20&school=0&timezonestring=" + encodeURIComponent(sample.timezone);
+    const result = {
+      kota: sample.city,
+      provinsi: sample.province,
+      zona: sample.zone,
+      timezone: sample.timezone,
+      success: false
+    };
+    try {
+      const response = UrlFetchApp.fetch(url, {
+        method: "get",
+        muteHttpExceptions: true,
+        headers: { "Accept": "application/json" }
+      });
+      result.httpStatus = response.getResponseCode();
+      if (result.httpStatus !== 200) {
+        result.error = response.getContentText().slice(0, 250);
+      } else {
+        const payload = JSON.parse(response.getContentText() || "{}");
+        const days = Array.isArray(payload.data) ? payload.data : [];
+        const ids = {};
+        const invalid = [];
+        days.forEach(function(day) {
+          const rawDate = String(day && day.date && day.date.gregorian && day.date.gregorian.date || "");
+          const m = rawDate.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+          const iso = m ? m[3] + "-" + m[2] + "-" + m[1] : "";
+          if (!iso || iso.slice(0, 7) !== year + "-" + ("0" + month).slice(-2)) invalid.push("tanggal");
+          if (ids[iso]) invalid.push("duplikat");
+          ids[iso] = true;
+          const methodId = day && day.meta && day.meta.method ? Number(day.meta.method.id) : 20;
+          if (methodId !== 20) invalid.push("method bukan 20");
+          const t = day && day.timings || {};
+          ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"].forEach(function(key) {
+            if (!/^\d{1,2}:\d{2}/.test(String(t[key] || ""))) invalid.push("waktu " + key);
+          });
+        });
+        result.dayCount = days.length;
+        result.expectedDays = expectedDays;
+        result.methodId = days.length && days[0].meta && days[0].meta.method
+          ? Number(days[0].meta.method.id) : null;
+        result.success = days.length === expectedDays && Object.keys(ids).length === expectedDays && invalid.length === 0;
+        if (!result.success) result.error = invalid.slice(0, 5).join(", ") || "Jumlah tanggal tidak sesuai";
+      }
+    } catch (error) {
+      result.error = error && error.message ? error.message : String(error);
+    }
+    results.push(result);
+    Logger.log("UJI ALADHAN " + sample.zone + " " + sample.city + ": " + JSON.stringify(result));
+  });
+
+  const passed = results.filter(function(item) { return item.success; }).length;
+  const report = { success: passed === samples.length, passed: passed, total: samples.length, results: results };
+  Logger.log("RINGKASAN UJI ALADHAN LINTAS ZONA: " + JSON.stringify(report));
+  return report;
+}
+
+
+/**
+ * Audit trigger otomatis untuk daftar kota dan cache jadwal.
+ * Hanya membaca trigger yang sudah ada; tidak membuat atau menghapus trigger.
+ */
+function TEST_AUDIT_TRIGGER_ALADHAN() {
+  const expected = {
+    refreshDaftarKotaDariGithub: { daily: 1, everyThirtyMinutes: 0 },
+    refreshPrayerCacheForCurrentCity: { daily: 1, everyThirtyMinutes: 1 }
+  };
+  const triggers = ScriptApp.getProjectTriggers();
+  const counts = {};
+  const details = [];
+
+  triggers.forEach(function(trigger) {
+    const handler = trigger.getHandlerFunction();
+    const eventType = String(trigger.getEventType());
+    const source = String(trigger.getTriggerSource());
+    const triggerSourceId = trigger.getTriggerSourceId ? trigger.getTriggerSourceId() : "";
+    counts[handler] = (counts[handler] || 0) + 1;
+    details.push({
+      handler: handler,
+      eventType: eventType,
+      source: source,
+      sourceId: triggerSourceId || ""
+    });
+  });
+
+  const requiredHandlers = Object.keys(expected);
+  const relevant = details.filter(function(item) {
+    return requiredHandlers.indexOf(item.handler) >= 0 ||
+      item.handler === "refreshDaftarKotaAPIIndonesia";
+  });
+  const issues = [];
+  requiredHandlers.forEach(function(handler) {
+    if (!counts[handler]) issues.push("Trigger belum ada: " + handler);
+  });
+  if ((counts.refreshPrayerCacheForCurrentCity || 0) !== 2) {
+    issues.push("refreshPrayerCacheForCurrentCity seharusnya memiliki 2 trigger (harian dan 30 menit), ditemukan " +
+      (counts.refreshPrayerCacheForCurrentCity || 0));
+  }
+  if ((counts.refreshDaftarKotaDariGithub || 0) !== 1) {
+    issues.push("refreshDaftarKotaDariGithub seharusnya memiliki 1 trigger harian, ditemukan " +
+      (counts.refreshDaftarKotaDariGithub || 0));
+  }
+  if (counts.refreshDaftarKotaAPIIndonesia) {
+    issues.push("Trigger alias lama refreshDaftarKotaAPIIndonesia masih ada; pertimbangkan menjalankan setupDropdownKotaAPIIndonesia sekali untuk merapikan.");
+  }
+
+  const report = {
+    success: issues.length === 0,
+    totalProjectTriggers: triggers.length,
+    relevantTriggerCount: relevant.length,
+    counts: {
+      refreshDaftarKotaDariGithub: counts.refreshDaftarKotaDariGithub || 0,
+      refreshPrayerCacheForCurrentCity: counts.refreshPrayerCacheForCurrentCity || 0,
+      refreshDaftarKotaAPIIndonesia: counts.refreshDaftarKotaAPIIndonesia || 0
+    },
+    issues: issues,
+    triggers: relevant
+  };
+  Logger.log("AUDIT TRIGGER ALADHAN: " + JSON.stringify(report));
+  return report;
+}
+
+function TEST_ALADHAN_SHOLAT_LANGSUNG() {
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) throw new Error('Sheet panels tidak ditemukan.');
+
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var city = loc[0] || '';
+  var province = loc[1] || '';
+  var timezone = loc[3] || 'Asia/Makassar';
+  if (!city) throw new Error('panels!C5 (kota) kosong.');
+
+  var date = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
+  var parts = date.split('-');
+  var year = Number(parts[0]);
+  var month = Number(parts[1]);
+  var monthText = ('0' + month).slice(-2);
+  var url = 'https://api.aladhan.com/v1/calendarByCity/' + year + '/' + month +
+    '?city=' + encodeURIComponent(city) +
+    '&country=' + encodeURIComponent('Indonesia') +
+    (province ? '&state=' + encodeURIComponent(province) : '') +
+    '&method=20&school=0&timezonestring=' + encodeURIComponent(timezone);
+
+  var response = UrlFetchApp.fetch(url, {
+    method: 'get',
+    muteHttpExceptions: true,
+    headers: { 'Accept': 'application/json' }
+  });
+  var status = response.getResponseCode();
+  var body = response.getContentText() || '';
+  if (status < 200 || status >= 300) {
+    var failed = { success: false, httpStatus: status, url: url, body: body.slice(0, 1000) };
+    Logger.log('TEST_ALADHAN_SHOLAT_LANGSUNG GAGAL: ' + JSON.stringify(failed));
+    return failed;
+  }
+
+  var json = JSON.parse(body);
+  var days = Array.isArray(json.data) ? json.data : [];
+  var wantedDate = date.split('-').reverse().join('-');
+  var row = days.filter(function(item) {
+    return String(item && item.date && item.date.gregorian && item.date.gregorian.date || '') === wantedDate;
+  })[0];
+
+  if (!row || !row.timings) {
+    var missing = {
+      success: false,
+      httpStatus: status,
+      kota: city,
+      provinsi: province,
+      tanggal: date,
+      jumlahHari: days.length,
+      error: 'Tanggal tidak ditemukan pada respons kalender AlAdhan.'
+    };
+    Logger.log('TEST_ALADHAN_SHOLAT_LANGSUNG GAGAL: ' + JSON.stringify(missing));
+    return missing;
+  }
+
+  var method = row.meta && row.meta.method ? row.meta.method : {};
+  var result = {
+    success: true,
+    pengujian: 'AlAdhan langsung tanpa cache aplikasi',
+    kota: city,
+    provinsi: province,
+    tanggal: date,
+    httpStatus: status,
+    jumlahHari: days.length,
+    sumber: 'api.aladhan.com',
+    methodId: method.id == null ? null : method.id,
+    methodName: method.name || null,
+    timezoneAPI: row.meta && row.meta.timezone || null,
+    timezoneSheet: timezone,
+    jadwal: {
+      imsak: row.timings.Imsak || null,
+      subuh: row.timings.Fajr || null,
+      terbit: row.timings.Sunrise || null,
+      dzuhur: row.timings.Dhuhr || null,
+      ashar: row.timings.Asr || null,
+      maghrib: row.timings.Maghrib || null,
+      isya: row.timings.Isha || null
+    }
+  };
+  Logger.log('TEST_ALADHAN_SHOLAT_LANGSUNG: ' + JSON.stringify(result, null, 2));
+  if (Number(result.methodId) !== 20) {
+    throw new Error('API tidak mengonfirmasi method 20: ' + JSON.stringify(result));
+  }
+  return result;
+}
+
+
+/**
+ * UJI INTEGRASI ALADHAN (JADWAL SHOLAT + KALENDER HIJRIAH).
+ * Jalankan manual dari Apps Script Editor untuk memastikan kedua endpoint,
+ * API key, lokasi aktif, dan tanggal respons berfungsi normal.
+ * Hanya membaca Spreadsheet/API dan menulis log; tidak mengubah sheet,
+ * cache GitHub, trigger, tampilan, atau scheduler audio.
+ */
+
+
+/**
+ * Uji integrasi jadwal sholat dan kalender Hijriah AlAdhan.
+ * Hanya membaca hasil dan menulis log; tidak mengubah sheet, cache,
+ * trigger, tampilan, atau scheduler audio.
+ */
+function TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION() {
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) throw new Error('Sheet panels tidak ditemukan.');
+
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var city = loc[0];
+  var province = loc[1];
+  var timezone = loc[3] || 'Asia/Makassar';
+  if (!city) throw new Error('panels!C5 (kota) kosong.');
+
+  var date = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
+  var prayer = getPrayerSchedule(date);
+  if (!prayer || prayer.success !== true) {
+    throw new Error('Uji jadwal sholat gagal: ' +
+      String(prayer && (prayer.alAdhanError || prayer.error) || 'respons tidak sukses'));
+  }
+  if (String(prayer.tanggal || '') !== date ||
+      !isCompletePrayerScheduleSafe_(prayer.jadwal)) {
+    throw new Error('Jadwal sholat tidak lengkap atau tanggal respons tidak cocok.');
+  }
+  if (String(prayer.source || '').indexOf('AlAdhan') < 0) {
+    throw new Error('Sumber jadwal sholat bukan AlAdhan: ' + String(prayer.source || '(kosong)'));
+  }
+
+  var hijri = getHijriDateFromApi(date);
+  if (!hijri || hijri.success !== true || hijri.found !== true || !String(hijri.hijri || '').trim()) {
+    throw new Error('Uji kalender Hijriah gagal: ' +
+      String(hijri && hijri.error || 'tanggal Hijriah tidak ditemukan'));
+  }
+  if (String(hijri.date || '') !== date) {
+    throw new Error('Tanggal respons kalender Hijriah tidak cocok.');
+  }
+
+  var prayerHijri = String(prayer.hijri || '').trim().replace(/\s+/g, ' ');
+  var cacheHijri = String(hijri.hijri || '').trim().replace(/\s+/g, ' ');
+  if (prayerHijri && cacheHijri && prayerHijri !== cacheHijri) {
+    throw new Error('Tanggal Hijriah berbeda antara cache jadwal bulanan dan cache tahunan: ' +
+      JSON.stringify({ jadwal: prayerHijri, kalenderTahunan: cacheHijri }));
+  }
+
+  var report = {
+    success: true,
+    pengujian: 'Integrasi jadwal sholat + kalender Hijriah AlAdhan',
+    kota: city,
+    provinsi: province,
+    tanggal: date,
+    timezone: timezone,
+    jadwalSource: prayer.source,
+    jadwalCacheSource: prayer.cacheSource || '',
+    jadwalLengkap: true,
+    kalenderHijriahSource: hijri.source,
+    kalenderHijriahCache: hijri.cached === true,
+    hijriJadwalBulanan: prayerHijri,
+    hijriCacheTahunan: cacheHijri,
+    jadwal: prayer.jadwal
+  };
+  Logger.log('TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION: ' + JSON.stringify(report, null, 2));
+  Logger.log('TEST_ALADHAN_SHOLAT_HIJRIAH_INTEGRATION LULUS');
+  return report;
+}
+
+/**
+ * UJI BACA CACHE CADANGAN ALADHAN TANPA MEMANGGIL API.
+ * Memastikan cache bulanan jadwal dan cache tahunan Hijriah tersedia,
+ * cocok dengan tanggal/lokasi aktif, lengkap, dan konsisten.
+ * Hanya membaca GitHub/Spreadsheet dan dapat mengisi CacheService runtime;
+ * tidak menulis file GitHub, sheet, trigger, UI, atau scheduler audio.
+ * Opsional: panggil dengan tanggal YYYY-MM-DD.
+ */
+function TEST_ALADHAN_CACHE_CADANGAN(dateString) {
+  var ss = getSpreadsheet();
+  var panels = ss.getSheetByName('panels');
+  if (!panels) throw new Error('Sheet panels tidak ditemukan.');
+  var loc = panels.getRange('C5:C10').getDisplayValues().map(function(row) {
+    return String(row[0] || '').trim();
+  });
+  var city = loc[0] || '';
+  var province = loc[1] || '';
+  var timezone = loc[3] || 'Asia/Makassar';
+  if (!city) throw new Error('panels!C5 (kota) kosong.');
+  var date = String(dateString || Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd')).trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new Error('Format tanggal harus YYYY-MM-DD.');
+  }
+
+  var prayer = getPrayerScheduleFromMonthlyCache_(date, { forceRefresh: false });
+  var hijri = getHijriDateFromAnnualCache_(date);
+  var issues = [];
+  if (!prayer || prayer.success !== true) {
+    issues.push('Cache bulanan jadwal gagal: ' + String(prayer && (prayer.alAdhanError || prayer.error) || 'respons tidak sukses'));
+  }
+  if (!hijri || hijri.success !== true || hijri.found !== true) {
+    issues.push('Cache tahunan Hijriah gagal: ' + String(hijri && hijri.error || 'respons tidak sukses'));
+  }
+  if (prayer && prayer.success === true && String(prayer.tanggal || '') !== date) {
+    issues.push('Tanggal jadwal cache tidak cocok.');
+  }
+  if (hijri && hijri.success === true && String(hijri.date || '') !== date) {
+    issues.push('Tanggal Hijriah cache tidak cocok.');
+  }
+  var prayerHijri = String(prayer && prayer.hijri || '').trim().replace(/\s+/g, ' ');
+  var annualHijri = String(hijri && hijri.hijri || '').trim().replace(/\s+/g, ' ');
+  if (prayerHijri && annualHijri && prayerHijri !== annualHijri) {
+    issues.push('Tanggal Hijriah cache bulanan dan tahunan berbeda: ' +
+      JSON.stringify({ jadwalBulanan: prayerHijri, kalenderTahunan: annualHijri }));
+  }
+
+  var report = {
+    success: issues.length === 0,
+    pengujian: 'Baca cache cadangan AlAdhan tanpa panggilan API',
+    kota: city,
+    provinsi: province,
+    tanggal: date,
+    timezone: timezone,
+    jadwalSource: prayer && prayer.source || '',
+    jadwalCacheSource: prayer && prayer.cacheSource || '',
+    jadwalLengkap: !!(prayer && prayer.success === true && isCompletePrayerScheduleSafe_(prayer.jadwal)),
+    kalenderHijriahSource: hijri && hijri.source || '',
+    hijriCache: annualHijri,
+    hijriJadwalBulanan: prayerHijri,
+    issues: issues
+  };
+  Logger.log('TEST_ALADHAN_CACHE_CADANGAN: ' + JSON.stringify(report, null, 2));
+  if (!report.success) throw new Error('TEST_ALADHAN_CACHE_CADANGAN GAGAL: ' + JSON.stringify(issues));
+  Logger.log('TEST_ALADHAN_CACHE_CADANGAN LULUS');
+  return report;
+}
+
