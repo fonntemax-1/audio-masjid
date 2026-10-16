@@ -7464,8 +7464,8 @@ function startRealtimeAudioConfigPolling_() {
       const finTitle = document.getElementById('fin-title');
       if (finTitle) {
         finTitle.innerText = title.trim();
-        if (isQurbanStyle) {
-          // Font/layout A1 diambil dari QURBAN!A1.
+        if (isQurbanStyle || isZakat) {
+          // ZAKAT A1 mengikuti model judul QURBAN; A2 disamakan tipografinya di bawah.
           finTitle.style.color = 'var(--theme-accent)';
           finTitle.style.webkitTextFillColor = 'var(--theme-accent)';
         } else {
@@ -7499,8 +7499,8 @@ function startRealtimeAudioConfigPolling_() {
           renderKeuanganDateHeader_(currentKeuanganGregorianDate_);
         }
 
-        if (isQurban) {
-          // A2 QURBAN tidak memiliki aturan tipografi sendiri pada portrait.
+        if (isQurban || isZakat) {
+          // A2 QURBAN dan ZAKAT mengikuti seluruh tipografi A1 pada portrait.
           // Setelah teks A2 diperbarui, salin seluruh gaya tipografi dari A1.
           finSub.style.color = 'var(--theme-accent)';
           finSub.style.webkitTextFillColor = 'var(--theme-accent)';
@@ -7514,7 +7514,7 @@ function startRealtimeAudioConfigPolling_() {
               const finSubNow = document.getElementById('fin-sub');
               const panelNow = document.getElementById('fin-panel-box');
               if (!finTitleNow || !finSubNow || !panelNow ||
-                  !panelNow.classList.contains('qurban-display') ||
+                  !['QURBAN', 'ZAKAT'].includes(String(panelNow.dataset.panelSelector || '').trim().toUpperCase()) ||
                   !window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches) return;
               const sourceStyle = window.getComputedStyle(finTitleNow);
               const copiedProperties = [
@@ -7539,7 +7539,7 @@ function startRealtimeAudioConfigPolling_() {
             };
             // Jalankan sesudah renderer dan CSS lama selesai menulis style.
             requestAnimationFrame(function() {
-              if (typeof fitQurbanHeaderText_ === 'function') fitQurbanHeaderText_();
+              if (isQurban && typeof fitQurbanHeaderText_ === 'function') fitQurbanHeaderText_();
               requestAnimationFrame(syncA1ToA2);
             });
           } else {
@@ -7665,8 +7665,28 @@ function startRealtimeAudioConfigPolling_() {
           requestAnimationFrame(window.enforcePengurusPortraitHeader_);
         });
       }
-      if (isQurbanStyle) {
-        requestAnimationFrame(function() { fitQurbanHeaderText_(); });
+      if (isQurbanStyle || isZakat) {
+        requestAnimationFrame(function() {
+          if (isQurban && typeof fitQurbanHeaderText_ === 'function') fitQurbanHeaderText_();
+          if (isZakat) {
+            const titleNow = document.getElementById('fin-title');
+            const subNow = document.getElementById('fin-sub');
+            const panelNow = document.getElementById('fin-panel-box');
+            if (titleNow && subNow && panelNow &&
+                String(panelNow.dataset.panelSelector || '').trim().toUpperCase() === 'ZAKAT' &&
+                window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches) {
+              const computed = window.getComputedStyle(titleNow);
+              ['font-family','font-size','font-weight','font-style','font-variant','line-height','letter-spacing','word-spacing','text-transform','text-align','color','-webkit-text-fill-color'].forEach(function(property) {
+                const value = computed.getPropertyValue(property);
+                if (value) subNow.style.setProperty(property, value, 'important');
+              });
+              ['display:block','width:100%','min-width:0','max-width:100%','box-sizing:border-box','white-space:nowrap','overflow:hidden','text-overflow:clip','overflow-wrap:normal','word-break:keep-all','margin:0 0 0.1vh','padding:0'].forEach(function(rule) {
+                const split = rule.indexOf(':');
+                subNow.style.setProperty(rule.slice(0, split), rule.slice(split + 1), 'important');
+              });
+            }
+          }
+        });
       }
 
 
