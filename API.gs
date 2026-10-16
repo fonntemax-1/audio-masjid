@@ -1032,15 +1032,15 @@ function getEventAdvertisingConfigFromApi_() {
       }
       var text = String(display || value || '').trim();
       if (!text) return '';
-      var m = text.match(/^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})$/);
+      var m = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
       if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
-      m = text.match(/^(\\d{1,2})[/.-](\\d{1,2})[/.-](\\d{4})$/);
+      m = text.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/);
       if (m) return m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
       var months = {
         januari: 1, februari: 2, maret: 3, april: 4, mei: 5, juni: 6,
         juli: 7, agustus: 8, september: 9, oktober: 10, november: 11, desember: 12
       };
-      m = text.toLowerCase().match(/^(\\d{1,2})\\s+([a-z]+)\\s+(\\d{4})$/);
+      m = text.toLowerCase().match(/^(\d{1,2})\s+([a-z]+)\s+(\d{4})$/);
       if (m && months[m[2]]) {
         return m[3] + '-' + ('0' + months[m[2]]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
       }
