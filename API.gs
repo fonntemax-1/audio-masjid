@@ -1023,8 +1023,8 @@ function getEventAdvertisingConfigFromApi_() {
     var sheet = ss.getSheetByName('panels');
     if (!sheet) throw new Error('Sheet panels tidak ditemukan.');
     // B:E agar nama iklan di kolom B ikut dikirim bersama jadwal C:E.
-    var values = sheet.getRange('B71:E75').getValues();
-    var displays = sheet.getRange('B71:E75').getDisplayValues();
+    var values = sheet.getRange('B70:E74').getValues();
+    var displays = sheet.getRange('B70:E74').getDisplayValues();
     var timeZone = ss.getSpreadsheetTimeZone() || Session.getScriptTimeZone() || 'Asia/Makassar';
     function normalizeDate(value, display) {
       if (value instanceof Date && !isNaN(value.getTime())) {
@@ -1048,7 +1048,7 @@ function getEventAdvertisingConfigFromApi_() {
     }
     return values.map(function(row, index) {
       var display = displays[index] || [];
-      var sheetRow = index + 71;
+      var sheetRow = index + 70;
       var name = String(row[0] == null ? display[0] || '' : row[0]).trim();
       var status = String(row[3] == null ? display[3] || '' : row[3]).trim().toUpperCase();
       return {
@@ -1058,7 +1058,7 @@ function getEventAdvertisingConfigFromApi_() {
         end: normalizeDate(row[2], display[2]),
         status: status === 'ON' ? 'ON' : 'OFF'
       };
-    }).filter(function(item) { return item.row >= 71 && item.row <= 75; });
+    }).filter(function(item) { return item.row >= 70 && item.row <= 74; });
   } catch (error) {
     Logger.log('EVENT ADVERTISING CONFIG ERROR: ' + (error && error.message ? error.message : error));
     return [];
