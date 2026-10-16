@@ -4750,21 +4750,22 @@ body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-text {
     0 0.75vh 1.10vh rgba(0,0,0,0.72) !important;
 }
 
-/* BATAS KERAS UKURAN IKLAN: cegah gambar melebar mengikuti ukuran intrinsik
-   atau containing block yang keliru. Area iklan maksimal 50% lebar/tinggi viewport. */
+/* BATAS UKURAN IKLAN: kotak dibatasi terhadap frame utama,
+   sedangkan gambar mempertahankan rasio dan ukuran intrinsiknya.
+   Gambar tidak dipaksa memenuhi seluruh kotak 50% sehingga tidak tampak membesar. */
 #main-frame-advertisement {
   box-sizing: border-box !important;
   width: 50% !important;
   height: 50% !important;
-  max-width: 50vw !important;
-  max-height: 50vh !important;
+  max-width: 50% !important;
+  max-height: 50% !important;
   overflow: hidden !important;
 }
 #main-frame-advertisement img {
   box-sizing: border-box !important;
   display: block !important;
-  width: 100% !important;
-  height: 100% !important;
+  width: auto !important;
+  height: auto !important;
   max-width: 100% !important;
   max-height: 100% !important;
   object-fit: contain !important;
