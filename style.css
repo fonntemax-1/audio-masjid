@@ -4997,8 +4997,8 @@ body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content img {
   right: auto !important;
   top: 1% !important;
   bottom: auto !important;
-  width: 35% !important;
-  max-width: 35% !important;
+  width: 40% !important;
+  max-width: 40% !important;
   height: auto !important;
   aspect-ratio: 16 / 9 !important;
   z-index: 20 !important;
@@ -5014,8 +5014,8 @@ body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content img {
     left: 1% !important;
     top: 1% !important;
     bottom: auto !important;
-    width: 35% !important;
-    max-width: 35% !important;
+    width: 40% !important;
+    max-width: 40% !important;
   }
 }
 
