@@ -18518,17 +18518,15 @@ function setCountdownBlackMode(enabled) {
           preload.onload = function() {
             if (token !== transitionToken) return;
 
-            // Siapkan lapisan tujuan transparan pada posisi grid yang sama
-            // dengan gambar lama. Tidak mengubah ukuran/posisi kotak iklan.
+            // Siapkan lapisan kedua tanpa memaksa layout/reflow sinkron seluruh halaman.
             const oldVisible = visibleImage;
             const newVisible = standbyImage;
             newVisible.onload = null;
             newVisible.onerror = null;
             newVisible.style.transition = 'none';
             newVisible.style.opacity = '0';
-            newVisible.style.visibility = 'visible';
+            newVisible.style.visibility = 'hidden';
             newVisible.style.display = 'block';
-            void newVisible.offsetWidth;
 
             let fadeStarted = false;
             function beginCrossfade_() {
@@ -18536,12 +18534,20 @@ function setCountdownBlackMode(enabled) {
               fadeStarted = true;
               newVisible.onload = null;
               newVisible.onerror = null;
-              // Kedua lapisan tetap berada di tempatnya; hanya opacity berubah.
-              newVisible.style.transition = 'opacity 800ms ease-in-out';
-              oldVisible.style.transition = 'opacity 800ms ease-in-out';
-              void newVisible.offsetWidth;
-              newVisible.style.opacity = '1';
-              oldVisible.style.opacity = '0';
+
+              // Tunggu frame browser berikutnya, lalu mulai transisi tanpa membaca
+              // offsetWidth yang memaksa layout sinkron dan dapat menghentikan frame lain.
+              window.requestAnimationFrame(function() {
+                if (token !== transitionToken) return;
+                newVisible.style.visibility = 'visible';
+                newVisible.style.transition = 'opacity 800ms ease-in-out';
+                oldVisible.style.transition = 'opacity 800ms ease-in-out';
+                window.requestAnimationFrame(function() {
+                  if (token !== transitionToken) return;
+                  newVisible.style.opacity = '1';
+                  oldVisible.style.opacity = '0';
+                });
+              });
 
               window.setTimeout(function() {
                 if (token !== transitionToken) return;
@@ -18558,7 +18564,8 @@ function setCountdownBlackMode(enabled) {
               }, 850);
             }
 
-            // Tunggu lapisan tujuan selesai memuat gambarnya sendiri.
+            // Gambar kandidat sudah berhasil dimuat oleh preload; muat ke lapisan
+            // tersembunyi lalu mulai crossfade setelah browser menyatakannya siap.
             newVisible.onload = beginCrossfade_;
             newVisible.onerror = function() {
               if (token !== transitionToken) return;
@@ -18567,8 +18574,6 @@ function setCountdownBlackMode(enabled) {
               tryCandidate_();
             };
             newVisible.src = candidate;
-            // Jika browser sudah memiliki resource di cache, decode() memastikan
-            // gambar siap tanpa harus menampilkan frame kosong.
             if (typeof newVisible.decode === 'function') {
               newVisible.decode().then(beginCrossfade_).catch(function() {
                 // onload/onerror menangani hasil pemuatan di browser terkait.
