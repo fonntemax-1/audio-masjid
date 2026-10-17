@@ -18467,10 +18467,17 @@ function setCountdownBlackMode(enabled) {
       if (!box || !image) return;
 
       // Dua lapisan gambar: gambar baru dimuat dahulu, lalu crossfade 800 ms.
+      // Pastikan kedua lapisan memakai decoding asinkron agar decoding iklan
+      // tidak mengambil alih frame animasi informasi lain.
+      image.decoding = 'async';
+      image.loading = 'eager';
+      image.setAttribute('fetchpriority', 'low');
       const secondImage = document.createElement('img');
       secondImage.id = 'main-frame-advertisement-image-next';
       secondImage.alt = 'Iklan masjid';
       secondImage.decoding = 'async';
+      secondImage.loading = 'eager';
+      secondImage.setAttribute('fetchpriority', 'low');
       secondImage.setAttribute('aria-hidden', 'true');
       box.appendChild(secondImage);
       let visibleImage = image;
@@ -18555,7 +18562,8 @@ function setCountdownBlackMode(enabled) {
                 oldVisible.style.display = 'none';
                 oldVisible.style.opacity = '0';
                 oldVisible.style.visibility = 'hidden';
-                oldVisible.removeAttribute('src');
+                // Pertahankan src pada lapisan tersembunyi agar browser dapat
+                // mempertahankan resource/cache; jangan memicu reset gambar di akhir fade.
                 visibleImage = newVisible;
                 standbyImage = oldVisible;
                 currentAdRow = row;
