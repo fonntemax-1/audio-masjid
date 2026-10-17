@@ -8860,11 +8860,13 @@ function startRealtimeAudioConfigPolling_() {
       if (isOff) {
         panel.classList.add('keuangan-selector-off');
         if (ad.parentElement !== panel) panel.appendChild(ad);
+        ad.style.display = 'block';
         ad.setAttribute('aria-hidden', 'false');
         return;
       }
 
       panel.classList.remove('keuangan-selector-off');
+      ad.style.display = 'none';
       if (ad.parentElement !== center) {
         if (banner && banner.parentElement === center) {
           center.insertBefore(ad, banner);
