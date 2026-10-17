@@ -11476,16 +11476,47 @@ function startRealtimeAudioConfigPolling_() {
         return false;
       }
 
+      // Jangan kirim postMessage saat src kosong, masih berupa about:blank,
+      // atau bukan embed YouTube. Dalam kondisi itu target window dapat
+      // memiliki origin halaman TV-Sholat dan memicu origin mismatch.
+      const iframeSrc =
+        iframe.getAttribute('src') || '';
+
+      let iframeOrigin = '';
+
+      try {
+        iframeOrigin = iframeSrc
+          ? new URL(iframeSrc, window.location.href).origin
+          : '';
+      } catch (error) {
+        iframeOrigin = '';
+      }
+
+      if (
+        iframeOrigin !== 'https://www.youtube.com' ||
+        !/^\/embed\/[a-zA-Z0-9_-]+(?:\/|$)/.test(
+          (function() {
+            try {
+              return new URL(iframeSrc, window.location.href).pathname;
+            } catch (error) {
+              return '';
+            }
+          })()
+        )
+      ) {
+        return false;
+      }
+
       try {
 
-        // Format command mengikuti API iframe YouTube.
+        // Target origin dikirim hanya setelah src terbukti embed YouTube.
         iframe.contentWindow.postMessage(
           JSON.stringify({
             event: 'command',
             func: command,
             args: ''
           }),
-          'https://www.youtube.com'
+          iframeOrigin
         );
 
         return true;
