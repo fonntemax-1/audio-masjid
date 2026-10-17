@@ -5638,14 +5638,15 @@ function updateFridayPrayerDisplay() {
       ) {
 
         return (
-          'Rp ' +
+          'Rp. ' +
           num.toLocaleString(
             'id-ID',
             {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
             }
-          )
+          ) +
+          ',-'
         );
 
       }
