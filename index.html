@@ -640,6 +640,41 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
       position: relative !important;
       z-index: 1 !important;
     }
+
+    /* Highlight waktu sholat aktif mengikuti tema yang dipilih di panels!C18.
+       Foto tetap penuh, sedangkan border/glow lembut menandai kartu aktif. */
+    .prayer-card {
+      box-sizing: border-box !important;
+      transition: border-color 400ms ease, box-shadow 400ms ease !important;
+    }
+
+    .prayer-card.active-prayer {
+      border: 0.32vh solid var(--theme-accent, #00ffaa) !important;
+      box-shadow:
+        0 0 0.45vh var(--theme-accent, #00ffaa),
+        inset 0 0 0.3vh rgba(255,255,255,0.16) !important;
+      transition: border-color 400ms ease, box-shadow 400ms ease !important;
+    }
+
+    .prayer-card.active-prayer .prayer-name {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+    }
+
+    .prayer-card.active-prayer .prayer-time {
+      color: var(--theme-accent, #00ffaa) !important;
+      -webkit-text-fill-color: var(--theme-accent, #00ffaa) !important;
+      text-shadow:
+        0 0 0.25vh var(--theme-accent, #00ffaa),
+        0 1px 3px rgba(0,0,0,0.98) !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .prayer-card,
+      .prayer-card.active-prayer {
+        transition: none !important;
+      }
+    }
   </style>
 </head>
 
