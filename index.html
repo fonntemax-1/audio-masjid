@@ -423,6 +423,10 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   text-align: left !important;
   white-space: normal !important;
 }
+/* Sisakan satu baris font sebelum keterangan di bawah tabel ZAKAT. */
+#fin-panel-box .keuangan-table.zakat-table tr.zakat-keterangan-row > .zakat-cell {
+  padding-top: 1em !important;
+}
 @media screen and (max-width: 700px) {
   #fin-panel-box .keuangan-table.zakat-table .zakat-cell {
     padding: 0.06em 0.08em !important;
@@ -8871,6 +8875,14 @@ function startRealtimeAudioConfigPolling_() {
               return value !== '' && romanHeadingPattern.test(value);
             });
             const isRomanHeading = romanHeadingCellIndex >= 0;
+            // Beri ruang vertikal satu baris sebelum bagian Keterangan
+            // bila baris tersebut tersedia dalam data sheet ZAKAT.
+            const isZakatKeterangan = zakatCells.some(function(value) {
+              return /keterangan/i.test(value);
+            });
+            if (isZakatKeterangan) {
+              tr.classList.add('zakat-keterangan-row');
+            }
 
             if (isRomanHeading) {
               const td = document.createElement('td');
