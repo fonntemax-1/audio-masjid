@@ -18644,8 +18644,20 @@ function setCountdownBlackMode(enabled) {
           // Batalkan preload iklan lama jika jadwal sudah berganti sebelum
           // gambar selesai dimuat; jangan biarkan hasil lama menimpa pilihan baru.
           if (loadingAdRow && loadingAdRow !== chosenRow) {
+            // Batalkan transisi lama secara utuh. Mengubah token saja tidak cukup:
+            // lapisan yang sempat dibuat transparan bisa tertinggal pada opacity 0.
             transitionToken++;
             loadingAdRow = 0;
+            visibleImage.style.transition = 'none';
+            standbyImage.style.transition = 'none';
+            visibleImage.style.opacity = '1';
+            visibleImage.style.display = 'block';
+            standbyImage.style.opacity = '0';
+            standbyImage.style.display = 'none';
+            standbyImage.removeAttribute('src');
+            void visibleImage.offsetWidth;
+            visibleImage.style.transition = '';
+            standbyImage.style.transition = '';
           }
           if (currentAdRow !== chosenRow) loadAndCrossfade_(chosenRow, base);
           console.log('IKLAN MAIN FRAME: jadwal aktif', chosenRow,
