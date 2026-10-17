@@ -19209,12 +19209,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     0 0 0.18vh rgba(255,204,0,0.18) !important;
 }
 
-/* Kartu sholat aktif: ketebalan garis tepi normal, hanya white shadow. */
+/* Kartu sholat aktif: pertahankan garis tepi normal, buat white shadow
+   cukup kuat dan tidak hilang karena overflow foto maupun aturan CSS sebelumnya. */
 .prayer-card.active-prayer {
   border-width: 0.32vh !important;
   box-shadow:
-    0 0 0.42vh rgba(255,255,255,0.95),
-    inset 0 0 0.22vh rgba(255,255,255,0.72) !important;
+    inset 0 0 0.28vh 0.12vh rgba(255,255,255,0.95),
+    inset 0 0 0.8vh rgba(255,255,255,0.58) !important;
+  filter: drop-shadow(0 0 0.65vh rgba(255,255,255,0.95)) !important;
 }
 
 
