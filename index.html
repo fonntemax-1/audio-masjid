@@ -708,6 +708,18 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 .prayer-card.active-prayer .prayer-time {
   position: relative !important;
   isolation: isolate;
+  /* Zoom In-Out lembut hanya pada teks kartu sholat aktif. */
+  animation: prayerCardTextZoomPulse 2.8s ease-in-out infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+@keyframes prayerCardTextZoomPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
 }
 .prayer-card.active-prayer .prayer-name::after,
 .prayer-card.active-prayer .prayer-time::after {
@@ -766,6 +778,12 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .prayer-card.active-prayer .prayer-name,
+  .prayer-card.active-prayer .prayer-time {
+    animation: none !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
   .prayer-card.active-prayer .prayer-name::after,
   .prayer-card.active-prayer .prayer-time::after {
     display: none !important;
