@@ -709,8 +709,8 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   position: relative !important;
   isolation: isolate;
 }
-.prayer-card .prayer-name::after,
-.prayer-card .prayer-time::after {
+.prayer-card.active-prayer .prayer-name::after,
+.prayer-card.active-prayer .prayer-time::after {
   content: attr(data-shine-text);
   position: absolute;
   inset: 0;
@@ -766,8 +766,8 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .prayer-card .prayer-name::after,
-  .prayer-card .prayer-time::after {
+  .prayer-card.active-prayer .prayer-name::after,
+  .prayer-card.active-prayer .prayer-time::after {
     display: none !important;
     animation: none !important;
   }
