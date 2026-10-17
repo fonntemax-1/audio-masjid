@@ -372,6 +372,42 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
       font-size: clamp(6px, 1.8vw, 11px) !important;
     }
   }
+
+</style>
+
+<style id="keuangan-selector-off-ad-style">
+/* C26=OFF: sembunyikan isi panel data dan gunakan frame yang sama untuk iklan. */
+#fin-panel-box.keuangan-selector-off {
+  position: relative !important;
+  overflow: hidden !important;
+}
+#fin-panel-box.keuangan-selector-off > #fin-title,
+#fin-panel-box.keuangan-selector-off > #fin-sub,
+#fin-panel-box.keuangan-selector-off > #fin-extra,
+#fin-panel-box.keuangan-selector-off > #keuangan-scroll-area {
+  display: none !important;
+}
+#fin-panel-box.keuangan-selector-off > #main-frame-advertisement {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  z-index: 5 !important;
+  overflow: hidden !important;
+}
+#fin-panel-box.keuangan-selector-off > #main-frame-advertisement img {
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+}
 </style>
 
 <style id="zakat-table-layout-v1">
@@ -7176,6 +7212,7 @@ function startRealtimeAudioConfigPolling_() {
       if (finPanelBox) {
         finPanelBox.classList.toggle('qurban-display', isQurbanStyle);
         finPanelBox.dataset.panelSelector = selector;
+        applyKeuanganOffAdvertisement_(selector);
         if (selector === 'QURBAN') {
 }
       }
@@ -8286,6 +8323,7 @@ function startRealtimeAudioConfigPolling_() {
               currentFinPanelSelector ||
               ''
             );
+      applyKeuanganOffAdvertisement_(keuanganSelector);
 
       // =======================================================
       // KEUANGAN
@@ -8805,6 +8843,50 @@ function startRealtimeAudioConfigPolling_() {
       container.replaceChildren(fragment);
     }
 
+
+    function applyKeuanganOffAdvertisement_(selector) {
+      const panel = document.getElementById('fin-panel-box');
+      const ad = document.getElementById('main-frame-advertisement');
+      const center = document.querySelector('.center-panel');
+      const banner = document.querySelector('.event-banner');
+      if (!panel || !ad || !center) return;
+
+      const isOff = String(selector || '').trim().toUpperCase() === 'OFF';
+      if (isOff) {
+        panel.classList.add('keuangan-selector-off');
+        if (ad.parentElement !== panel) panel.appendChild(ad);
+        ad.setAttribute('aria-hidden', 'false');
+        ad.style.setProperty('display', 'block', 'important');
+        return;
+      }
+
+      panel.classList.remove('keuangan-selector-off');
+      if (ad.parentElement !== center) {
+        if (banner && banner.parentElement === center) {
+          center.insertBefore(ad, banner);
+        } else {
+          center.appendChild(ad);
+        }
+      }
+      ad.setAttribute('aria-hidden', 'true');
+      ad.style.removeProperty('position');
+      ad.style.removeProperty('inset');
+      ad.style.removeProperty('width');
+      ad.style.removeProperty('height');
+      ad.style.removeProperty('max-width');
+      ad.style.removeProperty('max-height');
+      ad.style.removeProperty('margin');
+      ad.style.removeProperty('z-index');
+      ad.style.removeProperty('overflow');
+      const title = document.getElementById('fin-title');
+      const sub = document.getElementById('fin-sub');
+      const extra = document.getElementById('fin-extra');
+      const scroll = document.getElementById('keuangan-scroll-area');
+      [title, sub, scroll].forEach(function(el) {
+        if (el) el.style.removeProperty('display');
+      });
+      if (extra) extra.style.display = extra.textContent.trim() ? 'block' : 'none';
+    }
 
     function updateKeuangan(
       rows,
