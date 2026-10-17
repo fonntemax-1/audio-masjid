@@ -19366,5 +19366,55 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+<style id="header-name-masjid-bidirectional-shine">
+/* Shine Sweep NAMA MASJID: kiri ke kanan, jeda 2 detik,
+   kanan ke kiri, jeda 2 detik. Warna dasar tetap mengikuti tema. */
+#nama_masjid {
+  position: relative !important;
+  isolation: isolate;
+}
+#nama_masjid::after {
+  content: attr(data-highlight-text) !important;
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  font: inherit !important;
+  letter-spacing: inherit !important;
+  line-height: inherit !important;
+  text-align: inherit !important;
+  text-transform: inherit !important;
+  white-space: nowrap !important;
+  opacity: .95 !important;
+  -webkit-mask-image: linear-gradient(110deg,
+    transparent 0%, transparent 43%,
+    rgba(255,255,255,.3) 47%, #fff 50%,
+    rgba(255,255,255,.3) 53%, transparent 57%, transparent 100%) !important;
+  mask-image: linear-gradient(110deg,
+    transparent 0%, transparent 43%,
+    rgba(255,255,255,.3) 47%, #fff 50%,
+    rgba(255,255,255,.3) 53%, transparent 57%, transparent 100%) !important;
+  -webkit-mask-size: 300% 100% !important;
+  mask-size: 300% 100% !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-repeat: no-repeat !important;
+  animation: headerMasjidShineRoundTrip 10s linear infinite !important;
+}
+@keyframes headerMasjidShineRoundTrip {
+  0% { -webkit-mask-position: 0% 0; mask-position: 0% 0; }
+  30% { -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+  50% { -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+  80% { -webkit-mask-position: 0% 0; mask-position: 0% 0; }
+  100% { -webkit-mask-position: 0% 0; mask-position: 0% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #nama_masjid::after { animation: none !important; display: none !important; }
+}
+</style>
+
 </body>
 </html>
