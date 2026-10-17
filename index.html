@@ -18456,6 +18456,23 @@ function setCountdownBlackMode(enabled) {
       // Hindari dua pembacaan konfigurasi iklan berjalan bersamaan.
       let configRequestInFlight = false;
 
+      // Pulihkan keadaan kedua lapisan secara konsisten setelah pembatalan.
+      function normalizeAdLayers_(clearSources) {
+        visibleImage.style.transition = 'none';
+        standbyImage.style.transition = 'none';
+        visibleImage.style.opacity = '1';
+        visibleImage.style.display = 'block';
+        standbyImage.style.opacity = '0';
+        standbyImage.style.display = 'none';
+        if (clearSources) {
+          visibleImage.removeAttribute('src');
+          standbyImage.removeAttribute('src');
+        }
+        void visibleImage.offsetWidth;
+        visibleImage.style.transition = '';
+        standbyImage.style.transition = '';
+      }
+
       function loadAndCrossfade_(row, base) {
         if (loadingAdRow === row || currentAdRow === row) return;
         loadingAdRow = row;
@@ -18617,13 +18634,13 @@ function setCountdownBlackMode(enabled) {
           });
 
           if (!active.length) {
-            box.style.display = 'none';
-            box.setAttribute('aria-hidden', 'true');
+            // Batalkan transisi dan normalkan layer ketika tidak ada iklan aktif.
             transitionToken++;
             loadingAdRow = 0;
             currentAdRow = 0;
-            image.removeAttribute('src');
-            secondImage.removeAttribute('src');
+            normalizeAdLayers_(true);
+            box.style.display = 'none';
+            box.setAttribute('aria-hidden', 'true');
             return;
           }
 
@@ -18644,20 +18661,10 @@ function setCountdownBlackMode(enabled) {
           // Batalkan preload iklan lama jika jadwal sudah berganti sebelum
           // gambar selesai dimuat; jangan biarkan hasil lama menimpa pilihan baru.
           if (loadingAdRow && loadingAdRow !== chosenRow) {
-            // Batalkan transisi lama secara utuh. Mengubah token saja tidak cukup:
-            // lapisan yang sempat dibuat transparan bisa tertinggal pada opacity 0.
+            // Batalkan transisi lama dan pulihkan kedua lapisan.
             transitionToken++;
             loadingAdRow = 0;
-            visibleImage.style.transition = 'none';
-            standbyImage.style.transition = 'none';
-            visibleImage.style.opacity = '1';
-            visibleImage.style.display = 'block';
-            standbyImage.style.opacity = '0';
-            standbyImage.style.display = 'none';
-            standbyImage.removeAttribute('src');
-            void visibleImage.offsetWidth;
-            visibleImage.style.transition = '';
-            standbyImage.style.transition = '';
+            normalizeAdLayers_(false);
           }
           if (currentAdRow !== chosenRow) loadAndCrossfade_(chosenRow, base);
           console.log('IKLAN MAIN FRAME: jadwal aktif', chosenRow,
