@@ -5550,7 +5550,7 @@ function setupPanelKeuanganSelector() {
   if (!panels) throw new Error('Sheet panels tidak ditemukan.');
   const selector = panels.getRange('C26');
   const rule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(['KEUANGAN', "QUR'BAN", 'PENGURUS', 'ZAKAT'], true)
+    .requireValueInList(['KEUANGAN', "QUR'BAN", 'PENGURUS', 'ZAKAT', 'OFF'], true)
     .setAllowInvalid(false)
     .build();
   selector.setDataValidation(rule);
@@ -6718,15 +6718,17 @@ function getPanelKeuanganSource() {
     .replace(/[\\s’‘']/g, '');
 
   const selectedKey =
-    selectorKey === 'ZAKAT'
-      ? 'ZAKAT'
-      : selectorKey === 'QURBAN'
-        ? 'QURBAN'
-        : selectorKey === 'PENGURUS'
-          ? 'PENGURUS'
-          : selectorKey === 'KEUANGAN'
-            ? 'KEUANGAN'
-            : '';
+    selectorKey === 'OFF'
+      ? 'OFF'
+      : selectorKey === 'ZAKAT'
+        ? 'ZAKAT'
+        : selectorKey === 'QURBAN'
+          ? 'QURBAN'
+          : selectorKey === 'PENGURUS'
+            ? 'PENGURUS'
+            : selectorKey === 'KEUANGAN'
+              ? 'KEUANGAN'
+              : '';
 
   let selectedSheet = null;
   ss.getSheets().some(function(sheet) {
