@@ -388,28 +388,31 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 }
 #fin-panel-box .keuangan-table.zakat-table .zakat-cell {
   box-sizing: border-box !important;
-  padding: 0.08em 0.12em !important;
-  text-align: left !important;
+  padding: 0.08em 0.18em !important;
   vertical-align: middle !important;
   overflow-wrap: normal !important;
   word-break: normal !important;
 }
-/* Lebar kolom menjaga jarak antarisi tetap konsisten pada setiap baris. */
+/* Susunan empat kolom seperti contoh: No kiri, deskripsi kiri, penerima kiri, Jumlah kanan. */
 #fin-panel-box .keuangan-table.zakat-table tr:not(:has(.zakat-roman-heading)) > .zakat-cell:nth-child(1) {
   width: 6% !important;
+  text-align: left !important;
   white-space: nowrap !important;
 }
 #fin-panel-box .keuangan-table.zakat-table tr:not(:has(.zakat-roman-heading)) > .zakat-cell:nth-child(2) {
-  width: 37% !important;
+  width: 36% !important;
+  text-align: left !important;
   white-space: normal !important;
   overflow-wrap: break-word !important;
 }
 #fin-panel-box .keuangan-table.zakat-table tr:not(:has(.zakat-roman-heading)) > .zakat-cell:nth-child(3) {
-  width: 25% !important;
-  white-space: nowrap !important;
+  width: 26% !important;
+  text-align: left !important;
+  white-space: normal !important;
 }
 #fin-panel-box .keuangan-table.zakat-table tr:not(:has(.zakat-roman-heading)) > .zakat-cell:nth-child(4) {
   width: 32% !important;
+  text-align: right !important;
   white-space: nowrap !important;
 }
 #fin-panel-box .keuangan-table.zakat-table .zakat-roman-heading {
@@ -427,13 +430,14 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
     width: 6% !important;
   }
   #fin-panel-box .keuangan-table.zakat-table tr:not(:has(.zakat-roman-heading)) > .zakat-cell:nth-child(2) {
-    width: 35% !important;
+    width: 36% !important;
   }
   #fin-panel-box .keuangan-table.zakat-table tr:not(:has(.zakat-roman-heading)) > .zakat-cell:nth-child(3) {
-    width: 27% !important;
+    width: 26% !important;
   }
   #fin-panel-box .keuangan-table.zakat-table tr:not(:has(.zakat-roman-heading)) > .zakat-cell:nth-child(4) {
     width: 32% !important;
+    text-align: right !important;
   }
 }
 </style>
@@ -8828,7 +8832,7 @@ function startRealtimeAudioConfigPolling_() {
         // Tetapkan lebar kolom secara eksplisit agar baris judul colSpan=4
         // tidak membuat browser mengabaikan proporsi kolom data A:D.
         const colgroup = document.createElement('colgroup');
-        ['6%', '37%', '25%', '32%'].forEach(function(width) {
+        ['6%', '36%', '26%', '32%'].forEach(function(width) {
           const col = document.createElement('col');
           col.style.width = width;
           colgroup.appendChild(col);
