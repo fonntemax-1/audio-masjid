@@ -18578,10 +18578,42 @@ function setCountdownBlackMode(enabled) {
         }
       }
 
-      // Rotasi iklan: setiap iklan yang aktif tampil selama 1 menit.
-      // Daftar aktif disusun berdasarkan nomor baris 71 sampai 75.
+      // Rotasi lokal independen dari antrean Apps Script dan status event E60:E66.
+      // Apps Script hanya memperbarui daftar iklan/jadwal; timer lokal mengganti gambar.
       let rotationSignature = '';
       let rotationStartedAt = Date.now();
+      let activeAdsForRotation = [];
+
+      function renderCurrentAd_() {
+        if (document.body.classList.contains('prayer-black-mode')) {
+          box.style.display = 'none';
+          box.setAttribute('aria-hidden', 'true');
+          return;
+        }
+        const active = activeAdsForRotation;
+        if (!active.length) {
+          transitionToken++;
+          loadingAdRow = 0;
+          currentAdRow = 0;
+          normalizeAdLayers_(true);
+          box.style.display = 'none';
+          box.setAttribute('aria-hidden', 'true');
+          return;
+        }
+        const elapsedMinutes = Math.floor((Date.now() - rotationStartedAt) / 60000);
+        const chosen = active[elapsedMinutes % active.length];
+        const chosenRow = Number(chosen.row || chosen.sheetRow);
+        const base = adBaseByRow[chosenRow];
+        box.style.display = 'block';
+        box.setAttribute('aria-hidden', 'false');
+
+        if (loadingAdRow && loadingAdRow !== chosenRow) {
+          transitionToken++;
+          loadingAdRow = 0;
+          normalizeAdLayers_(false);
+        }
+        if (currentAdRow !== chosenRow) loadAndCrossfade_(chosenRow, base);
+      }
 
       function update_() {
         if (document.body.classList.contains('prayer-black-mode')) {
@@ -18632,18 +18664,6 @@ function setCountdownBlackMode(enabled) {
           const active = rawActive.filter(function(row) {
             return !failedAdRows[Number(row.row || row.sheetRow || 0)];
           });
-
-          if (!active.length) {
-            // Batalkan transisi dan normalkan layer ketika tidak ada iklan aktif.
-            transitionToken++;
-            loadingAdRow = 0;
-            currentAdRow = 0;
-            normalizeAdLayers_(true);
-            box.style.display = 'none';
-            box.setAttribute('aria-hidden', 'true');
-            return;
-          }
-
           const signature = active.map(function(row) {
             return Number(row.row || row.sheetRow || 0);
           }).join(',');
@@ -18651,24 +18671,17 @@ function setCountdownBlackMode(enabled) {
             rotationSignature = signature;
             rotationStartedAt = Date.now();
           }
-          const elapsedMinutes = Math.floor((Date.now() - rotationStartedAt) / 60000);
-          const chosen = active[elapsedMinutes % active.length];
-          const chosenRow = Number(chosen.row || chosen.sheetRow);
-          const base = adBaseByRow[chosenRow];
-          box.style.display = 'block';
-          box.setAttribute('aria-hidden', 'false');
-
-          // Batalkan preload iklan lama jika jadwal sudah berganti sebelum
-          // gambar selesai dimuat; jangan biarkan hasil lama menimpa pilihan baru.
-          if (loadingAdRow && loadingAdRow !== chosenRow) {
-            // Batalkan transisi lama dan pulihkan kedua lapisan.
-            transitionToken++;
-            loadingAdRow = 0;
-            normalizeAdLayers_(false);
+          activeAdsForRotation = active;
+          renderCurrentAd_();
+          if (active.length) {
+            const elapsedMinutes = Math.floor((Date.now() - rotationStartedAt) / 60000);
+            const nextRow = Number(active[elapsedMinutes % active.length].row || active[elapsedMinutes % active.length].sheetRow);
+            console.log('IKLAN MAIN FRAME: daftar aktif diperbarui', active.map(function(row) {
+              return Number(row.row || row.sheetRow || 0);
+            }), 'pilihan saat ini:', nextRow, '(rotasi lokal 1 menit; crossfade 800 ms)');
+          } else {
+            console.log('IKLAN MAIN FRAME: tidak ada iklan dalam jadwal aktif');
           }
-          if (currentAdRow !== chosenRow) loadAndCrossfade_(chosenRow, base);
-          console.log('IKLAN MAIN FRAME: jadwal aktif', chosenRow,
-            '(crossfade 800 ms; rotasi 1 menit; aktif:', active.length, ')');
         }).catch(function(err) {
           console.warn('IKLAN MAIN FRAME: konfigurasi gagal dibaca', err);
           box.style.display = 'none';
@@ -18679,6 +18692,10 @@ function setCountdownBlackMode(enabled) {
       }
 
       update_();
+      // Render tiap detik agar rotasi tepat waktu meskipun request API tertunda.
+      // Interval ini tidak membaca E60:E66 dan tidak bergantung pada respons API.
+      setInterval(renderCurrentAd_, 1000);
+      // Refresh jadwal ON/OFF dan rentang tanggal tetap dilakukan terpisah.
       setInterval(update_, 30000);
     })();
 
