@@ -18512,7 +18512,8 @@ function setCountdownBlackMode(enabled) {
 
         function tryCandidate_() {
           if (token !== transitionToken) return;
-          if (candidateIndex >= adExtensions.length) {
+          const extensionsForRow = adExtensionsByRow[row] || ['jpg', 'jpeg', 'png', 'webp'];
+          if (candidateIndex >= extensionsForRow.length) {
             console.warn('IKLAN MAIN FRAME: semua ekstensi gagal, iklan dilewati', row);
             failedAdRows[row] = true;
             loadingAdRow = 0;
@@ -18521,7 +18522,7 @@ function setCountdownBlackMode(enabled) {
             return;
           }
 
-          const candidate = base + '.' + adExtensions[candidateIndex++];
+          const candidate = base + '.' + extensionsForRow[candidateIndex++];
           const oldVisible = visibleImage;
           const newVisible = standbyImage;
           let fadeStarted = false;
@@ -18602,8 +18603,14 @@ function setCountdownBlackMode(enabled) {
         74: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-4',
         75: 'https://raw.githubusercontent.com/fonntemax-1/audio-masjid/main/image/iklan/iklan-5'
       };
-      // Coba ekstensi umum; jika semua gagal, iklan dilewati otomatis.
-      const adExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+      // Gunakan ekstensi yang benar-benar ada di folder GitHub agar tidak menunggu 404 berulang.
+      const adExtensionsByRow = {
+        71: ['jpg'],
+        72: ['jpg'],
+        73: ['jpeg'],
+        74: ['jpeg'],
+        75: ['jpeg']
+      };
       let currentAdRow = 0;
       let currentAdCandidates = [];
       let currentAdCandidateIndex = 0;
