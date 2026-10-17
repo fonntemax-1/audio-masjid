@@ -15907,42 +15907,29 @@ function updatePrayerCardHighlight(nowSeconds, prayerList, synchronizedPrayerNam
     // =======================================================
     // =======================================================
     // TERAPKAN CLASS ACTIVE
+    // Rekonsiliasi setiap pemanggilan, bukan hanya saat nama target
+    // berubah. Ini memulihkan highlight jika class hilang saat DOM
+    // kartu diperbarui, sementara target sholat masih sama.
+    // Tidak mengubah penentuan waktu, countdown, atau audio.
     // =======================================================
 
-    if (
-      targetPrayerName !== lastActivePrayerCardName
-    ) {
+    document.querySelectorAll('.prayer-card[data-prayer]').forEach(
+      function(card) {
+        const isTarget =
+          !!targetPrayerName &&
+          String(card.getAttribute('data-prayer') || '').toUpperCase() ===
+            String(targetPrayerName).toUpperCase();
 
-      if (lastActivePrayerCardName) {
-
-        const oldCard =
-          document.querySelector(
-            `.prayer-card[data-prayer="${lastActivePrayerCardName}"]`
-          );
-
-        if (oldCard) {
-          oldCard.classList.remove('active-prayer');
+        if (isTarget) {
+          card.classList.add('active-prayer');
+        } else {
+          card.classList.remove('active-prayer');
         }
-
       }
+    );
 
-      if (targetPrayerName) {
-
-        const activeCard =
-          document.querySelector(
-            `.prayer-card[data-prayer="${targetPrayerName}"]`
-          );
-
-        if (activeCard) {
-          activeCard.classList.add('active-prayer');
-        }
-
-      }
-
-      lastActivePrayerCardName =
-        targetPrayerName || null;
-
-    }
+    lastActivePrayerCardName =
+      targetPrayerName || null;
 
   } catch (error) {
 
