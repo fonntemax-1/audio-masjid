@@ -18509,6 +18509,7 @@ function setCountdownBlackMode(enabled) {
         loadingAdRow = row;
         const token = ++transitionToken;
         let candidateIndex = 0;
+
         function tryCandidate_() {
           if (token !== transitionToken) return;
           if (candidateIndex >= adExtensions.length) {
@@ -18519,80 +18520,76 @@ function setCountdownBlackMode(enabled) {
             update_();
             return;
           }
-          const candidate = base + '.' + adExtensions[candidateIndex++];
-          const preload = new Image();
-          preload.decoding = 'async';
-          preload.onload = function() {
-            if (token !== transitionToken) return;
 
-            // Siapkan lapisan kedua tanpa memaksa layout/reflow sinkron seluruh halaman.
-            const oldVisible = visibleImage;
-            const newVisible = standbyImage;
+          const candidate = base + '.' + adExtensions[candidateIndex++];
+          const oldVisible = visibleImage;
+          const newVisible = standbyImage;
+          let fadeStarted = false;
+
+          // Muat langsung pada lapisan standby yang tersembunyi. Jangan memuat
+          // URL dua kali melalui Image() sementara lalu elemen DOM, karena ini
+          // dapat mengulang decode dan menyebabkan jeda pada frame informasi.
+          newVisible.onload = null;
+          newVisible.onerror = null;
+          newVisible.style.transition = 'none';
+          newVisible.style.opacity = '0';
+          newVisible.style.visibility = 'hidden';
+          newVisible.style.display = 'block';
+          newVisible.decoding = 'async';
+          newVisible.setAttribute('fetchpriority', 'low');
+
+          function beginCrossfade_() {
+            if (fadeStarted || token !== transitionToken) return;
+            fadeStarted = true;
             newVisible.onload = null;
             newVisible.onerror = null;
-            newVisible.style.transition = 'none';
-            newVisible.style.opacity = '0';
-            newVisible.style.visibility = 'hidden';
-            newVisible.style.display = 'block';
 
-            let fadeStarted = false;
-            function beginCrossfade_() {
-              if (fadeStarted || token !== transitionToken) return;
-              fadeStarted = true;
-              newVisible.onload = null;
-              newVisible.onerror = null;
-
-              // Tunggu frame browser berikutnya, lalu mulai transisi tanpa membaca
-              // offsetWidth yang memaksa layout sinkron dan dapat menghentikan frame lain.
+            // Mulai animasi pada frame browser berikutnya; hanya opacity yang berubah.
+            window.requestAnimationFrame(function() {
+              if (token !== transitionToken) return;
+              newVisible.style.visibility = 'visible';
+              newVisible.style.transition = 'opacity 800ms ease-in-out';
+              oldVisible.style.transition = 'opacity 800ms ease-in-out';
               window.requestAnimationFrame(function() {
                 if (token !== transitionToken) return;
-                newVisible.style.visibility = 'visible';
-                newVisible.style.transition = 'opacity 800ms ease-in-out';
-                oldVisible.style.transition = 'opacity 800ms ease-in-out';
-                window.requestAnimationFrame(function() {
-                  if (token !== transitionToken) return;
-                  newVisible.style.opacity = '1';
-                  oldVisible.style.opacity = '0';
-                });
-              });
-
-              window.setTimeout(function() {
-                if (token !== transitionToken) return;
-                oldVisible.style.transition = 'none';
-                oldVisible.style.display = 'none';
+                newVisible.style.opacity = '1';
                 oldVisible.style.opacity = '0';
-                oldVisible.style.visibility = 'hidden';
-                // Pertahankan src pada lapisan tersembunyi agar browser dapat
-                // mempertahankan resource/cache; jangan memicu reset gambar di akhir fade.
-                visibleImage = newVisible;
-                standbyImage = oldVisible;
-                currentAdRow = row;
-                loadingAdRow = 0;
-                console.log('IKLAN MAIN FRAME: crossfade selesai', row);
-              }, 850);
-            }
-
-            // Gambar kandidat sudah berhasil dimuat oleh preload; muat ke lapisan
-            // tersembunyi lalu mulai crossfade setelah browser menyatakannya siap.
-            newVisible.onload = beginCrossfade_;
-            newVisible.onerror = function() {
-              if (token !== transitionToken) return;
-              newVisible.onload = null;
-              newVisible.onerror = null;
-              tryCandidate_();
-            };
-            newVisible.src = candidate;
-            if (typeof newVisible.decode === 'function') {
-              newVisible.decode().then(beginCrossfade_).catch(function() {
-                // onload/onerror menangani hasil pemuatan di browser terkait.
               });
-            } else if (newVisible.complete && newVisible.naturalWidth > 0) {
-              beginCrossfade_();
-            }
+            });
+
+            window.setTimeout(function() {
+              if (token !== transitionToken) return;
+              oldVisible.style.transition = 'none';
+              oldVisible.style.display = 'none';
+              oldVisible.style.opacity = '0';
+              oldVisible.style.visibility = 'hidden';
+              visibleImage = newVisible;
+              standbyImage = oldVisible;
+              currentAdRow = row;
+              loadingAdRow = 0;
+              console.log('IKLAN MAIN FRAME: crossfade selesai', row);
+            }, 850);
+          }
+
+          newVisible.onload = beginCrossfade_;
+          newVisible.onerror = function() {
+            if (token !== transitionToken) return;
+            newVisible.onload = null;
+            newVisible.onerror = null;
+            newVisible.removeAttribute('src');
+            tryCandidate_();
           };
-          preload.onerror = tryCandidate_;
-          preload.src = candidate;
+          newVisible.src = candidate;
+
+          if (typeof newVisible.decode === 'function') {
+            newVisible.decode().then(beginCrossfade_).catch(function() {
+              // onload/onerror menangani hasil pemuatan browser.
+            });
+          } else if (newVisible.complete && newVisible.naturalWidth > 0) {
+            beginCrossfade_();
+          }
         }
+
         tryCandidate_();
       }
 
