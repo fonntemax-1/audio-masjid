@@ -18453,6 +18453,8 @@ function setCountdownBlackMode(enabled) {
       let standbyImage = secondImage;
       let transitionToken = 0;
       let loadingAdRow = 0;
+      // Hindari dua pembacaan konfigurasi iklan berjalan bersamaan.
+      let configRequestInFlight = false;
 
       function loadAndCrossfade_(row, base) {
         if (loadingAdRow === row || currentAdRow === row) return;
@@ -18570,6 +18572,8 @@ function setCountdownBlackMode(enabled) {
           box.setAttribute('aria-hidden', 'true');
           return;
         }
+        if (configRequestInFlight) return;
+        configRequestInFlight = true;
 
         gasApiCall('getEventAdvertisingConfig').then(function(result) {
           const rows = Array.isArray(result) ? result :
@@ -18636,6 +18640,13 @@ function setCountdownBlackMode(enabled) {
           const base = adBaseByRow[chosenRow];
           box.style.display = 'block';
           box.setAttribute('aria-hidden', 'false');
+
+          // Batalkan preload iklan lama jika jadwal sudah berganti sebelum
+          // gambar selesai dimuat; jangan biarkan hasil lama menimpa pilihan baru.
+          if (loadingAdRow && loadingAdRow !== chosenRow) {
+            transitionToken++;
+            loadingAdRow = 0;
+          }
           if (currentAdRow !== chosenRow) loadAndCrossfade_(chosenRow, base);
           console.log('IKLAN MAIN FRAME: jadwal aktif', chosenRow,
             '(crossfade 800 ms; rotasi 1 menit; aktif:', active.length, ')');
@@ -18643,6 +18654,8 @@ function setCountdownBlackMode(enabled) {
           console.warn('IKLAN MAIN FRAME: konfigurasi gagal dibaca', err);
           box.style.display = 'none';
           box.setAttribute('aria-hidden', 'true');
+        }).finally(function() {
+          configRequestInFlight = false;
         });
       }
 
