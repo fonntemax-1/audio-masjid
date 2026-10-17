@@ -794,6 +794,58 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 }
 </style>
 
+
+<style id="prayer-card-theme-opposite-glow-colors">
+/* Warna Glow Pulse dan angka jam kartu aktif memakai warna pasangan tema.
+   Nama sholat tetap putih; hanya angka jam yang berganti warna. */
+:root[data-display-theme="kuning"],
+body[data-display-theme="kuning"] {
+  --prayer-glow-color: #00ffaa;
+  --prayer-time-color: #00ffaa;
+}
+:root[data-display-theme="hijau"],
+body[data-display-theme="hijau"] {
+  --prayer-glow-color: #ffcc00;
+  --prayer-time-color: #ffcc00;
+}
+:root[data-display-theme="merah"],
+body[data-display-theme="merah"] {
+  --prayer-glow-color: #00ffaa;
+  --prayer-time-color: #00ffaa;
+}
+.prayer-card.active-prayer .prayer-name {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  animation: prayerCardTextGlowPulse 2.8s ease-in-out infinite !important;
+}
+@keyframes prayerCardTextGlowPulse {
+  0%, 100% {
+    text-shadow:
+      0 0 0.18vh var(--prayer-glow-color, #00ffaa),
+      0 1px 3px rgba(0,0,0,0.98);
+  }
+  50% {
+    text-shadow:
+      0 0 0.35vh var(--prayer-glow-color, #00ffaa),
+      0 0 0.75vh var(--prayer-glow-color, #00ffaa),
+      0 0 1.15vh var(--prayer-glow-color, #00ffaa),
+      0 1px 3px rgba(0,0,0,0.98);
+  }
+}
+.prayer-card.active-prayer .prayer-time {
+  color: var(--prayer-time-color, #00ffaa) !important;
+  -webkit-text-fill-color: var(--prayer-time-color, #00ffaa) !important;
+  text-shadow:
+    0 0 0.25vh var(--prayer-time-color, #00ffaa),
+    0 1px 3px rgba(0,0,0,0.98) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .prayer-card.active-prayer .prayer-name {
+    animation: none !important;
+  }
+}
+</style>
+
 </head>
 
 <body class="startup-visual-hold">
