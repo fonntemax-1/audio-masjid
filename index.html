@@ -9049,13 +9049,12 @@ function startRealtimeAudioConfigPolling_() {
       if (isOff) {
         panel.classList.add('keuangan-selector-off');
         if (ad.parentElement !== panel) panel.appendChild(ad);
-        ad.style.display = 'block';
-        ad.setAttribute('aria-hidden', 'false');
+        // Visibilitas iklan hanya diatur oleh renderCurrentAd_ berdasarkan
+        // jadwal aktif. Jangan menyalakan/mematikan display saat frame data selesai.
         return;
       }
 
       panel.classList.remove('keuangan-selector-off');
-      ad.style.display = 'none';
       if (ad.parentElement !== center) {
         if (banner && banner.parentElement === center) {
           center.insertBefore(ad, banner);
@@ -9063,7 +9062,8 @@ function startRealtimeAudioConfigPolling_() {
           center.appendChild(ad);
         }
       }
-      ad.setAttribute('aria-hidden', 'true');
+      // Jangan menyembunyikan iklan saat renderer KEUANGAN/ZAKAT berjalan.
+      // renderCurrentAd_ tetap menjadi satu-satunya pemilik status tampil/sembunyi.
       ad.style.removeProperty('position');
       ad.style.removeProperty('inset');
       ad.style.removeProperty('width');
