@@ -375,6 +375,26 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 
 </style>
 
+<style id="main-frame-ad-crossfade-stability">
+/* Kedua lapisan iklan menempati satu sel grid yang sama.
+   Ini mencegah layout bergeser/kedip sebelum opacity crossfade dimulai. */
+#main-frame-advertisement {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  isolation: isolate;
+}
+#main-frame-advertisement > img {
+  grid-area: 1 / 1;
+  align-self: center;
+  justify-self: center;
+  min-width: 0;
+  min-height: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+</style>
+
 <style id="keuangan-selector-off-ad-style">
 /* C26=OFF: Frame Informasi tetap utuh; iklan benar-benar di tengah secara horizontal dan vertikal. */
 #fin-panel-box.keuangan-selector-off {
@@ -18494,15 +18514,15 @@ function setCountdownBlackMode(enabled) {
           preload.onload = function() {
             if (token !== transitionToken) return;
 
-            // Siapkan lapisan tujuan dalam keadaan benar-benar transparan
-            // SEBELUM memasang src, agar browser tidak sempat menampilkan
-            // gambar baru sesaat (flash/blink) sebelum crossfade dimulai.
+            // Siapkan lapisan tujuan transparan pada posisi grid yang sama
+            // dengan gambar lama. Tidak mengubah ukuran/posisi kotak iklan.
             const oldVisible = visibleImage;
             const newVisible = standbyImage;
             newVisible.onload = null;
             newVisible.onerror = null;
             newVisible.style.transition = 'none';
             newVisible.style.opacity = '0';
+            newVisible.style.visibility = 'visible';
             newVisible.style.display = 'block';
             void newVisible.offsetWidth;
 
@@ -18524,6 +18544,7 @@ function setCountdownBlackMode(enabled) {
                 oldVisible.style.transition = 'none';
                 oldVisible.style.display = 'none';
                 oldVisible.style.opacity = '0';
+                oldVisible.style.visibility = 'hidden';
                 oldVisible.removeAttribute('src');
                 visibleImage = newVisible;
                 standbyImage = oldVisible;
