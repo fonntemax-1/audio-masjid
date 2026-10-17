@@ -388,7 +388,6 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   display: none !important;
 }
 #fin-panel-box.keuangan-selector-off > #main-frame-advertisement {
-  display: block !important;
   position: absolute !important;
   inset: 0 !important;
   width: 100% !important;
@@ -8856,7 +8855,6 @@ function startRealtimeAudioConfigPolling_() {
         panel.classList.add('keuangan-selector-off');
         if (ad.parentElement !== panel) panel.appendChild(ad);
         ad.setAttribute('aria-hidden', 'false');
-        ad.style.setProperty('display', 'block', 'important');
         return;
       }
 
