@@ -446,6 +446,23 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   font-weight: 400 !important;
   font-style: italic !important;
 }
+/* Keterangan ZAKAT: teks panjang membungkus ke baris berikutnya,
+   tinggi baris mengikuti isi dan tidak dipotong oleh sel tabel. */
+#fin-panel-box .keuangan-table.zakat-table tr.zakat-keterangan-content-row {
+  height: auto !important;
+  min-height: 0 !important;
+}
+#fin-panel-box .keuangan-table.zakat-table tr.zakat-keterangan-content-row > .zakat-cell {
+  height: auto !important;
+  min-height: 0 !important;
+  vertical-align: top !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.2 !important;
+}
 @media screen and (max-width: 700px) {
   #fin-panel-box .keuangan-table.zakat-table .zakat-cell {
     padding: 0.06em 0.08em !important;
