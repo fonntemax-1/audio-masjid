@@ -700,6 +700,80 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
       }
     }
   </style>
+
+<style id="prayer-card-text-shine-sweep">
+/* Shine Sweep halus hanya pada nama dan jam di kartu sholat.
+   Teks asli tetap utuh; lapisan putih tipis bergerak kiri ke kanan. */
+.prayer-card .prayer-name,
+.prayer-card .prayer-time {
+  position: relative !important;
+  isolation: isolate;
+}
+.prayer-card .prayer-name::after,
+.prayer-card .prayer-time::after {
+  content: attr(data-shine-text);
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+  z-index: 2;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  text-transform: inherit;
+  white-space: inherit;
+  overflow-wrap: inherit;
+  opacity: 0.95;
+  -webkit-mask-image: linear-gradient(110deg,
+    transparent 0%,
+    transparent 43%,
+    rgba(255,255,255,0.30) 47%,
+    #fff 50%,
+    rgba(255,255,255,0.30) 53%,
+    transparent 57%,
+    transparent 100%);
+  mask-image: linear-gradient(110deg,
+    transparent 0%,
+    transparent 43%,
+    rgba(255,255,255,0.30) 47%,
+    #fff 50%,
+    rgba(255,255,255,0.30) 53%,
+    transparent 57%,
+    transparent 100%);
+  -webkit-mask-size: 300% 100%;
+  mask-size: 300% 100%;
+  -webkit-mask-position: 0% 0;
+  mask-position: 0% 0;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  animation: prayerCardTextShineSweep 5s linear infinite;
+}
+@keyframes prayerCardTextShineSweep {
+  0% {
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+  25% {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+  100% {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prayer-card .prayer-name::after,
+  .prayer-card .prayer-time::after {
+    display: none !important;
+    animation: none !important;
+  }
+}
+</style>
+
 </head>
 
 <body class="startup-visual-hold">
@@ -19232,6 +19306,45 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
 }
 </style>
+
+
+<script id="prayer-card-text-shine-sync">
+/* Sinkronkan teks overlay dengan nama/jam yang dapat diperbarui secara dinamis.
+   Observer hanya memantau teks kartu; tidak menyentuh jadwal maupun audio. */
+(function () {
+  function syncPrayerCardShineText(root) {
+    const scope = root && root.querySelectorAll ? root : document;
+    scope.querySelectorAll('.prayer-card .prayer-name, .prayer-card .prayer-time').forEach(function (el) {
+      const value = (el.textContent || '').trim();
+      if (el.getAttribute('data-shine-text') !== value) {
+        el.setAttribute('data-shine-text', value);
+      }
+    });
+  }
+  function initPrayerCardShineText() {
+    syncPrayerCardShineText(document);
+    const cards = document.querySelectorAll('.prayer-card');
+    if (!cards.length || !('MutationObserver' in window)) return;
+    const observer = new MutationObserver(function (records) {
+      records.forEach(function (record) {
+        const target = record.target.nodeType === 1 ? record.target : record.target.parentElement;
+        if (target && target.closest) {
+          const el = target.closest('.prayer-name, .prayer-time');
+          if (el && el.closest('.prayer-card')) syncPrayerCardShineText(el.parentElement || document);
+        }
+      });
+    });
+    cards.forEach(function (card) {
+      observer.observe(card, { subtree: true, childList: true, characterData: true });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPrayerCardShineText, { once: true });
+  } else {
+    initPrayerCardShineText();
+  }
+})();
+</script>
 
 </body>
 </html>
