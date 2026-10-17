@@ -427,6 +427,17 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 #fin-panel-box .keuangan-table.zakat-table tr.zakat-keterangan-row > .zakat-cell {
   padding-top: 1em !important;
 }
+#fin-panel-box .keuangan-table.zakat-table .zakat-keterangan-title {
+  color: var(--theme-accent) !important;
+  -webkit-text-fill-color: var(--theme-accent) !important;
+  font-weight: 700 !important;
+}
+#fin-panel-box .keuangan-table.zakat-table .zakat-keterangan-text {
+  text-align: left !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  font-weight: 400 !important;
+}
 @media screen and (max-width: 700px) {
   #fin-panel-box .keuangan-table.zakat-table .zakat-cell {
     padding: 0.06em 0.08em !important;
@@ -8846,6 +8857,7 @@ function startRealtimeAudioConfigPolling_() {
         table.appendChild(colgroup);
       }
 
+      let inZakatKeteranganSection = false;
       rows.forEach(
         function(row) {
 
@@ -8875,13 +8887,16 @@ function startRealtimeAudioConfigPolling_() {
               return value !== '' && romanHeadingPattern.test(value);
             });
             const isRomanHeading = romanHeadingCellIndex >= 0;
-            // Beri ruang vertikal satu baris sebelum bagian Keterangan
-            // bila baris tersebut tersedia dalam data sheet ZAKAT.
+            // Keterangan menjadi judul tersendiri; baris sesudahnya
+            // mempertahankan jeda baris/teks dari nilai spreadsheet.
             const isZakatKeterangan = zakatCells.some(function(value) {
-              return /keterangan/i.test(value);
+              return /^keterangan\s*:??$/i.test(value.trim());
             });
             if (isZakatKeterangan) {
+              inZakatKeteranganSection = true;
               tr.classList.add('zakat-keterangan-row');
+            } else if (inZakatKeteranganSection) {
+              tr.classList.add('zakat-keterangan-content-row');
             }
 
             if (isRomanHeading) {
@@ -8897,11 +8912,30 @@ function startRealtimeAudioConfigPolling_() {
               td.style.setProperty('border-bottom', '2px solid var(--theme-accent)', 'important');
               td.style.setProperty('text-align', 'left', 'important');
               tr.appendChild(td);
+            } else if (isZakatKeterangan) {
+              // Judul Keterangan satu baris penuh, bold dan warna tema.
+              const td = document.createElement('td');
+              td.className = 'zakat-cell zakat-keterangan-title';
+              td.colSpan = 4;
+              td.textContent = zakatCells.filter(Boolean).join(' ');
+              td.style.setProperty('color', 'var(--theme-accent)', 'important');
+              td.style.setProperty('-webkit-text-fill-color', 'var(--theme-accent)', 'important');
+              td.style.setProperty('font-weight', '700', 'important');
+              td.style.setProperty('text-align', 'left', 'important');
+              tr.appendChild(td);
+            } else if (inZakatKeteranganSection && zakatCells.filter(Boolean).length === 1) {
+              // Catatan satu sel direntangkan selebar tabel dan line break dipertahankan.
+              const td = document.createElement('td');
+              td.className = 'zakat-cell zakat-keterangan-text';
+              td.colSpan = 4;
+              td.textContent = zakatCells.find(Boolean) || '';
+              td.style.setProperty('text-align', 'left', 'important');
+              tr.appendChild(td);
             } else {
               // Data biasa tetap memakai empat kolom A:D.
               for (let column = 0; column < 4; column++) {
                 const td = document.createElement('td');
-                td.className = 'zakat-cell';
+                td.className = 'zakat-cell' + (inZakatKeteranganSection ? ' zakat-keterangan-text' : '');
                 td.textContent = zakatCells[column];
                 tr.appendChild(td);
               }
