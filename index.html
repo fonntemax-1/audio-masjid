@@ -376,10 +376,11 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 </style>
 
 <style id="keuangan-selector-off-ad-style">
-/* C26=OFF: pertahankan Frame Informasi; sembunyikan hanya isi dan tempatkan iklan di dalamnya. */
+/* C26=OFF: Frame Informasi tetap utuh; isi disembunyikan dan iklan dipusatkan dengan ruang aman. */
 #fin-panel-box.keuangan-selector-off {
   position: relative !important;
   overflow: hidden !important;
+  box-sizing: border-box !important;
 }
 #fin-panel-box.keuangan-selector-off > #fin-title,
 #fin-panel-box.keuangan-selector-off > #fin-sub,
@@ -390,6 +391,11 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 #fin-panel-box.keuangan-selector-off > #main-frame-advertisement {
   position: absolute !important;
   inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  padding: clamp(8px, 2.5%, 18px) !important;
   width: 100% !important;
   height: 100% !important;
   max-width: 100% !important;
@@ -399,12 +405,16 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   overflow: hidden !important;
 }
 #fin-panel-box.keuangan-selector-off > #main-frame-advertisement img {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
+  display: block !important;
+  position: static !important;
+  flex: 0 1 auto !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: 92% !important;
+  max-height: 88% !important;
   object-fit: contain !important;
   object-position: center center !important;
+  margin: auto !important;
 }
 </style>
 
