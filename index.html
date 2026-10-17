@@ -566,14 +566,66 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 
   <!-- Ikon kartu sholat: foto masjid realistis, bukan clipart. Hanya berlaku pada index.html. -->
   <style id="realistic-prayer-card-photos">
+    /* Foto menjadi latar penuh setiap kartu, tanpa mengubah struktur/jadwal kartu. */
+    .prayer-card,
+    .prayer-card.active-prayer {
+      position: relative !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+      background: #000 !important;
+      isolation: isolate;
+    }
+
+    .prayer-card .prayer-icon,
+    .prayer-card.active-prayer .prayer-icon,
+    .prayer-card.ramadan-imsak[data-prayer="SUBUH"] .prayer-icon,
+    .prayer-card.ramadan-subuh-display .prayer-icon {
+      position: absolute !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      margin: 0 !important;
+      z-index: 0 !important;
+      display: block !important;
+      flex: none !important;
+    }
+
     .prayer-card .prayer-icon img,
     .prayer-card.active-prayer .prayer-icon img,
     .prayer-card.ramadan-imsak[data-prayer="SUBUH"] .prayer-icon img,
     .prayer-card.ramadan-subuh-display .prayer-icon img {
+      display: block !important;
+      width: 100% !important;
+      height: 100% !important;
       object-fit: cover !important;
-      border-radius: 0.55vh !important;
+      object-position: center !important;
+      border-radius: 0 !important;
       filter: none !important;
       -webkit-filter: none !important;
+    }
+
+    .prayer-card .prayer-details,
+    .prayer-card.active-prayer .prayer-details,
+    .prayer-card.ramadan-imsak[data-prayer="SUBUH"] .prayer-details,
+    .prayer-card.ramadan-subuh-display .prayer-details {
+      position: relative !important;
+      z-index: 1 !important;
+      box-sizing: border-box !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      padding: 0.65vh 0.65vw !important;
+      background: linear-gradient(90deg, rgba(0,0,0,0.76) 0%, rgba(0,0,0,0.36) 70%, rgba(0,0,0,0.12) 100%) !important;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.95), 0 0 5px rgba(0,0,0,0.9) !important;
+    }
+
+    .prayer-card .prayer-name,
+    .prayer-card .prayer-time {
+      position: relative !important;
+      z-index: 1 !important;
     }
   </style>
 </head>
