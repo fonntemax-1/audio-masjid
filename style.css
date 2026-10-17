@@ -4779,7 +4779,9 @@ body.advertising-infaq-at-ad-position #infaq-left-widget .infaq-left-text {
 }
 #main-frame-advertisement img {
   box-sizing: border-box !important;
-  display: block !important;
+  /* Jangan paksa display:block !important:
+     JavaScript perlu display:none untuk menyembunyikan lapisan lama
+     setelah crossfade dan mengelola lapisan standby. */
   width: auto !important;
   height: auto !important;
   max-width: 100% !important;
