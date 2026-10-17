@@ -18493,27 +18493,64 @@ function setCountdownBlackMode(enabled) {
           preload.decoding = 'async';
           preload.onload = function() {
             if (token !== transitionToken) return;
-            standbyImage.onload = null;
-            standbyImage.onerror = null;
-            standbyImage.src = candidate;
-            standbyImage.style.opacity = '0';
-            standbyImage.style.display = 'block';
-            // Paksa browser menerapkan opacity awal sebelum animasi dimulai.
-            void standbyImage.offsetWidth;
-            standbyImage.style.opacity = '1';
-            visibleImage.style.opacity = '0';
+
+            // Siapkan lapisan tujuan dalam keadaan benar-benar transparan
+            // SEBELUM memasang src, agar browser tidak sempat menampilkan
+            // gambar baru sesaat (flash/blink) sebelum crossfade dimulai.
             const oldVisible = visibleImage;
             const newVisible = standbyImage;
-            window.setTimeout(function() {
+            newVisible.onload = null;
+            newVisible.onerror = null;
+            newVisible.style.transition = 'none';
+            newVisible.style.opacity = '0';
+            newVisible.style.display = 'block';
+            void newVisible.offsetWidth;
+
+            let fadeStarted = false;
+            function beginCrossfade_() {
+              if (fadeStarted || token !== transitionToken) return;
+              fadeStarted = true;
+              newVisible.onload = null;
+              newVisible.onerror = null;
+              // Kedua lapisan tetap berada di tempatnya; hanya opacity berubah.
+              newVisible.style.transition = 'opacity 800ms ease-in-out';
+              oldVisible.style.transition = 'opacity 800ms ease-in-out';
+              void newVisible.offsetWidth;
+              newVisible.style.opacity = '1';
+              oldVisible.style.opacity = '0';
+
+              window.setTimeout(function() {
+                if (token !== transitionToken) return;
+                oldVisible.style.transition = 'none';
+                oldVisible.style.display = 'none';
+                oldVisible.style.opacity = '0';
+                oldVisible.removeAttribute('src');
+                visibleImage = newVisible;
+                standbyImage = oldVisible;
+                currentAdRow = row;
+                loadingAdRow = 0;
+                console.log('IKLAN MAIN FRAME: crossfade selesai', row);
+              }, 850);
+            }
+
+            // Tunggu lapisan tujuan selesai memuat gambarnya sendiri.
+            newVisible.onload = beginCrossfade_;
+            newVisible.onerror = function() {
               if (token !== transitionToken) return;
-              oldVisible.style.display = 'none';
-              oldVisible.removeAttribute('src');
-              visibleImage = newVisible;
-              standbyImage = oldVisible;
-              currentAdRow = row;
-              loadingAdRow = 0;
-              console.log('IKLAN MAIN FRAME: crossfade selesai', row);
-            }, 850);
+              newVisible.onload = null;
+              newVisible.onerror = null;
+              tryCandidate_();
+            };
+            newVisible.src = candidate;
+            // Jika browser sudah memiliki resource di cache, decode() memastikan
+            // gambar siap tanpa harus menampilkan frame kosong.
+            if (typeof newVisible.decode === 'function') {
+              newVisible.decode().then(beginCrossfade_).catch(function() {
+                // onload/onerror menangani hasil pemuatan di browser terkait.
+              });
+            } else if (newVisible.complete && newVisible.naturalWidth > 0) {
+              beginCrossfade_();
+            }
           };
           preload.onerror = tryCandidate_;
           preload.src = candidate;
