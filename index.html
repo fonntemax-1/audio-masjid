@@ -7810,14 +7810,13 @@ function startRealtimeAudioConfigPolling_() {
     function startFastYouTubeControlPolling_() {
       pollYouTubeControlFast_();
 
-      // Jangan polling Apps Script setiap 1 detik.
-      // Request JSONP berulang ke GAS dapat membuat TV/browser
-      // tersendat karena callback + network + server cold-start
-      // berjalan terus-menerus. 3 detik tetap cukup responsif
-      // untuk perubahan kontrol YouTube.
+      // Polling khusus ini melengkapi polling panel realtime.
+      // Interval 15 detik mengurangi request JSONP berulang ke GAS
+      // yang dapat membebani browser/TV dan mengganggu streaming.
+      // Perubahan kontrol utama tetap terdeteksi oleh polling panel realtime.
       setInterval(
         pollYouTubeControlFast_,
-        5000
+        15000
       );
     }
 
