@@ -1561,13 +1561,15 @@ function getPanelEventCountdownCustomConfig_() {
         .replace(/[\s’‘'\`]/g, '');
 
       const selectedKey =
-        selectorKey === 'ZAKAT'
-          ? 'ZAKAT'
-          : selectorKey === 'QURBAN'
-            ? 'QURBAN'
-            : selectorKey === 'PENGURUS'
-              ? 'PENGURUS'
-              : 'KEUANGAN';
+        selectorKey === 'OFF'
+          ? 'OFF'
+          : selectorKey === 'ZAKAT'
+            ? 'ZAKAT'
+            : selectorKey === 'QURBAN'
+              ? 'QURBAN'
+              : selectorKey === 'PENGURUS'
+                ? 'PENGURUS'
+                : 'KEUANGAN';
 
       result.KeuanganSelector = selectedKey;
 
