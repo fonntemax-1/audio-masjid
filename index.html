@@ -393,6 +393,13 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   overflow-wrap: normal !important;
   word-break: normal !important;
 }
+/* Header kolom PENERIMAAN dan PENYALURAN: bold, warna tema, garis bawah penuh. */
+#fin-panel-box .keuangan-table.zakat-table tr.zakat-column-header > .zakat-cell {
+  color: var(--theme-accent) !important;
+  -webkit-text-fill-color: var(--theme-accent) !important;
+  font-weight: 700 !important;
+  border-bottom: 2px solid var(--theme-accent) !important;
+}
 /* Susunan empat kolom seperti contoh: No kiri, deskripsi kiri, penerima kiri, Jumlah kanan. */
 #fin-panel-box .keuangan-table.zakat-table tr:not(:has(.zakat-roman-heading)) > .zakat-cell:nth-child(1) {
   width: 6% !important;
@@ -8888,6 +8895,17 @@ function startRealtimeAudioConfigPolling_() {
               return value !== '' && romanHeadingPattern.test(value);
             });
             const isRomanHeading = romanHeadingCellIndex >= 0;
+            // Kenali hanya dua header tabel ZAKAT yang diminta pengguna.
+            const normalizedZakatCells = zakatCells.map(function(value) {
+              return value.toLocaleLowerCase('id-ID').replace(/\\s+/g, ' ').trim();
+            });
+            const isZakatColumnHeader =
+              normalizedZakatCells[0] === 'no' &&
+              (normalizedZakatCells[1] === 'jenis penerimaan' || normalizedZakatCells[1] === 'mustahik') &&
+              normalizedZakatCells[3] === 'jumlah';
+            if (isZakatColumnHeader) {
+              tr.classList.add('zakat-column-header');
+            }
             // Keterangan menjadi judul tersendiri; baris sesudahnya
             // mempertahankan jeda baris/teks dari nilai spreadsheet.
             const isZakatKeterangan = zakatCells.some(function(value) {
