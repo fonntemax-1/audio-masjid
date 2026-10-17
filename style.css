@@ -4989,3 +4989,33 @@ body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content img {
     padding-right: 0.5vw !important;
   }
 }
+
+/* IDUL FITRI & IDUL ADHA — batasi ukuran agar tidak menutupi iklan.
+   Hanya mengatur ukuran/posisi widget; jadwal event dan iklan tidak berubah. */
+.center-panel .eid-fitri-video-widget {
+  left: 1% !important;
+  right: auto !important;
+  top: 1% !important;
+  bottom: auto !important;
+  width: 26% !important;
+  max-width: 26% !important;
+  height: auto !important;
+  aspect-ratio: 16 / 9 !important;
+  z-index: 20 !important;
+}
+.center-panel .eid-fitri-video-widget video,
+.center-panel .eid-adha-video-widget img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+@media screen and (max-width: 700px) {
+  .center-panel .eid-fitri-video-widget {
+    left: 1% !important;
+    top: 1% !important;
+    bottom: auto !important;
+    width: 26% !important;
+    max-width: 26% !important;
+  }
+}
+
