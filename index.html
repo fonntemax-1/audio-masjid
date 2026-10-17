@@ -18988,5 +18988,107 @@ function init(){fitHeaderLogo();window.addEventListener('resize',fitHeaderLogo,{
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+
+<style id="metallic-theme-frames">
+/* FRAME METALLIC STATIS — hanya presentasi, warna mengikuti panels!C18.
+   Border sedikit dipertebal; highlight bevel lembut tanpa animasi atau perubahan grid. */
+.screen-container,
+.header,
+.prayer-card,
+.center-panel,
+.center-panel .event-banner,
+.right-sidebar .panel-box,
+.footer,
+.countdown-box,
+.digital-clock-box,
+.main-clock-panel {
+  box-sizing: border-box !important;
+  border-width: 0.32vh !important;
+  border-style: solid !important;
+  border-color: var(--theme-border, var(--theme-accent, #00ffaa)) !important;
+  box-shadow:
+    inset 0 0.12vh 0 rgba(255,255,255,0.42),
+    inset 0 -0.14vh 0 rgba(0,0,0,0.62),
+    0 0.12vh 0.22vh rgba(0,0,0,0.58) !important;
+}
+
+/* Efek logam lebih kaya per tema: pantulan atas, warna tema di tengah,
+   dan tepi bawah gelap. Tidak memakai border-image agar sudut tetap rapi. */
+:root[data-display-theme="hijau"] .screen-container,
+:root[data-display-theme="hijau"] .header,
+:root[data-display-theme="hijau"] .prayer-card,
+:root[data-display-theme="hijau"] .center-panel,
+:root[data-display-theme="hijau"] .center-panel .event-banner,
+:root[data-display-theme="hijau"] .right-sidebar .panel-box,
+:root[data-display-theme="hijau"] .footer,
+:root[data-display-theme="hijau"] .countdown-box,
+:root[data-display-theme="hijau"] .digital-clock-box,
+:root[data-display-theme="hijau"] .main-clock-panel {
+  border-color: #00ffaa !important;
+  box-shadow:
+    inset 0 0.12vh 0 rgba(235,255,249,0.58),
+    inset 0 -0.14vh 0 rgba(0,42,28,0.78),
+    0 0.12vh 0.22vh rgba(0,0,0,0.58),
+    0 0 0.18vh rgba(0,255,170,0.18) !important;
+}
+:root[data-display-theme="merah"] .screen-container,
+:root[data-display-theme="merah"] .header,
+:root[data-display-theme="merah"] .prayer-card,
+:root[data-display-theme="merah"] .center-panel,
+:root[data-display-theme="merah"] .center-panel .event-banner,
+:root[data-display-theme="merah"] .right-sidebar .panel-box,
+:root[data-display-theme="merah"] .footer,
+:root[data-display-theme="merah"] .countdown-box,
+:root[data-display-theme="merah"] .digital-clock-box,
+:root[data-display-theme="merah"] .main-clock-panel {
+  border-color: #ff5a5f !important;
+  box-shadow:
+    inset 0 0.12vh 0 rgba(255,239,239,0.58),
+    inset 0 -0.14vh 0 rgba(62,4,8,0.78),
+    0 0.12vh 0.22vh rgba(0,0,0,0.58),
+    0 0 0.18vh rgba(255,90,95,0.18) !important;
+}
+:root[data-display-theme="kuning"] .screen-container,
+:root[data-display-theme="kuning"] .header,
+:root[data-display-theme="kuning"] .prayer-card,
+:root[data-display-theme="kuning"] .center-panel,
+:root[data-display-theme="kuning"] .center-panel .event-banner,
+:root[data-display-theme="kuning"] .right-sidebar .panel-box,
+:root[data-display-theme="kuning"] .footer,
+:root[data-display-theme="kuning"] .countdown-box,
+:root[data-display-theme="kuning"] .digital-clock-box,
+:root[data-display-theme="kuning"] .main-clock-panel {
+  border-color: #ffcc00 !important;
+  box-shadow:
+    inset 0 0.12vh 0 rgba(255,252,224,0.62),
+    inset 0 -0.14vh 0 rgba(65,43,0,0.78),
+    0 0.12vh 0.22vh rgba(0,0,0,0.58),
+    0 0 0.18vh rgba(255,204,0,0.18) !important;
+}
+
+/* Kartu waktu sholat aktif tetap paling menonjol, tanpa efek kilau bergerak. */
+.prayer-card.active-prayer {
+  border-width: 0.38vh !important;
+  box-shadow:
+    inset 0 0.12vh 0 rgba(255,255,255,0.58),
+    inset 0 -0.14vh 0 rgba(0,0,0,0.65),
+    0 0 0.42vh var(--theme-accent, #00ffaa) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen-container,
+  .header,
+  .prayer-card,
+  .center-panel,
+  .center-panel .event-banner,
+  .right-sidebar .panel-box,
+  .footer,
+  .countdown-box,
+  .digital-clock-box,
+  .main-clock-panel {
+    transition: none !important;
+  }
+}
+</style>
+
 </body>
 </html>
