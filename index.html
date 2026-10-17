@@ -8809,6 +8809,20 @@ function startRealtimeAudioConfigPolling_() {
 
       if (!content) return;
 
+      // ZAKAT: fetchSheetData berjalan berkala walaupun isi tabel tidak berubah.
+      // Hindari membangun ulang DOM tabel pada polling yang sama agar header
+      // dan garis bawah tidak tampak berkedip. Khusus ZAKAT saja.
+      const zakatRowsSignature = isZakat
+        ? JSON.stringify(Array.isArray(rows) ? rows : [])
+        : '';
+      if (
+        isZakat &&
+        updateKeuangan._zakatRowsSignature === zakatRowsSignature &&
+        content.querySelector('table.zakat-table')
+      ) {
+        return;
+      }
+
       // PENGURUS realtime:
       // Saat Google Sheets sedang diproses setelah edit, Apps Script
       // dapat sesaat mengembalikan rows=[]/belum lengkap. Jangan
@@ -9212,6 +9226,11 @@ function startRealtimeAudioConfigPolling_() {
       content.appendChild(
         table
       );
+
+      // Simpan signature setelah tabel ZAKAT berhasil diperbarui.
+      if (isZakat) {
+        updateKeuangan._zakatRowsSignature = zakatRowsSignature;
+      }
 
       // PENGURUS realtime: ketika data A19 ke bawah berubah,
       // tabel dibangun ulang tetapi posisi scrolling SAAT INI
