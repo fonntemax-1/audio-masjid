@@ -702,23 +702,27 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   </style>
 
 <style id="prayer-card-text-shine-sweep">
-/* Glow Pulse + Shine Sweep hanya pada nama dan jam kartu sholat aktif.
-   Tidak mengubah ukuran, posisi, struktur kartu, atau logika scheduler. */
+/* Glow Pulse warna tema hanya pada nama sholat; jam tidak ikut berdenyut.
+   Shine Sweep tetap berlaku pada nama dan jam kartu sholat aktif. */
 .prayer-card.active-prayer .prayer-name,
 .prayer-card.active-prayer .prayer-time {
   position: relative !important;
   isolation: isolate;
+}
+.prayer-card.active-prayer .prayer-name {
   animation: prayerCardTextGlowPulse 2.8s ease-in-out infinite;
 }
 @keyframes prayerCardTextGlowPulse {
   0%, 100% {
-    text-shadow: 0 0 0.18vh currentColor, 0 1px 3px rgba(0,0,0,0.98);
+    text-shadow:
+      0 0 0.18vh var(--theme-accent, #00ffaa),
+      0 1px 3px rgba(0,0,0,0.98);
   }
   50% {
     text-shadow:
-      0 0 0.35vh currentColor,
-      0 0 0.75vh currentColor,
-      0 0 1.15vh rgba(255,255,255,0.38),
+      0 0 0.35vh var(--theme-accent, #00ffaa),
+      0 0 0.75vh var(--theme-accent, #00ffaa),
+      0 0 1.15vh var(--theme-accent, #00ffaa),
       0 1px 3px rgba(0,0,0,0.98);
   }
 }
@@ -779,8 +783,7 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .prayer-card.active-prayer .prayer-name,
-  .prayer-card.active-prayer .prayer-time {
+  .prayer-card.active-prayer .prayer-name {
     animation: none !important;
   }
   .prayer-card.active-prayer .prayer-name::after,
