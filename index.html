@@ -376,16 +376,10 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 </style>
 
 <style id="keuangan-selector-off-ad-style">
-/* C26=OFF: sembunyikan isi panel data dan gunakan frame yang sama untuk iklan. */
+/* C26=OFF: pertahankan Frame Informasi; sembunyikan hanya isi dan tempatkan iklan di dalamnya. */
 #fin-panel-box.keuangan-selector-off {
   position: relative !important;
   overflow: hidden !important;
-  /* OFF: panel informasi tidak terlihat sebagai frame; ruangnya dipakai iklan. */
-  background: transparent !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
 }
 #fin-panel-box.keuangan-selector-off > #fin-title,
 #fin-panel-box.keuangan-selector-off > #fin-sub,
@@ -405,7 +399,6 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   overflow: hidden !important;
 }
 #fin-panel-box.keuangan-selector-off > #main-frame-advertisement img {
-  inset: 0 !important;
   width: 100% !important;
   height: 100% !important;
   max-width: 100% !important;
