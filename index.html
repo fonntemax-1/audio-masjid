@@ -537,6 +537,16 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 
 
 
+
+<style id="disable-header-white-sweep-flicker">
+  /* Nama masjid tetap memakai warna tema tanpa sapuan putih animasi. */
+  #nama_masjid::after {
+    content: none !important;
+    display: none !important;
+    animation: none !important;
+  }
+</style>
+
 </head>
 
 <body class="startup-visual-hold">
@@ -8234,10 +8244,15 @@ function startRealtimeAudioConfigPolling_() {
         if (element) {
           const nama = String(data.Nama || '').trim();
 
-          element.innerText = nama;
-
-          element.setAttribute('data-highlight-text', element.innerText);
-          updateLogoPositionResponsive_();
+          // Jangan render ulang teks HEADER pada setiap polling 5 detik
+          // jika nilainya tidak berubah; ini mencegah kedipan yang tidak perlu.
+          if (element.innerText !== nama) {
+            element.innerText = nama;
+            element.setAttribute('data-highlight-text', nama);
+            updateLogoPositionResponsive_();
+          } else if (element.getAttribute('data-highlight-text') !== nama) {
+            element.setAttribute('data-highlight-text', nama);
+          }
 
         }
 
@@ -8272,19 +8287,29 @@ function startRealtimeAudioConfigPolling_() {
 
       if (alamatElement) {
         const hasHeaderData = alamat || kota || nomorTelp;
-        alamatElement.innerHTML = hasHeaderData
+        const alamatText = hasHeaderData
           ? (alamat + ' - ' + kota + ' | ' + nomorTelp)
           : '';
-        alamatElement.style.display = hasHeaderData ? '' : 'none';
+        if (alamatElement.innerHTML !== alamatText) {
+          alamatElement.innerHTML = alamatText;
+        }
+        const alamatDisplay = hasHeaderData ? '' : 'none';
+        if (alamatElement.style.display !== alamatDisplay) {
+          alamatElement.style.display = alamatDisplay;
+        }
       }
 
       const sloganElement =
         document.getElementById('slogan_masjid');
 
       if (sloganElement) {
-        sloganElement.innerText = slogan;
-        sloganElement.style.display =
-          slogan ? '' : 'none';
+        if (sloganElement.innerText !== slogan) {
+          sloganElement.innerText = slogan;
+        }
+        const sloganDisplay = slogan ? '' : 'none';
+        if (sloganElement.style.display !== sloganDisplay) {
+          sloganElement.style.display = sloganDisplay;
+        }
       }
 
 
