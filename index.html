@@ -9103,16 +9103,20 @@ function startRealtimeAudioConfigPolling_() {
 
       if (!content) return;
 
-      // ZAKAT: fetchSheetData berjalan berkala walaupun isi tabel tidak berubah.
-      // Hindari membangun ulang DOM tabel pada polling yang sama agar header
-      // dan garis bawah tidak tampak berkedip. Khusus ZAKAT saja.
-      const zakatRowsSignature = isZakat
-        ? JSON.stringify(Array.isArray(rows) ? rows : [])
-        : '';
+      // Hindari membangun ulang tabel Informasi pada setiap polling.
+      // Render ulang hanya jika selector, tanggal, atau isi data berubah.
+      // Ini mengurangi jeda saat iklan berpindah tanpa mengubah format tabel.
+      const panelRenderSignature = JSON.stringify([
+        selectorKey,
+        String(keuanganTanggal || ''),
+        Array.isArray(rows) ? rows : []
+      ]);
+      const hasRenderedPanelContent =
+        !!content.querySelector('table.keuangan-table') ||
+        !!content.querySelector('.keuangan-empty');
       if (
-        isZakat &&
-        updateKeuangan._zakatRowsSignature === zakatRowsSignature &&
-        content.querySelector('table.zakat-table')
+        content.dataset.keuanganRenderSignature === panelRenderSignature &&
+        hasRenderedPanelContent
       ) {
         return;
       }
@@ -9149,6 +9153,7 @@ function startRealtimeAudioConfigPolling_() {
           '<div class="keuangan-empty">' +
           'Belum ada data keuangan' +
           '</div>';
+        content.dataset.keuanganRenderSignature = panelRenderSignature;
 
         return;
 
@@ -9521,9 +9526,11 @@ function startRealtimeAudioConfigPolling_() {
         table
       );
 
-      // Simpan signature setelah tabel ZAKAT berhasil diperbarui.
+      // Signature dipasang setelah DOM tabel selesai dibangun.
+      // Berlaku untuk KEUANGAN, QURBAN, PENGURUS, dan ZAKAT.
+      content.dataset.keuanganRenderSignature = panelRenderSignature;
       if (isZakat) {
-        updateKeuangan._zakatRowsSignature = zakatRowsSignature;
+        updateKeuangan._zakatRowsSignature = JSON.stringify(rows);
       }
 
       // PENGURUS realtime: ketika data A19 ke bawah berubah,
