@@ -436,6 +436,22 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   table-layout: fixed !important;
   border-collapse: collapse !important;
   margin: 0 !important;
+  /* Font isi ZAKAT mengikuti lebar frame TV, bukan lebar viewport. */
+  font-size: clamp(0.58rem, 1.8cqw, 0.98rem) !important;
+  line-height: 1.16 !important;
+}
+#fin-panel-box .keuangan-table.zakat-table .zakat-cell {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  line-height: 1.16 !important;
+}
+/* Nominal yang panjang boleh turun baris agar tidak keluar dari frame TV. */
+#fin-panel-box .keuangan-table.zakat-table tr:not(:has(.zakat-roman-heading)) > .zakat-cell:nth-child(4) {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  text-align: right !important;
 }
 #fin-panel-box .keuangan-table.zakat-table .zakat-cell {
   box-sizing: border-box !important;
