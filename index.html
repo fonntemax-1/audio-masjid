@@ -7769,6 +7769,11 @@ function startRealtimeAudioConfigPolling_() {
         .then(function(control) {
           if (!control || typeof control !== 'object') return;
 
+          // Respons kontrol yang tidak lengkap tidak boleh dianggap
+          // sebagai URL kosong, karena dapat melepas iframe dan memicu
+          // loading ulang pada polling berikutnya.
+          if (!Object.prototype.hasOwnProperty.call(control, 'Youtube')) return;
+
           const url = String(control.Youtube || '').trim();
           const status = normalizeYouTubeControlMode(
             control.YoutubeStatus || 'AUTO'
@@ -8810,10 +8815,15 @@ function startRealtimeAudioConfigPolling_() {
       // YOUTUBE
       // =======================================================
 
-      setYouTubeVideo(
-        data.Youtube || '',
-        data.YoutubeStatus || 'AUTO'
-      );
+      // Snapshot utama kadang tidak menyertakan field Youtube.
+      // Jika field tidak ada, pertahankan iframe yang sedang berjalan;
+      // hanya nilai URL yang benar-benar dikirim API yang boleh diproses.
+      if (Object.prototype.hasOwnProperty.call(data, 'Youtube')) {
+        setYouTubeVideo(
+          String(data.Youtube || '').trim(),
+          data.YoutubeStatus || 'AUTO'
+        );
+      }
 
       // PETUGAS SHOLAT dari main getDataFromSheet API.
       if (data.PanelKegiatan) {
