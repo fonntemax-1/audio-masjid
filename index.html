@@ -563,6 +563,19 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
   }
 </style>
 
+
+  <!-- Ikon kartu sholat: foto masjid realistis, bukan clipart. Hanya berlaku pada index.html. -->
+  <style id="realistic-prayer-card-photos">
+    .prayer-card .prayer-icon img,
+    .prayer-card.active-prayer .prayer-icon img,
+    .prayer-card.ramadan-imsak[data-prayer="SUBUH"] .prayer-icon img,
+    .prayer-card.ramadan-subuh-display .prayer-icon img {
+      object-fit: cover !important;
+      border-radius: 0.55vh !important;
+      filter: none !important;
+      -webkit-filter: none !important;
+    }
+  </style>
 </head>
 
 <body class="startup-visual-hold">
@@ -607,7 +620,7 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
       <div class="prayer-sidebar">
         <div class="prayer-card" data-prayer="SUBUH">
           <div class="prayer-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/4814/4814275.png" alt="Subuh">
+            <img src="https://images.unsplash.com/photo-1565713675416-aaeb40051d7e?auto=format&fit=crop&crop=entropy&w=360&h=220&q=80" alt="Subuh" loading="eager" decoding="async">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">SUBUH</div>
@@ -617,7 +630,7 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 
         <div class="prayer-card" data-prayer="TERBIT">
           <div class="prayer-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/615/615594.png" alt="Terbit">
+            <img src="https://images.unsplash.com/photo-1565713675416-aaeb40051d7e?auto=format&fit=crop&crop=entropy&w=360&h=220&q=80" alt="Terbit" loading="eager" decoding="async">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">TERBIT</div>
@@ -627,7 +640,7 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 
         <div class="prayer-card" data-prayer="DZUHUR">
           <div class="prayer-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/869/869869.png" alt="Dzuhur">
+            <img src="https://images.unsplash.com/photo-1630585542886-deb954b11715?auto=format&fit=crop&crop=entropy&w=360&h=220&q=80" alt="Dzuhur" loading="eager" decoding="async">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">DZUHUR</div>
@@ -637,7 +650,7 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 
         <div class="prayer-card" data-prayer="ASHAR">
           <div class="prayer-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/869/869869.png" alt="Ashar">
+            <img src="https://images.unsplash.com/photo-1576301173659-228b963e83b2?auto=format&fit=crop&crop=entropy&w=360&h=220&q=80" alt="Ashar" loading="eager" decoding="async">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">ASHAR</div>
@@ -647,7 +660,7 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 
         <div class="prayer-card" data-prayer="MAGHRIB">
           <div class="prayer-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/15/15734.png" alt="Maghrib">
+            <img src="https://images.unsplash.com/photo-1771082074187-65d3e706272f?auto=format&fit=crop&crop=entropy&w=360&h=220&q=80" alt="Maghrib" loading="eager" decoding="async">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">MAGHRIB</div>
@@ -657,7 +670,7 @@ html body #petugas-panel-box #petugas-infaq-display .petugas-infaq-title {
 
         <div class="prayer-card" data-prayer="ISYA">
           <div class="prayer-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/581/581601.png" alt="Isya">
+            <img src="https://images.unsplash.com/photo-1767380803401-86517c7402ae?auto=format&fit=crop&crop=entropy&w=360&h=220&q=80" alt="Isya" loading="eager" decoding="async">
           </div>
           <div class="prayer-details">
             <div class="prayer-name">ISYA'</div>
@@ -15326,7 +15339,7 @@ function startRealtimeAudioConfigPolling_() {
       }
 
       if (subuhIcon) {
-        subuhIcon.src = "https://cdn-icons-png.flaticon.com/512/1113/1113739.png";
+        subuhIcon.src = "https://images.unsplash.com/photo-1565713675416-aaeb40051d7e?auto=format&fit=crop&crop=entropy&w=360&h=220&q=80";
         subuhIcon.alt = 'Imsak';
       }
 
@@ -15343,12 +15356,12 @@ function startRealtimeAudioConfigPolling_() {
       if (!isRamadanDisplay()) {
 
         if (subuhIcon) {
-          subuhIcon.src = "https://cdn-icons-png.flaticon.com/512/4814/4814275.png";
+          subuhIcon.src = "https://images.unsplash.com/photo-1565713675416-aaeb40051d7e?auto=format&fit=crop&crop=entropy&w=360&h=220&q=80";
           subuhIcon.alt = 'Subuh';
         }
 
         if (terbitIcon) {
-          terbitIcon.src = "https://cdn-icons-png.flaticon.com/512/615/615594.png";
+          terbitIcon.src = "https://images.unsplash.com/photo-1565713675416-aaeb40051d7e?auto=format&fit=crop&crop=entropy&w=360&h=220&q=80";
           terbitIcon.alt = 'Terbit';
         }
 
@@ -15390,7 +15403,7 @@ function startRealtimeAudioConfigPolling_() {
       }
 
       if (terbitIcon) {
-        terbitIcon.src = "https://cdn-icons-png.flaticon.com/512/4814/4814275.png";
+        terbitIcon.src = "https://images.unsplash.com/photo-1565713675416-aaeb40051d7e?auto=format&fit=crop&crop=entropy&w=360&h=220&q=80";
         terbitIcon.alt = 'Subuh';
       }
 
