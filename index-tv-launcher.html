@@ -904,6 +904,53 @@ body{margin:0!important;min-height:100vh!important;background:radial-gradient(el
 @media(max-width:1050px){.screen-container{min-height:0!important}.main-body{grid-template-columns:minmax(180px,.8fr) minmax(300px,1.4fr)!important}.right-sidebar{grid-column:1/-1;grid-template-columns:1fr 1fr!important;grid-template-rows:minmax(180px,auto)!important}.prayer-sidebar{grid-template-columns:1fr 1fr!important;grid-template-rows:repeat(3,72px)!important}.center-panel{min-height:400px!important}.header{grid-template-columns:minmax(0,1fr) auto!important}.header-right{justify-content:flex-start!important}}
 @media(max-width:650px){body{padding:10px!important}.screen-container{padding:13px!important;border-radius:20px!important;gap:14px!important}.header{grid-template-columns:1fr!important;gap:12px!important;padding-bottom:12px!important}.header-logo img{width:44px!important;height:44px!important}.header-right{gap:10px!important;justify-content:flex-start!important;text-align:left!important}.latin-name{font-size:17px!important}.sub,.slogan{font-size:10px!important}.greg-day{font-size:13px!important}.greg-text,.hijri-num,.hijri-text{font-size:10px!important}.header-divider{height:30px!important}.main-body{grid-template-columns:1fr!important;gap:12px!important}.center-panel{grid-row:1!important;min-height:360px!important}.prayer-sidebar{grid-row:2!important;grid-template-columns:1fr 1fr!important;grid-template-rows:repeat(3,67px)!important;gap:7px!important}.prayer-card{padding:9px!important;gap:8px!important;border-radius:13px!important}.prayer-icon{width:30px!important;height:30px!important}.prayer-time{font-size:18px!important}.prayer-name{font-size:10px!important}.right-sidebar{grid-row:3!important;grid-template-columns:1fr!important;grid-template-rows:minmax(170px,auto) minmax(170px,auto)!important;gap:10px!important}.clock-overlay{padding:18px!important}.digital-clock{font-size:54px!important}.countdown-timer{font-size:30px!important}.footer{padding-top:10px!important}}
 @media(prefers-reduced-motion:reduce){.prayer-card{transition:none!important}}
+
+/* PORT FIX: map preview's actual visual composition onto existing app DOM */
+.screen-container{display:grid!important;grid-template-rows:auto minmax(0,1fr) auto!important;align-content:stretch!important}
+.header{grid-row:1!important}
+.main-body{grid-row:2!important}
+.footer{grid-row:3!important}
+.main-body{grid-template-columns:minmax(205px,.86fr) minmax(340px,1.65fr) minmax(220px,.92fr)!important;min-height:0!important}
+.prayer-sidebar{grid-template-columns:1fr!important;grid-template-rows:repeat(6,minmax(65px,1fr))!important;grid-auto-flow:row!important}
+.prayer-card{justify-content:space-between!important;padding:13px 16px!important;gap:12px!important}
+.prayer-icon{display:none!important}
+.prayer-details{flex:1!important;display:flex!important;flex-direction:row!important;justify-content:space-between!important;align-items:center!important;gap:10px!important}
+.prayer-name{font-size:clamp(12px,1.1vw,16px)!important}
+.prayer-time{font-size:clamp(19px,1.7vw,25px)!important}
+.center-panel{min-height:450px!important;isolation:isolate!important;background:#151b21!important;display:block!important}
+.youtube-background{z-index:0!important;opacity:.78!important}
+.youtube-background iframe{position:absolute!important;left:50%!important;top:50%!important;width:140%!important;height:140%!important;transform:translate(-50%,-50%)!important;pointer-events:none!important}
+.youtube-background:after{content:""!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,#080b1033 0%,#080b1020 25%,#080b10ed 100%)!important;z-index:1!important}
+.clock-overlay{position:absolute!important;inset:0!important;display:block!important;padding:0!important;background:transparent!important;z-index:3!important;pointer-events:none!important}
+.countdown-box{position:absolute!important;left:clamp(18px,2vw,28px)!important;right:clamp(18px,2vw,28px)!important;bottom:clamp(18px,2vw,28px)!important;top:auto!important;align-self:auto!important;text-align:left!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;z-index:5!important}
+.countdown-title{font:800 12px Manrope,sans-serif!important;letter-spacing:.2em!important;color:#e5d4a7!important;text-transform:uppercase!important}
+.countdown-timer{font:600 clamp(25px,3vw,43px)/1.1 Outfit,sans-serif!important;letter-spacing:.02em!important;color:#fff!important;margin-top:7px!important}
+.digital-clock-box{position:absolute!important;left:clamp(18px,2vw,28px)!important;right:auto!important;top:clamp(18px,2vw,28px)!important;bottom:auto!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:8px!important;z-index:5!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+.digital-time{font:600 clamp(46px,6vw,88px)/.98 Outfit,sans-serif!important;letter-spacing:-.055em!important;color:#f8fafc!important;text-shadow:0 3px 22px #0009!important}
+.tz-text{font:800 11px Manrope,sans-serif!important;letter-spacing:.15em!important;color:var(--tv-gold)!important}
+.analog-clock{display:none!important}
+#main-frame-advertisement{position:absolute!important;inset:0!important;z-index:8!important;border-radius:23px!important;overflow:hidden!important}
+#main-frame-advertisement img{width:100%!important;height:100%!important;object-fit:cover!important}
+.event-banner{position:absolute!important;left:clamp(18px,2vw,28px)!important;right:clamp(18px,2vw,28px)!important;bottom:8px!important;z-index:9!important}
+.right-sidebar{grid-template-rows:minmax(0,1fr) minmax(0,1fr)!important}
+.panel-box{position:relative!important}
+@media(max-width:1050px){
+.screen-container{grid-template-rows:auto auto auto!important}
+.main-body{grid-template-columns:minmax(180px,.8fr) minmax(300px,1.4fr)!important}
+.prayer-sidebar{grid-template-columns:1fr 1fr!important;grid-template-rows:repeat(3,72px)!important}
+.right-sidebar{grid-column:1/-1!important;grid-template-columns:1fr 1fr!important;grid-template-rows:minmax(180px,auto)!important}
+}
+@media(max-width:650px){
+.screen-container{display:flex!important;min-height:0!important}
+.main-body{display:flex!important;flex-direction:column!important}
+.center-panel{order:0!important;min-height:360px!important}
+.prayer-sidebar{order:1!important;grid-template-columns:1fr 1fr!important;grid-template-rows:repeat(3,67px)!important}
+.right-sidebar{order:2!important;grid-template-columns:1fr!important;grid-template-rows:minmax(170px,auto) minmax(170px,auto)!important}
+.digital-time{font-size:54px!important}
+.countdown-timer{font-size:30px!important}
+.prayer-details{gap:5px!important}
+.prayer-time{font-size:18px!important}
+}
 </style>
 </head>
 
