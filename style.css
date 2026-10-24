@@ -5021,3 +5021,88 @@ body.advertising-infaq-left-shift #infaq-left-widget .infaq-left-content img {
   }
 }
 
+
+
+/* =========================================================
+   TV LAUNCHER VISUAL PREVIEW — 2026-10-25
+   Visual-only layer. Keep all layout logic, IDs, audio, API,
+   prayer scheduling and Ramadan behavior unchanged.
+   ========================================================= */
+:root {
+  --launcher-bg: #050a11;
+  --launcher-surface: rgba(12, 23, 35, .90);
+  --launcher-surface-raised: rgba(20, 33, 47, .94);
+  --launcher-gold: #f2c66d;
+  --launcher-gold-soft: rgba(242, 198, 109, .26);
+  --launcher-line: rgba(180, 204, 222, .16);
+}
+html {
+  background: var(--launcher-bg);
+}
+body {
+  background:
+    radial-gradient(ellipse at 80% 0%, rgba(129, 83, 39, .20), transparent 42%),
+    radial-gradient(ellipse at 5% 65%, rgba(18, 65, 86, .18), transparent 45%),
+    linear-gradient(145deg, #080f18 0%, #04080e 68%, #07111b 100%) !important;
+  color: #f4f6fa;
+}
+.screen-container {
+  isolation: isolate;
+}
+.header {
+  border-bottom: 1px solid var(--launcher-line);
+}
+.header-divider {
+  background: linear-gradient(180deg, transparent, rgba(242,198,109,.65), transparent) !important;
+  opacity: .7;
+}
+.header-center .latin-name,
+#nama_masjid {
+  text-shadow: 0 2px 18px rgba(242,198,109,.14);
+}
+.digital-clock-box,
+.countdown-box,
+.center-panel,
+.right-sidebar .panel-box,
+.khutbah-panel,
+.infaq-panel {
+  background: linear-gradient(145deg, rgba(18,31,45,.96), rgba(6,13,21,.96)) !important;
+  border: 1px solid var(--launcher-line) !important;
+  border-radius: clamp(14px, 1.25vw, 24px) !important;
+  box-shadow: 0 12px 34px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.035) !important;
+  overflow: hidden;
+}
+.prayer-card {
+  border: 1px solid rgba(169,190,210,.15) !important;
+  border-radius: clamp(12px, 1vw, 20px) !important;
+  background: linear-gradient(150deg, rgba(25,39,53,.95), rgba(8,16,25,.96)) !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.035) !important;
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, background .22s ease;
+}
+.prayer-card.active-prayer {
+  border-color: var(--launcher-gold) !important;
+  background: linear-gradient(145deg, rgba(69,53,30,.72), rgba(14,22,30,.98)) !important;
+  box-shadow: 0 0 0 1px rgba(242,198,109,.2), 0 0 24px rgba(242,198,109,.12) !important;
+}
+.panel-title {
+  letter-spacing: .025em;
+}
+.right-sidebar .panel-box,
+.khutbah-panel,
+.infaq-panel {
+  border-color: rgba(169,190,210,.13) !important;
+}
+button, .button, [role="button"] {
+  border-radius: 999px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .prayer-card:hover,
+  .right-sidebar .panel-box:hover {
+    transform: translateY(-2px);
+    border-color: rgba(242,198,109,.46) !important;
+    box-shadow: 0 12px 28px rgba(0,0,0,.28), 0 0 16px rgba(242,198,109,.07) !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prayer-card { transition: none !important; }
+}
