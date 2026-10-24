@@ -883,7 +883,16 @@ body{background:radial-gradient(ellipse at 78% 0%,rgba(70,91,116,.24),transparen
 #tv-launcher-new-display .prayer{transition:background .25s,border-color .25s}
 #tv-launcher-new-display .prayer.active{border-color:var(--gold,#e3bd72)}
 #tv-launcher-new-display .qris-row img{object-fit:contain}
-#tv-launcher-new-display .ticker{white-space:nowrap;overflow:hidden}
+#tv-launcher-new-display .ticker{white-space:nowrap;overflow:hidden;position:relative}
+#tv-launcher-new-display .ticker .tvp-running-track{display:inline-flex;align-items:center;gap:2.5rem;width:max-content;min-width:100%;will-change:transform;animation:tvp-marquee 24s linear infinite}
+#tv-launcher-new-display .ticker:hover .tvp-running-track{animation-play-state:paused}
+@keyframes tvp-marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+#tv-launcher-new-display .tvp-scroll-window{position:relative;overflow:hidden;max-height:clamp(110px,16vh,220px);margin-top:10px;mask-image:linear-gradient(to bottom,transparent 0,#000 8%,#000 92%,transparent 100%)}
+#tv-launcher-new-display .tvp-scroll-content{animation:tvp-vertical-scroll 28s linear infinite;overflow-wrap:anywhere}
+#tv-launcher-new-display .tvp-scroll-content table{width:100%;border-collapse:collapse;font-size:clamp(10px,0.85vw,14px)}
+#tv-launcher-new-display .tvp-scroll-content td,#tv-launcher-new-display .tvp-scroll-content th{padding:4px 5px;border-bottom:1px solid rgba(255,255,255,.12);text-align:left}
+#tv-launcher-new-display .tvp-scroll-window:hover .tvp-scroll-content{animation-play-state:paused}
+@keyframes tvp-vertical-scroll{0%{transform:translateY(100%)}100%{transform:translateY(-100%)}}
 #tv-launcher-new-display .brand-name,#tv-launcher-new-display .mosque-title{overflow-wrap:anywhere}
 @media(max-width:900px){#tv-launcher-new-display .wrap{padding:8px}#tv-launcher-new-display .screen{min-height:calc(100vh - 72px)}}
 </style></head>
@@ -19588,7 +19597,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         </div>
         <div class="tile ad">
           <div><div class="adtag">INFORMASI MASJID</div><div class="adtitle" id="tvp-ad-title">Iklan &amp; pengumuman</div><div class="muted" id="tvp-ad-sub">Tile ini mewakili area iklan / informasi yang sudah ada pada display Audio Masjid.</div></div>
-          <div class="adfoot" id="tvp-ad-foot">Iklan dan pengumuman dari aplikasi aktif.</div>
+          <div class="tvp-scroll-window" id="tvp-scroll-window" style="display:none"><div class="tvp-scroll-content" id="tvp-scroll-content"></div></div><div class="adfoot" id="tvp-ad-foot">Iklan dan pengumuman dari aplikasi aktif.</div>
         </div>
       </aside>
     </section>
@@ -19643,11 +19652,23 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
      if(titleEl&&titleEl.textContent.trim())text('#tvp-ad-title',titleEl.textContent);
      if(subEl&&subEl.textContent.trim())text('#tvp-ad-sub',subEl.textContent);
      const content=fin.querySelector('#keuangan-content');
+     const scrollWindow=$('#tvp-scroll-window'),scrollContent=$('#tvp-scroll-content');
+     if(content&&content.textContent.trim()&&scrollWindow&&scrollContent){
+       const raw=content.innerHTML;
+       if(scrollContent.getAttribute('data-html')!==raw){
+         scrollContent.setAttribute('data-html',raw);
+         scrollContent.innerHTML=raw;
+         scrollContent.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+       }
+       scrollWindow.style.display='block';
+       const scrollHeight=scrollContent.scrollHeight,viewHeight=scrollWindow.clientHeight;
+       scrollContent.style.animationDuration=Math.max(18,Math.min(90,(scrollHeight+viewHeight)/12))+'s';
+     } else if(scrollWindow){scrollWindow.style.display='none';}
      if(content&&content.textContent.trim())text('#tvp-ad-foot',content.textContent.replace(/\s+/g,' ').trim());
    }
    const ad=src('#main-frame-advertisement-image'), adTile=$('#tvp-ad-title')?.closest('.tile');
    if(ad&&ad.src&&adTile){let im=adTile.querySelector('img.tvp-real-ad');if(!im){im=document.createElement('img');im.className='tvp-real-ad';im.style.cssText='width:100%;max-height:150px;object-fit:contain;border-radius:10px;margin-top:8px';adTile.insertBefore(im,adTile.querySelector('.adfoot'));}im.src=ad.src;im.style.display=getComputedStyle(src('#main-frame-advertisement')).display==='none'?'none':'block';}
-   const ticker=src('#event-running');if(ticker&&ticker.textContent.trim()){const t=$('#tvp-ticker');if(t)t.innerHTML='<strong>INFO MASJID</strong> '+ticker.textContent.trim();}
+   const ticker=src('#event-running');if(ticker){const value=ticker.textContent.trim();const t=$('#tvp-ticker');if(t&&value&&t.getAttribute('data-running-text')!==value){t.setAttribute('data-running-text',value);t.innerHTML='<span class="tvp-running-track"><strong>INFO MASJID</strong><span>'+value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span><strong>INFO MASJID</strong><span>'+value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span></span>';}}
    const liveZone=src('.tz-text');if(liveZone)text('#tvp-brand-name','AUDIO MASJID · '+liveZone.textContent.trim());
  }
  sync();setInterval(sync,1000);
