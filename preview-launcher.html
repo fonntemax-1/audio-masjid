@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audio Masjid — TV Launcher Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--gold:#e7c879;--muted:#a5a8b4;--panel:rgba(255,255,255,.075);--line:rgba(255,255,255,.12)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#080a10;color:#fff;font-family:Manrope,Arial,sans-serif}
+body{min-height:100vh;overflow-x:hidden;background:radial-gradient(ellipse at 78% 4%,rgba(82,92,128,.22),transparent 34%),radial-gradient(ellipse at 10% 85%,rgba(121,83,42,.14),transparent 35%),#080a10}
+.screen{width:min(100%,1600px);min-height:100vh;margin:auto;padding:clamp(22px,4vw,64px);display:flex;flex-direction:column;gap:clamp(22px,3vh,42px)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:14px}.mark{width:48px;height:48px;border:1px solid rgba(231,200,121,.6);border-radius:16px;display:grid;place-items:center;color:var(--gold);font-size:25px;background:linear-gradient(145deg,rgba(231,200,121,.16),rgba(255,255,255,.025));box-shadow:0 8px 30px #0005}
+.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:800}.brand-name{font-family:Outfit,sans-serif;font-size:clamp(19px,2vw,28px);font-weight:700;letter-spacing:.015em;margin-top:3px}
+.top-right{display:flex;align-items:center;gap:24px}.weather{color:#dfe2eb;font-size:14px;display:flex;align-items:center;gap:9px}.weather .sun{font-size:25px}.clock{text-align:right;font-family:Outfit,sans-serif;font-size:clamp(26px,3.2vw,44px);font-weight:600;letter-spacing:.035em;font-variant-numeric:tabular-nums}.date{text-align:right;color:var(--muted);font-size:12px;margin-top:2px}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(18px,3vw,42px);align-items:stretch}
+.welcome{min-height:250px;border-radius:30px;padding:clamp(25px,3.2vw,48px);position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(115deg,rgba(39,43,57,.94),rgba(19,21,30,.86)),radial-gradient(circle at 85% 10%,#73613d,transparent 45%);border:1px solid var(--line);box-shadow:0 24px 70px #0005}
+.welcome:after{content:"";position:absolute;width:280px;height:280px;border:1px solid rgba(231,200,121,.13);border-radius:50%;right:-65px;top:-100px;box-shadow:0 0 0 28px rgba(231,200,121,.025),0 0 0 58px rgba(231,200,121,.02)}
+.welcome>*{position:relative;z-index:1}.welcome .small{font-size:12px;text-transform:uppercase;letter-spacing:.2em;color:var(--gold);font-weight:800}.welcome h1{font-family:Outfit,sans-serif;font-size:clamp(30px,4.1vw,58px);line-height:1.05;letter-spacing:-.04em;margin:16px 0 10px;max-width:650px}.welcome p{color:#b8bbc6;font-size:clamp(13px,1.2vw,16px);margin:0}.location{display:flex;align-items:center;gap:9px;color:#e6e7ed;font-size:13px;margin-top:28px}.location span{color:var(--gold)}
+.next{border-radius:30px;padding:clamp(24px,3vw,40px);background:linear-gradient(145deg,rgba(231,200,121,.16),rgba(255,255,255,.035) 70%);border:1px solid rgba(231,200,121,.28);display:flex;flex-direction:column;justify-content:space-between;min-height:250px}
+.next-head{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#e9d8ad;font-size:12px;font-weight:800;letter-spacing:.15em;text-transform:uppercase}.live-dot{width:7px;height:7px;border-radius:50%;background:#7ee0b2;display:inline-block;margin-right:7px;box-shadow:0 0 14px #7ee0b2}
+.next-name{font-family:Outfit,sans-serif;font-size:clamp(27px,3.4vw,48px);font-weight:700;margin:22px 0 0}.next-time{font-family:Outfit,sans-serif;font-size:clamp(38px,5.2vw,72px);font-weight:600;letter-spacing:-.04em;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.1}.next-caption{color:#c1c2cc;font-size:13px;margin-top:8px}
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px}.section-title{font-family:Outfit,sans-serif;font-size:clamp(18px,2vw,25px);font-weight:700;letter-spacing:-.02em}.section-note{color:var(--muted);font-size:12px}
+.prayers{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.prayer{border-radius:20px;background:var(--panel);border:1px solid var(--line);padding:clamp(15px,1.7vw,24px) 12px;min-height:112px;transition:transform .25s,border-color .25s,background .25s;position:relative;overflow:hidden}
+.prayer.active{background:linear-gradient(145deg,rgba(231,200,121,.2),rgba(255,255,255,.06));border-color:rgba(231,200,121,.62);transform:translateY(-4px);box-shadow:0 12px 32px #0004}
+.prayer.active:after{content:"";height:2px;position:absolute;left:18px;right:18px;bottom:0;background:var(--gold);box-shadow:0 0 14px var(--gold)}
+.pname{color:#c1c4cf;font-size:clamp(11px,1vw,14px);font-weight:700}.ptime{font-family:Outfit,sans-serif;font-size:clamp(20px,2.2vw,31px);font-weight:600;margin-top:14px;font-variant-numeric:tabular-nums}.prayer.active .pname{color:var(--gold)}
+.tiles{display:grid;grid-template-columns:1.15fr 1fr 1fr 1fr;gap:12px}
+.tile{border-radius:20px;min-height:105px;padding:20px 22px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);display:flex;align-items:center;gap:16px;transition:transform .2s,background .2s}.tile:hover{transform:translateY(-3px);background:rgba(255,255,255,.085)}
+.tile-icon{width:46px;height:46px;flex:0 0 46px;border-radius:15px;background:rgba(231,200,121,.12);display:grid;place-items:center;color:var(--gold);font-size:22px}.tile-title{font-weight:800;font-size:14px}.tile-sub{color:var(--muted);font-size:12px;margin-top:5px;line-height:1.4}
+.footer{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#777d8d;font-size:11px;margin-top:auto;padding-top:8px}.footer strong{color:#b8bbc6;font-weight:600}.preview-tag{color:var(--gold);border:1px solid rgba(231,200,121,.3);padding:7px 10px;border-radius:99px;letter-spacing:.12em;text-transform:uppercase;font-size:9px;font-weight:800}
+@media(max-width:850px){.screen{padding:22px;gap:22px}.hero{grid-template-columns:1fr}.welcome,.next{min-height:210px}.prayers{grid-template-columns:repeat(3,minmax(0,1fr))}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.top-right{gap:12px}.weather{display:none}}
+@media(max-width:480px){.screen{padding:16px;gap:18px}.mark{width:40px;height:40px;border-radius:13px}.eyebrow{font-size:9px}.brand-name{font-size:17px}.clock{font-size:25px}.date{font-size:10px}.welcome,.next{border-radius:23px;padding:24px}.welcome h1{font-size:34px}.prayers{gap:8px}.prayer{padding:14px 10px;min-height:88px;border-radius:15px}.ptime{font-size:23px;margin-top:10px}.tiles{gap:8px}.tile{padding:14px;gap:10px;min-height:90px;border-radius:16px}.tile-icon{width:36px;height:36px;flex-basis:36px;border-radius:12px;font-size:18px}.tile-title{font-size:12px}.tile-sub{font-size:10px}.section-note{display:none}.footer{font-size:9px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="screen">
+  <header class="topbar">
+    <div class="brand"><div class="mark">۞</div><div><div class="eyebrow">Digital Masjid Display</div><div class="brand-name">AUDIO MASJID</div></div></div>
+    <div class="top-right"><div class="weather"><span class="sun">☼</span><span>Cuaca cerah <strong>28°</strong><br><span style="font-size:11px;color:#969baa">Balikpapan</span></span></div><div><div class="clock" id="clock">05:24:18</div><div class="date" id="date">Minggu, 25 Oktober 2026</div></div></div>
+  </header>
+  <section class="hero">
+    <div class="welcome"><div><div class="small">Assalamu'alaikum warahmatullahi wabarakatuh</div><h1>Waktu terbaik<br>untuk mendekat.</h1><p>Jaga waktu sholat, tenangkan hati.</p></div><div class="location"><span>⌖</span> BALIKPAPAN <span>•</span> KALIMANTAN TIMUR <span>•</span> WITA</div></div>
+    <div class="next"><div class="next-head"><span><i class="live-dot"></i>Waktu sholat berikutnya</span><span>●</span></div><div><div class="next-name">Subuh</div><div class="next-time">04:42</div><div class="next-caption">Menuju waktu Subuh · jadwal contoh</div></div></div>
+  </section>
+  <section>
+    <div class="section-head" style="margin-bottom:14px"><div class="section-title">Jadwal Sholat</div><div class="section-note">Minggu, 25 Oktober 2026 · WITA</div></div>
+    <div class="prayers">
+      <div class="prayer active"><div class="pname">SUBUH</div><div class="ptime">04:42</div></div>
+      <div class="prayer"><div class="pname">TERBIT</div><div class="ptime">05:54</div></div>
+      <div class="prayer"><div class="pname">ZUHUR</div><div class="ptime">12:04</div></div>
+      <div class="prayer"><div class="pname">ASAR</div><div class="ptime">15:17</div></div>
+      <div class="prayer"><div class="pname">MAGHRIB</div><div class="ptime">18:09</div></div>
+      <div class="prayer"><div class="pname">ISYA</div><div class="ptime">19:19</div></div>
+    </div>
+  </section>
+  <section>
+    <div class="section-head" style="margin-bottom:14px"><div class="section-title">Informasi Masjid</div><div class="section-note">Pilih panel untuk melihat informasi</div></div>
+    <div class="tiles">
+      <div class="tile"><div class="tile-icon">☾</div><div><div class="tile-title">Kalender Hijriah</div><div class="tile-sub">4 Jumadil Awal 1448 H · contoh</div></div></div>
+      <div class="tile"><div class="tile-icon">▤</div><div><div class="tile-title">Pengumuman</div><div class="tile-sub">Informasi dan kegiatan masjid</div></div></div>
+      <div class="tile"><div class="tile-icon">♡</div><div><div class="tile-title">Infaq & Shadaqah</div><div class="tile-sub">QRIS dan informasi donasi</div></div></div>
+      <div class="tile"><div class="tile-icon">◈</div><div><div class="tile-title">Keuangan & Zakat</div><div class="tile-sub">Ringkasan informasi jamaah</div></div></div>
+    </div>
+  </section>
+  <footer class="footer"><span><strong>Audio Masjid</strong> · Konsep visual TV launcher</span><span class="preview-tag">Preview visual · Data contoh</span></footer>
+</main>
+<script>
+function updateClock(){const now=new Date();document.getElementById('clock').textContent=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Makassar',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now);document.getElementById('date').textContent=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Makassar',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now)}
+updateClock();setInterval(updateClock,1000);
+</script>
+</body>
+</html>
