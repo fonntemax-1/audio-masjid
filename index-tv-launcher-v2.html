@@ -896,6 +896,37 @@ body{background:radial-gradient(ellipse at 78% 0%,rgba(70,91,116,.24),transparen
 @keyframes tvp-vertical-scroll{0%{transform:translateY(100%)}100%{transform:translateY(-100%)}}
 #tv-launcher-new-display .brand-name,#tv-launcher-new-display .mosque-title{overflow-wrap:anywhere}
 @media(max-width:900px){#tv-launcher-new-display .wrap{padding:8px}#tv-launcher-new-display .screen{min-height:calc(100vh - 72px)}}
+
+/* Perbaikan responsif setelah header luar dihapus: seluruh layout tetap di dalam viewport. */
+html, body { width:100%; max-width:100%; overflow-x:hidden; }
+#tv-launcher-new-display,
+#tv-launcher-new-display * { box-sizing:border-box; }
+#tv-launcher-new-display { width:100%; max-width:100vw; overflow-x:hidden; }
+#tv-launcher-new-display .wrap { width:100%; max-width:100%; min-width:0; padding:clamp(8px,1.5vw,24px); }
+#tv-launcher-new-display .screen { width:100%; max-width:100%; min-width:0; }
+#tv-launcher-new-display .head,
+#tv-launcher-new-display .content,
+#tv-launcher-new-display .bottom,
+#tv-launcher-new-display .mosque,
+#tv-launcher-new-display .dateline,
+#tv-launcher-new-display .prayers,
+#tv-launcher-new-display .hero,
+#tv-launcher-new-display .side,
+#tv-launcher-new-display .tile { min-width:0; max-width:100%; }
+#tv-launcher-new-display .content { grid-template-columns:minmax(0,.86fr) minmax(0,1.65fr) minmax(0,.92fr); }
+#tv-launcher-new-display .side { min-width:0; }
+@media (max-width: 1200px) {
+  #tv-launcher-new-display .content { grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr); }
+  #tv-launcher-new-display .side { grid-column:1 / -1; }
+}
+@media (max-width: 900px) {
+  #tv-launcher-new-display .wrap { padding:8px; }
+  #tv-launcher-new-display .screen { padding:clamp(10px,2vw,18px); }
+  #tv-launcher-new-display .content { grid-template-columns:minmax(0,1fr); }
+  #tv-launcher-new-display .hero { grid-row:1; }
+  #tv-launcher-new-display .prayers { grid-row:2; }
+  #tv-launcher-new-display .side { grid-row:3; grid-column:auto; }
+}
 </style></head>
 
 <body class="startup-visual-hold">
