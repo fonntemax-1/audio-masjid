@@ -9,7 +9,7 @@
       "method": 20,
       "school": 0,
       "source": "AlAdhan API / method 20 (Indonesia)",
-      "updatedAt": "2026-10-24T22:59:38.971Z",
+      "updatedAt": "2026-10-25T04:59:36.289Z",
       "days": [
         {
           "date": "2026-10-01",
@@ -225,7 +225,7 @@
             "subuh": "04:37",
             "terbit": "05:55",
             "dzuhur": "11:59",
-            "ashar": "15:11",
+            "ashar": "15:12",
             "maghrib": "18:03",
             "isya": "19:12"
           },
@@ -401,7 +401,7 @@
             "subuh": "04:34",
             "terbit": "05:52",
             "dzuhur": "11:57",
-            "ashar": "15:14",
+            "ashar": "15:15",
             "maghrib": "18:01",
             "isya": "19:11"
           },
@@ -465,7 +465,7 @@
             "subuh": "04:33",
             "terbit": "05:52",
             "dzuhur": "11:56",
-            "ashar": "15:15",
+            "ashar": "15:16",
             "maghrib": "18:01",
             "isya": "19:12"
           },
@@ -515,5 +515,5 @@
   "provinsi": "Kalimantan Timur",
   "timezone": "Asia/Makassar",
   "source": "AlAdhan API / method 20 (Indonesia)",
-  "updatedAt": "2026-10-24T22:59:38.971Z"
+  "updatedAt": "2026-10-25T04:59:36.289Z"
 }
