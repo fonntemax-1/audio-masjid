@@ -19715,5 +19715,59 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  const watch=['#nama_masjid','#alamat_masjid','#slogan_masjid','#hijri-num','#hijri-text','#day-name','#date-full','#countdown','#countdown-title','#panel-black-prayer','#event-running','#fin-title','#fin-sub','#keuangan-content'];
  watch.forEach(s=>{const e=src(s);if(e)new MutationObserver(sync).observe(e,{childList:true,subtree:true,characterData:true,attributes:true});});
 })();
-</script></body>
+</script>
+<style id="tvp-viewport-hard-fix">
+html, body { margin:0 !important; width:100% !important; max-width:100% !important; overflow-x:clip !important; }
+#tv-launcher-new-display {
+  position:fixed !important; inset:0 !important; width:auto !important; max-width:none !important;
+  min-width:0 !important; overflow-x:hidden !important; overflow-y:auto !important;
+}
+#tv-launcher-new-display, #tv-launcher-new-display * { box-sizing:border-box !important; }
+#tv-launcher-new-display .wrap {
+  display:block !important; width:100% !important; max-width:none !important; min-width:0 !important;
+  margin:0 !important; padding:clamp(8px,1.2vw,20px) !important;
+}
+#tv-launcher-new-display .screen {
+  display:grid !important; width:100% !important; max-width:none !important; min-width:0 !important;
+  margin:0 !important; min-height:calc(100dvh - 2.4vw) !important;
+}
+#tv-launcher-new-display .head,
+#tv-launcher-new-display .content,
+#tv-launcher-new-display .bottom,
+#tv-launcher-new-display .mosque,
+#tv-launcher-new-display .mosque-identity,
+#tv-launcher-new-display .dateline,
+#tv-launcher-new-display .prayers,
+#tv-launcher-new-display .hero,
+#tv-launcher-new-display .side,
+#tv-launcher-new-display .tile { min-width:0 !important; max-width:100% !important; }
+#tv-launcher-new-display .content {
+  grid-template-columns:minmax(0,.86fr) minmax(0,1.65fr) minmax(0,.92fr) !important;
+  width:100% !important;
+}
+#tv-launcher-new-display .side { grid-column:auto !important; }
+@media (max-width: 1200px) {
+  #tv-launcher-new-display .content {
+    grid-template-columns:minmax(0, .8fr) minmax(0, 1.4fr) !important;
+  }
+  #tv-launcher-new-display .side {
+    grid-column:1 / -1 !important;
+    display:grid !important; grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  }
+}
+@media (max-width: 900px) {
+  #tv-launcher-new-display .wrap { padding:6px !important; }
+  #tv-launcher-new-display .screen { padding:10px !important; min-height:0 !important; }
+  #tv-launcher-new-display .head { grid-template-columns:minmax(0,1fr) !important; }
+  #tv-launcher-new-display .content { grid-template-columns:minmax(0,1fr) !important; }
+  #tv-launcher-new-display .hero { grid-row:1 !important; }
+  #tv-launcher-new-display .prayers { grid-row:2 !important; }
+  #tv-launcher-new-display .side {
+    grid-row:3 !important; grid-column:1 !important;
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+}
+</style>
+
+</body>
 </html>
