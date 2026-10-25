@@ -19562,6 +19562,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 <div id="tv-launcher-new-display">
 <div class="wrap">
+    <header class="top">
+    <div class="brand"><img src="./image/logo.png" alt="Logo dari repositori Audio Masjid" onerror="this.style.display='none'"><div><div class="eyebrow">TV DISPLAY • VISUAL PREVIEW</div><div class="brand-name" id="tvp-brand-name">AUDIO MASJID</div></div></div>
+    <div class="live"><span class="dot"></span> DESAIN PENGUJIAN · TIDAK MENGUBAH MAIN</div>
+  </header>
   <main class="screen">
     <section class="head">
       <div class="mosque">
@@ -19681,6 +19685,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    if(ad&&ad.src&&adTile){let im=adTile.querySelector('img.tvp-real-ad');if(!im){im=document.createElement('img');im.className='tvp-real-ad';im.style.cssText='width:100%;max-height:150px;object-fit:contain;border-radius:10px;margin-top:8px';adTile.insertBefore(im,adTile.querySelector('.adfoot'));}im.src=ad.src;im.style.display=getComputedStyle(src('#main-frame-advertisement')).display==='none'?'none':'block';}
    const ticker=src('#event-running');if(ticker){const value=ticker.textContent.trim();const t=$('#tvp-ticker');if(t&&value&&t.getAttribute('data-running-text')!==value){t.setAttribute('data-running-text',value);t.innerHTML='<span class="tvp-running-track"><strong>INFO MASJID</strong><span>'+value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span><strong>INFO MASJID</strong><span>'+value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span></span>';}}
  }
+ const liveZone=src('.tz-text');if(liveZone)text('#tvp-brand-name','AUDIO MASJID · '+liveZone.textContent.trim());
  sync();setInterval(sync,1000);
  const watch=['#nama_masjid','#alamat_masjid','#slogan_masjid','#hijri-num','#hijri-text','#day-name','#date-full','#countdown','#countdown-title','#panel-black-prayer','#event-running','#fin-title','#fin-sub','#keuangan-content'];
  watch.forEach(s=>{const e=src(s);if(e)new MutationObserver(sync).observe(e,{childList:true,subtree:true,characterData:true,attributes:true});});
