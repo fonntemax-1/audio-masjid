@@ -19771,12 +19771,17 @@ html, body { margin:0 !important; width:100% !important; max-width:100% !importa
 
 
 <style id="tvp-footer-visibility-fix">
-/* Footer tetap terlihat; halaman boleh memanjang dan discroll bila tinggi konten melebihi viewport. */
+/* Footer menjadi baris terakhir di dalam frame; frame mengikuti tinggi konten. */
 #tv-launcher-new-display .screen {
-  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  display: grid !important;
+  grid-template-rows: auto auto auto !important;
   height: auto !important;
   min-height: calc(100dvh - 2.4vw) !important;
-  overflow: visible !important;
+  overflow: hidden !important;
+  align-content: start !important;
+}
+#tv-launcher-new-display .content {
+  min-height: 0 !important;
 }
 #tv-launcher-new-display .bottom {
   display: flex !important;
@@ -19786,9 +19791,10 @@ html, body { margin:0 !important; width:100% !important; max-width:100% !importa
   min-height: 30px !important;
   width: 100% !important;
   max-width: 100% !important;
+  min-width: 0 !important;
   border-top: 1px solid #ffffff26 !important;
   padding-top: 15px !important;
-  margin-top: 0 !important;
+  margin: 0 !important;
   z-index: 2 !important;
 }
 #tv-launcher-new-display .ticker {
@@ -19796,7 +19802,7 @@ html, body { margin:0 !important; width:100% !important; max-width:100% !importa
   flex: 1 1 auto !important;
 }
 #tv-launcher-new-display .brandfoot {
-  flex: 0 0 auto !important;
+  flex: 0 1 auto !important;
 }
 @media (max-width: 900px) {
   #tv-launcher-new-display .screen {
