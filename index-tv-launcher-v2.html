@@ -19631,7 +19631,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         <div class="hero-bottom"><div class="countlabel">MENUJU SHOLAT</div><div class="count" id="tvp-count">-- : -- : --</div><div class="countsub">Countdown mengikuti jadwal dan status waktu sholat aplikasi</div><div class="rule"></div><div class="micro">WAKTU SHOLAT BERIKUTNYA</div><div class="announce" id="tvp-next-prayer">DZUHUR</div><div class="muted" id="tvp-next-sub">Nama waktu, countdown, dan penanda aktif mengikuti logika display yang sudah ada.</div></div>
         
         <div class="ticker hero-ticker" id="tvp-clock-ticker"><strong>INFO MASJID</strong> Running text informasi masjid.</div>
-        <div class="ticker hero-ticker" id="tvp-ticker"><strong>INFO MASJID</strong> Running text dari sheet running_text.</div>
       </section>
       <aside class="side">
         <div class="tile">
@@ -19712,7 +19711,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    }
    const ad=src('#main-frame-advertisement-image'), adTile=$('#tvp-ad-title')?.closest('.tile');
    if(ad&&ad.src&&adTile){let im=adTile.querySelector('img.tvp-real-ad');if(!im){im=document.createElement('img');im.className='tvp-real-ad';im.style.cssText='width:100%;max-height:150px;object-fit:contain;border-radius:10px;margin-top:8px';adTile.insertBefore(im,adTile.querySelector('.adfoot'));}im.src=ad.src;im.style.display=getComputedStyle(src('#main-frame-advertisement')).display==='none'?'none':'block';}
-   const ticker=src('#event-running');if(ticker){const value=ticker.textContent.trim();const t=$('#tvp-ticker');if(t&&value&&t.getAttribute('data-running-text')!==value){t.setAttribute('data-running-text',value);t.innerHTML='<span class="tvp-running-track"><strong>INFO MASJID</strong><span>'+value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span><strong>INFO MASJID</strong><span>'+value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span></span>';}}
  }
  sync();setInterval(sync,1000);
  const watch=['#nama_masjid','#alamat_masjid','#slogan_masjid','#hijri-num','#hijri-text','#day-name','#date-full','#countdown','#countdown-title','#panel-black-prayer','#event-running','#fin-title','#fin-sub','#keuangan-content'];
