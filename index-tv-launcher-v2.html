@@ -19992,7 +19992,26 @@ html, body { margin:0 !important; width:100% !important; max-width:100% !importa
 /* JAM DIGITAL memakai getEventRunningTextRows; ticker footer tetap memakai #event-running. */
 (function(){
   const target=document.querySelector('#tv-launcher-new-display #tvp-clock-ticker');
-  if(!target || typeof gasApiCall!=='function') return;
+  if(!target)return;
+  const API='https://script.google.com/macros/s/AKfycbxrmBOs_aFUSLjQy55gJDKBB9XMvNrJnpFwbOPWpzUmx-HAQcsnDMeDUH8JCvjA9hLh/exec';
+  function call(action){
+    return new Promise((resolve,reject)=>{
+      const cb='__tvClockTicker'+Date.now()+Math.random().toString(36).slice(2);
+      const script=document.createElement('script');
+      const query=new URLSearchParams({api:'1',action,callback:cb,_ts:String(Date.now())});
+      const timeout=setTimeout(()=>finish(Error('API timeout')),16000);
+      function finish(error,value){
+        clearTimeout(timeout);
+        try{delete window[cb]}catch(_){}
+        script.remove();
+        error?reject(error):resolve(value);
+      }
+      window[cb]=payload=>payload&&payload.success===true?finish(null,payload.data):finish(Error(payload&&payload.error||'API gagal'));
+      script.onerror=()=>finish(Error('API tidak dapat dihubungi'));
+      script.src=API+'?'+query.toString();
+      document.head.appendChild(script);
+    });
+  }
   function getText(data){
     if(Array.isArray(data)) return data.filter(Boolean).map(row=>{
       if(typeof row==='string') return row;
@@ -20009,7 +20028,7 @@ html, body { margin:0 !important; width:100% !important; max-width:100% !importa
   async function refresh(){
     if(busy)return; busy=true;
     try{
-      const data=await gasApiCall('getEventRunningTextRows',{});
+      const data=await call('getEventRunningTextRows');
       const value=getText(data);
       if(value&&target.getAttribute('data-running-text')!==value){
         const safe=value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
