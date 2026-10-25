@@ -9,7 +9,7 @@
       "method": 20,
       "school": 0,
       "source": "AlAdhan API / method 20 (Indonesia)",
-      "updatedAt": "2026-10-25T04:59:36.289Z",
+      "updatedAt": "2026-10-25T10:59:38.510Z",
       "days": [
         {
           "date": "2026-10-01",
@@ -17,7 +17,7 @@
             "subuh": "04:42",
             "terbit": "05:59",
             "dzuhur": "12:02",
-            "ashar": "15:07",
+            "ashar": "15:08",
             "maghrib": "18:06",
             "isya": "19:15"
           },
@@ -65,7 +65,7 @@
             "subuh": "04:41",
             "terbit": "05:58",
             "dzuhur": "12:01",
-            "ashar": "15:08",
+            "ashar": "15:09",
             "maghrib": "18:05",
             "isya": "19:14"
           },
@@ -113,7 +113,7 @@
             "subuh": "04:40",
             "terbit": "05:57",
             "dzuhur": "12:00",
-            "ashar": "15:09",
+            "ashar": "15:10",
             "maghrib": "18:04",
             "isya": "19:13"
           },
@@ -161,7 +161,7 @@
             "subuh": "04:39",
             "terbit": "05:56",
             "dzuhur": "12:00",
-            "ashar": "15:10",
+            "ashar": "15:11",
             "maghrib": "18:03",
             "isya": "19:13"
           },
@@ -273,7 +273,7 @@
             "subuh": "04:36",
             "terbit": "05:54",
             "dzuhur": "11:58",
-            "ashar": "15:12",
+            "ashar": "15:13",
             "maghrib": "18:02",
             "isya": "19:12"
           },
@@ -337,7 +337,7 @@
             "subuh": "04:35",
             "terbit": "05:53",
             "dzuhur": "11:57",
-            "ashar": "15:13",
+            "ashar": "15:14",
             "maghrib": "18:01",
             "isya": "19:11"
           },
@@ -515,5 +515,5 @@
   "provinsi": "Kalimantan Timur",
   "timezone": "Asia/Makassar",
   "source": "AlAdhan API / method 20 (Indonesia)",
-  "updatedAt": "2026-10-25T04:59:36.289Z"
+  "updatedAt": "2026-10-25T10:59:38.510Z"
 }
