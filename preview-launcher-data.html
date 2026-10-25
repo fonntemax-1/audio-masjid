@@ -32,7 +32,93 @@ body{width:100%;max-width:100vw;background:radial-gradient(ellipse at 78% 0%,rgb
 .bottom{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;border-top:1px solid #ffffff12;padding-top:15px;position:relative;width:100%;min-width:0;max-width:100%;overflow:hidden}.ticker{color:#b6c0cc;font-size:12px;letter-spacing:.03em;display:flex;align-items:center;position:relative;min-width:0;width:auto;max-width:100%;overflow:hidden;white-space:nowrap}.ticker strong{color:var(--gold);margin-right:10px;display:block;flex:0 0 auto;white-space:nowrap}.ticker-window{display:block;flex:1 1 0%;width:0;min-width:0;max-width:100%;overflow:hidden;white-space:nowrap;contain:inline-size}.ticker-track{display:flex;width:max-content;max-width:none;animation:ticker-scroll 28s linear infinite}.ticker-track span{display:block;flex:0 0 auto;padding-right:72px}.ticker .ticker-window .ticker-track span{color:#D4AF37!important;-webkit-text-fill-color:#D4AF37!important}.ticker:hover .ticker-track{animation-play-state:paused}@keyframes ticker-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}.brandfoot{font-size:10px;letter-spacing:.15em;color:#727e8e;white-space:nowrap;flex:0 0 auto}
 .note{display:flex;align-items:center;flex:0 0 auto;min-width:0;overflow:hidden;border:1px solid #e8ca8230;background:#e8ca820b;color:#cbd1da;border-radius:12px;padding:11px 14px;font-size:11px;line-height:1.5;white-space:nowrap}.note .status-label{color:var(--gold);font-weight:800;flex:0 0 auto;margin-right:12px}.note .status-window{display:block;flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap}.note .status-window marquee{display:block;width:100%;color:inherit;font:inherit;white-space:nowrap}.note .status-window{flex:1;min-width:0;overflow:hidden}.note .status-label{flex:0 0 auto}
 @media(max-width:1050px){.screen{min-height:0}.content{grid-template-columns:minmax(180px,.8fr) minmax(300px,1.4fr);}.side{grid-column:1/-1;grid-template-columns:1fr 1fr;grid-template-rows:190px}.prayers{grid-template-rows:repeat(3,72px);grid-auto-flow:row;grid-template-columns:1fr 1fr}.hero{min-height:400px}.head{grid-template-columns:1fr}.dateline{justify-content:flex-start;text-align:left}.dateblock{min-width:auto}}
+
+/* Responsive layout: desktop/TV, tablet, and phone */
+@media(max-height:760px) and (min-width:1051px){
+  .top{padding-block:0}
+  .brand img{width:clamp(36px,4vw,50px);height:clamp(36px,4vw,50px)}
+  .screen{padding:clamp(10px,1.1vw,18px);gap:clamp(8px,1vh,14px)}
+  .content{gap:clamp(8px,1vw,14px)}
+  .prayers{gap:clamp(4px,.7vh,8px)}
+  .prayer{padding:clamp(7px,.8vw,12px)}
+  .tile{padding:clamp(10px,1vw,16px)}
+  .hero-top,.hero-bottom{padding:clamp(12px,1.4vw,22px)}
+  .bottom{padding-top:clamp(7px,.8vh,12px)}
+}
+@media(max-width:1050px){
+  html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
+  body{overflow-y:auto}
+  .wrap{height:auto;min-height:calc(100dvh - 16px);max-width:100%}
+  .screen{flex:0 0 auto;overflow:visible}
+  .content{grid-template-columns:minmax(0,.85fr) minmax(0,1.4fr);align-items:stretch}
+  .prayers{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(64px,auto));grid-auto-flow:row}
+  .hero{min-height:clamp(350px,55vh,560px)}
+  .side{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(170px,auto)}
+  .head{grid-template-columns:minmax(0,1fr);gap:14px}
+  .dateline{grid-template-columns:max-content max-content;justify-content:start;text-align:left}
+  .hijri-line{justify-content:flex-start}
+  .day-arabic,.day-name{justify-self:start}
+  .gregorian-line{justify-content:flex-start}
+  .bottom{grid-template-columns:minmax(0,1fr) auto}
+}
+@media(max-width:650px){
+  body{padding:8px;overflow-y:auto}
+  .wrap{height:auto;min-height:calc(100dvh - 16px);gap:10px}
+  .top{gap:8px;align-items:center}
+  .brand{gap:9px}
+  .brand img{width:36px;height:36px}
+  .eyebrow{font-size:9px;letter-spacing:.12em}
+  .brand-name{font-size:clamp(16px,4.5vw,22px)}
+  .live{font-size:9px;gap:5px}
+  .screen{padding:10px;border-radius:16px;gap:12px;overflow:visible}
+  .head{gap:12px}
+  .mosque{gap:9px}
+  .mosque img{width:40px;height:40px;flex:0 0 auto}
+  .mosque-title{font-size:clamp(15px,4vw,20px);overflow-wrap:anywhere}
+  .mosque-sub,.location-comma{font-size:10px;overflow-wrap:anywhere}
+  .mosque-identity{min-width:0}
+  .dateline{width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:8px;row-gap:6px}
+  .weather-line{grid-column:1/-1;grid-row:1;justify-content:flex-start;white-space:normal}
+  .day-arabic{grid-column:1;grid-row:2;font-size:16px}
+  .day-name{grid-column:2;grid-row:2;font-size:clamp(12px,3.4vw,16px)}
+  .hijri-line{grid-column:1/-1;grid-row:3;white-space:normal;flex-wrap:wrap}
+  .hijri-text{white-space:normal}
+  .gregorian-line{grid-column:1/-1;grid-row:4;flex-wrap:wrap;white-space:normal}
+  .datesmall,.hijri{font-size:10px}
+  .content{grid-template-columns:minmax(0,1fr);gap:10px}
+  .hero{grid-row:1;min-height:clamp(300px,58svh,440px)}
+  .prayers{grid-row:2;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(58px,auto));gap:7px}
+  .prayer{padding:9px;border-radius:11px;gap:5px}
+  .pname{font-size:clamp(10px,2.8vw,12px);letter-spacing:.04em}
+  .ptime{font-size:clamp(16px,4.5vw,21px)}
+  .side{grid-row:3;grid-column:auto;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;gap:10px}
+  .tile{padding:14px;min-height:170px}
+  .hero-top,.hero-bottom{padding:16px}
+  .clock{font-size:clamp(40px,11vw,58px)}
+  .clock span{margin-left:5px}
+  .hero-countdown .micro{font-size:12px}
+  .hero-countdown .announce{font-size:clamp(25px,7vw,36px)}
+  .count{font-size:clamp(25px,7vw,34px)}
+  .bottom{grid-template-columns:minmax(0,1fr);gap:6px;padding-top:10px}
+  .ticker{font-size:11px;max-width:100%;width:100%}
+  .brandfoot{display:none}
+  .note{white-space:normal}
+}
+@media(max-width:360px){
+  .live{font-size:8px}
+  .brand-name{font-size:15px}
+  .mosque-title{font-size:15px}
+  .prayer{padding:8px}
+  .ptime{font-size:16px}
+  .hero{min-height:290px}
+  .zone{font-size:9px;padding:6px 8px}
+}
+
 @media(max-width:650px){body{padding:10px;overflow:auto}.wrap{gap:10px}.top{align-items:flex-start}.brand img{width:42px;height:42px}.live{font-size:10px}.screen{padding:13px;border-radius:20px;gap:14px}.head{gap:14px}.mosque img{width:48px;height:48px}.mosque-title{font-size:17px}.mosque-sub{font-size:10px}.dateline{column-gap:8px;row-gap:9px;justify-content:end}.datebig{font-size:13px}.datesmall,.hijri{font-size:10px}.gregorian-line{gap:5px}.content{grid-template-columns:1fr;gap:12px}.hero{grid-row:1;min-height:360px}.prayers{grid-row:2;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,67px);gap:7px}.prayer{padding:10px;border-radius:13px}.ptime{font-size:18px}.pname{font-size:11px}.side{grid-row:3;grid-template-columns:1fr;grid-template-rows:190px 190px;gap:10px}.hero-top,.hero-bottom{padding:18px}.clock{font-size:54px}.count{font-size:30px}.bottom{align-items:flex-start;flex-direction:column}.brandfoot{display:none}}
+
+/* Final responsive overrides take precedence over legacy breakpoint rules */
+@media(max-width:1050px){.wrap{height:auto!important}.screen{overflow:visible!important}.content{min-height:0}}
+@media(max-width:650px){.bottom{flex-direction:initial!important;align-items:stretch!important}.ticker-window{width:0}}
 </style>
 </head>
 <body>
