@@ -19629,7 +19629,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         <div class="hero-bg"></div>
         <div class="hero-top"><div><div class="micro">JAM DIGITAL</div><div class="clock" id="clock">00:00:00<span>WITA*</span></div></div><div class="zone">DISPLAY MASJID</div></div>
         <div class="hero-bottom"><div class="countlabel">MENUJU SHOLAT</div><div class="count" id="tvp-count">-- : -- : --</div><div class="countsub">Countdown mengikuti jadwal dan status waktu sholat aplikasi</div><div class="rule"></div><div class="micro">WAKTU SHOLAT BERIKUTNYA</div><div class="announce" id="tvp-next-prayer">DZUHUR</div><div class="muted" id="tvp-next-sub">Nama waktu, countdown, dan penanda aktif mengikuti logika display yang sudah ada.</div></div>
-        <div class="ticker hero-ticker" id="tvp-ticker"><strong>INFO MASJID</strong> Running text dari aplikasi aktif.</div>
+        
       </section>
       <aside class="side">
         <div class="tile">
@@ -19644,7 +19644,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         </div>
       </aside>
     </section>
-    <footer class="bottom"><div class="brandfoot">DARK BENTO × TV LAUNCHER</div></footer>
+    <footer class="bottom"><div class="ticker main-frame-ticker" id="tvp-ticker"><strong>INFO MASJID</strong> Running text dari sheet running_text.</div><div class="brandfoot">DARK BENTO × TV LAUNCHER</div></footer>
   </main>
 </div>
 </div>
@@ -19890,5 +19890,55 @@ html, body { margin:0 !important; width:100% !important; max-width:100% !importa
   justify-content:flex-end !important;
 }
 </style>
+
+<style id="tvp-running-text-main-frame-bottom">
+/* Running text memakai data aktif aplikasi dari #event-running (sumber data sheet running_text)
+   dan ditempatkan pada baris paling bawah frame utama. */
+#tv-launcher-new-display .bottom {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:16px !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+#tv-launcher-new-display .main-frame-ticker {
+  display:block !important;
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  width:100% !important;
+  font-size:clamp(13px,1.05vw,17px) !important;
+  line-height:1.4 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:clip !important;
+}
+#tv-launcher-new-display .main-frame-ticker .tvp-running-track {
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:clamp(28px,4vw,64px) !important;
+  width:max-content !important;
+  white-space:nowrap !important;
+  animation:tvpInfoTickerScroll 28s linear infinite !important;
+}
+#tv-launcher-new-display .main-frame-ticker strong {
+  color:var(--gold) !important;
+  margin:0 !important;
+  flex:none !important;
+}
+#tv-launcher-new-display .brandfoot {
+  flex:0 0 auto !important;
+}
+@keyframes tvpInfoTickerScroll {
+  from { transform:translateX(0); }
+  to { transform:translateX(-50%); }
+}
+@media (max-width:900px) {
+  #tv-launcher-new-display .bottom { gap:8px !important; }
+  #tv-launcher-new-display .main-frame-ticker { font-size:clamp(12px,2vw,16px) !important; }
+  #tv-launcher-new-display .brandfoot { display:none !important; }
+}
+</style>
+
 </body>
 </html>
