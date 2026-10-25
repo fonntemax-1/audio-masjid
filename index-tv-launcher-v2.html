@@ -19630,6 +19630,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         <div class="hero-top"><div><div class="micro">JAM DIGITAL</div><div class="clock" id="clock">00:00:00<span>WITA*</span></div></div><div class="zone">DISPLAY MASJID</div></div>
         <div class="hero-bottom"><div class="countlabel">MENUJU SHOLAT</div><div class="count" id="tvp-count">-- : -- : --</div><div class="countsub">Countdown mengikuti jadwal dan status waktu sholat aplikasi</div><div class="rule"></div><div class="micro">WAKTU SHOLAT BERIKUTNYA</div><div class="announce" id="tvp-next-prayer">DZUHUR</div><div class="muted" id="tvp-next-sub">Nama waktu, countdown, dan penanda aktif mengikuti logika display yang sudah ada.</div></div>
         
+        <div class="ticker hero-ticker" id="tvp-clock-ticker"><strong>INFO MASJID</strong> Running text informasi masjid.</div>
       </section>
       <aside class="side">
         <div class="tile">
@@ -19939,6 +19940,89 @@ html, body { margin:0 !important; width:100% !important; max-width:100% !importa
   #tv-launcher-new-display .brandfoot { display:none !important; }
 }
 </style>
+
+
+<style id="tvp-clock-ticker-bottom-font-fix">
+/* Running text JAM DIGITAL memiliki sumber terpisah dari running text frame utama. */
+#tv-launcher-new-display .hero {
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:space-between !important;
+  min-width:0 !important;
+  min-height:0 !important;
+}
+#tv-launcher-new-display .hero-bottom { flex:1 1 auto !important; min-height:0 !important; }
+#tv-launcher-new-display .hero-ticker {
+  position:relative !important;
+  z-index:2 !important;
+  display:block !important;
+  flex:0 0 auto !important;
+  width:100% !important;
+  min-width:0 !important;
+  margin:0 !important;
+  padding:14px clamp(18px,2vw,28px) 16px !important;
+  border-top:1px solid #ffffff35 !important;
+  color:#d9e0e9 !important;
+  font-size:clamp(15px,1.2vw,19px) !important;
+  line-height:1.4 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:clip !important;
+  box-sizing:border-box !important;
+}
+#tv-launcher-new-display .hero-ticker .tvp-running-track {
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:clamp(30px,4vw,68px) !important;
+  width:max-content !important;
+  white-space:nowrap !important;
+  animation:tvpClockTickerScroll 30s linear infinite !important;
+}
+#tv-launcher-new-display .hero-ticker strong {
+  color:var(--gold) !important;
+  margin:0 !important;
+  flex:none !important;
+}
+@keyframes tvpClockTickerScroll {
+  from { transform:translateX(0); }
+  to { transform:translateX(-50%); }
+}
+</style>
+<script id="tvp-clock-ticker-independent-source">
+/* JAM DIGITAL memakai getEventRunningTextRows; ticker footer tetap memakai #event-running. */
+(function(){
+  const target=document.querySelector('#tv-launcher-new-display #tvp-clock-ticker');
+  if(!target || typeof gasApiCall!=='function') return;
+  function getText(data){
+    if(Array.isArray(data)) return data.filter(Boolean).map(row=>{
+      if(typeof row==='string') return row;
+      if(row&&typeof row==='object') return row.text||row.teks||row.runningText||row.pesan||Object.values(row).find(v=>typeof v==='string'&&v.trim())||'';
+      return '';
+    }).filter(Boolean).join(' • ');
+    if(data&&typeof data==='object'){
+      const rows=data.rows||data.runningText||data.running_text||data.text||data.data;
+      if(rows!==undefined&&rows!==data) return getText(rows);
+    }
+    return typeof data==='string'?data.trim():'';
+  }
+  let busy=false;
+  async function refresh(){
+    if(busy)return; busy=true;
+    try{
+      const data=await gasApiCall('getEventRunningTextRows',{});
+      const value=getText(data);
+      if(value&&target.getAttribute('data-running-text')!==value){
+        const safe=value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        target.setAttribute('data-running-text',value);
+        target.innerHTML='<span class="tvp-running-track"><strong>INFO MASJID</strong><span>'+safe+'</span><strong>INFO MASJID</strong><span>'+safe+'</span></span>';
+      }
+    }catch(e){console.warn('Ticker JAM DIGITAL gagal memuat sumber running text terpisah:',e);}
+    finally{busy=false;}
+  }
+  refresh();
+  setInterval(refresh,60000);
+})();
+</script>
 
 </body>
 </html>
