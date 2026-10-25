@@ -19771,14 +19771,14 @@ html, body { margin:0 !important; width:100% !important; max-width:100% !importa
 
 
 <style id="tvp-footer-visibility-fix">
-/* Footer menjadi baris terakhir di dalam frame; frame mengikuti tinggi konten. */
+/* Samakan struktur frame dengan preview-launcher-data: header, konten fleksibel, footer di dalam frame. */
 #tv-launcher-new-display .screen {
   display: grid !important;
-  grid-template-rows: auto auto auto !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
   height: auto !important;
   min-height: calc(100dvh - 2.4vw) !important;
   overflow: hidden !important;
-  align-content: start !important;
+  align-content: stretch !important;
 }
 #tv-launcher-new-display .content {
   min-height: 0 !important;
@@ -19792,6 +19792,7 @@ html, body { margin:0 !important; width:100% !important; max-width:100% !importa
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
+  box-sizing: border-box !important;
   border-top: 1px solid #ffffff26 !important;
   padding-top: 15px !important;
   margin: 0 !important;
@@ -19808,6 +19809,7 @@ html, body { margin:0 !important; width:100% !important; max-width:100% !importa
   #tv-launcher-new-display .screen {
     min-height: 0 !important;
     grid-template-rows: auto auto auto !important;
+    overflow: visible !important;
   }
   #tv-launcher-new-display .bottom {
     flex-wrap: wrap !important;
