@@ -508,6 +508,499 @@
           "source": "AlAdhan API / method 20 (Indonesia)"
         }
       ]
+    },
+    "2026-11": {
+      "tahun": 2026,
+      "bulan": 11,
+      "kota": "Kota Balikpapan",
+      "provinsi": "Kalimantan Timur",
+      "timezone": "Asia/Makassar",
+      "method": 20,
+      "school": 0,
+      "source": "AlAdhan API / method 20 (Indonesia)",
+      "updatedAt": "2026-10-31T16:59:37.393Z",
+      "days": [
+        {
+          "date": "2026-11-01",
+          "jadwal": {
+            "subuh": "04:32",
+            "terbit": "05:51",
+            "dzuhur": "11:56",
+            "ashar": "15:16",
+            "maghrib": "18:01",
+            "isya": "19:12"
+          },
+          "hijri_day": "21",
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": "1448",
+          "hijri_formatted": "21 Jumadil Awal 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-02",
+          "jadwal": {
+            "subuh": "04:32",
+            "terbit": "05:51",
+            "dzuhur": "11:56",
+            "ashar": "15:16",
+            "maghrib": "18:01",
+            "isya": "19:12"
+          },
+          "hijri_day": "22",
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": "1448",
+          "hijri_formatted": "22 Jumadil Awal 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-03",
+          "jadwal": {
+            "subuh": "04:32",
+            "terbit": "05:51",
+            "dzuhur": "11:56",
+            "ashar": "15:17",
+            "maghrib": "18:01",
+            "isya": "19:12"
+          },
+          "hijri_day": "23",
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": "1448",
+          "hijri_formatted": "23 Jumadil Awal 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-04",
+          "jadwal": {
+            "subuh": "04:32",
+            "terbit": "05:51",
+            "dzuhur": "11:56",
+            "ashar": "15:17",
+            "maghrib": "18:01",
+            "isya": "19:12"
+          },
+          "hijri_day": "24",
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": "1448",
+          "hijri_formatted": "24 Jumadil Awal 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-05",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:51",
+            "dzuhur": "11:56",
+            "ashar": "15:17",
+            "maghrib": "18:01",
+            "isya": "19:12"
+          },
+          "hijri_day": "25",
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": "1448",
+          "hijri_formatted": "25 Jumadil Awal 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-06",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:51",
+            "dzuhur": "11:56",
+            "ashar": "15:18",
+            "maghrib": "18:01",
+            "isya": "19:13"
+          },
+          "hijri_day": "26",
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": "1448",
+          "hijri_formatted": "26 Jumadil Awal 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-07",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:51",
+            "dzuhur": "11:56",
+            "ashar": "15:18",
+            "maghrib": "18:01",
+            "isya": "19:13"
+          },
+          "hijri_day": "27",
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": "1448",
+          "hijri_formatted": "27 Jumadil Awal 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-08",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:51",
+            "dzuhur": "11:56",
+            "ashar": "15:18",
+            "maghrib": "18:01",
+            "isya": "19:13"
+          },
+          "hijri_day": "28",
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": "1448",
+          "hijri_formatted": "28 Jumadil Awal 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-09",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:51",
+            "dzuhur": "11:56",
+            "ashar": "15:19",
+            "maghrib": "18:01",
+            "isya": "19:13"
+          },
+          "hijri_day": "29",
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": "1448",
+          "hijri_formatted": "29 Jumadil Awal 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-10",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:51",
+            "dzuhur": "11:56",
+            "ashar": "15:19",
+            "maghrib": "18:01",
+            "isya": "19:13"
+          },
+          "hijri_day": "30",
+          "hijri_month_name": "Jumadil Awal",
+          "hijri_year": "1448",
+          "hijri_formatted": "30 Jumadil Awal 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-11",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:52",
+            "dzuhur": "11:56",
+            "ashar": "15:19",
+            "maghrib": "18:01",
+            "isya": "19:14"
+          },
+          "hijri_day": "1",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "1 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-12",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:52",
+            "dzuhur": "11:57",
+            "ashar": "15:19",
+            "maghrib": "18:02",
+            "isya": "19:14"
+          },
+          "hijri_day": "2",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "2 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-13",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:52",
+            "dzuhur": "11:57",
+            "ashar": "15:20",
+            "maghrib": "18:02",
+            "isya": "19:14"
+          },
+          "hijri_day": "3",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "3 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-14",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:52",
+            "dzuhur": "11:57",
+            "ashar": "15:20",
+            "maghrib": "18:02",
+            "isya": "19:14"
+          },
+          "hijri_day": "4",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "4 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-15",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:52",
+            "dzuhur": "11:57",
+            "ashar": "15:21",
+            "maghrib": "18:02",
+            "isya": "19:15"
+          },
+          "hijri_day": "5",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "5 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-16",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:52",
+            "dzuhur": "11:57",
+            "ashar": "15:21",
+            "maghrib": "18:02",
+            "isya": "19:15"
+          },
+          "hijri_day": "6",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "6 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-17",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:52",
+            "dzuhur": "11:57",
+            "ashar": "15:21",
+            "maghrib": "18:03",
+            "isya": "19:15"
+          },
+          "hijri_day": "7",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "7 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-18",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:52",
+            "dzuhur": "11:58",
+            "ashar": "15:22",
+            "maghrib": "18:03",
+            "isya": "19:16"
+          },
+          "hijri_day": "8",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "8 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-19",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:53",
+            "dzuhur": "11:58",
+            "ashar": "15:22",
+            "maghrib": "18:03",
+            "isya": "19:16"
+          },
+          "hijri_day": "9",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "9 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-20",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:53",
+            "dzuhur": "11:58",
+            "ashar": "15:22",
+            "maghrib": "18:03",
+            "isya": "19:17"
+          },
+          "hijri_day": "10",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "10 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-21",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:53",
+            "dzuhur": "11:58",
+            "ashar": "15:23",
+            "maghrib": "18:04",
+            "isya": "19:17"
+          },
+          "hijri_day": "11",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "11 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-22",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:53",
+            "dzuhur": "11:59",
+            "ashar": "15:23",
+            "maghrib": "18:04",
+            "isya": "19:17"
+          },
+          "hijri_day": "12",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "12 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-23",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:53",
+            "dzuhur": "11:59",
+            "ashar": "15:24",
+            "maghrib": "18:04",
+            "isya": "19:18"
+          },
+          "hijri_day": "13",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "13 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-24",
+          "jadwal": {
+            "subuh": "04:31",
+            "terbit": "05:54",
+            "dzuhur": "11:59",
+            "ashar": "15:24",
+            "maghrib": "18:04",
+            "isya": "19:18"
+          },
+          "hijri_day": "14",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "14 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-25",
+          "jadwal": {
+            "subuh": "04:32",
+            "terbit": "05:54",
+            "dzuhur": "11:59",
+            "ashar": "15:24",
+            "maghrib": "18:05",
+            "isya": "19:19"
+          },
+          "hijri_day": "15",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "15 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-26",
+          "jadwal": {
+            "subuh": "04:32",
+            "terbit": "05:54",
+            "dzuhur": "12:00",
+            "ashar": "15:25",
+            "maghrib": "18:05",
+            "isya": "19:19"
+          },
+          "hijri_day": "16",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "16 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-27",
+          "jadwal": {
+            "subuh": "04:32",
+            "terbit": "05:55",
+            "dzuhur": "12:00",
+            "ashar": "15:25",
+            "maghrib": "18:05",
+            "isya": "19:19"
+          },
+          "hijri_day": "17",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "17 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-28",
+          "jadwal": {
+            "subuh": "04:32",
+            "terbit": "05:55",
+            "dzuhur": "12:00",
+            "ashar": "15:26",
+            "maghrib": "18:06",
+            "isya": "19:20"
+          },
+          "hijri_day": "18",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "18 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-29",
+          "jadwal": {
+            "subuh": "04:32",
+            "terbit": "05:55",
+            "dzuhur": "12:01",
+            "ashar": "15:26",
+            "maghrib": "18:06",
+            "isya": "19:20"
+          },
+          "hijri_day": "19",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "19 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        },
+        {
+          "date": "2026-11-30",
+          "jadwal": {
+            "subuh": "04:33",
+            "terbit": "05:56",
+            "dzuhur": "12:01",
+            "ashar": "15:26",
+            "maghrib": "18:07",
+            "isya": "19:21"
+          },
+          "hijri_day": "20",
+          "hijri_month_name": "Jumadil Akhir",
+          "hijri_year": "1448",
+          "hijri_formatted": "20 Jumadil Akhir 1448 H",
+          "source": "AlAdhan API / method 20 (Indonesia)"
+        }
+      ]
     }
   },
   "success": true,
@@ -515,5 +1008,5 @@
   "provinsi": "Kalimantan Timur",
   "timezone": "Asia/Makassar",
   "source": "AlAdhan API / method 20 (Indonesia)",
-  "updatedAt": "2026-10-31T10:59:42.621Z"
+  "updatedAt": "2026-10-31T16:59:37.393Z"
 }
