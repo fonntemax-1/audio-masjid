@@ -518,7 +518,7 @@
       "method": 20,
       "school": 0,
       "source": "AlAdhan API / method 20 (Indonesia)",
-      "updatedAt": "2026-10-31T19:28:17.994Z",
+      "updatedAt": "2026-10-31T22:59:37.087Z",
       "days": [
         {
           "date": "2026-11-01",
@@ -542,7 +542,7 @@
             "subuh": "04:32",
             "terbit": "05:51",
             "dzuhur": "11:56",
-            "ashar": "15:16",
+            "ashar": "15:17",
             "maghrib": "18:01",
             "isya": "19:12"
           },
@@ -1008,5 +1008,5 @@
   "provinsi": "Kalimantan Timur",
   "timezone": "Asia/Makassar",
   "source": "AlAdhan API / method 20 (Indonesia)",
-  "updatedAt": "2026-10-31T19:28:17.994Z"
+  "updatedAt": "2026-10-31T22:59:37.087Z"
 }
