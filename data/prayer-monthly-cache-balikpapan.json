@@ -518,7 +518,7 @@
       "method": 20,
       "school": 0,
       "source": "AlAdhan API / method 20 (Indonesia)",
-      "updatedAt": "2026-11-07T10:59:38.179Z",
+      "updatedAt": "2026-11-07T16:59:51.608Z",
       "days": [
         {
           "date": "2026-11-01",
@@ -526,7 +526,7 @@
             "subuh": "04:32",
             "terbit": "05:51",
             "dzuhur": "11:56",
-            "ashar": "15:17",
+            "ashar": "15:16",
             "maghrib": "18:01",
             "isya": "19:12"
           },
@@ -542,7 +542,7 @@
             "subuh": "04:32",
             "terbit": "05:51",
             "dzuhur": "11:56",
-            "ashar": "15:17",
+            "ashar": "15:16",
             "maghrib": "18:01",
             "isya": "19:12"
           },
@@ -590,7 +590,7 @@
             "subuh": "04:31",
             "terbit": "05:51",
             "dzuhur": "11:56",
-            "ashar": "15:18",
+            "ashar": "15:17",
             "maghrib": "18:01",
             "isya": "19:12"
           },
@@ -638,7 +638,7 @@
             "subuh": "04:31",
             "terbit": "05:51",
             "dzuhur": "11:56",
-            "ashar": "15:19",
+            "ashar": "15:18",
             "maghrib": "18:01",
             "isya": "19:13"
           },
@@ -686,7 +686,7 @@
             "subuh": "04:31",
             "terbit": "05:52",
             "dzuhur": "11:56",
-            "ashar": "15:20",
+            "ashar": "15:19",
             "maghrib": "18:01",
             "isya": "19:14"
           },
@@ -702,7 +702,7 @@
             "subuh": "04:31",
             "terbit": "05:52",
             "dzuhur": "11:57",
-            "ashar": "15:20",
+            "ashar": "15:19",
             "maghrib": "18:02",
             "isya": "19:14"
           },
@@ -734,7 +734,7 @@
             "subuh": "04:31",
             "terbit": "05:52",
             "dzuhur": "11:57",
-            "ashar": "15:21",
+            "ashar": "15:20",
             "maghrib": "18:02",
             "isya": "19:14"
           },
@@ -782,7 +782,7 @@
             "subuh": "04:31",
             "terbit": "05:52",
             "dzuhur": "11:57",
-            "ashar": "15:22",
+            "ashar": "15:21",
             "maghrib": "18:03",
             "isya": "19:15"
           },
@@ -830,7 +830,7 @@
             "subuh": "04:31",
             "terbit": "05:53",
             "dzuhur": "11:58",
-            "ashar": "15:23",
+            "ashar": "15:22",
             "maghrib": "18:03",
             "isya": "19:17"
           },
@@ -910,7 +910,7 @@
             "subuh": "04:32",
             "terbit": "05:54",
             "dzuhur": "11:59",
-            "ashar": "15:25",
+            "ashar": "15:24",
             "maghrib": "18:05",
             "isya": "19:19"
           },
@@ -990,7 +990,7 @@
             "subuh": "04:33",
             "terbit": "05:56",
             "dzuhur": "12:01",
-            "ashar": "15:27",
+            "ashar": "15:26",
             "maghrib": "18:07",
             "isya": "19:21"
           },
@@ -1008,5 +1008,5 @@
   "provinsi": "Kalimantan Timur",
   "timezone": "Asia/Makassar",
   "source": "AlAdhan API / method 20 (Indonesia)",
-  "updatedAt": "2026-11-07T10:59:38.179Z"
+  "updatedAt": "2026-11-07T16:59:51.608Z"
 }
